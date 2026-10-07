@@ -14,6 +14,7 @@
     .then(async (config) => {
       const product = config.catalog?.find((item) => item.key === productKey) || config.catalog?.find((item) => item.returnPath === '/');
       if (productKey === 'cheonmyeong_consultation') { await renderConsultationResult(); return; }
+      trackPurchase();
       const success = state === 'paid';
       const continueUrl = paidReadingUrl(product, reportId, orderId);
       result.classList.toggle('is-success', success);
@@ -58,11 +59,29 @@
       const response = await fetch('/api/payment/orders/' + encodeURIComponent(orderId), { headers: { Authorization: 'Bearer ' + session.access_token }, cache: 'no-store' });
       if (!response.ok) throw new Error('ORDER_UNCONFIRMED');
       const order = (await response.json()).order;
+      global.UMSHAnalytics?.purchase?.(order);
       confirmed = order?.productKey === 'cheonmyeong_consultation' && Number.isInteger(order.amount) && order.amount >= 1 && order.amount <= 4900 && ['paid', 'viewed'].includes(order.status);
     }
     if (!active) return;
     result.classList.toggle('is-success', confirmed);
     result.innerHTML = `<h2>${confirmed ? '질문 5회 구매가 확인됐어요.' : '질문권 결제를 확인해 주세요.'}</h2><p>${confirmed ? '상담으로 돌아가 준비해 둔 질문을 이어서 보내 주세요.' : '확인된 결제만 상담 횟수에 반영됩니다. 결제를 취소했다면 기존 상담으로 돌아갈 수 있어요.'}</p><div class="payment-actions"><a class="primary" href="${escapeHtml(target)}">상담 이어가기</a><a href="/orders">결제 내역 보기</a></div>`;
+  }
+
+  /**
+   * GA4 구매 집계. 주소의 state=paid 는 누구나 붙일 수 있고 앱 결제는 state 없이 돌아오므로,
+   * 서버에서 주문 상태를 확인한 뒤에만 보낸다. 실패해도 화면에는 영향이 없다.
+   */
+  async function trackPurchase() {
+    if (!orderId || !global.UMSHAnalytics?.purchase || !global.supabase?.createClient) return;
+    try {
+      const authConfig = await fetch('/api/auth/config', { cache: 'no-store' }).then(response => response.json());
+      if (!authConfig.enabled) return;
+      const client = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
+      const token = (await client.auth.getSession()).data.session?.access_token;
+      if (!token) return;
+      const response = await fetch('/api/payment/orders/' + encodeURIComponent(orderId), { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+      if (response.ok) await global.UMSHAnalytics.purchase((await response.json()).order);
+    } catch (_error) { /* Measurement must never affect the payment result. */ }
   }
 
   function paidReadingUrl(product, reportId, orderId) {

@@ -183,6 +183,8 @@
 
     /* 페이지별 운영 화면: 숫자를 꾸며내지 않고, 연결 전에도 판단에 필요한 구조를 먼저 보인다. */
     .admin-workspace { display: grid; gap: var(--admin-space-3); }
+    /* 격자 칸은 기본으로 안쪽 내용 폭까지 늘어난다. 넓은 표는 표 안에서만 가로로 밀리게 칸 폭을 화면에 맞춘다(2026-10-06 휴대폰 폭에서 페이지 전체가 넓어짐). */
+    .admin-workspace > * { min-width: 0; }
     .admin-page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 6px; margin-bottom: 4px; }
     .admin-page-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
     .admin-page-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
@@ -284,6 +286,10 @@
     .admin-tip-box { position: absolute; left: 50%; top: 21px; z-index: 20; transform: translateX(-50%); width: max-content; max-width: 260px; padding: 8px 10px; border-radius: 6px; background: #1b1b1f; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.5; text-align: left; white-space: normal; display: none; pointer-events: none; }
     /* 숨김은 display:none — visibility 로 숨기면 화면 오른쪽 끝의 ⓘ 상자가 자리를 차지해 가로 스크롤이 생긴다(2026-10-06). */
     .admin-tip:hover .admin-tip-box, .admin-tip:focus-visible .admin-tip-box { display: block; }
+    /* 2026-10-06: 카드·표 안의 'span { display:block }' 같은 화면별 규칙이 숨김을 덮어써서 ⓘ 설명이 처음부터 펼쳐져 보였다.
+       어디에 들어가도 마우스를 올리거나 키보드로 고를 때만 보이도록 고정한다. 글자색·크기도 화면 규칙에 물들지 않게 한다. */
+    .admin-tip > .admin-tip-box { display: none !important; color: #fff !important; font-size: 12px !important; font-weight: 500 !important; margin: 0 !important; }
+    .admin-tip:hover > .admin-tip-box, .admin-tip:focus-visible > .admin-tip-box { display: block !important; }
     .admin-modal { width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 0; border-radius: 10px; box-shadow: 0 24px 64px rgba(0, 0, 0, .24); }
     .admin-modal[data-size='wide'] { width: min(980px, calc(100vw - 32px)); }
     .admin-modal::backdrop { background: rgba(17, 17, 24, .42); }
@@ -371,7 +377,8 @@
     .admin-tabs a em { font-style: normal; margin-left: 4px; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--admin-bg); color: var(--admin-text-muted); }
     .admin-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
     .admin-filterbar[hidden] { display: none; }
-    .admin-filter-search { margin-left: auto; min-width: 240px; }
+    .admin-filterbar input[data-table-search] { min-width: 220px; }
+    .admin-filter-search { min-width: 220px; }
     .admin-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 7px; background: #eceef3; }
     .admin-seg button { border: 0; background: none; padding: 5px 12px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; color: var(--admin-text-muted); cursor: pointer; }
     .admin-seg button[aria-pressed='true'] { background: var(--admin-surface); color: var(--admin-text); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
@@ -386,7 +393,8 @@
     .admin-channel { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
     .admin-channel::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--admin-focus); }
     .admin-pager { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; color: var(--admin-text-muted); font-size: 12px; }
-    .admin-pager-buttons { display: flex; align-items: center; gap: 6px; }
+    .admin-pager-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    @media (max-width: 600px) { .admin-pager { flex-wrap: wrap; gap: 8px; } .admin-section { min-width: 0; } }
     .admin-pager-buttons button { min-width: 30px; height: 30px; border: 1px solid var(--admin-line); border-radius: 6px; background: var(--admin-surface); font: inherit; cursor: pointer; }
     .admin-pager-buttons button:disabled { opacity: .4; cursor: default; }
     .admin-pager-current { min-width: 48px; text-align: center; color: var(--admin-text); }
@@ -439,6 +447,7 @@
     .admin-section-modal-close { position: absolute; top: 10px; right: 12px; z-index: 2; }
     .admin-modal[data-size='small'] { width: min(440px, calc(100vw - 32px)); }
     .admin-confirm-text { margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-line; }
+    .admin-confirm-warn { margin: 12px 0 0; padding: 8px 10px; border-radius: 6px; background: #fdeceb; color: var(--admin-state-error); font-size: 13px; font-weight: 700; }
     .admin-prompt label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
     .admin-button[data-tone='danger']:not([disabled]) { background: var(--admin-action-danger); border-color: var(--admin-action-danger); color: #fff; }
     .admin-toasts { position: fixed; right: 20px; bottom: 20px; z-index: 1000; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 40px)); }
@@ -452,7 +461,7 @@
     .admin-table th[aria-sort='descending']::after { content: '↓'; color: var(--admin-focus); }
     .admin-table th.admin-sortable:hover { color: var(--admin-text); }
     .admin-table tr[hidden] { display: none; }
-    .admin-table-tools { display: flex; justify-content: flex-end; padding: 10px 12px 6px; }
+    .admin-table-tools { display: flex; justify-content: flex-start; padding: 10px 12px 6px; }
     .admin-table-tools input { width: 240px; }
     .admin-icon-button { display: inline-grid; place-items: center; width: 30px; height: 30px; min-height: 30px; padding: 0; border: 1px solid var(--admin-line); border-radius: 6px; background: var(--admin-surface) !important; color: var(--admin-text-muted) !important; cursor: pointer; vertical-align: middle; }
     .admin-icon-button + .admin-icon-button, .admin-icon-button + .admin-button, .admin-button + .admin-icon-button { margin-left: 4px; }
@@ -493,6 +502,19 @@
     .admin-button:not([data-variant='quiet']):not([disabled]) { background: var(--admin-focus); border-color: var(--admin-focus); color: #fff; }
     .admin-button:not([data-variant='quiet']):not([disabled]):hover { background: #1a43b8; }
     .admin-button[data-variant='quiet']:hover { background: var(--admin-bg); }
+    /* 8단계 */
+    .admin-media-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--admin-line); background: var(--admin-bg); display: block; }
+    .admin-media-thumb[data-missing] { background: repeating-linear-gradient(45deg, #f1f1f4, #f1f1f4 4px, #fafafa 4px, #fafafa 8px); }
+    .admin-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--admin-text-muted); }
+    /* 회원 CRUD·확인 팝업(2026-10-06) */
+    /* 2026-10-07: 관리 열은 버튼 폭만큼만 차지하고 머리글 '관리'가 버튼 바로 위 가운데에 온다.
+       .admin-table td(왼쪽 정렬)보다 우선하도록 .admin-table 을 붙인다. */
+    .admin-table td.admin-row-actions, .admin-row-actions { white-space: nowrap; text-align: center; width: 1%; }
+    .admin-row-actions .admin-icon-button + .admin-icon-button { margin-left: 4px; }
+    .admin-table th.admin-actions-col { text-align: center; width: 1%; }
+    .admin-confirm-type { display: grid; gap: 6px; margin-top: 14px; font-size: 13px; color: var(--admin-text-muted); }
+    .admin-button[data-tone='danger-text'] { color: var(--admin-action-danger); border-color: #f0c9c6; }
+    .admin-button[data-tone='danger-text']:hover { background: #fdeceb; }
     /* 고객 지원·쿠폰(7단계) */
     .admin-timeline { display: grid; gap: 8px; max-height: 320px; overflow-y: auto; margin-bottom: 10px; }
     .admin-timeline-item { border-left: 2px solid var(--admin-line); padding: 2px 0 2px 10px; }
@@ -542,7 +564,19 @@
     .admin-dl.admin-dl-wide { grid-template-columns: 84px 1fr; }
     .admin-link { color: var(--admin-focus); text-decoration: none; font-weight: 600; }
     .admin-link:hover { text-decoration: underline; }
+    /* 2026-10-07: 팝업처럼 목록(왼쪽)과 미리보기·수정(오른쪽)을 반씩 나누는 화면 */
+    .admin-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    .admin-split > .admin-section { margin: 0; }
+    .admin-popup-editor .admin-notify-layout { grid-template-columns: 300px minmax(0, 1fr); }
+    .admin-popup-editor .admin-notify-preview { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+    .admin-popup-editor .admin-refund-form input { min-width: 0; width: 100%; box-sizing: border-box; }
+    .admin-table tr[aria-selected='true'] td { background: #eef3ff; }
+    .admin-popup-editor { min-height: 520px; display: flex; flex-direction: column; }
+    .admin-split-placeholder { flex: 1; display: grid; place-items: center; min-height: 480px; color: var(--admin-text-muted); font-size: 14px; }
+    .admin-split-placeholder[hidden], .admin-popup-editor [hidden] { display: none; }
+    @media (max-width: 1100px) { .admin-split { grid-template-columns: minmax(0, 1fr); } }
     .admin-copy { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+    .admin-mono { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 12px; }
     .admin-copy > span { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
     .admin-link-button { border: 0; background: none; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: var(--admin-focus); cursor: pointer; white-space: nowrap; }
     .admin-mini-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--admin-line); font-size: 13px; }
@@ -970,11 +1004,17 @@
         return dialog;
       }
 
-      /** 브라우저 확인 창 대신 쓰는 확인 팝업. 확인을 누르면 true. */
+      /**
+       * 브라우저 확인 창 대신 쓰는 확인 팝업. 확인을 누르면 true.
+       * options: { title, okLabel(동작 이름: '영구 삭제'·'지금 발송' 등), danger(빨간 버튼), irreversible(되돌릴 수 없음 경고) }
+       * 2026-10-06 사용자 요청: 삭제·발송처럼 한 번 하면 되돌릴 수 없는 동작은 반드시 이 팝업으로 한 번 더 묻는다.
+       */
       function adminConfirm(message, options) {
         var opts = options || {};
         return new Promise(function (resolve) {
-          var text = document.createElement('p'); text.className = 'admin-confirm-text'; text.textContent = message;
+          var text = document.createElement('div');
+          var line = document.createElement('p'); line.className = 'admin-confirm-text'; line.textContent = message; text.appendChild(line);
+          if (opts.irreversible) { var warn = document.createElement('p'); warn.className = 'admin-confirm-warn'; warn.textContent = '이 작업은 되돌릴 수 없습니다.'; text.appendChild(warn); }
           var answered = false;
           var dialog = openAdminModal({ title: opts.title || '확인', body: text, actions: [
             { label: '취소', onClick: function (d) { answered = true; resolve(false); d.close(); } },
@@ -1140,12 +1180,27 @@
         trash: '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         view: '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
       };
+      ICONS.lock = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="4.5" y="9" width="11" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
       var ICON_BUTTONS = [
         { match: /^(수정|편집)$/, icon: 'edit', label: '수정' },
         { match: /^(삭제|보관\(삭제\)|즉시 내리기|목록에서 내리기)$/, icon: 'trash', label: null },
         { match: /^(상세|상세 확인|승인 검토|처리|원인 확인)$/, icon: 'view', label: null },
+        { match: /^(정지|정지 해제)$/, icon: 'lock', label: null },
       ];
+      // 2026-10-07: 머리글이 '관리'인 열은 표마다 클래스를 붙이지 않아도 머리글과 버튼이 같은 줄(가운데)에 오게 한다.
+      function alignActionColumns(root) {
+        var tables = root.tagName === 'TABLE' ? [root] : Array.prototype.slice.call(root.querySelectorAll('table'));
+        tables.forEach(function (table) {
+          if (!table.tHead || !table.tHead.rows[0]) return;
+          Array.prototype.forEach.call(table.tHead.rows[0].cells, function (th, index) {
+            if (th.textContent.trim() !== '관리') return;
+            th.classList.add('admin-actions-col');
+            Array.prototype.forEach.call(table.tBodies, function (tbody) { Array.prototype.forEach.call(tbody.rows, function (row) { var cell = row.cells[index]; if (cell && !cell.hasAttribute('colspan')) cell.classList.add('admin-row-actions'); }); });
+          });
+        });
+      }
       function iconizeButtons(root) {
+        alignActionColumns(root);
         root.querySelectorAll('td button, td .admin-button').forEach(function (button) {
           if (button.hasAttribute('data-iconized')) return;
           var text = button.textContent.trim();
@@ -1200,13 +1255,27 @@
           th.addEventListener('click', sortBy);
           th.addEventListener('keydown', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); sortBy(); } });
         });
-        // 검색: 표 바로 위 오른쪽. 줄 안의 글자 어디든 맞으면 남긴다.
+        // 검색: 줄 안의 글자 어디든 맞으면 남긴다.
         var holder = table.closest('.admin-table-scroll') || table;
-        var tools = document.createElement('div'); tools.className = 'admin-table-tools';
-        var search = document.createElement('input'); search.type = 'search'; search.placeholder = '이 목록에서 검색'; search.setAttribute('aria-label', '목록 검색');
+        // 2026-10-07 요청: 회원 관리처럼 검색칸은 표 상자 밖, 위쪽 검색줄(.admin-filterbar) 맨 앞에 둔다.
+        // 표가 하나뿐인 상자면 바로 위 검색줄을 찾아 쓰고, 없으면 상자 앞에 새로 만든다. 표가 여러 개인 상자는 표 바로 위에 둔다.
+        var search = document.createElement('input'); search.type = 'search'; search.placeholder = '이 목록에서 검색'; search.setAttribute('aria-label', '목록 검색'); search.setAttribute('data-table-search', '');
         search.addEventListener('input', function () { state.query = search.value.trim().toLocaleLowerCase(); state.page = 0; render(); });
-        tools.appendChild(search);
-        holder.parentNode.insertBefore(tools, holder);
+        var box = holder.closest('.admin-section'); var bar = null;
+        if (box && box.parentNode && box.querySelectorAll('table.admin-table').length === 1) {
+          for (var node = box.previousElementSibling; node; node = node.previousElementSibling) {
+            if (node.classList.contains('admin-filterbar')) { bar = node; break; }
+            if (node.tagName === 'SECTION') break;
+          }
+          if (!bar) { bar = document.createElement('div'); bar.className = 'admin-filterbar'; box.parentNode.insertBefore(bar, box); }
+          // 같은 상자의 표를 다시 그리면(탭 전환 등) 예전 검색칸을 걷어 내고 입력한 글자는 이어받는다.
+          var previousSearch = bar.querySelector('input[data-table-search]');
+          if (previousSearch) { search.value = previousSearch.value; state.query = search.value.trim().toLocaleLowerCase(); previousSearch.remove(); }
+          bar.insertBefore(search, bar.firstChild);
+        } else {
+          var tools = document.createElement('div'); tools.className = 'admin-table-tools'; tools.appendChild(search);
+          holder.parentNode.insertBefore(tools, holder);
+        }
         // 아래: 건수 · 페이지 · 한 화면 개수(오른쪽 아래)
         var foot = document.createElement('div'); foot.className = 'admin-pager';
         var info = document.createElement('span');
@@ -1307,7 +1376,7 @@
        * 행을 누르면 회원 상세 팝업: 기본 정보 · 결제 · 리포트 · 문의 · 쿠폰 · 앱 기기 탭을 /members/:id/overview 한 번으로 채운다.
        */
       var memberListState = { offset: 0, limit: 20, q: '', paid: '', from: '', to: '', sort: 'recent' };
-      var MEMBER_PROVIDERS = { kakao: '카카오', google: '구글', email: '이메일', apple: '애플', naver: '네이버' };
+      var MEMBER_PROVIDERS = { kakao: '카카오', google: '구글', email: '이메일', apple: '애플', naver: '네이버', 'custom:naver': '네이버' };
       function memberDay(value) {
         if (!value) return '—';
         var date = new Date(value); if (Number.isNaN(date.getTime())) return '—';
@@ -1323,7 +1392,7 @@
         body.replaceChildren();
         memberListState.offset = 0;
         var filters = document.createElement('form'); filters.className = 'admin-filterbar'; filters.setAttribute('role', 'search');
-        var search = document.createElement('input'); search.type = 'search'; search.name = 'q'; search.placeholder = '이름 또는 회원 번호'; search.setAttribute('aria-label', '회원 검색'); search.value = memberListState.q; search.style.minWidth = '220px';
+        var search = document.createElement('input'); search.type = 'search'; search.name = 'q'; search.placeholder = '이름 또는 회원 ID(전체)'; search.setAttribute('aria-label', '회원 검색'); search.value = memberListState.q; search.style.minWidth = '220px';
         var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '결제 여부');
         [['', '전체'], ['yes', '결제 회원'], ['no', '미결제']].forEach(function (entry) {
           var button = document.createElement('button'); button.type = 'button'; button.dataset.paid = entry[0]; button.textContent = entry[1];
@@ -1345,6 +1414,7 @@
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
         section.appendChild(status);
         body.append(filters, section);
+        adminPageAction('member-create', '＋ 회원 등록', null, { primary: true, onClick: function () { openMemberCreate(function () { memberListState.offset = 0; memberListState.sort = 'joined'; sort.value = 'joined'; refresh(); }); } });
         function refresh() {
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.paid === memberListState.paid ? 'true' : 'false'); });
           return renderMembersPage(body, section);
@@ -1369,21 +1439,32 @@
           var total = Number(payload.total || 0);
           // 서버가 거르고 나눈 페이지라 화면 쪽 정렬·페이지(enhanceTable)는 겹치지 않게 끈다.
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">이메일</th><th scope="col">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!members.length) {
-            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">' + (memberListState.q || memberListState.paid || memberListState.from || memberListState.to ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="10">' + (memberListState.q || memberListState.paid || memberListState.from || memberListState.to ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
           }
           members.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
-            [[item.name], [item.email || '—'], [memberDay(item.createdAt)], [memberWhen(item.lastSignInAt)], [MEMBER_PROVIDERS[item.signupProvider] || item.signupProvider || '—'], [item.purchaseCount ? item.purchaseCount + '건' : '—', 'admin-num'], [item.totalPurchaseAmount ? memberWon(item.totalPurchaseAmount) : '—', 'admin-num']].forEach(function (entry) {
+            // 2026-10-07: 동명이인 구분용 회원 ID(로그인 계정 번호, 결제·리포트가 모두 이 번호로 묶인다). 앞 8자리만 보이고 복사는 전체.
+            var nameCell = document.createElement('td'); nameCell.textContent = item.name || '—'; row.appendChild(nameCell);
+            var idCell = document.createElement('td'); idCell.className = 'admin-mono'; idCell.title = item.id; idCell.appendChild(copyChip(item.id, String(item.id).slice(0, 8))); row.appendChild(idCell);
+            var emailCell = document.createElement('td'); emailCell.textContent = item.email || '—'; row.appendChild(emailCell);
+            var stateCell = document.createElement('td'); stateCell.appendChild(item.banned ? memberChip('정지', 'error') : memberChip('정상', 'ok')); row.appendChild(stateCell);
+            [[memberDay(item.createdAt)], [memberWhen(item.lastSignInAt)], [MEMBER_PROVIDERS[item.signupProvider] || item.signupProvider || '—'], [item.purchaseCount ? item.purchaseCount + '건' : '—', 'admin-num'], [item.totalPurchaseAmount ? memberWon(item.totalPurchaseAmount) : '—', 'admin-num']].forEach(function (entry) {
               var cell = document.createElement('td'); cell.textContent = entry[0] == null || entry[0] === '' ? '—' : String(entry[0]); if (entry[1]) cell.className = entry[1]; row.appendChild(cell);
             });
-            row.addEventListener('click', function () { openMemberOverview(item.id); });
-            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openMemberOverview(item.id); });
+            var manage = document.createElement('td'); manage.className = 'admin-row-actions';
+            [['수정', function () { renderMemberDetail(document.body, item.id); }], [item.banned ? '정지 해제' : '정지', async function () { var ban = !item.banned; if (!await adminConfirm(ban ? (item.name || '이 회원') + ' 회원은 정지하는 순간부터 로그인할 수 없습니다. 같은 자물쇠 버튼으로 다시 풀 수 있습니다.' : (item.name || '이 회원') + ' 회원의 정지를 풀어 다시 로그인할 수 있게 합니다.', { title: ban ? '계정 정지' : '계정 정지 해제', okLabel: ban ? '정지' : '정지 해제', danger: ban })) return; try { await adminJson('/api/admin/v1/members/' + encodeURIComponent(item.id) + '/status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ banned: ban }) }); adminToast(ban ? '계정을 정지했습니다.' : '정지를 풀었습니다.'); renderMembersPage(body, section); } catch (error) { adminToast(error.message, 'error'); } }], ['삭제', function () { deleteMemberFlow(item, function () { renderMembersPage(body, section); }); }]].forEach(function (entry) {
+              var button = document.createElement('button'); button.type = 'button'; button.className = 'admin-button'; button.textContent = entry[0];
+              button.addEventListener('click', function (event) { event.stopPropagation(); entry[1](); }); manage.appendChild(button);
+            });
+            row.appendChild(manage);
+            row.addEventListener('click', function (event) { if (event.target.closest('button')) return; openMemberOverview(item.id); });
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter' && !event.target.closest('button')) openMemberOverview(item.id); });
             rows.appendChild(row);
           });
-          table.appendChild(rows);
+          table.appendChild(rows); iconizeButtons(table);
           var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           var pager = document.createElement('div'); pager.className = 'admin-pager';
           var first = total ? memberListState.offset + 1 : 0; var last = Math.min(total, memberListState.offset + members.length);
@@ -1407,6 +1488,72 @@
           var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '회원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
           section.replaceChildren(failed);
         } finally { section.removeAttribute('aria-busy'); }
+      }
+
+      /**
+       * 회원 등록(2026-10 CRUD). 이메일 계정 + 사주 프로필. 비밀번호는 만들지 않는다 — 회원은 이메일 로그인 링크나
+       * 비밀번호 재설정으로 들어온다. 등록 전에 확인 팝업으로 한 번 더 묻는다.
+       */
+      function openMemberCreate(onDone) {
+        var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>이메일</label><input name="email" type="email" required autocomplete="off" placeholder="로그인에 쓸 이메일"></div>'
+          + '<div class="admin-field" data-span="2"><label>이름</label><input name="name" required maxlength="20" placeholder="한글 2~20자"></div>'
+          + '<div class="admin-field"><label>생년월일</label><div style="display:flex;gap:8px"><input name="year" type="number" min="1900" placeholder="연"><input name="month" type="number" min="1" max="12" placeholder="월"><input name="day" type="number" min="1" max="31" placeholder="일"></div></div>'
+          + '<div class="admin-field"><label>태어난 시각</label><div style="display:flex;gap:8px;align-items:center"><input name="hour" type="number" min="0" max="23" placeholder="시"><input name="minute" type="number" min="0" max="59" placeholder="분"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" name="birthTimeKnown" checked> 시간 앎</label></div></div>'
+          + '<div class="admin-field"><label>성별</label><select name="gender"><option value="female">여</option><option value="male">남</option></select></div>'
+          + '<div class="admin-field"><label>달력</label><select name="calendar"><option value="solar">양력</option><option value="lunar">음력</option></select></div>'
+          + '<div class="admin-field"><label><input type="checkbox" name="isLeapMonth"> 윤달</label></div>';
+        var note = document.createElement('p'); note.className = 'admin-note'; note.textContent = '비밀번호는 만들지 않습니다. 회원은 이 이메일로 로그인 링크를 받거나 비밀번호 재설정으로 들어옵니다. 카카오·구글로 가입할 회원은 직접 가입하게 해 주세요.';
+        var wrap = document.createElement('div'); wrap.append(form, note);
+        var key = crypto.randomUUID();
+        form.addEventListener('input', function () { key = crypto.randomUUID(); });
+        openAdminModal({ title: '회원 등록', size: 'wide', body: wrap, actions: [
+          { label: '취소', onClick: function (d) { d.close(); } },
+          { label: '등록', primary: true, onClick: async function (d) {
+            var f = form.elements; var known = f.birthTimeKnown.checked;
+            var payload = { email: f.email.value.trim(), name: f.name.value.trim(), birthTimeKnown: known, birth: { year: Number(f.year.value), month: Number(f.month.value), day: Number(f.day.value), hour: known ? Number(f.hour.value) : 12, minute: known ? Number(f.minute.value || 0) : 0, gender: f.gender.value, calendar: f.calendar.value, isLeapMonth: f.isLeapMonth.checked } };
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) { adminToast('이메일을 확인해 주세요.', 'error'); return; }
+            if (!payload.name || !payload.birth.year || !payload.birth.month || !payload.birth.day || (known && f.hour.value === '')) { adminToast('이름과 생년월일·태어난 시각을 입력해 주세요.', 'error'); return; }
+            if (!await adminConfirm(payload.email + ' 으로 ' + payload.name + ' 회원을 등록합니다.', { title: '회원 등록', okLabel: '등록' })) return;
+            try {
+              await adminJson('/api/admin/v1/members', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
+              d.close(); adminToast('회원을 등록했습니다.'); if (onDone) onDone();
+            } catch (error) { adminToast(error.message, 'error'); }
+          } },
+        ] });
+      }
+
+      /**
+       * 회원 삭제(2026-10 CRUD). 되돌릴 수 없어서 이름을 직접 입력해야 삭제 버튼이 눌린다.
+       * 결제 기록이 있는 회원은 서버가 거절한다(거래 기록 법정 보관) — 그 경우 계정 정지를 안내한다.
+       */
+      function deleteMemberFlow(item, onDone) {
+        if (item.purchaseCount > 0) {
+          adminConfirm(item.name + ' 회원은 결제 기록이 ' + item.purchaseCount + '건 있어 삭제할 수 없습니다. 거래 기록은 법으로 5년 보관해야 합니다. 대신 계정을 정지하면 로그인을 막을 수 있습니다.', { title: '삭제할 수 없는 회원', okLabel: '계정 정지하러 가기' }).then(function (go) { if (go) renderMemberDetail(document.body, item.id); });
+          return;
+        }
+        var wrap = document.createElement('div');
+        var lead = document.createElement('p'); lead.className = 'admin-confirm-text';
+        lead.textContent = (item.name || '이 회원') + (item.email ? ' (' + item.email + ')' : '') + ' 회원을 삭제합니다. 로그인 계정과 사주 프로필, 이 회원이 만든 리포트가 함께 지워집니다.';
+        var warn = document.createElement('p'); warn.className = 'admin-confirm-warn'; warn.textContent = '이 작업은 되돌릴 수 없습니다. 지운 회원과 리포트는 복구할 수 없습니다.';
+        var label = document.createElement('label'); label.className = 'admin-confirm-type'; label.textContent = '확인을 위해 회원 이름 "' + (item.name || '삭제') + '"을(를) 그대로 입력해 주세요.';
+        var input = document.createElement('input'); input.type = 'text'; input.autocomplete = 'off'; label.appendChild(input);
+        wrap.append(lead, warn, label);
+        var key = crypto.randomUUID();
+        var dialog = openAdminModal({ title: '정말 삭제할까요?', body: wrap, actions: [
+          { label: '취소', onClick: function (d) { d.close(); } },
+          { label: '영구 삭제', primary: true, danger: true, onClick: async function (d) {
+            if (input.value.trim() !== (item.name || '삭제')) { adminToast('이름이 일치하지 않습니다.', 'error'); input.focus(); return; }
+            try {
+              await adminJson('/api/admin/v1/members/' + encodeURIComponent(item.id), { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify({ confirm: true }) });
+              d.close(); adminToast('회원을 삭제했습니다.'); if (onDone) onDone();
+            } catch (error) { adminToast(error.message, 'error'); }
+          } },
+        ] });
+        dialog.setAttribute('data-size', 'small');
+        var deleteButton = dialog.querySelector('.admin-modal-foot button:last-child'); deleteButton.disabled = true;
+        input.addEventListener('input', function () { deleteButton.disabled = input.value.trim() !== (item.name || '삭제'); });
+        setTimeout(function () { input.focus(); }, 0);
       }
 
       var MEMBER_ORDER_STATUS = { ready: '결제 대기', approving: '승인 중', paid: '결제 완료', viewed: '결제 완료', cancelled: '취소·환불', failed: '실패' };
@@ -1503,7 +1650,9 @@
           edit.addEventListener('click', function () { dialog.close(); renderMemberDetail(document.body, member.userId); });
           var push = document.createElement('a'); push.className = 'admin-button'; push.setAttribute('data-variant', 'quiet'); push.href = ADMIN_BASE + '/messages'; push.textContent = '메시지 보내기';
           push.title = '메시지 작성에서 "특정 회원"을 골라 이 회원 이름으로 찾으면 됩니다.';
-          actions.append(edit, push);
+          var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'admin-button'; remove.setAttribute('data-variant', 'quiet'); remove.setAttribute('data-tone', 'danger-text'); remove.textContent = '회원 삭제';
+          remove.addEventListener('click', function () { deleteMemberFlow({ id: member.userId, name: member.name, email: member.email, purchaseCount: purchases ? purchases.purchaseCount : null }, function () { dialog.close(); renderWorkspace(currentAdminRoute()); }); });
+          actions.append(edit, push, remove);
           target.append(grid, actions);
           if (data.errors && data.errors.length) { var warn = document.createElement('p'); warn.className = 'admin-note'; warn.textContent = '일부 정보를 불러오지 못했습니다: ' + data.errors.map(function (key) { return { purchases: '결제', reports: '리포트', support: '문의', coupons: '쿠폰', devices: '앱 기기' }[key] || key; }).join(', '); target.appendChild(warn); }
         }
@@ -1570,7 +1719,7 @@
         body.appendChild(requeueSection); adminPageAction('reports-requeue', '미완성 리포트 재시도', requeueSection);
         var requeueButton = requeueSection.querySelector('[data-requeue-incomplete]'); var requeueResult = requeueSection.querySelector('[data-requeue-result]');
         requeueButton.addEventListener('click', async function () {
-          if (!await adminConfirm('완료되지 않은 리포트를 다시 생성 대기열에 넣습니다. 계속할까요?')) return;
+          if (!await adminConfirm('완료되지 않은 리포트를 모두 다시 생성 대기열에 넣습니다. AI 호출 비용이 들 수 있습니다.', { title: '미완성 리포트 재시도', okLabel: '대기열에 넣기' })) return;
           requeueButton.disabled = true; requeueResult.textContent = '대기열에 넣는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/reports/requeue-incomplete', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
@@ -1697,6 +1846,12 @@
               card('서비스별', data.byService.length ? memberTable(['서비스', '#시도', '#실패', '#실패율'], data.byService, function (row) { return [row.label, fmtNumber(row.attempts), fmtNumber(row.failures), row.attempts ? (Math.round(row.failures / row.attempts * 1000) / 10) + '%' : '—']; }) : memberEmpty('이 기간에 생성 시도가 없습니다.')),
               card('날짜별', data.byDay.length ? memberTable(['날짜', '#시도', '#실패'], data.byDay, function (row) { return [row.day, fmtNumber(row.attempts), fmtNumber(row.failures)]; }) : memberEmpty('이 기간에 생성 시도가 없습니다.'))
             );
+            // 9단계: AI 사용량(토큰). 비용은 모델 단가표가 정해지면 붙인다 — 지금은 숫자를 지어내지 않는다.
+            if (data.tokens) {
+              var usage = card('AI 사용량', data.byModel && data.byModel.length ? memberTable(['모델', '#시도', '#사용 토큰'], data.byModel, function (row) { return [row.model, fmtNumber(row.attempts), fmtNumber(row.totalTokens)]; }) : memberEmpty('이 기간에 기록된 사용량이 없습니다.'));
+              var usageNote = document.createElement('p'); usageNote.className = 'admin-note'; usageNote.textContent = '입력 ' + fmtNumber(data.tokens.prompt) + ' · 출력 ' + fmtNumber(data.tokens.completion) + ' · 합계 ' + fmtNumber(data.tokens.total) + ' 토큰. 비용(원)은 모델별 단가를 정하면 함께 보여 줍니다.';
+              usage.appendChild(usageNote); grid.appendChild(usage);
+            }
             var head = document.createElement('header'); head.className = 'admin-section-head'; var h = document.createElement('h3'); h.textContent = '최근 실패'; head.appendChild(h);
             recent.replaceChildren(head, data.recent.length ? memberTable(['시각', '유형', '서비스', '항목', '사유', '회원'], data.recent, function (row) {
               var reason = document.createElement('span'); reason.className = 'admin-clip'; reason.textContent = row.error; reason.title = row.error;
@@ -1789,7 +1944,7 @@
         var initSection = document.createElement('section'); initSection.className = 'admin-section';
         initSection.innerHTML = '<header class="admin-section-head"><h3>버전 일괄 초기화</h3><span class="admin-chip">발행 기록 없는 서비스만 대상</span></header><p class="admin-note" style="padding:0 16px 12px">현재 배포된 카탈로그 값을 그대로 1판으로 저장·발행합니다. 이미 발행되었거나 초안이 있는 서비스는 건드리지 않습니다.</p><div class="admin-actions" style="padding:0 16px 16px"><button class="admin-button" type="button" data-bulk-init disabled>불러오는 중…</button><p class="admin-note" role="status" data-bulk-init-result></p></div>';
         body.appendChild(initSection); adminPageAction('services-bulk-init', '버전 일괄 초기화', initSection);
-        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>서비스 목록</h3><span class="admin-chip">현재 사이트 기준</span></header><p class="admin-empty">서비스 카탈로그를 불러오는 중입니다.</p>';
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<p class="admin-empty">서비스 카탈로그를 불러오는 중입니다.</p>';
         body.appendChild(listSection);
         function renderServiceTable(services) {
           var table = document.createElement('table'); table.className = 'admin-table';
@@ -1811,7 +1966,7 @@
             rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
-          listSection.replaceChildren(listSection.firstElementChild, scroll);
+          listSection.replaceChildren(scroll);
         }
         try {
           var response = await fetch('/api/admin/v1/services', { credentials: 'same-origin' });
@@ -1819,13 +1974,25 @@
           var payload = await response.json();
           var services = Array.isArray(payload.services) ? payload.services : [];
           if (payload.versionStore !== 'ready') addLiveError(body, '버전 기록을 불러오지 못했습니다. 아래 목록의 판매·가격은 현재 사이트 기준이고, 버전 칸은 확인되지 않은 상태입니다.');
+          // 2026-10 8단계: 판매·노출 상태로 거른다.
+          var serviceFilter = 'all';
+          var serviceSeg = document.createElement('div'); serviceSeg.className = 'admin-seg admin-service-seg'; serviceSeg.setAttribute('role', 'group'); serviceSeg.setAttribute('aria-label', '판매·노출');
+          function drawServiceSeg() {
+            serviceSeg.replaceChildren();
+            [['all', '전체', services.length], ['selling', '판매 중', services.filter(function (item) { return item.saleAvailable; }).length], ['stopped', '판매 중단', services.filter(function (item) { return !item.saleAvailable; }).length], ['hidden', '숨김', services.filter(function (item) { return !item.discoveryVisible; }).length]].forEach(function (entry) {
+              var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + ' ' + entry[2]; button.setAttribute('aria-pressed', serviceFilter === entry[0] ? 'true' : 'false');
+              button.addEventListener('click', function () { serviceFilter = entry[0]; drawServiceSeg(); renderServiceTable(services.filter(function (item) { return serviceFilter === 'all' || (serviceFilter === 'selling' ? item.saleAvailable : serviceFilter === 'stopped' ? !item.saleAvailable : !item.discoveryVisible); })); });
+              serviceSeg.appendChild(button);
+            });
+          }
+          drawServiceSeg(); var serviceBar = document.createElement('div'); serviceBar.className = 'admin-filterbar'; serviceBar.appendChild(serviceSeg); body.insertBefore(serviceBar, listSection);
           renderServiceTable(services);
           var bulkButton = initSection.querySelector('[data-bulk-init]'); var bulkResult = initSection.querySelector('[data-bulk-init-result]');
           var targets = services.filter(function (item) { return !item.publishedVersion && !item.draftVersion; });
           bulkButton.textContent = targets.length ? ('발행 기록 없는 ' + targets.length + '개 서비스 초기화') : '초기화할 대상이 없습니다';
           bulkButton.disabled = payload.versionStore !== 'ready' || !targets.length;
           bulkButton.addEventListener('click', async function () {
-            if (!await adminConfirm('발행 기록이 없는 ' + targets.length + '개 서비스에 현재 카탈로그 값으로 1판을 발행합니다. 계속할까요?')) return;
+            if (!await adminConfirm('발행 기록이 없는 ' + targets.length + '개 서비스에 현재 값으로 1판을 발행합니다. 고객 화면에 바로 반영됩니다.', { title: '서비스 일괄 발행', okLabel: '일괄 발행', danger: true, irreversible: true })) return;
             bulkButton.disabled = true; var done = 0, failed = 0;
             for (var i = 0; i < targets.length; i++) {
               var item = targets[i];
@@ -1884,7 +2051,7 @@
             result.textContent = '초안이 저장되었습니다(v' + saved.version + '). 발행하면 검색 결과와 결제 가능 여부에 바로 반영됩니다.';
             publishArea.hidden = false;
             publishButton.onclick = async function () {
-              if (!await adminConfirm('이 초안을 발행하면 새 고객 화면에 바로 반영됩니다. 발행할까요?')) return;
+              if (!await adminConfirm('이 초안을 발행하면 고객 화면에 바로 반영됩니다. 정말 발행할까요?', { title: '서비스 발행', okLabel: '발행', danger: true, irreversible: true })) return;
               publishButton.disabled = true;
               try {
                 var publishResponse = await fetch('/api/admin/v1/services/' + encodeURIComponent(item.canonicalKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: revision }) });
@@ -1938,7 +2105,7 @@
        */
       async function loadPromptContentEditor(body) {
         var section = document.createElement('section'); section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>프롬프트 실시간 편집</h3><span class="admin-chip">발행 즉시 리포트에 반영</span></header><p class="admin-note" style="padding:0 16px 12px">발행하면 다음 생성 요청부터 이 문구로 리포트가 만들어집니다. 신중하게 검토한 뒤 발행하세요.</p>';
+        section.innerHTML = '<header class="admin-section-head"><h3>프롬프트 실시간 편집</h3></header><p class="admin-note" style="padding:0 16px 12px">발행하면 다음 생성 요청부터 이 문구로 리포트가 만들어집니다. 신중하게 검토한 뒤 발행하세요.</p>';
         var noteEl = section.querySelector('.admin-note');
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.'; section.appendChild(status);
         body.appendChild(section);
@@ -1988,7 +2155,7 @@
             result.textContent = '초안이 저장되었습니다(v' + saved.version + ').';
             publishArea.hidden = false;
             publishButton.onclick = async function () {
-              if (!await adminConfirm('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다. 정말 발행할까요?')) return;
+              if (!await adminConfirm('이 초안을 발행하면 다음 생성 요청부터 유료 고객 리포트에 바로 반영됩니다. 정말 발행할까요?', { title: '프롬프트 발행', okLabel: '발행', danger: true, irreversible: true })) return;
               publishButton.disabled = true;
               try {
                 var publishResponse = await fetch('/api/admin/v1/prompts/content/' + encodeURIComponent(item.contentType) + '/' + encodeURIComponent(item.contentKey) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ version: saved.version, checksum: saved.checksum, expectedRevision: revision }) });
@@ -2051,7 +2218,7 @@
         createSection.appendChild(createForm); body.appendChild(createSection); adminPageAction('content-create', '＋ 콘텐츠 등록', createSection, { primary: true, size: 'wide' });
 
         var listSection = document.createElement('section'); listSection.className = 'admin-section';
-        listSection.innerHTML = '<header class="admin-section-head"><h3>콘텐츠 개정</h3></header><p class="admin-empty">불러오는 중입니다.</p>';
+        listSection.innerHTML = '<p class="admin-empty">불러오는 중입니다.</p>';
         body.appendChild(listSection);
         try {
           var listResponse = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
@@ -2060,23 +2227,25 @@
           var items = Array.isArray(listPayload.items) ? listPayload.items : [];
           if (listPayload.versionStore !== 'ready') throw new Error('CONTENT_STORE_UNAVAILABLE');
           var table = document.createElement('table'); table.className = 'admin-table';
-          table.innerHTML = '<thead><tr><th scope="col">종류</th><th scope="col">대상 서비스</th><th scope="col">위치</th><th scope="col">제목</th><th scope="col">상태</th><th scope="col">개정</th><th scope="col">최근 변경</th><th scope="col">관리</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col">종류</th><th scope="col">대상 서비스</th><th scope="col">위치</th><th scope="col">제목</th><th scope="col">상태</th><th scope="col">개정</th><th scope="col">최근 변경</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">등록된 콘텐츠 초안·게시본이 없습니다.</td>'; rows.appendChild(empty); }
           items.forEach(function (item) {
             var row = document.createElement('tr');
-            [CONTENT_TYPE_LABELS[item.contentType] || item.contentType, item.serviceKey || '전체', item.placement, item.payload.title, CONTENT_STATE_LABELS[item.state] || item.state, item.revision, item.updatedAt].forEach(function (value) {
+            [CONTENT_TYPE_LABELS[item.contentType] || item.contentType, item.serviceKey || '전체', item.placement, item.payload.title, CONTENT_STATE_LABELS[item.state] || item.state, item.revision, memberWhen(item.updatedAt)].forEach(function (value) {
               var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell);
             });
-            var actionCell = document.createElement('td');
+            var actionCell = document.createElement('td'); actionCell.className = 'admin-row-actions';
             if (item.state === 'draft') {
               var edit = document.createElement('button'); edit.className = 'admin-button'; edit.type = 'button'; edit.textContent = '수정';
               edit.addEventListener('click', function () { renderContentDetail(body, item); });
               actionCell.appendChild(edit);
-            } else if (item.state === 'published') {
-              var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '보관(삭제)';
+            }
+            // 2026-10-07: 초안도 지울 수 있게 했다. 서버에 DELETE 가 없어 게시본과 같이 보관(archive)으로 처리한다.
+            if (item.state === 'draft' || item.state === 'published') {
+              var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = item.state === 'draft' ? '삭제' : '보관(삭제)';
               archive.addEventListener('click', async function () {
-                if (!await adminConfirm('이 콘텐츠를 보관 처리합니다. 게시 후보에서 빠집니다. 계속할까요?')) return;
+                if (!await adminConfirm(item.state === 'draft' ? '"' + item.payload.title + '" 초안을 지웁니다. 목록에서 사라지고 게시 중인 내용에는 영향이 없습니다.' : '이 콘텐츠를 보관 처리합니다. 게시 후보에서 빠집니다.', { title: item.state === 'draft' ? '초안 삭제' : '콘텐츠 보관', okLabel: item.state === 'draft' ? '삭제' : '보관', danger: true })) return;
                 archive.disabled = true;
                 try {
                   var archiveResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) });
@@ -2090,7 +2259,7 @@
             row.appendChild(actionCell); rows.appendChild(row);
           });
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
-          listSection.replaceChildren(listSection.firstElementChild, scroll);
+          listSection.replaceChildren(scroll);
         } catch (_error) { var notice2 = listSection.querySelector('.admin-empty'); if (notice2) notice2.textContent = '콘텐츠 목록을 불러오지 못했습니다.'; }
       }
       var CONTENT_TYPES_FALLBACK = ['service_card', 'landing_copy', 'faq', 'notice', 'banner', 'legal_link'];
@@ -2120,28 +2289,48 @@
       function popupEditableVersion(items) {
         return items.find(function (item) { return item.state === 'published'; }) || items.find(function (item) { return item.state === 'draft'; });
       }
+      /*
+       * 2026-10-07 요청: 팝업은 화면을 반으로 나눈다. 왼쪽은 등록한 팝업 목록, 오른쪽은 고른 팝업의 실제 모양(미리보기)과 수정 칸.
+       * 게시한 팝업은 고칠 수 없으므로(버전 기록) 수정하면 새 버전으로 저장·게시되고, 예전 게시본은 서버가 내린다.
+       */
       async function loadPopupManager(body) {
         body.replaceChildren();
-        var section = document.createElement('section'); section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>오늘운 무료 팝업</h3></header><p class="admin-note">저장 후 게시하면 첫 페이지에서 설정한 시작 시각부터 보이고, 종료 시각이 지나면 별도 작업 없이 자동으로 내려갑니다. 이미지는 <code>/assets/</code> 경로의 공개 자산을 사용합니다.</p>';
+        var filters = document.createElement('form'); filters.className = 'admin-filterbar'; filters.setAttribute('role', 'search');
+        var search = document.createElement('input'); search.type = 'search'; search.placeholder = '팝업 이름 검색'; search.setAttribute('aria-label', '팝업 검색'); search.style.minWidth = '220px';
+        var searchButton = document.createElement('button'); searchButton.type = 'submit'; searchButton.className = 'admin-button'; searchButton.textContent = '검색';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '상태');
+        var listFilter = { q: '', state: '' };
+        [['', '전체'], ['노출 중', '노출 중'], ['시작 대기', '시작 대기'], ['기간 종료', '기간 종료'], ['보관됨', '내림']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.state = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { listFilter.state = entry[0]; renderList(); });
+          seg.appendChild(button);
+        });
+        filters.append(search, searchButton, seg, adminTip('게시하면 첫 페이지에서 설정한 시작 시각부터 보이고, 종료 시각이 지나면 자동으로 내려갑니다. 이미지는 /assets/ 경로의 공개 이미지를 씁니다. 한 번에 하나만 떠 있고, 새로 게시하면 예전 팝업은 내려갑니다.'));
+        filters.addEventListener('submit', function (event) { event.preventDefault(); listFilter.q = search.value.trim().toLocaleLowerCase(); renderList(); });
+
+        var split = document.createElement('div'); split.className = 'admin-split';
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<p class="admin-empty">불러오는 중입니다.</p>';
+        var section = document.createElement('section'); section.className = 'admin-section admin-popup-editor';
+        section.innerHTML = '<header class="admin-section-head"><h3 data-popup-editor-title>새 팝업</h3></header>';
+        split.append(listSection, section);
+        body.append(filters, split);
+
         var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
-        form.innerHTML = '<div class="admin-field"><label>팝업 이름</label><input required name="title" maxlength="120"></div>'
-          + '<div class="admin-field"><label>상단 문구</label><input required name="headline" maxlength="120"></div>'
-          + '<div class="admin-field"><label>메인 문구</label><input required name="subheadline" maxlength="120"></div>'
-          + '<div class="admin-field"><label>설명</label><input required name="bodyText" maxlength="500"></div>'
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>팝업 이름</label><input required name="title" maxlength="120"></div>'
+          + '<div class="admin-field" data-span="2"><label>상단 문구</label><input required name="headline" maxlength="120"></div>'
+          + '<div class="admin-field" data-span="2"><label>메인 문구</label><input required name="subheadline" maxlength="120"></div>'
+          + '<div class="admin-field" data-span="2"><label>설명</label><input required name="bodyText" maxlength="500"></div>'
           + '<div class="admin-field" data-span="2"><label>팝업 이미지 경로</label><input required name="imageSrc" maxlength="300" placeholder="/assets/popup-image.png"></div>'
-          + '<div class="admin-field"><label>버튼 안내 문구</label><input required name="ctaLabel" maxlength="80"></div>'
-          + '<div class="admin-field"><label>노출 시작</label><input required name="startsAt" type="datetime-local"></div>'
-          + '<div class="admin-field"><label>노출 종료</label><input required name="endsAt" type="datetime-local"></div>'
-          + '<div class="admin-actions"><button class="admin-button" type="submit">저장 후 게시</button></div><p class="admin-note" role="status" data-popup-result></p>';
-        Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { var field = key === 'body' ? 'bodyText' : key; if (form.elements[field]) form.elements[field].value = SIGNUP_POPUP_DEFAULTS[key]; });
-        var initialStart = new Date();
-        form.elements.startsAt.value = toLocalDateTime(initialStart); form.elements.endsAt.value = toLocalDateTime(new Date(initialStart.getTime() + 7 * 24 * 60 * 60 * 1000));
+          + '<div class="admin-field" data-span="2"><label>버튼 안내 문구</label><input required name="ctaLabel" maxlength="80"></div>'
+          + '<div class="admin-field" data-span="2"><label>노출 시작</label><input required name="startsAt" type="datetime-local"></div>'
+          + '<div class="admin-field" data-span="2"><label>노출 종료</label><input required name="endsAt" type="datetime-local"></div>'
+          + '<div class="admin-actions" data-span="2"><button class="admin-button" type="submit">저장 후 게시</button></div><p class="admin-note" data-span="2" role="status" data-popup-result></p>';
         var result = form.querySelector('[data-popup-result]');
+        var editorTitle = section.querySelector('[data-popup-editor-title]');
         // 고객 화면의 팝업은 문구가 이미지 안에 그려진 한 장이다. 미리보기도 이미지를 같은 비율로 띄운다.
         var popupLayout = document.createElement('div'); popupLayout.className = 'admin-notify-layout';
         var popupPreview = document.createElement('aside'); popupPreview.className = 'admin-notify-preview'; popupPreview.setAttribute('aria-label', '팝업 미리보기');
-        popupPreview.innerHTML = '<h4>미리보기 · 첫 페이지</h4><div class="admin-phone"><div class="admin-phone-bar"><span>9:41</span><span>운명상회</span></div><div class="admin-popup-phone"><img alt="" data-popup-preview-image><p data-popup-preview-caption></p></div></div><p class="admin-note">팝업은 이미지 한 장으로 보입니다. 위의 문구 칸은 화면 낭독기 안내와 이력 관리에 쓰입니다.</p>';
+        popupPreview.innerHTML = '<h4>미리보기 · 첫 페이지</h4><div class="admin-phone"><div class="admin-phone-bar"><span>9:41</span><span>운명상회</span></div><div class="admin-popup-phone"><img alt="" data-popup-preview-image><p data-popup-preview-caption></p></div></div><p class="admin-note">팝업은 이미지 한 장으로 보입니다. 문구 칸은 화면 낭독기 안내와 이력 관리에 쓰입니다.</p>';
         function refreshPopupPreview() {
           var image = popupPreview.querySelector('[data-popup-preview-image]'); var caption = popupPreview.querySelector('[data-popup-preview-caption]');
           var src = form.elements.imageSrc.value.trim();
@@ -2150,53 +2339,95 @@
           caption.textContent = image.hidden ? '/assets/ 로 시작하는 이미지 경로를 넣으면 여기에 보입니다.' : '';
         }
         form.addEventListener('input', refreshPopupPreview);
-        popupLayout.appendChild(form); popupLayout.appendChild(popupPreview);
-        section.appendChild(popupLayout); body.appendChild(section);
-        refreshPopupPreview();
-        adminPageAction('popup-edit', '＋ 팝업 등록·수정', section, { primary: true, size: 'wide' });
-        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>팝업 이력</h3></header><p class="admin-empty">불러오는 중입니다.</p>'; body.appendChild(listSection);
+        popupLayout.append(popupPreview, form);
+        // 아무 팝업도 고르지 않았을 때는 오른쪽 칸 가운데에 안내만 보인다.
+        var placeholder = document.createElement('div'); placeholder.className = 'admin-split-placeholder'; placeholder.textContent = '팝업 제목을 선택해 주세요';
+        section.append(placeholder, popupLayout);
+        var editorHead = section.querySelector('.admin-section-head');
+        function showEditor(open) { placeholder.hidden = open; popupLayout.hidden = !open; editorHead.hidden = !open; }
+
+        var items = []; var popupClickCounts = null; var selectedId = null;
+        // 오른쪽 칸을 채운다. item 이 없으면 기본 문구로 새 팝업을 시작한다.
+        function fillEditor(item) {
+          showEditor(true);
+          selectedId = item ? item.id : null;
+          var payload = item ? item.payload || {} : {};
+          Object.keys(SIGNUP_POPUP_DEFAULTS).forEach(function (key) { var field = key === 'body' ? 'bodyText' : key; if (form.elements[field]) form.elements[field].value = payload[key] || SIGNUP_POPUP_DEFAULTS[key]; });
+          var start = new Date(); var expired = item && payload.campaignEndAt && new Date(payload.campaignEndAt).getTime() <= Date.now();
+          // 끝난 팝업을 다시 쓰려면 기간을 새로 잡아야 하므로 지금부터 7일로 채운다.
+          form.elements.startsAt.value = (!expired && item && toLocalDateTime(item.scheduledAt)) || toLocalDateTime(start);
+          form.elements.endsAt.value = (!expired && toLocalDateTime(payload.campaignEndAt)) || toLocalDateTime(new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000));
+          editorTitle.textContent = item ? '수정 — ' + (payload.title || '이름 미확인') + ' (' + popupStateLabel(item) + ')' : '새 팝업';
+          form.querySelector('button[type="submit"]').textContent = item && item.state === 'published' ? '수정 내용 게시' : item ? '이 내용으로 다시 게시' : '저장 후 게시';
+          result.textContent = item ? '고친 내용은 새 버전으로 게시됩니다. 지금 떠 있는 팝업은 자동으로 내려갑니다.' : '';
+          refreshPopupPreview(); renderList();
+        }
+        function renderList() {
+          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.state === listFilter.state ? 'true' : 'false'); });
+          if (!listSection.hasAttribute('data-ready')) return;
+          var shown = items.filter(function (item) {
+            if (listFilter.state && popupStateLabel(item) !== listFilter.state) return false;
+            return !listFilter.q || String((item.payload || {}).title || '').toLocaleLowerCase().indexOf(listFilter.q) >= 0;
+          });
+          var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
+          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">노출 기간</th><th scope="col" class="admin-num">버튼 클릭<br><small>최근 30일</small></th><th scope="col">상태</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!shown.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="5">' + (items.length ? '조건에 맞는 팝업이 없습니다.' : '등록된 팝업이 없습니다. 오른쪽에서 새 팝업을 게시해 보세요.') + '</td>'; rows.appendChild(empty); }
+          var tones = { '노출 중': 'ok', '시작 대기': 'info', '기간 종료': '', '보관됨': '' };
+          shown.forEach(function (item) {
+            var payload = item.payload || {};
+            var clickCount = popupClickCounts && popupClickCounts[popupTrackingTarget(item)];
+            var row = document.createElement('tr'); row.tabIndex = 0; if (item.id === selectedId) row.setAttribute('aria-selected', 'true');
+            var name = document.createElement('td'); name.textContent = payload.title || '이름 미확인'; row.appendChild(name);
+            var period = document.createElement('td'); period.textContent = memberWhen(item.scheduledAt) + ' ~ ' + memberWhen(payload.campaignEndAt); row.appendChild(period);
+            var clicks = document.createElement('td'); clicks.className = 'admin-num'; clicks.textContent = popupClickCounts ? Number(clickCount || 0).toLocaleString('ko-KR') + '회' : '집계 불가'; row.appendChild(clicks);
+            var label = popupStateLabel(item); var stateCell = document.createElement('td'); stateCell.appendChild(memberChip(label === '보관됨' ? '내림' : label, tones[label])); row.appendChild(stateCell);
+            var manage = document.createElement('td'); manage.className = 'admin-row-actions';
+            var edit = document.createElement('button'); edit.type = 'button'; edit.className = 'admin-button'; edit.textContent = '수정';
+            edit.addEventListener('click', function (event) { event.stopPropagation(); fillEditor(item); }); manage.appendChild(edit);
+            if (item.state === 'published') {
+              var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기';
+              archive.addEventListener('click', async function (event) {
+                event.stopPropagation();
+                if (!await adminConfirm('지금 떠 있는 팝업을 모든 고객 화면에서 즉시 내립니다. 정말 내릴까요?', { title: '팝업 내리기', okLabel: '즉시 내리기', danger: true })) return;
+                archive.disabled = true;
+                var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) });
+                if (!response.ok) { archive.disabled = false; adminToast('팝업을 내리지 못했습니다.'); return; }
+                adminToast('팝업을 내렸습니다.'); loadPopupManager(body);
+              });
+              manage.appendChild(archive);
+            }
+            row.appendChild(manage);
+            row.addEventListener('click', function (event) { if (event.target.closest('button')) return; fillEditor(item); });
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter' && !event.target.closest('button')) fillEditor(item); });
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); iconizeButtons(table);
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          listSection.replaceChildren(scroll);
+        }
+        adminPageAction('popup-new', '＋ 팝업 등록', null, { primary: true, onClick: function () { fillEditor(null); form.elements.title.focus(); } });
+        showEditor(false);
         try {
           var response = await fetch('/api/admin/v1/content?placement=home%2Fsignup-benefit-popup&includeArchived=1', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('POPUP_LOOKUP_FAILED');
           var responsePayload = await response.json();
           if (responsePayload.versionStore !== 'ready') { form.querySelector('button[type="submit"]').disabled = true; throw new Error('POPUP_STORE_UNAVAILABLE'); }
           if (!Array.isArray(responsePayload.items)) throw new Error('POPUP_LOOKUP_FAILED');
-          var items = (Array.isArray(responsePayload.items) ? responsePayload.items : []).filter(function (item) { return item.contentType === 'banner' && item.placement === SIGNUP_POPUP_PLACEMENT; });
+          items = responsePayload.items.filter(function (item) { return item.contentType === 'banner' && item.placement === SIGNUP_POPUP_PLACEMENT; });
           // 팝업 이력은 콘텐츠 저장소, 클릭 수는 개인정보 없는 퍼널 이벤트가 원천이다.
           // 통계가 일시적으로 실패해도 팝업 관리 자체는 멈추지 않고 '집계 불가'로 정직하게 표시한다.
-          var popupClickCounts = null;
           try {
             var funnelResponse = await fetch('/api/admin/v1/funnel?period=month', { credentials: 'same-origin' });
             if (!funnelResponse.ok) throw new Error('POPUP_CLICK_SUMMARY_FAILED');
             var funnelPayload = await funnelResponse.json();
             if (funnelPayload.available !== true || !Array.isArray(funnelPayload.ctas)) throw new Error('POPUP_CLICK_SUMMARY_FAILED');
             popupClickCounts = {};
-            (Array.isArray(funnelPayload.ctas) ? funnelPayload.ctas : []).forEach(function (cta) {
-              if (typeof cta.target === 'string' && typeof cta.clicks === 'number') popupClickCounts[cta.target] = cta.clicks;
-            });
+            funnelPayload.ctas.forEach(function (cta) { if (typeof cta.target === 'string' && typeof cta.clicks === 'number') popupClickCounts[cta.target] = cta.clicks; });
           } catch (_error) { popupClickCounts = null; }
-          var active = popupEditableVersion(items);
-          if (active) {
-            var payload = active.payload || {};
-            ['title', 'headline', 'subheadline', 'imageSrc', 'ctaLabel'].forEach(function (key) { if (payload[key] && form.elements[key]) form.elements[key].value = payload[key]; });
-            if (payload.body) form.elements.bodyText.value = payload.body;
-            form.elements.startsAt.value = toLocalDateTime(active.scheduledAt) || form.elements.startsAt.value;
-            form.elements.endsAt.value = toLocalDateTime(payload.campaignEndAt) || form.elements.endsAt.value;
-          }
-          refreshPopupPreview();
-          var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">시작</th><th scope="col">종료</th><th scope="col">버튼 클릭<br><small>최근 30일</small></th><th scope="col">상태</th><th scope="col">관리</th></tr></thead>';
-          var rows = document.createElement('tbody');
-          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="6">등록된 팝업이 없습니다. 위 설정을 게시하면 노출이 시작됩니다.</td>'; rows.appendChild(empty); }
-          items.forEach(function (item) {
-            var clickCount = popupClickCounts && popupClickCounts[popupTrackingTarget(item)];
-            var clickLabel = popupClickCounts ? Number(clickCount || 0).toLocaleString('ko-KR') + '회' : '집계 불가';
-            var row = document.createElement('tr'); [(item.payload || {}).title || '이름 미확인', item.scheduledAt ? new Date(item.scheduledAt).toLocaleString('ko-KR') : '-', (item.payload || {}).campaignEndAt ? new Date(item.payload.campaignEndAt).toLocaleString('ko-KR') : '-', clickLabel, popupStateLabel(item)].forEach(function (value) { var cell = document.createElement('td'); cell.textContent = String(value); row.appendChild(cell); });
-            var cell = document.createElement('td');
-            if (item.state === 'published') { var archive = document.createElement('button'); archive.className = 'admin-button'; archive.type = 'button'; archive.textContent = '즉시 내리기'; archive.addEventListener('click', async function () { if (!await adminConfirm('현재 팝업을 즉시 내릴까요?')) return; archive.disabled = true; var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) { archive.disabled = false; adminToast('팝업을 내리지 못했습니다.'); return; } loadPopupManager(body); }); cell.appendChild(archive); }
-            row.appendChild(cell); rows.appendChild(row);
-          });
-          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
-        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 이력을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.'; }
+          listSection.setAttribute('data-ready', '');
+          renderList();
+        } catch (_error) { listSection.querySelector('.admin-empty').textContent = '팝업 목록을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.'; }
         form.addEventListener('submit', async function (event) {
           event.preventDefault();
           if (!form.reportValidity()) { result.textContent = '필수 항목을 모두 입력해 주세요.'; return; }
@@ -2205,12 +2436,13 @@
             var startsAt = new Date(form.elements.startsAt.value); var endsAt = new Date(form.elements.endsAt.value);
             if (!(startsAt.getTime() < endsAt.getTime())) throw new Error('종료 시각은 시작 시각보다 뒤여야 합니다.');
             if (endsAt.getTime() <= Date.now()) throw new Error('노출 종료 시각을 현재보다 뒤로 설정해 주세요.');
+            if (!await adminConfirm('저장하면 바로 게시되어 ' + startsAt.toLocaleString('ko-KR') + '부터 ' + endsAt.toLocaleString('ko-KR') + '까지 모든 고객의 첫 화면에 뜹니다. 지금 떠 있는 팝업이 있으면 내려갑니다. 정말 게시할까요?', { title: '팝업 게시', okLabel: '게시', danger: true })) { submit.disabled = false; result.textContent = ''; return; }
             var draftResponse = await fetch('/api/admin/v1/content', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ contentType: 'banner', placement: SIGNUP_POPUP_PLACEMENT, scheduledAt: startsAt.toISOString(), payload: { title: form.elements.title.value.trim(), headline: form.elements.headline.value.trim(), subheadline: form.elements.subheadline.value.trim(), body: form.elements.bodyText.value.trim(), imageSrc: form.elements.imageSrc.value.trim(), ctaLabel: form.elements.ctaLabel.value.trim(), campaignEndAt: endsAt.toISOString() } }) });
             var draftPayload = await draftResponse.json().catch(function () { return {}; }); if (!draftResponse.ok) throw new Error(draftPayload.error || '팝업 저장에 실패했습니다.');
             var draft = draftPayload.content;
             var publishResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: draft.revision, checksum: draft.checksum }) });
             var publishPayload = await publishResponse.json().catch(function () { return {}; }); if (!publishResponse.ok) throw new Error(publishPayload.error || '팝업 게시에 실패했습니다.');
-            await loadPopupManager(body); var success = body.querySelector('[data-popup-result]'); if (success) success.textContent = '게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.';
+            await loadPopupManager(body); adminToast('게시되었습니다. 설정한 기간에만 첫 페이지에 표시됩니다.');
           } catch (error) { result.textContent = error instanceof Error ? error.message : '팝업 게시에 실패했습니다.'; submit.disabled = false; }
         });
       }
@@ -2306,7 +2538,7 @@
         });
         var search = document.createElement('input'); search.type = 'search'; search.placeholder = '메시지 제목 검색'; search.className = 'admin-filter-search'; search.setAttribute('aria-label', '메시지 제목 검색');
         search.addEventListener('input', function () { state.query = search.value.trim(); state.page = 0; render(); });
-        filters.append(seg, search);
+        filters.append(search, seg);
 
         var card = document.createElement('section'); card.className = 'admin-section';
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
@@ -2446,13 +2678,13 @@
           var actions = [{ label: '내용 복사', onClick: function () { navigator.clipboard.writeText(item.title + '\n' + item.body).then(function () { adminToast('제목과 메시지를 복사했습니다.'); }).catch(function () { adminToast('복사하지 못했습니다.'); }); } }];
           if (item.status === 'scheduled' || item.status === 'sending' || item.status === 'draft') {
             actions.push({ label: item.status === 'sending' ? '남은 발송 중단' : '예약 취소', onClick: async function (dialog) {
-              if (!await adminConfirm(item.status === 'sending' ? '아직 보내지 않은 기기에는 보내지 않습니다. 중단할까요?' : '이 예약을 취소할까요?')) return;
+              if (!await adminConfirm(item.status === 'sending' ? '아직 보내지 않은 기기에는 보내지 않습니다. 이미 받은 기기의 알림은 회수할 수 없습니다. 정말 중단할까요?' : '이 예약 발송을 취소합니다. 취소한 예약은 다시 살릴 수 없고 새로 만들어야 합니다.', { title: item.status === 'sending' ? '발송 중단' : '예약 취소', okLabel: item.status === 'sending' ? '발송 중단' : '예약 취소', danger: true, irreversible: true })) return;
               try { await pushRequest('/' + encodeURIComponent(item.id) + '/cancel', {}); dialog.close(); load(); } catch (error) { adminToast(error.message); }
             } });
           }
           if ((item.status === 'sent' || item.status === 'failed') && item.failureCount > 0) {
             actions.push({ label: '실패분 재발송 (' + fmtNumber(item.failureCount) + ')', onClick: async function (dialog) {
-              if (!await adminConfirm('실패한 기기 중 지금도 알림을 받을 수 있는 기기에 다시 보냅니다. 앱을 지운 기기는 빠집니다. 보낼까요?')) return;
+              if (!await adminConfirm('실패한 기기 중 지금도 알림을 받을 수 있는 기기에 다시 보냅니다. 앱을 지운 기기는 빠집니다. 보낸 알림은 회수할 수 없습니다. 정말 보낼까요?', { title: '실패분 다시 보내기', okLabel: '다시 보내기', danger: true, irreversible: true })) return;
               try { var data = await pushRequest('/' + encodeURIComponent(item.id) + '/resend-failed', {}); adminToast(fmtNumber(data.reopened) + '대에 다시 보냈습니다.'); dialog.close(); load(); } catch (error) { adminToast(error.message); }
             } });
           }
@@ -2563,10 +2795,11 @@
             [['대상', audience.label || '—'], ['제목', title], ['메시지', message], ['이동', form.elements.deepLink.value.trim() || '/']].forEach(function (pair) {
               var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; dl.append(dt, dd);
             });
-            summary.append(lead, dl);
-            openAdminModal({ title: '발송 확인', body: summary, actions: [
+            var irreversible = document.createElement('p'); irreversible.className = 'admin-confirm-warn'; irreversible.textContent = schedule.mode === 'now' ? '발송하면 취소하거나 회수할 수 없습니다. 내용과 대상을 다시 확인해 주세요.' : '예약 시각이 되면 자동으로 발송됩니다. 그 전에는 발송 내역에서 취소할 수 있습니다.';
+            summary.append(lead, dl, irreversible);
+            openAdminModal({ title: schedule.mode === 'now' ? '정말 발송할까요?' : '예약 확인', body: summary, actions: [
               { label: '돌아가기', onClick: function (d) { d.close(); } },
-              { label: schedule.mode === 'now' ? '발송하기' : '예약하기', primary: true, onClick: async function (d) {
+              { label: schedule.mode === 'now' ? '지금 발송' : '예약하기', primary: true, danger: schedule.mode === 'now', onClick: async function (d) {
                 var buttons = d.querySelectorAll('button'); buttons.forEach(function (b) { b.disabled = true; });
                 try {
                   var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule });
@@ -2624,7 +2857,9 @@
         kind.addEventListener('change', updateKind); updateKind();
         var actions = document.createElement('div'); actions.className = 'admin-actions'; var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '쿠폰 발급'; actions.appendChild(submit); form.appendChild(actions); section.appendChild(form);
         var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status'); section.appendChild(result);
-        var list = document.createElement('div'); var listSection = document.createElement('section'); listSection.className = 'admin-section admin-coupon-list'; listSection.appendChild(list); body.appendChild(listSection); adminPageAction('coupon-issue', '＋ 쿠폰 발급', section, { primary: true }); var busy = false, saveKey = crypto.randomUUID();
+        var list = document.createElement('div'); var listSection = document.createElement('section'); listSection.className = 'admin-section admin-coupon-list'; listSection.appendChild(list);
+        // 2026-10-07: 상태 필터는 다른 화면처럼 표 상자 밖 위쪽에 둔다.
+        var couponBar = document.createElement('div'); couponBar.className = 'admin-filterbar'; body.append(couponBar, listSection); adminPageAction('coupon-issue', '＋ 쿠폰 발급', section, { primary: true }); var busy = false, saveKey = crypto.randomUUID();
         form.addEventListener('input', function () { saveKey = crypto.randomUUID(); });
         // 2026-10 7단계: 카드 나열 대신 표. 상태(발급 중·예정·만료·중단)로 거르고 등록·사용률을 한눈에 본다.
         var listState = { filter: 'live' };
@@ -2637,7 +2872,7 @@
         }
         function render(items) {
           list.replaceChildren();
-          var bar = document.createElement('div'); bar.className = 'admin-filterbar';
+          var bar = couponBar; bar.replaceChildren();
           var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '쿠폰 상태');
           [['live', '발급 중'], ['scheduled', '시작 전'], ['ended', '만료'], ['stopped', '중단'], ['all', '전체']].forEach(function (entry) {
             var count = entry[0] === 'all' ? items.length : items.filter(function (item) { return couponState(item).key === entry[0]; }).length;
@@ -2645,10 +2880,10 @@
             button.setAttribute('aria-pressed', listState.filter === entry[0] ? 'true' : 'false');
             button.addEventListener('click', function () { listState.filter = entry[0]; render(items); }); seg.appendChild(button);
           });
-          bar.appendChild(seg); list.appendChild(bar);
+          bar.appendChild(seg);
           var shown = items.filter(function (item) { return listState.filter === 'all' || couponState(item).key === listState.filter; });
           if (!shown.length) { list.appendChild(memberEmpty(items.length ? '해당하는 쿠폰이 없습니다.' : '아직 발급한 쿠폰이 없습니다.')); return; }
-          list.appendChild(memberTable(['쿠폰', '코드', '종류', '적용 서비스', '혜택', '#등록', '#사용', '#사용률', '기간', '상태', ''], shown, function (item) {
+          list.appendChild(memberTable(['쿠폰', '코드', '종류', '적용 서비스', '혜택', '#등록', '#사용', '#사용률', '기간', '상태', '관리'], shown, function (item) {
             var p = snapshot.products.find(function (p) { return p.key === item.productKey; });
             var used = item.kind === 'service_free' ? item.usedCount : item.reservedCount;
             var claimed = Number.isInteger(item.claimCount) ? item.claimCount : 0;
@@ -2673,6 +2908,7 @@
           if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) { result.textContent = '종료는 시작 이후의 유효한 시각으로 입력해 주세요.'; return; }
           var payload = { title: f.title.value.trim(), code: f.code.value.trim(), kind: f.kind.value, productKey: f.productKey.value, value: Number(f.value.value), maxClaims: Number(f.maxClaims.value), startsAt: start.toISOString(), expiresAt: end.toISOString() };
           if (!payload.title || !Number.isInteger(payload.value) || payload.value < 1 || !Number.isInteger(payload.maxClaims) || payload.maxClaims < 1 || payload.maxClaims > 20000 || ((payload.kind === 'percent_off' || payload.kind === 'consultation_questions') && payload.value > 100) || (payload.kind === 'service_free' && payload.value !== 1)) { result.textContent = '혜택 값과 등록 한도를 확인해 주세요.'; return; }
+          if (!await adminConfirm('"' + payload.title + '" 쿠폰(코드 ' + payload.code + ')을 발급합니다. 발급한 혜택은 수정할 수 없고, 고객이 바로 등록할 수 있습니다. 정말 발급할까요?', { title: '쿠폰 발급', okLabel: '발급', danger: true, irreversible: true })) return;
           busy = true; Array.from(form.elements).forEach(function (control) { control.disabled = true; }); result.textContent = '발급 중입니다.';
           try { await request('', payload, saveKey); result.textContent = '쿠폰을 발급했습니다.'; saveKey = crypto.randomUUID(); form.reset(); updateKind();
             try { snapshot = await request(''); render(snapshot.items); } catch (_error) { result.textContent = '발급은 완료했지만 목록을 다시 불러오지 못했습니다. 새로고침해 주세요.'; }
@@ -2682,23 +2918,88 @@
       }
       async function loadConsultationManager(body) {
         body.replaceChildren();
+        // 2026-10-07 요청: 회원 관리처럼 왼쪽 검색줄 → 버전 목록 → 수정은 팝업(제목 오른쪽 버튼·목록의 수정 아이콘).
         var section = document.createElement('section'); section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>천명상담 설정</h3><span class="admin-chip">게시본만 고객 화면에 적용</span></header><p class="admin-note">회원 첫 해석 1회 무료 · 이후 질문 5회 4,900원. 확인 질문·실패는 차감하지 않습니다. 가격은 결제 상품 설정을 따릅니다.</p><p class="admin-note" role="status" data-consultation-status>게시본과 초안을 불러오는 중입니다.</p>';
-        body.appendChild(section);
+        section.innerHTML = '<header class="admin-section-head"><h3>천명상담 설정 수정</h3></header><p class="admin-note" role="status" data-consultation-status>게시본과 초안을 불러오는 중입니다.</p>';
+        var filters = document.createElement('form'); filters.className = 'admin-filterbar'; filters.setAttribute('role', 'search');
+        var search = document.createElement('input'); search.type = 'search'; search.placeholder = '상담자 이름 또는 배너 제목'; search.setAttribute('aria-label', '상담 설정 검색'); search.style.minWidth = '220px';
+        var searchButton = document.createElement('button'); searchButton.type = 'submit'; searchButton.className = 'admin-button'; searchButton.textContent = '검색';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '상태');
+        var listFilter = { q: '', state: '' };
+        [['', '전체'], ['published', '게시 중'], ['draft', '초안'], ['archived', '내림']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.state = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { listFilter.state = entry[0]; renderList(); });
+          seg.appendChild(button);
+        });
+        filters.append(search, searchButton, seg, adminTip('회원 첫 해석 1회 무료 · 이후 질문 5회 4,900원. 확인 질문·실패는 차감하지 않습니다. 가격은 결제 상품 설정을 따릅니다. 게시한 설정만 고객 화면에 적용됩니다.'));
+        filters.addEventListener('submit', function (event) { event.preventDefault(); listFilter.q = search.value.trim().toLocaleLowerCase(); renderList(); });
+        var listSection = document.createElement('section'); listSection.className = 'admin-section';
+        var listStatus = document.createElement('p'); listStatus.className = 'admin-empty'; listStatus.textContent = '불러오는 중입니다.'; listSection.appendChild(listStatus);
+        body.append(filters, listSection);
         var status = section.querySelector('[data-consultation-status]');
+        var versions = [];
+        function openEditor() { showSectionModal(section, 'wide'); }
+        function renderList() {
+          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.state === listFilter.state ? 'true' : 'false'); });
+          var rowsData = versions.length ? versions : [{ state: 'default', revision: null, updatedAt: null, settings: snapshot && snapshot.defaults }];
+          var stateLabel = { published: ['게시 중', 'ok'], draft: ['초안', 'info'], archived: ['내림', ''], default: ['기본 설정 사용 중', 'warn'] };
+          var shown = rowsData.filter(function (item) {
+            if (listFilter.state && item.state !== listFilter.state) return false;
+            var parsed = item.settings || {}; return !listFilter.q || ((parsed.name || '') + ' ' + (parsed.bannerTitle || '')).toLocaleLowerCase().indexOf(listFilter.q) >= 0;
+          });
+          var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
+          table.innerHTML = '<thead><tr><th scope="col">상태</th><th scope="col">상담자</th><th scope="col">홈 배너 제목</th><th scope="col">상담 이용</th><th scope="col" class="admin-num">버전</th><th scope="col">마지막 수정</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
+          var rows = document.createElement('tbody');
+          if (!shown.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">조건에 맞는 설정이 없습니다.</td>'; rows.appendChild(empty); }
+          shown.forEach(function (item) {
+            var parsed = item.settings || {}; var label = stateLabel[item.state] || [item.state, ''];
+            var row = document.createElement('tr'); row.tabIndex = 0;
+            var stateCell = document.createElement('td'); stateCell.appendChild(memberChip(label[0], label[1])); row.appendChild(stateCell);
+            [[parsed.name || '—'], [parsed.bannerTitle || '—'], [parsed.enabled === false ? '비활성화' : parsed.enabled === true ? '활성화' : '—'], [Number.isInteger(item.revision) ? String(item.revision) : '—', 'admin-num'], [memberWhen(item.updatedAt)]].forEach(function (entry) {
+              var cell = document.createElement('td'); cell.textContent = entry[0]; if (entry[1]) cell.className = entry[1]; row.appendChild(cell);
+            });
+            var manage = document.createElement('td'); manage.className = 'admin-row-actions';
+            var edit = document.createElement('button'); edit.type = 'button'; edit.className = 'admin-button'; edit.textContent = '수정';
+            edit.addEventListener('click', function (event) { event.stopPropagation(); openEditor(); }); manage.appendChild(edit);
+            // 게시본은 내리면 상담이 꺼지고(기본 설정으로 돌아가지 않는다), 초안은 지우면 목록에서 사라진다. 둘 다 서버의 보관(archive)으로 처리한다.
+            if (item.state === 'published' || item.state === 'draft') {
+              var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'admin-button'; remove.textContent = item.state === 'published' ? '즉시 내리기' : '삭제';
+              remove.addEventListener('click', async function (event) {
+                event.stopPropagation();
+                var live = item.state === 'published';
+                if (!await adminConfirm(live ? '게시 중인 상담 설정을 내립니다. 홈의 천명상담 배너가 사라지고 새 상담을 받을 수 없게 됩니다. 다시 열려면 초안을 저장해 게시해야 합니다.' : (versions.some(function (v) { return v.state === 'published'; }) ? '저장한 초안(버전 ' + item.revision + ')을 지웁니다. 지금 게시 중인 설정에는 영향이 없습니다.' : '저장한 초안(버전 ' + item.revision + ')을 지웁니다. 게시본이 없어서, 지우면 기본 설정으로 돌아가지 않고 상담이 꺼집니다.'), { title: live ? '상담 설정 내리기' : '초안 삭제', okLabel: live ? '즉시 내리기' : '삭제', danger: true })) return;
+                remove.disabled = true;
+                try {
+                  var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) });
+                  if (!response.ok) throw new Error(response.status === 409 ? '그사이 설정이 바뀌었습니다. 새로고침 후 다시 확인해 주세요.' : '처리하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+                  adminToast(live ? '상담 설정을 내렸습니다.' : '초안을 지웠습니다.'); loadConsultationManager(body);
+                } catch (error) { remove.disabled = false; adminToast(error.message, 'error'); }
+              });
+              manage.appendChild(remove);
+            }
+            row.appendChild(manage);
+            row.addEventListener('click', function (event) { if (event.target.closest('button')) return; openEditor(); });
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter' && !event.target.closest('button')) openEditor(); });
+            rows.appendChild(row);
+          });
+          table.appendChild(rows); iconizeButtons(table);
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          listSection.replaceChildren(scroll);
+        }
         var snapshot;
         try {
           var response = await fetch('/api/admin/v1/consultation/settings', { credentials: 'same-origin', cache: 'no-store' });
           if (!response.ok) throw new Error(response.status === 403 ? '콘텐츠 조회 권한이 없습니다.' : '설정을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.');
           snapshot = await response.json();
           if (snapshot.versionStore !== 'ready' || !Array.isArray(snapshot.items) || !snapshot.defaults) throw new Error('설정을 불러오지 못해 지금은 저장할 수 없습니다.');
-        } catch (error) { status.textContent = error instanceof Error ? error.message : '설정 조회에 실패했습니다.'; return; }
-        var versions = snapshot.items.filter(function (item) { return item.contentType === 'notice' && item.placement === 'cheonmyeong_consultation' && item.serviceKey === null; });
+        } catch (error) { status.textContent = error instanceof Error ? error.message : '설정 조회에 실패했습니다.'; listStatus.textContent = status.textContent; return; }
+        versions = snapshot.items.filter(function (item) { return item.contentType === 'notice' && item.placement === 'cheonmyeong_consultation' && item.serviceKey === null; });
+        versions.forEach(function (item) { try { item.settings = JSON.parse(item.payload.body); } catch (_error) { item.settings = null; } });
         var published = versions.find(function (item) { return item.state === 'published'; });
         var draft = versions.find(function (item) { return item.state === 'draft'; });
         var settings;
         try { settings = draft || published ? JSON.parse((draft || published).payload.body) : snapshot.defaults; if (!settings || typeof settings.enabled !== 'boolean') throw new Error('invalid'); }
-        catch (_error) { status.textContent = '저장된 설정 형식이 올바르지 않습니다. 관리자에게 확인해 주세요.'; return; }
+        catch (_error) { status.textContent = '저장된 설정 형식이 올바르지 않습니다. 관리자에게 확인해 주세요.'; listStatus.textContent = status.textContent; return; }
         var archived = versions.some(function (item) { return item.state === 'archived'; });
         if (!draft && !published && archived) settings = Object.assign({}, settings, { enabled: false });
         status.textContent = (published ? '현재 게시 버전 ' + published.revision : archived ? '게시본이 내려가 상담이 비활성화되어 있습니다.' : '게시된 관리자 설정이 없어 기본 천명 설정을 사용합니다.') + (draft ? ' · 아래는 저장된 초안입니다.' : ' · 편집 후 먼저 초안을 저장해 주세요.');
@@ -2724,6 +3025,8 @@
         var note = document.createElement('p'); note.className = 'admin-note'; note.dataset.span = '2'; note.textContent = '게시하면 홈 배너와 이후 상담 요청에 적용됩니다. 기존 상담 본문·구매 리포트·AI 모델 설정은 변경하지 않습니다. 이미지는 사이트에 배포된 파일 경로를 사용합니다.'; form.appendChild(note);
         var actions = document.createElement('div'); actions.className = 'admin-actions'; actions.innerHTML = '<button type="submit" class="admin-button">초안 저장</button><button type="button" class="admin-button" data-consultation-publish>저장한 초안 게시</button>'; form.appendChild(actions);
         var result = document.createElement('p'); result.className = 'admin-note'; result.setAttribute('role', 'status'); form.appendChild(result); section.appendChild(form);
+        renderList();
+        adminPageAction('consultation-edit', '✎ 상담 설정 수정', section, { primary: true, size: 'wide' });
         var publishButton = actions.querySelector('[data-consultation-publish]'); publishButton.disabled = !draft;
         var busy = false; var dirty = !draft; var saveKey = crypto.randomUUID(); var publishKey = crypto.randomUUID();
         form.addEventListener('input', function () { dirty = true; publishButton.disabled = true; saveKey = crypto.randomUUID(); result.textContent = '변경사항을 먼저 초안으로 저장해 주세요.'; });
@@ -2733,6 +3036,12 @@
           value.voiceName = form.elements.voiceName.value; value.voiceRate = Number(form.elements.voiceRate.value); value.liveVoiceName = form.elements.liveVoiceName.value; value.enabled = form.elements.enabled.value === 'true';
           if (JSON.stringify(value).length > 4000 || /[<>]/.test(JSON.stringify(value))) throw new Error('설정은 전체 4,000자 이내이며 HTML 태그를 사용할 수 없습니다.');
           return value;
+        }
+        // 저장·게시가 끝나면 목록 줄도 바로 바꾼다. 게시하면 예전 게시본은 서버에서 내려가므로 목록에서도 '내림'으로 표시한다.
+        function rememberVersion(content) {
+          versions = versions.filter(function (item) { return item.id !== content.id; });
+          if (content.state === 'published') versions.forEach(function (item) { if (item.state === 'published') item.state = 'archived'; });
+          versions.unshift(content); try { renderList(); } catch (_error) { /* 목록 갱신 실패는 저장 결과에 영향 없음 */ }
         }
         async function mutate(url, method, payload, key) {
           var response = await fetch(url, { method: method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
@@ -2747,15 +3056,18 @@
             var value = readSettings(); setBusy(true); result.textContent = '초안을 저장하는 중입니다.';
             var payload = { title: value.name + ' 상담 설정', body: JSON.stringify(value) };
             draft = await mutate('/api/admin/v1/content' + (draft ? '/' + encodeURIComponent(draft.id) : ''), draft ? 'PATCH' : 'POST', draft ? { expectedRevision: draft.revision, payload: payload } : { contentType: 'notice', serviceKey: null, placement: 'cheonmyeong_consultation', payload: payload }, saveKey);
+            draft.settings = value; rememberVersion(draft);
             dirty = false; saveKey = crypto.randomUUID(); publishKey = crypto.randomUUID(); result.textContent = '초안 버전 ' + draft.revision + '을 저장했습니다. 아직 고객 화면에는 반영되지 않았습니다.';
           } catch (error) { result.textContent = error instanceof Error ? error.message : '초안 저장에 실패했습니다.'; }
           finally { setBusy(false); }
         });
         publishButton.addEventListener('click', async function () {
           if (busy || !draft || dirty) return;
+          if (!await adminConfirm('저장한 초안을 게시합니다. 홈 배너와 이후 상담 요청에 바로 적용됩니다.', { title: '상담 설정 게시', okLabel: '게시', danger: true })) return;
           try {
             setBusy(true); result.textContent = '저장한 초안을 게시하는 중입니다.';
             published = await mutate('/api/admin/v1/content/' + encodeURIComponent(draft.id) + '/publish', 'POST', { expectedRevision: draft.revision, checksum: draft.checksum }, publishKey);
+            published.settings = draft.settings; rememberVersion(published);
             draft = null; dirty = true; saveKey = crypto.randomUUID(); result.textContent = '게시 버전 ' + published.revision + '이 반영되었습니다. 기존 상담 기록은 유지됩니다.'; status.textContent = '현재 게시 버전 ' + published.revision + ' · 추가 변경은 새 초안으로 저장됩니다.';
           } catch (error) { result.textContent = error instanceof Error ? error.message : '게시하지 못했습니다. 저장된 초안은 유지됩니다.'; }
           finally { setBusy(false); }
@@ -2786,7 +3098,7 @@
             var saved = responsePayload.content; revision = saved.revision;
             result.textContent = '저장되었습니다.'; publishArea.hidden = false;
             publishButton.onclick = async function () {
-              if (!await adminConfirm('이 초안을 게시합니다. 계속할까요?')) return;
+              if (!await adminConfirm('이 초안을 게시합니다. 고객 화면에 바로 보입니다. 정말 게시할까요?', { title: '콘텐츠 게시', okLabel: '게시', danger: true })) return;
               publishButton.disabled = true;
               try {
                 var publishResponse = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/publish', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ checksum: saved.checksum, expectedRevision: revision }) });
@@ -2800,19 +3112,81 @@
         });
         section.appendChild(form); section.appendChild(publishArea);
       }
+      /*
+       * 시스템 › 로그 › 변경 이력 (2026-10 개편 8단계). 영역·기간·관리자로 거르고 서버에서 페이지를 나눈다.
+       * 작업 이름(member.account.suspend 같은 코드)은 운영자 말로 바꿔 보여 주고, 원래 코드는 ⓘ 에 둔다.
+       */
+      var AUDIT_ACTION_LABELS = {
+        'member.account.create': '회원 등록', 'member.account.delete': '회원 삭제', 'member.account.suspend': '회원 정지', 'member.account.restore': '회원 정지 해제', 'member.profile.update': '회원 프로필 수정',
+        'refund.request': '환불 요청', 'refund.approve': '환불 승인', 'refund.reject': '환불 반려',
+        'report.generation.restart': '리포트 다시 생성', 'report.generation.requeue_incomplete': '미완성 리포트 재시도', 'report.context.backfill_service_key': '리포트 서비스 정보 보정',
+        'coupon.campaign.create': '쿠폰 발급', 'coupon.campaign.disable': '쿠폰 사용 중단',
+        'service.draft.save': '서비스 초안 저장', 'service.version.publish': '서비스 발행',
+        'content.draft.create': '콘텐츠 초안 등록', 'content.draft.update': '콘텐츠 초안 수정', 'content.version.publish': '콘텐츠 게시', 'content.version.archive': '콘텐츠 보관',
+        'prompt.draft.save': '프롬프트 초안 저장', 'prompt.version.publish': '프롬프트 발행',
+        'support.case.create': '문의 등록', 'support.case.update': '문의 상태 변경', 'support.note.create': '문의 처리 기록',
+        'incident.create': '장애 등록', 'incident.update': '장애 상태 변경', 'incident.update_note.create': '장애 진행 기록',
+        'admin.account.create': '관리자 추가', 'admin.account.password.reset': '관리자 비밀번호 재설정', 'admin.account.status.change': '관리자 상태 변경',
+        'ops.jobs.prune': '작업 내역 삭제', 'ops.jobs.prune_by_error': '실패 작업 정리', 'ops.jobs.purge': '작업 정리'
+      };
+      var AUDIT_TARGET_LABELS = { member_auth: '회원', member_profile: '회원', refund_request: '환불', report: '리포트', report_queue: '리포트 대기열', coupon_campaign: '쿠폰', service: '서비스', content: '콘텐츠', prompt_content: '프롬프트', support_case: '문의', incident: '장애', admin_account: '관리자', ops_jobs: '작업' };
+      var auditState = { offset: 0, limit: 50, area: '', actor: '', from: '', to: '', all: false };
       async function loadLiveAudit(body) {
-        try {
-          var response = await fetch('/api/admin/v1/audit', { credentials: 'same-origin' });
-          if (!response.ok) throw new Error('ADMIN_AUDIT_LOOKUP_FAILED');
-          var payload = await response.json();
-          var events = Array.isArray(payload.events) ? payload.events : [];
-          addLiveTable(body, '변경 이력', ['시각', '관리자', '작업', '대상', '결과'], events, function (item) { return [item.createdAt, item.actor, item.action, item.targetType + ' · ' + item.targetId, item.result]; }, '아직 실행된 관리자 변경이 없습니다.');
-        } catch (_error) { addLiveError(body, '변경 이력을 불러오지 못했습니다.'); }
+        body.replaceChildren();
+        auditState.offset = 0;
+        var filters = document.createElement('form'); filters.className = 'admin-filterbar'; filters.setAttribute('role', 'search');
+        var area = document.createElement('select'); area.setAttribute('aria-label', '영역');
+        [['', '모든 영역'], ['member.', '회원'], ['refund.', '결제·환불'], ['report.', '리포트'], ['coupon.', '쿠폰'], ['service.', '서비스'], ['content.', '콘텐츠·팝업'], ['prompt.', '프롬프트'], ['support.', '고객 지원'], ['incident.', '장애'], ['admin.', '관리자'], ['ops.', '작업 대기열']].forEach(function (entry) { var option = document.createElement('option'); option.value = entry[0]; option.textContent = entry[1]; area.appendChild(option); });
+        area.value = auditState.area;
+        var actor = document.createElement('input'); actor.type = 'search'; actor.placeholder = '관리자 이메일 일부'; actor.setAttribute('aria-label', '관리자'); actor.value = auditState.actor;
+        var from = document.createElement('input'); from.type = 'date'; from.setAttribute('aria-label', '시작일'); from.value = auditState.from;
+        var to = document.createElement('input'); to.type = 'date'; to.setAttribute('aria-label', '종료일'); to.value = auditState.to;
+        var range = document.createElement('span'); range.className = 'admin-range'; range.append(from, document.createTextNode('~'), to);
+        var all = document.createElement('label'); all.className = 'admin-check'; var allBox = document.createElement('input'); allBox.type = 'checkbox'; allBox.checked = auditState.all; all.append(allBox, document.createTextNode(' 시작 기록도 보기'));
+        var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
+        filters.append(actor, submit, area, range, all, adminTip('관리자 화면에서 바꾼 것은 모두 여기에 남습니다. 작업 하나에 시작·완료 두 줄이 쌓여서, 기본은 완료된 것만 보여 줍니다.'));
+        function apply() { auditState.area = area.value; auditState.actor = actor.value.trim(); auditState.from = from.value; auditState.to = to.value; auditState.all = allBox.checked; auditState.offset = 0; render(); }
+        filters.addEventListener('submit', function (event) { event.preventDefault(); apply(); });
+        [area, from, to, allBox].forEach(function (control) { control.addEventListener('change', apply); });
+        var section = document.createElement('section'); section.className = 'admin-section'; section.appendChild(memberEmpty('불러오는 중입니다.'));
+        body.append(filters, section);
+        async function render() {
+          var params = new URLSearchParams({ limit: String(auditState.limit), offset: String(auditState.offset) });
+          if (auditState.area) params.set('area', auditState.area);
+          if (auditState.actor) params.set('actor', auditState.actor);
+          if (auditState.from) params.set('from', new Date(auditState.from + 'T00:00:00+09:00').toISOString());
+          if (auditState.to) params.set('to', new Date(new Date(auditState.to + 'T00:00:00+09:00').getTime() + 86400000).toISOString());
+          if (auditState.all) params.set('result', 'all');
+          try {
+            var payload = await adminJson('/api/admin/v1/audit?' + params.toString());
+            var events = Array.isArray(payload.events) ? payload.events : []; var total = Number(payload.total || 0);
+            if (!events.length) { section.replaceChildren(memberEmpty(auditState.area || auditState.actor || auditState.from || auditState.to ? '조건에 맞는 변경 이력이 없습니다.' : '아직 기록된 변경이 없습니다.')); return; }
+            var table = memberTable(['시각', '관리자', '작업', '대상', '결과'], events, function (item) {
+              var name = document.createElement('span'); name.textContent = AUDIT_ACTION_LABELS[item.action] || item.action; name.appendChild(adminTip(item.action));
+              var target = (AUDIT_TARGET_LABELS[item.targetType] || item.targetType) + ' · ' + (String(item.targetId).length > 14 ? String(item.targetId).slice(0, 12) + '…' : item.targetId);
+              return [memberWhen(item.createdAt), item.actor, name, target, item.result === 'succeeded' ? memberChip('완료', 'ok') : memberChip('시작', '')];
+            });
+            var pager = document.createElement('div'); pager.className = 'admin-pager';
+            var summary = document.createElement('span'); summary.textContent = '총 ' + total.toLocaleString('ko-KR') + '건 중 ' + (auditState.offset + 1) + '–' + Math.min(total, auditState.offset + events.length);
+            var buttons = document.createElement('div'); buttons.className = 'admin-pager-buttons';
+            var prev = document.createElement('button'); prev.type = 'button'; prev.textContent = '‹'; prev.setAttribute('aria-label', '이전 페이지'); prev.disabled = auditState.offset <= 0;
+            var next = document.createElement('button'); next.type = 'button'; next.textContent = '›'; next.setAttribute('aria-label', '다음 페이지'); next.disabled = auditState.offset + auditState.limit >= total;
+            var current = document.createElement('span'); current.className = 'admin-pager-current'; current.textContent = (Math.floor(auditState.offset / auditState.limit) + 1) + ' / ' + Math.max(1, Math.ceil(total / auditState.limit));
+            prev.addEventListener('click', function () { auditState.offset = Math.max(0, auditState.offset - auditState.limit); render(); });
+            next.addEventListener('click', function () { auditState.offset += auditState.limit; render(); });
+            var size = document.createElement('select'); size.className = 'admin-page-size'; size.setAttribute('aria-label', '한 화면에 볼 개수');
+            [20, 50, 100, 200].forEach(function (count) { var option = document.createElement('option'); option.value = String(count); option.textContent = count + '개씩'; size.appendChild(option); });
+            size.value = String(auditState.limit); size.addEventListener('change', function () { auditState.limit = Number(size.value); auditState.offset = 0; render(); });
+            buttons.append(prev, current, next, size); pager.append(summary, buttons);
+            section.replaceChildren(table, pager);
+          } catch (_error) { section.replaceChildren(memberEmpty('변경 이력을 불러오지 못했습니다.')); }
+        }
+        await render();
       }
       async function loadOpsJobs(body) {
         body.replaceChildren();
         var controlSection = document.createElement('section'); controlSection.className = 'admin-section';
-        controlSection.innerHTML = '<header class="admin-section-head"><h3>작업 큐 제어</h3><span class="admin-chip">리포트 생성 제어</span></header><div class="admin-actions" style="padding:0 16px 16px;flex-wrap:wrap"><button class="admin-button" type="button" data-pause-toggle disabled>확인 중…</button><span class="admin-actions" style="gap:8px"><input data-purge-owner placeholder="정리할 소유자 ID" style="padding:8px;border:1px solid var(--admin-line);border-radius:var(--admin-radius);font:inherit"><button class="admin-button" type="button" data-purge-owner-button>대기·재시도·실패 작업 정리</button></span></div><p class="admin-note" role="status" data-jobs-control-result></p>';
+        controlSection.innerHTML = '<header class="admin-section-head"><h3>작업 큐 제어</h3></header><div class="admin-actions" style="padding:0 16px 16px;flex-wrap:wrap"><button class="admin-button" type="button" data-pause-toggle disabled>확인 중…</button><span class="admin-actions" style="gap:8px"><input data-purge-owner placeholder="정리할 소유자 ID" style="padding:8px;border:1px solid var(--admin-line);border-radius:var(--admin-radius);font:inherit"><button class="admin-button" type="button" data-purge-owner-button>대기·재시도·실패 작업 정리</button></span></div><p class="admin-note" role="status" data-jobs-control-result></p>';
         body.appendChild(controlSection); adminPageAction('jobs-control', '작업 대기열 관리', controlSection);
         var pauseButton = controlSection.querySelector('[data-pause-toggle]'); var controlResult = controlSection.querySelector('[data-jobs-control-result]');
         try {
@@ -2821,7 +3195,7 @@
           pauseButton.disabled = false;
           pauseButton.addEventListener('click', async function () {
             var next = !pauseState.paused;
-            if (!await adminConfirm((next ? '리포트 생성을 일시정지' : '리포트 생성을 재개') + '합니다. 계속할까요?')) return;
+            if (!await adminConfirm(next ? '리포트 생성을 일시정지합니다. 결제한 고객의 리포트도 멈춥니다.' : '리포트 생성을 다시 시작합니다.', { title: next ? '생성 일시정지' : '생성 재개', okLabel: next ? '일시정지' : '재개', danger: next })) return;
             pauseButton.disabled = true;
             try {
               var response = await fetch('/api/admin/v1/jobs/pause', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ paused: next }) });
@@ -2850,7 +3224,7 @@
         });
         pruneDelete.addEventListener('click', async function () {
           var before = pruneCutoffIso(); if (!before) return;
-          if (!await adminConfirm(before + ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다(진행 중인 작업 제외). 되돌릴 수 없습니다. 계속할까요?')) return;
+          if (!await adminConfirm(before + ' 이전에 마지막으로 갱신된 작업 내역을 영구 삭제합니다(진행 중인 작업 제외). 정말 삭제할까요?', { title: '작업 내역 영구 삭제', okLabel: '영구 삭제', danger: true, irreversible: true })) return;
           pruneDelete.disabled = true; pruneResult.textContent = '삭제하는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/jobs/prune', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ before: before }) });
@@ -2864,7 +3238,7 @@
         purgeButton.addEventListener('click', async function () {
           var ownerId = purgeInput.value.trim();
           if (!/^[a-zA-Z0-9_-]{8,160}$/.test(ownerId)) { controlResult.textContent = '소유자 ID 형식을 확인해 주세요(영문·숫자·_·- 8자 이상).'; return; }
-          if (!await adminConfirm('이 소유자의 대기·재시도·실패 작업을 정리합니다(실행 중인 작업은 건드리지 않습니다). 계속할까요?')) return;
+          if (!await adminConfirm('이 소유자의 대기·재시도·실패 작업을 지웁니다(실행 중인 작업은 건드리지 않습니다). 정말 지울까요?', { title: '작업 정리', okLabel: '지우기', danger: true, irreversible: true })) return;
           purgeButton.disabled = true; controlResult.textContent = '작업을 정리하는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/jobs/purge', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ ownerId: ownerId }) });
@@ -2992,7 +3366,7 @@
             var restart = document.createElement('button'); restart.type = 'button'; restart.className = 'admin-button'; restart.textContent = '다시 생성';
             restart.title = '미완성 항목을 AI로 다시 만듭니다. 항목마다 비용이 듭니다.';
             restart.addEventListener('click', async function () {
-              if (!await adminConfirm('미완성 항목의 포기 상한을 다시 열고 생성을 재시작합니다. 항목마다 AI 호출 비용이 다시 듭니다. 실패 원인(프롬프트·검수 규칙)을 고치지 않았다면 같은 실패가 반복될 수 있습니다. 계속할까요?', { title: '다시 생성', okLabel: '다시 생성' })) return;
+              if (!await adminConfirm('미완성 항목의 포기 상한을 다시 열고 생성을 재시작합니다. 항목마다 AI 호출 비용이 다시 듭니다. 실패 원인(프롬프트·검수 규칙)을 고치지 않았다면 같은 실패가 반복될 수 있습니다. 계속할까요?', { title: '다시 생성', okLabel: '다시 생성', danger: true, irreversible: true })) return;
               restart.disabled = true;
               try {
                 var r = await fetch('/api/admin/v1/reports/' + encodeURIComponent(reportId) + '/restart', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({}) });
@@ -3041,7 +3415,7 @@
         if (currentEmail && currentEmail === String(refund.requestedByEmail).toLowerCase()) { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '요청자는 자신의 환불 요청을 승인할 수 없습니다.'; }
         if (refund.state !== 'requested') { submit.disabled = true; submit.setAttribute('aria-disabled', 'true'); result.textContent = '지금 상태에서는 승인할 수 없습니다. 결제사 처리 결과를 먼저 확인해 주세요.'; }
         form.appendChild(reason); form.appendChild(submit); form.appendChild(result);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; result.textContent = '승인을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인을 기록했습니다. 결제사 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (submit.disabled) return; if (!await adminConfirm('이 환불 요청을 승인합니다. 승인 기록은 지울 수 없습니다. 결제사 환불은 승인 뒤 따로 처리합니다.', { title: '환불 승인', okLabel: '승인', danger: true, irreversible: true })) return; submit.disabled = true; result.textContent = '승인을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.value.trim() }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '승인 저장에 실패했습니다.'); result.textContent = '승인을 기록했습니다. 결제사 환불은 아직 실행되지 않았습니다.'; await loadRefunds(body); } catch (error) { submit.disabled = false; result.textContent = error instanceof Error ? error.message : '승인 저장에 실패했습니다. 새로고침 후 다시 확인해 주세요.'; } });
         section.appendChild(form); showSectionModal(section);
       }
       async function loadRefunds(body, onSaved) {
@@ -3052,7 +3426,7 @@
         var order = null; var result = form.querySelector('[data-refund-request-result]'); var lookup = form.elements.lookup; var submit = form.elements.submit;
         async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '결제 번호를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '결제를 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '결제를 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '확인됨: ' + (order.productTitle || '') + ' ' + Number(order.amount).toLocaleString('ko-KR') + '원. 환불 가능 금액은 저장할 때 다시 확인합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '결제를 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
         lookup.addEventListener('click', lookupOrder);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; if (onSaved) { document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); }); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); onSaved(); } else await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } if (!await adminConfirm(Number(amount).toLocaleString('ko-KR') + '원 환불 요청을 남깁니다. 저장한 요청은 지울 수 없고, 반려로만 닫을 수 있습니다.', { title: '환불 요청', okLabel: '요청 저장', danger: true, irreversible: true })) return; submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; if (onSaved) { document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); }); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); onSaved(); } else await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
         requestSection.appendChild(form); body.appendChild(requestSection); adminPageAction('refund-request', '＋ 환불 요청', requestSection, { primary: true });
         if (onSaved) return;
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청</h3><span class="admin-chip">결제사 환불은 별도 처리</span></header><p class="admin-empty">환불 요청을 불러오는 중입니다.</p>'; body.appendChild(listSection);
@@ -3139,7 +3513,7 @@
           statusButton.textContent = member.banned ? '계정 정지 해제' : '계정 정지';
           statusButton.addEventListener('click', async function () {
             var next = !member.banned;
-            if (!await adminConfirm((next ? '이 회원 계정을 정지합니다' : '이 회원 계정의 정지를 해제합니다') + '. 재로그인·토큰 갱신에 영향을 줍니다. 계속할까요?')) return;
+            if (!await adminConfirm(next ? '이 회원은 정지하는 순간부터 로그인할 수 없습니다. 정말 정지할까요?' : '이 회원의 정지를 풀어 다시 로그인할 수 있게 합니다.', { title: next ? '계정 정지' : '정지 해제', okLabel: next ? '정지' : '해제', danger: next })) return;
             statusButton.disabled = true;
             try {
               var statusResponse = await fetch('/api/admin/v1/members/' + encodeURIComponent(userId) + '/status', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ banned: next }) });
@@ -3285,7 +3659,7 @@
       var INCIDENT_STATUS_LABELS = { open: '접수', investigating: '조사 중', mitigated: '완화됨', resolved: '해결됨', closed: '종료' };
       function incidentStatusTone(status) { return status === 'resolved' || status === 'closed' ? 'ok' : status === 'critical' ? 'error' : 'warn'; }
       async function loadIncidents(body) {
-        var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>장애 등록</h3><span class="admin-chip">최근 100건</span></header>';
+        var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>장애 등록</h3></header>';
         var createForm = document.createElement('form'); createForm.className = 'admin-refund-form'; createForm.noValidate = true;
         createForm.innerHTML = '<div class="admin-field" data-span="2"><label>제목</label><input required name="title" maxlength="200" placeholder="한 줄로 요약"></div><div class="admin-field"><label>심각도</label><select name="severity"><option value="low">낮음</option><option value="medium" selected>보통</option><option value="high">높음</option><option value="critical">치명적</option></select></div><div class="admin-field"><label>담당자 이메일 (선택)</label><input name="ownerEmail" type="email"></div><div class="admin-field" data-span="2"><label>영향 범위 (선택)</label><input name="affectedArea" maxlength="200" placeholder="예: 결제, 저축운 생성"></div><div class="admin-field" data-span="2"><label>요약</label><input required name="summary" maxlength="2000" placeholder="무엇이 어떻게 잘못됐는지"></div><div class="admin-actions"><button class="admin-button" type="submit">장애 등록</button></div><p class="admin-note" role="status" data-incident-create-result></p>';
         var createResult = createForm.querySelector('[data-incident-create-result]');
@@ -3300,7 +3674,7 @@
           } catch (error) { createResult.textContent = error instanceof Error ? error.message : '장애 등록에 실패했습니다.'; submit.disabled = false; }
         });
         createSection.appendChild(createForm); body.replaceChildren(); body.appendChild(createSection); adminPageAction('incident-create', '＋ 장애 등록', createSection, { primary: true });
-        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>장애 기록</h3><span class="admin-chip">열린 사건 우선</span></header><p class="admin-empty">장애 기록을 불러오는 중입니다.</p>'; body.appendChild(listSection);
+        var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<p class="admin-empty">장애 기록을 불러오는 중입니다.</p>'; body.appendChild(listSection);
         try {
           var listResponse = await fetch('/api/admin/v1/incidents', { credentials: 'same-origin' }); if (!listResponse.ok) throw new Error('INCIDENT_LOOKUP_FAILED');
           var listPayload = await listResponse.json(); var incidents = Array.isArray(listPayload.incidents) ? listPayload.incidents : [];
@@ -3316,7 +3690,7 @@
             var actionCell = document.createElement('td'); var manage = document.createElement('button'); manage.className = 'admin-button'; manage.type = 'button'; manage.textContent = '처리'; manage.addEventListener('click', function () { renderIncidentDetail(body, item); }); actionCell.appendChild(manage); row.appendChild(actionCell);
             rows.appendChild(row);
           });
-          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll);
+          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(scroll);
         } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '장애 기록을 불러오지 못했습니다.'; }
       }
       async function renderIncidentDetail(body, item) {
@@ -3437,6 +3811,7 @@
           { label: '요청 저장', primary: true, onClick: async function (d) {
             var amount = Number(String(form.elements.amount.value).replace(/[^0-9]/g, ''));
             if (!amount || amount > order.amount) { adminToast('환불 금액을 확인해 주세요. 결제 금액을 넘을 수 없습니다.', 'error'); return; }
+            if (!await adminConfirm(won(amount) + ' 환불 요청을 남깁니다. 저장한 요청은 지울 수 없고, 반려로만 닫을 수 있습니다.', { title: '환불 요청', okLabel: '요청 저장', danger: true, irreversible: true })) return;
             try {
               await adminJson('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(), expectedRevision: order.revision }) });
               d.close(); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); if (onDone) onDone();
@@ -3570,11 +3945,11 @@
         var actions = [{ label: '닫기', onClick: function (d) { d.close(); } }];
         if (refund.state === 'requested') {
           actions.push({ label: '반려', danger: true, onClick: async function (d) {
-            if (!await adminConfirm('이 환불 요청을 반려할까요? 결제는 그대로 유지됩니다.', { okLabel: '반려', danger: true })) return;
+            if (!await adminConfirm('이 환불 요청을 반려합니다. 결제는 그대로 유지되고, 반려한 요청은 다시 열 수 없습니다(필요하면 새로 요청).', { title: '환불 요청 반려', okLabel: '반려', danger: true, irreversible: true })) return;
             try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/reject', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision }) }); d.close(); adminToast('반려했습니다.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
           } });
           if (refund.requestedByEmail !== me) actions.push({ label: '승인', primary: true, onClick: async function (d) {
-            var reason = await adminPrompt('승인 근거를 적어 주세요. (감사 기록에 남습니다)', { title: '환불 승인', okLabel: '승인', placeholder: '예: 중복 결제 확인' });
+            var reason = await adminPrompt('승인 근거를 적어 주세요. 승인 기록은 지울 수 없습니다.', { title: '환불 승인', okLabel: '승인', placeholder: '예: 중복 결제 확인' });
             if (reason === null) return; if (!reason.trim()) { adminToast('승인 근거를 적어 주세요.', 'error'); return; }
             try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.trim() }) }); d.close(); adminToast('승인했습니다. 결제사 환불은 따로 처리해 주세요.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
           } });
@@ -3702,7 +4077,7 @@
        */
       async function loadFunnelAnalytics(body) {
         var head = document.createElement('section'); head.className = 'admin-section';
-        head.innerHTML = '<header class="admin-section-head"><h3>서비스별 이용 통계</h3><span class="admin-chip">실시간 운영 이벤트</span></header><p class="admin-note" style="padding:0 16px 12px">페이지가 열릴 때 기록되는 실제 조회와 30분 활동 기준 방문을 집계합니다. 로그인 방문자는 선택 기간에 로그인 상태로 페이지를 본 계정 수입니다.</p>';
+        head.innerHTML = '<header class="admin-section-head"><h3>서비스별 이용 통계</h3></header><p class="admin-note" style="padding:0 16px 12px">페이지가 열릴 때 기록되는 실제 조회와 30분 활동 기준 방문을 집계합니다. 로그인 방문자는 선택 기간에 로그인 상태로 페이지를 본 계정 수입니다.</p>';
         var filters = document.createElement('form'); filters.className = 'admin-filters';
         filters.style.padding = '0 16px 12px';
         filters.innerHTML = '<label for="admin-funnel-period">기간</label><select id="admin-funnel-period" name="period"><option value="day">최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select>';
@@ -3742,7 +4117,7 @@
         var loveSources = { home: '메인 배너', share: '공유 링크', admin: '관리자 바로가기', internal: '사이트 내부', search: '검색 사이트', social: '소셜 사이트', external: '기타 외부', direct: '직접/출처 없음', unknown: '이전 기록/미분류' };
         function appendLoveSpeed(data, available) {
           var card = document.createElement('section'); card.className = 'admin-section';
-          card.innerHTML = '<header class="admin-section-head"><h3>금사빠·금사식 · 무료 테스트</h3><span class="admin-chip">CTA · SEO · GA4</span></header><div style="padding:16px"><p><a href="/play/love-speed/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/love-speed/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">메인: 매주 열리는 무료운세 → 무료로 해보기. 검색용 기본 주소: https://umsh.kr/play/love-speed/ · 공유 이미지·구조화 데이터·사이트맵 적용.</p><p class="admin-note">GA4: G-QVQZSPWK6M · love_speed_view/start/complete/login/result_view/share/share_success/copy/details/restart/banner_click. love_speed_view는 자동 page_view와 합산하지 않습니다. 아래 수치는 자체 수집 통계이며 GA4와 집계 기준이 다를 수 있습니다.</p></div>';
+          card.innerHTML = '<header class="admin-section-head"><h3>금사빠·금사식 · 무료 테스트</h3></header><div style="padding:16px"><p><a href="/play/love-speed/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/love-speed/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">메인: 매주 열리는 무료운세 → 무료로 해보기. 검색용 기본 주소: https://umsh.kr/play/love-speed/ · 공유 이미지·구조화 데이터·사이트맵 적용.</p><p class="admin-note">GA4: G-QVQZSPWK6M · love_speed_view/start/complete/login/result_view/share/share_success/copy/details/restart/banner_click. love_speed_view는 자동 page_view와 합산하지 않습니다. 아래 수치는 자체 수집 통계이며 GA4와 집계 기준이 다를 수 있습니다.</p></div>';
           body.appendChild(card);
           if (!available) { addLiveError(body, '무료 테스트 통계를 불러오지 못했습니다. 0명으로 판단하지 마세요.'); return; }
           data = data || { views: 0, sessions: 0, signedInUsers: 0, homeClicks: 0, sources: [], actions: [] };
@@ -3754,7 +4129,7 @@
         var soloActions = { home: '메인 배너 클릭', start: '테스트 시작', gender: '성별 선택', complete: '10문항 완료', login: '로그인 열기', share: '공유 시도', copy: '테스트 링크 복사 시도', fortune: '올해 연애운 이동', restart: '다시하기' };
         function appendSoloNara(data, available) {
           var card = document.createElement('section'); card.className = 'admin-section';
-          card.innerHTML = '<header class="admin-section-head"><h3>솔로나라 · 무료 캐릭터 테스트</h3><span class="admin-chip">CTA · 결과 분포 · GA4</span></header><div style="padding:16px"><p><a href="/play/solo-nara/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/solo-nara/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">GA4: solo_nara_view/start/gender/progress/complete/login/result_view/share/share_success/copy/fortune/restart. 결과 캐릭터만 result_character로 보내고 성별·답변·점수는 보내지 않습니다.</p></div>';
+          card.innerHTML = '<header class="admin-section-head"><h3>솔로나라 · 무료 캐릭터 테스트</h3></header><div style="padding:16px"><p><a href="/play/solo-nara/?src=admin" target="_blank" rel="noopener">테스트 CTA 열기 ↗</a> · <a href="/play/solo-nara/preview.html" target="_blank" rel="noopener">결과 디자인 보기 ↗</a></p><p class="admin-note">GA4: solo_nara_view/start/gender/progress/complete/login/result_view/share/share_success/copy/fortune/restart. 결과 캐릭터만 result_character로 보내고 성별·답변·점수는 보내지 않습니다.</p></div>';
           body.appendChild(card);
           if (!available) { addLiveError(body, '솔로나라 통계 저장소를 읽을 수 없습니다. 0명으로 판단하지 마세요.'); return; }
           data = data || { views: 0, sessions: 0, signedInUsers: 0, homeClicks: 0, sources: [], actions: [], results: [] };
@@ -3823,16 +4198,46 @@
        * 별도 미디어 저장소가 없다 — 이미지는 배포에 실린 정적 파일 자체다. 실제로 배포된
        * 파일을 훑어 카탈로그를 만들고, 어디에도 안 쓰이는 자산을 위로 올려 정리 대상을 먼저 보인다.
        */
+      /*
+       * 서비스 › 미디어 관리 (2026-10 8단계). 사용 중·미사용으로 나눠 보고, 미사용 용량을 보여 준다.
+       * 이미지는 배포 파일이라 화면에서 지우지 않는다 — 정리는 저장소에서 파일을 지우고 배포해야 한다(ⓘ 안내).
+       */
       async function loadMediaCatalog(body) {
+        body.replaceChildren();
+        var state = { filter: 'all', assets: [] };
+        var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '사용 여부');
+        filters.append(seg, adminTip('사이트에 배포된 이미지 파일입니다. 미사용 이미지는 어느 페이지에서도 쓰이지 않는 파일입니다. 지우려면 개발 저장소에서 파일을 지우고 다시 배포해야 합니다.'));
+        var kpis = document.createElement('div'); kpis.className = 'admin-kpis admin-kpis-4';
+        var card = document.createElement('section'); card.className = 'admin-section'; card.appendChild(memberEmpty('불러오는 중입니다.'));
+        body.append(filters, kpis, card);
+        function kb(bytes) { return bytes >= 1048576 ? (Math.round(bytes / 104857.6) / 10) + ' MB' : Math.round(bytes / 1024) + ' KB'; }
+        function render() {
+          var used = state.assets.filter(function (item) { return item.status === 'in_use'; }); var unused = state.assets.filter(function (item) { return item.status !== 'in_use'; });
+          seg.replaceChildren();
+          [['all', '전체', state.assets.length], ['in_use', '사용 중', used.length], ['unused', '미사용', unused.length]].forEach(function (entry) {
+            var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + ' ' + entry[2]; button.setAttribute('aria-pressed', state.filter === entry[0] ? 'true' : 'false');
+            button.addEventListener('click', function () { state.filter = entry[0]; render(); }); seg.appendChild(button);
+          });
+          var sum = function (list) { return list.reduce(function (total, item) { return total + (Number(item.bytes) || 0); }, 0); };
+          kpis.replaceChildren();
+          [['전체 이미지', state.assets.length + '개', kb(sum(state.assets))], ['사용 중', used.length + '개', kb(sum(used))], ['미사용', unused.length + '개', kb(sum(unused)) + ' · 정리하면 배포가 가벼워집니다'], ['가장 큰 파일', state.assets.length ? kb(Math.max.apply(null, state.assets.map(function (item) { return Number(item.bytes) || 0; }))) : '—', '']].forEach(function (entry) {
+            var box = document.createElement('div'); var name = document.createElement('span'); name.textContent = entry[0]; var value = document.createElement('b'); value.textContent = entry[1]; var hint = document.createElement('small'); hint.textContent = entry[2]; box.append(name, value, hint); kpis.appendChild(box);
+          });
+          var list = state.assets.filter(function (item) { return state.filter === 'all' || (state.filter === 'in_use' ? item.status === 'in_use' : item.status !== 'in_use'); });
+          if (!list.length) { card.replaceChildren(memberEmpty(state.filter === 'unused' ? '미사용 이미지가 없습니다.' : '배포된 이미지를 찾지 못했습니다.')); return; }
+          var table = memberTable(['미리보기', '파일', '#크기', '#쓰는 페이지', '상태'], list, function (item) {
+            var thumb = document.createElement('img'); thumb.alt = ''; thumb.loading = 'lazy'; thumb.className = 'admin-media-thumb'; thumb.addEventListener('error', function () { thumb.removeAttribute('src'); thumb.setAttribute('data-missing', ''); thumb.title = '사이트 주소로 열리지 않는 파일(원본 폴더 사본)입니다.'; }); thumb.src = item.path;
+            return [thumb, item.path, kb(Number(item.bytes) || 0), item.referencedBy, item.status === 'in_use' ? memberChip('사용 중', 'ok') : memberChip('미사용', 'warn')];
+          });
+          var inner = table.querySelector('table'); if (inner) inner.removeAttribute('data-plain');
+          card.replaceChildren(table);
+        }
         try {
-          var response = await fetch('/api/admin/v1/media', { credentials: 'same-origin' });
-          if (!response.ok) throw new Error('MEDIA_CATALOG_FAILED');
-          var payload = await response.json();
-          var assets = Array.isArray(payload.assets) ? payload.assets : [];
-          var unused = assets.filter(function (item) { return item.status === 'unused'; }).length;
-          if (unused) addLiveError(body, '어느 페이지에서도 참조되지 않는 이미지가 ' + unused + '개 있습니다. 배포 크기를 줄이려면 정리 대상입니다.');
-          addLiveTable(body, '배포된 이미지 자산', ['경로', '크기', '참조 페이지 수', '공개 상태'], assets, function (item) { return [item.path, Math.round(item.bytes / 1024) + ' KB', item.referencedBy, item.status === 'in_use' ? '사용 중' : '미사용']; }, '배포된 이미지 자산을 찾지 못했습니다.');
-        } catch (_error) { addLiveError(body, '미디어 카탈로그를 불러오지 못했습니다.'); }
+          var payload = await adminJson('/api/admin/v1/media');
+          state.assets = Array.isArray(payload.assets) ? payload.assets : [];
+          render();
+        } catch (_error) { card.replaceChildren(memberEmpty('미디어 목록을 불러오지 못했습니다.')); }
       }
       /**
        * 구조화된 로그 적재 표가 없다 — 생성 파이프라인이 이미 항목마다 남기는 실패 시도
@@ -3843,7 +4248,7 @@
         if (!body) return;
         var section = document.createElement('section');
         section.className = 'admin-section';
-        section.innerHTML = '<header class="admin-section-head"><h3>관리자 계정</h3><span class="admin-chip">운영 계정</span></header><p class="admin-empty">관리자 계정 목록을 불러오는 중입니다.</p>';
+        section.innerHTML = '<p class="admin-empty">관리자 계정 목록을 불러오는 중입니다.</p>';
         body.appendChild(section);
         try {
           var response = await fetch('/api/admin/v1/admin-accounts', { credentials: 'same-origin' });
@@ -3866,16 +4271,16 @@
           } else {
             accounts.forEach(function (account) {
               var row = document.createElement('tr');
-              [account.email, account.role, account.isActive ? '활성' : '비활성', account.createdAt].forEach(function (value) {
+              [account.email, { super_admin: '최고 관리자' }[account.role] || account.role, account.isActive ? '사용 중' : '사용 중지', memberWhen(account.createdAt)].forEach(function (value) {
                 var cell = document.createElement('td');
                 cell.textContent = String(value || '—');
                 row.appendChild(cell);
               });
               var actions = document.createElement('td');
-              var password = document.createElement('button'); password.className = 'admin-button'; password.type = 'button'; password.textContent = '비밀번호 변경';
+              var password = document.createElement('button'); password.className = 'admin-button'; password.setAttribute('data-variant', 'quiet'); password.type = 'button'; password.textContent = '비밀번호 변경';
               password.addEventListener('click', async function () { var next = await adminPrompt('새 비밀번호를 입력하세요. (12자 이상)'); if (!next) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/password', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ password: next, expectedRevision: account.revision }) }); if (!response.ok) { adminToast('비밀번호 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
-              var status = document.createElement('button'); status.className = 'admin-button'; status.type = 'button'; status.textContent = account.isActive ? '비활성화' : '활성화';
-              status.addEventListener('click', async function () { if (!await adminConfirm('관리자 계정 상태를 변경하시겠습니까?')) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/status', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ isActive: !account.isActive, expectedRevision: account.revision }) }); if (!response.ok) { adminToast('계정 상태 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
+              var status = document.createElement('button'); status.className = 'admin-button'; status.setAttribute('data-variant', 'quiet'); status.type = 'button'; status.textContent = account.isActive ? '사용 중지' : '다시 사용';
+              status.addEventListener('click', async function () { if (!await adminConfirm('이 관리자 계정의 상태를 바꿉니다. 사용 중지하면 바로 로그인할 수 없습니다.', { title: '관리자 계정 상태 변경', okLabel: '변경', danger: true })) return; var response = await fetch('/api/admin/v1/admin-accounts/' + encodeURIComponent(account.id) + '/status', { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ isActive: !account.isActive, expectedRevision: account.revision }) }); if (!response.ok) { adminToast('계정 상태 변경에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
               actions.appendChild(password); actions.appendChild(status); row.appendChild(actions);
               rows.appendChild(row);
             });
@@ -3885,7 +4290,7 @@
           var scroll = document.createElement('div');
           scroll.className = 'admin-table-scroll';
           scroll.appendChild(table);
-          section.replaceChildren(section.firstElementChild, scroll);
+          section.replaceChildren(scroll);
           var create = document.createElement('form'); create.className = 'admin-actions'; create.innerHTML = '<input required type="email" name="email" placeholder="새 관리자 이메일" autocomplete="email"><input required type="password" name="password" minlength="12" placeholder="초기 비밀번호 (12자 이상)" autocomplete="new-password"><button class="admin-button" type="submit">관리자 추가</button>';
           create.addEventListener('submit', async function (event) { event.preventDefault(); var form = event.currentTarget; var response = await fetch('/api/admin/v1/admin-accounts', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ email: form.elements.email.value, password: form.elements.password.value }) }); if (!response.ok) { adminToast('관리자 추가에 실패했습니다.'); return; } section.remove(); loadAdminAccounts(body); });
           var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>관리자 추가</h3></header>'; create.style.padding = '16px'; createSection.appendChild(create); adminPageAction('admin-create', '＋ 관리자 추가', createSection, { primary: true });
@@ -3897,6 +4302,7 @@
             bootstrap.type = 'button';
             bootstrap.textContent = '현재 관리자 계정 등록';
             bootstrap.addEventListener('click', async function () {
+              if (!await adminConfirm('지금 로그인한 계정을 첫 최고 관리자로 등록합니다.', { title: '첫 관리자 등록', okLabel: '등록' })) return;
               bootstrap.disabled = true;
               try {
                 var created = await fetch('/api/admin/v1/admin-accounts/bootstrap', { method: 'POST', credentials: 'same-origin' });

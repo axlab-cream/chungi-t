@@ -143,3 +143,23 @@ test('page is readable without JS, deployable, indexed, and loads copy before th
   assert.ok(read('scripts/prepare-vercel-public.mjs').includes("join(sajuRoot, 'play', 'solo-nara')"))
   assert.match(read('사주/js/umsh-analytics.js'), /love-speed\|solo-nara\)\\\/preview/)
 })
+
+test('answers survive a login that returns in another tab, and restart clears every copy', () => {
+  const start = app.indexOf('  function save() {'), end = app.indexOf('\n', app.indexOf('  function readSaved()'))
+  const makeStore = () => { const m = new Map<string, string>(); return { m, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v) }, removeItem: (k: string) => { m.delete(k) } } }
+  const tab = makeStore(), device = makeStore()
+  const context: any = { KEY: 'k', state: { gender: 'female', answers: [1, 2], at: 0 }, storageOK: false, sessionStorage: tab, localStorage: device, JSON, Date }
+  runInNewContext(app.slice(start, end), context)
+  context.save()
+  assert.equal(context.storageOK, true)
+  tab.m.clear() // a new tab starts with an empty sessionStorage
+  assert.deepEqual(context.readSaved().answers, [1, 2])
+  context.clear()
+  assert.equal(context.readSaved(), null)
+  // Storage blocked in both places: the gate must know saving failed.
+  const blocked = { getItem() { throw Error('blocked') }, setItem() { throw Error('blocked') }, removeItem() {} }
+  Object.assign(context, { sessionStorage: blocked, localStorage: blocked })
+  runInNewContext(app.slice(start, end), context)
+  context.save()
+  assert.equal(context.storageOK, false)
+})

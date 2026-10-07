@@ -151,6 +151,8 @@
     if (play && (/preview\.html$/.test(location.pathname) || global.navigator.doNotTrack === '1' || global.navigator.globalPrivacyControl === true)) return;
     var source = service === 'solo_nara' ? global.UMSHSoloNaraSource : global.UMSHLoveSpeedSource;
     push('step_view', play ? { target: service + ':source:' + (['home','share','admin','internal','search','social','external','direct'].includes(source) ? source : 'direct') } : undefined);
+    // 같은 단계 판정을 GA4 퍼널에도 쓴다. 측정 태그가 꺼진 환경(로컬·DNT)에는 UMSHAnalytics 가 없다.
+    if (global.UMSHAnalytics && typeof global.UMSHAnalytics.funnelStep === 'function') global.UMSHAnalytics.funnelStep(placeOf(location.pathname));
     document.addEventListener('click', function (event) {
       var node = event.target && event.target.closest ? event.target : null;
       if (!node) return;

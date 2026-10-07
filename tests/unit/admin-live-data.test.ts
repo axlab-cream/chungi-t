@@ -56,7 +56,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     const old = new Date(Date.now() - 30 * 86_400_000).toISOString()
     return new Response(JSON.stringify([
       { report_id: 'report-stat-0001', user_email: 'buyer@example.com', updated_at: recent, reportService: 'cmdg', sections: [
-        { id: 's1', attempts: [{ status: 'failed', error: '요청이 일시적으로 거절되었습니다(status=429)', model: 'm', startedAt: recent }, { status: 'complete', startedAt: recent }] },
+        { id: 's1', attempts: [{ status: 'failed', error: '요청이 일시적으로 거절되었습니다(status=429)', model: 'm', startedAt: recent }, { status: 'complete', model: 'm', startedAt: recent, tokenUsage: { promptTokens: 1200, completionTokens: 800, totalTokens: 2000 } }] },
         { id: 's2', attempts: [{ status: 'failed', error: 'OpenAI 잔액이 소진되어 생성할 수 없습니다.', model: 'm', startedAt: recent }, { status: 'failed', error: 'too old', startedAt: old }] },
       ] },
       { report_id: 'report-stat-0002', user_email: null, updated_at: recent, reportService: null, sections: [{ id: 's1', attempts: [{ status: 'complete', startedAt: recent }] }] },
@@ -145,7 +145,7 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     const members = await liveData.listLiveMembers(1)
     assert.deepEqual(members, [{
       no: 1, id: MEMBER_A, name: '홍길동', email: 'member-a@example.com',
-      createdAt: '2026-09-01T00:00:00.000Z', lastSignInAt: '2026-09-15T03:00:00.000Z', signupProvider: 'kakao',
+      createdAt: '2026-09-01T00:00:00.000Z', lastSignInAt: '2026-09-15T03:00:00.000Z', signupProvider: 'kakao', banned: false,
       personalInfoRegistered: true, purchaseCount: 2, totalPurchaseAmount: 15800,
       updatedAt: '2026-09-02T00:00:00.000Z',
     }])
@@ -288,5 +288,8 @@ describe('리포트 관리·AI 실패 현황 (2026-10 5단계)', { concurrency: 
     assert.equal(stats.recent.length, 2)
     assert.equal(stats.recent[0].member, 'b•••@example.com')
     assert.ok(stats.byDay.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.day)))
+    assert.deepEqual(stats.tokens, { prompt: 1200, completion: 800, total: 2000 })
+    assert.equal(stats.byModel[0].model, 'm')
+    assert.equal(stats.byModel[0].totalTokens, 2000)
   })
 })

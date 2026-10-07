@@ -1,5 +1,30 @@
 # Status
 
+## 2026-10-07 — GA4 구매 퍼널 이벤트 (GA-FUNNEL-07)
+
+- [DONE] 서비스 단계 → GA4: `view_item`(소개) · `input_start`(STEP2·3) · `view_teaser`(STEP4) · `view_full_report`(STEP5·6). 단계 판정은 `umsh-track.js` placeOf 하나만 쓰고 `UMSHAnalytics.funnelStep` 이 GA4 이름으로 옮긴다. 모든 이벤트에 `service_key`.
+- [DONE] 결제: `begin_checkout`(결제 화면 상품 표시) · `add_payment_info`(결제창 열기, 쿠폰 반영 금액) · `purchase`(결과 화면에서 `/api/payment/orders/:id` 로 paid/viewed 확인 후, KRW·금액·상품). URL 의 state=paid 는 믿지 않는다.
+- [DONE] 주문번호는 SHA-256(`umsh-order:` + orderId) 앞 32자리만 transaction_id 로 보낸다. 브라우저당 한 주문 한 번(localStorage 표시).
+- 검증: 신규 10/10, 전체 1,920/1,920, tsc PASS. 운영 GA4 수신은 머지 후 DebugView 로 확인 예정(NOT_RUN).
+- [NOTE] 앱(Play) 결제는 `state` 없이 `/payment/result?orderId=` 로 돌아와 화면이 "결제를 완료하지 못했어요"로 읽힐 수 있다(`payment-result.js` state 기본값 failed). 이번 변경 범위 밖, 확인 필요.
+
+## 2026-10-06 — 운영 관리자 개편 8·9단계 + CRUD 점검 + 전체 재시험
+
+- [DONE] 로그(변경 이력): 영역·관리자·기간 필터, 기본은 완료 기록만(시작 기록 포함 선택), 서버 페이지. 작업 이름을 운영자 말로(원래 코드는 ⓘ). `GET /api/admin/v1/audit?area&actor&from&to&result&limit&offset`.
+- [DONE] 미디어: 전체·사용 중·미사용 구분, 개수·용량 합계, 미리보기(열리지 않는 원본 폴더 사본은 빗금). 지우기는 저장소에서 해야 함(ⓘ 안내).
+- [DONE] 서비스: 판매 중·판매 중단·숨김 필터.
+- [DONE] 9단계 중 데이터가 있는 것: AI 사용량(토큰, 모델별)을 실패 현황에. 비용(원)은 단가표가 없어 계산하지 않음.
+- [DONE] CRUD 점검: 상담 설정 게시에 확인 팝업 추가(유일하게 빠져 있던 즉시 반영 동작).
+- [TODO·결정 필요] 수수료율, 관리자 역할 나누기, 감사 기록에 사유·변경 전후 값(DB 칸 추가 = 마이그레이션 승인), 팝업 초안/게시 분리, 상담 이용 현황 집계.
+- 재시험: tsc 통과, 단위 테스트 1,910/1,910, 화면 24개 × 3폭 = 72회 순회(오류 0·시스템 창 0·가로 넘침 0·제목 누락 0), ⓘ 검사 48회(문제 0), 클릭 시험 7종 통과.
+
+## 2026-10-06 — ⓘ 표시·확인 팝업·회원 CRUD (사용자 요청)
+
+- [FIXED] ⓘ 설명이 마우스를 올리기 전부터 펼쳐짐: 카드 안 `span { display:block }` 같은 화면 규칙이 숨김을 덮어씀 → `.admin-tip > .admin-tip-box` 를 !important 로 고정. 24개 화면 × PC·휴대폰 폭 자동 검사(펼쳐진 것 0, 올리면 보임).
+- [FIXED] 휴대폰 폭에서 페이지 전체가 옆으로 넓어짐: 작업 영역 격자 칸이 표 폭만큼 늘어남 → `.admin-workspace > * { min-width: 0 }`.
+- [DONE] 되돌릴 수 없는 동작은 모두 확인 팝업: 공통 확인 팝업에 제목·동작 이름 버튼·빨간 "되돌릴 수 없습니다" 경고. 새로 붙임: 팝업 게시, 쿠폰 발급, 환불 요청 저장(2곳), 예전 환불 승인 양식, 첫 관리자 등록. 문구 강화: 발송(지금 발송·회수 불가 경고), 발송 중단·예약 취소, 실패분 재발송, 서비스·프롬프트 발행, 작업 내역 영구 삭제, 계정 정지 등.
+- [DONE] 회원 CRUD: [＋ 회원 등록](이메일 계정 + 사주 프로필, 비밀번호 없음), 행마다 수정·정지·삭제 아이콘. 삭제는 회원 이름을 입력해야 버튼이 켜지고, 결제 기록이 있는 회원은 거절(거래 기록 법정 보관, payment_orders on delete restrict) → 계정 정지 안내. `POST /api/admin/v1/members`, `DELETE /api/admin/v1/members/:id`(members:write, 감사 기록).
+
 ## 2026-10-06 — 운영 관리자 개편 7단계(고객 지원·쿠폰)
 
 - [DONE] 고객 지원: 목록 먼저(답변 대기·처리 중·완료·전체, 건수 표시), 행 → 문의 상세 팝업(회원·결제·리포트 링크, 상태·우선순위·담당 저장, 처리 기록 타임라인·추가). 등록 폼에 회원 번호 추가. `GET /api/admin/v1/support/:id` 로 `?id=` 딥링크.

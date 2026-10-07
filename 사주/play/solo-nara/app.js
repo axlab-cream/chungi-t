@@ -16,16 +16,23 @@
   const lines = value => esc(value).replace(/\n/g, '<br>');
   const isType = type => typeof type === 'string' && Object.hasOwn(C.characters, type);
   const candidates = gender => Object.entries(C.characters).filter(([, c]) => c.gender === gender);
-  function save() { try { state.at = Date.now(); sessionStorage.setItem(KEY, JSON.stringify(state)); storageOK = true; } catch { storageOK = false; } }
-  function clear() { try { sessionStorage.removeItem(KEY); } catch {} }
+  // Answers survive login even when the provider returns in another tab (email links, app hand-offs):
+  // the tab copy is preferred, the device copy is the fallback. Both expire after 2 hours and hold no personal data.
+  function save() {
+    state.at = Date.now(); const json = JSON.stringify(state); let ok = false;
+    for (const store of [sessionStorage, localStorage]) { try { store.setItem(KEY, json); ok = true; } catch {} }
+    storageOK = ok;
+  }
+  function clear() { for (const store of [sessionStorage, localStorage]) { try { store.removeItem(KEY); } catch {} } }
+  function readSaved() { for (const store of [sessionStorage, localStorage]) { try { const raw = store.getItem(KEY); if (raw) return JSON.parse(raw); } catch {} } return null; }
   function show(html, motion = 'pop') { stage.innerHTML = `<section class="screen ${motion}">${html}</section>`; stage.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
   function on(id, handler) { const el = document.getElementById(id); if (el) el.addEventListener('click', handler); }
   function notice(message) { const el = document.getElementById('notice'); el.textContent = message; el.className = 'show'; setTimeout(() => el.className = '', 3000); }
   // Upper-body silhouettes drawn inline (no image requests); the mark sits on the face.
   function silhouette(gender, mark = '?') {
     const body = gender === 'male'
-      ? '<rect class="b" x="54" y="58" width="12" height="30"/><path class="b" d="M10 140c2-32 22-50 50-50s48 18 50 50Z"/><circle class="b" cx="60" cy="46" r="21"/><path class="d" d="M39 44C37 27 47 19 60 19s23 8 21 25c-4-8-12-12-21-12s-17 4-21 12Z"/>'
-      : '<path class="d" d="M33 70C28 42 40 18 60 18s32 24 27 52c3 16-1 30-5 36H38c-4-6-8-20-5-36Z"/><rect class="b" x="54" y="62" width="12" height="30"/><path class="b" d="M18 140c2-30 18-46 42-46s40 16 42 46Z"/><circle class="b" cx="60" cy="48" r="21"/>';
+      ? '<path class="b" d="M8 140c2-38 22-60 52-60s50 22 52 60Z"/><rect class="b" x="52" y="58" width="16" height="40" rx="4"/><circle class="h" cx="60" cy="46" r="21"/><path class="d" d="M38 46C35 26 46 17 60 17s25 9 22 29c-4-9-12-14-22-14s-18 5-22 14Z"/>'
+      : '<path class="d" d="M32 72C27 42 39 16 60 16s33 26 28 56c3 16-1 32-5 40H37c-4-8-8-24-5-40Z"/><path class="b" d="M16 140c2-36 18-56 44-56s42 20 44 56Z"/><rect class="b" x="52" y="62" width="16" height="38" rx="4"/><circle class="h" cx="60" cy="48" r="21"/>';
     return `<svg class="sil ${gender}" viewBox="0 0 120 140" aria-hidden="true">${body}${mark ? `<text x="60" y="${gender === 'male' ? 55 : 57}" text-anchor="middle">${esc(mark)}</text>` : ''}</svg>`;
   }
 
@@ -34,7 +41,7 @@
     const friend = shared ? C.characters[shared] : null;
     const tags = Object.values(C.characters).map(c => `<span>${esc(c.name)}</span>`).join('');
     // Full-height portrait art carries the title; an editorial strip below holds the real start button.
-    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero grain"><img src="./hero.webp?v=4" width="900" height="1599" alt=""><h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1></div><div class="intro-strip"><p class="kicker">THIS WEEK · ${N} SCENES · 약 1분</p><button id="start" class="cta-line">${esc(C.copy.intro.cta)}<span aria-hidden="true">→</span></button><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
+    show(`${friend ? `<div class="sample-banner">친구는 솔로나라에서 <b>${esc(friend.name)}</b>(이)래요. 나는?</div>` : ''}<div class="hero grain"><img src="./hero.webp?v=4" width="900" height="1599" alt=""><h1 class="sr-only">${esc(C.copy.intro.title.replace(/\n/g, ' '))}</h1><div class="hero-cta"><p class="hero-meta"><span><b>${N}</b> 문항</span><span><b>${Object.keys(C.characters).length}</b> 가지 이름</span><span><b>1</b> 분이면 끝</span></p><button id="start" class="start-button">${esc(C.copy.intro.cta)}<span aria-hidden="true">→</span></button></div></div><div class="intro-strip"><div class="tag-rail" aria-hidden="true"><div>${tags}${tags}</div></div></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p>`);
     on('invite', () => share());
     on('copy-link', () => share(undefined, true));
     const begin = () => { track('start'); state = { gender: null, answers: [], at: Date.now() }; save(); genderScreen(); };
@@ -43,8 +50,8 @@
 
   function genderScreen() {
     busy = false;
-    const card = (gender, label, side) => `<button class="gender-card from-${side}" data-gender="${gender}">${silhouette(gender)}<b>${esc(label)}</b><small>${candidates(gender).map(([, c]) => esc(c.name)).join(' · ')}</small></button>`;
-    show(`<p class="eyebrow">NAME TAG</p><h2>${lines(C.copy.genderSelect.question)}</h2><p class="muted">고른 쪽의 이름 7개 중 하나가 결과로 나와요.<br>질문과 계산 방식은 똑같아요.</p><div class="gender-grid">${card('female', C.copy.genderSelect.female, 'left')}${card('male', C.copy.genderSelect.male, 'right')}</div><button id="back-home" class="small-button" style="width:100%;margin-top:14px">← 처음으로</button>`, 'fade');
+    const card = (gender, label, side) => `<button class="gender-card from-${side}" data-gender="${gender}">${silhouette(gender)}<b>${esc(label)}</b><small>${[0, 3].map(start => `<span>${candidates(gender).slice(start, start ? undefined : 3).map(([, c]) => esc(c.name)).join(' · ')}</span>`).join('')}</small></button>`;
+    show(`<p class="eyebrow">이름 정하기</p><h2>${lines(C.copy.genderSelect.question)}</h2><p class="muted">고른 쪽의 이름 7개 중 하나가 결과로 나와요.<br>질문과 계산 방식은 똑같아요.</p><div class="gender-grid">${card('female', C.copy.genderSelect.female, 'left')}${card('male', C.copy.genderSelect.male, 'right')}</div><button id="back-home" class="small-button" style="width:100%;margin-top:14px">← 처음으로</button>`, 'fade');
     on('back-home', () => home());
     stage.querySelectorAll('[data-gender]').forEach(button => button.addEventListener('click', () => {
       if (busy) return; busy = true;
@@ -60,7 +67,7 @@
     const q = C.questions[index];
     const prevWidth = Math.round(index / N * 100), width = Math.round((index + 1) / N * 100);
     const pad = n => String(n).padStart(2, '0');
-    show(`<div class="progress-label"><button id="back" class="small-button" aria-label="이전 단계">← 이전</button><span>${pad(index + 1)} / ${pad(N)}</span></div><div class="progress" role="progressbar" aria-label="답변 진행률" aria-valuemin="0" aria-valuemax="${N}" aria-valuenow="${index + 1}"><i style="--from:${prevWidth}%;width:${width}%"></i></div><div class="q-num" aria-hidden="true">${pad(index + 1)}<small> / ${N}</small></div><p class="kicker">SCENE · ${esc(q.scene)}</p>${q.sceneLine ? `<p class="scene-line">${esc(q.sceneLine)}</p>` : ''}<h2 class="q-text">${lines(q.question)}</h2><div class="answers">${q.answers.map((answer, i) => `<button class="answer" style="--i:${i}" data-answer="${i}" aria-pressed="${state.answers[index] === i}"><span class="key">${'ABCD'[i]}</span><span>${esc(answer.text)}</span></button>`).join('')}</div><p class="intro-note">끌리는 답을 누르면 바로 다음 장면으로 넘어가요.</p>`, direction === 'next' ? 'slide-next' : 'slide-prev');
+    show(`<div class="progress-label"><button id="back" class="small-button" aria-label="이전 단계">← 이전</button><span>${pad(index + 1)} / ${pad(N)}</span></div><div class="progress" role="progressbar" aria-label="답변 진행률" aria-valuemin="0" aria-valuemax="${N}" aria-valuenow="${index + 1}"><i style="--from:${prevWidth}%;width:${width}%"></i></div><div class="q-num" aria-hidden="true">${pad(index + 1)}<small> / ${N}</small></div><p class="kicker">${esc(q.scene)}</p>${q.sceneLine ? `<p class="scene-line">${esc(q.sceneLine)}</p>` : ''}<h2 class="q-text">${lines(q.question)}</h2><div class="answers">${q.answers.map((answer, i) => `<button class="answer" style="--i:${i}" data-answer="${i}" aria-pressed="${state.answers[index] === i}"><span class="key">${'ABCD'[i]}</span><span>${esc(answer.text)}</span></button>`).join('')}</div><p class="intro-note">끌리는 답을 누르면 바로 다음 장면으로 넘어가요.</p>`, direction === 'next' ? 'slide-next' : 'slide-prev');
     on('back', () => { if (busy) return; index ? question(index - 1, 'prev') : genderScreen(); });
     stage.querySelectorAll('[data-answer]').forEach(button => button.addEventListener('click', () => {
       if (busy) return; busy = true;
@@ -76,7 +83,7 @@
   async function analyze() {
     const current = ++generation;
     const [first, second, third] = C.copy.analyzing;
-    show(`<div class="loading"><p class="eyebrow">SOLO NARA</p><div class="analyze-art" data-phase="1" aria-hidden="true"><div class="phase phase-cards"><i></i><i></i><i></i></div><div class="phase phase-bars">${AXES.map(a => `<div><span>${esc(C.copy.result.axisLabels[a])}</span><b><i></i></b></div>`).join('')}</div><div class="phase phase-reel"><div class="reel"><div class="reel-track">${Array.from({ length: 21 }, () => `<span class="reel-item">${silhouette(state.gender)}</span>`).join('')}</div></div></div></div><h2 id="analyze-text">${esc(first)}</h2><div class="loadbar"><i></i></div></div>`, 'fade');
+    show(`<div class="loading"><p class="eyebrow">솔로나라</p><div class="analyze-art" data-phase="1" aria-hidden="true"><div class="phase phase-cards"><i></i><i></i><i></i></div><div class="phase phase-bars">${AXES.map(a => `<div><span>${esc(C.copy.result.axisLabels[a])}</span><b><i></i></b></div>`).join('')}</div><div class="phase phase-reel"><div class="reel"><div class="reel-track">${Array.from({ length: 21 }, () => `<span class="reel-item">${silhouette(state.gender)}</span>`).join('')}</div></div></div></div><h2 id="analyze-text">${esc(first)}</h2><div class="loadbar"><i></i></div></div>`, 'fade');
     const art = stage.querySelector('.analyze-art'), text = document.getElementById('analyze-text');
     await wait(700); if (current !== generation) return;
     art.dataset.phase = '2'; text.textContent = second;
@@ -95,7 +102,7 @@
   }
 
   function gate(message = '') {
-    show(`<div class="center"><p class="eyebrow">READY TO REVEAL</p><h2>${lines(C.copy.loginGate.default)}</h2><div class="name-card sealed-card" aria-hidden="true"><small>${esc(C.copy.result.heading)}</small>${silhouette(state.gender || 'female')}<span class="seal">이름표 봉인 중</span></div></div><button id="login" class="primary">로그인하고 이름 확인하기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">답변은 이 탭에서 최대 2시간 동안 유지돼요.<br>성별과 답변은 결과 계산에만 쓰고 공유하지 않아요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`, 'fade');
+    show(`<div class="center"><p class="eyebrow">이름 공개 직전</p><h2>${lines(C.copy.loginGate.default)}</h2><div class="name-card sealed-card" aria-hidden="true"><small>${esc(C.copy.result.heading)}</small>${silhouette(state.gender || 'female')}<span class="seal">이름표 봉인 중</span></div></div><button id="login" class="primary">로그인하고 이름 확인하기 →</button><button id="retry" class="small-button" style="width:100%;margin-top:12px">이미 로그인했어요 · 다시 확인</button><p class="fine center">로그인하고 돌아오면 답변이 그대로 남아 있어요. (최대 2시간)<br>성별과 답변은 결과 계산에만 쓰고 공유하지 않아요.</p><p id="gate-error" class="error" role="alert">${esc(message)}</p>`, 'fade');
     on('login', () => { track('login'); save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('solo-nara', '/play/solo-nara/') : '/signup?entry=solo-nara&returnTo=' + encodeURIComponent('/play/solo-nara/') + '#login'; });
     on('retry', resolveResult);
   }
@@ -104,7 +111,7 @@
     if (busy || preview) return;
     busy = true; const current = generation;
     new Image().src = './result-card.webp?v=2';
-    show(`<div class="loading"><p class="eyebrow">SOLO NARA</p><div class="name-card sealed-card small" aria-hidden="true">${silhouette(state.gender || 'female')}</div><h2>이름표를 열고 있어요.</h2><p class="muted">로그인 상태를 확인하고 있어요.</p></div>`, 'fade');
+    show(`<div class="loading"><p class="eyebrow">솔로나라</p><div class="name-card sealed-card small" aria-hidden="true">${silhouette(state.gender || 'female')}</div><h2>이름표를 열고 있어요.</h2><p class="muted">로그인 상태를 확인하고 있어요.</p></div>`, 'fade');
     try {
       if (!window.UMSHAuthSession) throw Error('auth-unavailable');
       if (!auth.config) {
@@ -135,14 +142,14 @@
 
   function matchCard(kind, me, partnerType, reason) {
     const partner = C.characters[partnerType];
-    return `<div class="match ${kind}"><p class="eyebrow">${kind === 'best' ? 'BEST MATCH' : 'DANGER MATCH'}</p><div class="match-pair" aria-hidden="true"><span class="mini-tag">${esc(me)}</span><i class="match-line"></i><span class="mini-tag partner">${esc(partner.name)}</span></div><p class="match-name"><b>${esc(partner.name)}</b><small> · ${esc(partner.title)}</small></p><p class="match-reason">${esc(reason)}</p></div>`;
+    return `<div class="match ${kind}"><p class="eyebrow">${kind === 'best' ? '잘 맞는 상대' : '부딪히기 쉬운 상대'}</p><div class="match-pair" aria-hidden="true"><span class="mini-tag">${esc(me)}</span><i class="match-line"></i><span class="mini-tag partner">${esc(partner.name)}</span></div><p class="match-name"><b>${esc(partner.name)}</b><small> · ${esc(partner.title)}</small></p><p class="match-reason">${esc(reason)}</p></div>`;
   }
 
   function renderResult(data, sample = false) {
     const c = C.characters[data.type];
     if (!sample) track('result_view', { result_character: data.type });
     const robot = document.createElement('meta'); robot.name = 'robots'; robot.content = 'noindex'; document.head.appendChild(robot);
-    show(`<div class="reveal"><p class="eyebrow">${esc(C.copy.result.heading)}</p><div class="name-card revealing"><div class="name-flip"><div class="name-face back" aria-hidden="true">${silhouette(c.gender)}</div><div class="name-face front"><img class="card-art" src="./result-card.webp?v=2" width="640" height="800" alt=""><span class="tag-text"><small>SOLO NARA NAME</small><strong>${esc(c.name)}</strong></span></div></div></div><h1 class="result-title after">${esc(c.title)}</h1><p class="quote after">“${esc(c.oneLiner)}”</p><div class="keywords after">${c.keywords.map(k => `<span>#${esc(k)}</span>`).join('')}</div></div><div class="after-group"><p class="readout">${esc(c.description)}</p><div class="ticket"><div class="ticket-top"><span>나의 연애 스타일</span><span>✦ UMSH</span></div><div class="stats">${AXES.map(a => `<div class="stat"><div class="stat-label"><span>${esc(C.copy.result.axisLabels[a])}</span><b>${Math.round(data.scores[a])}<small> /100</small></b></div><div class="bar" role="meter" aria-label="${esc(C.copy.result.axisLabels[a])}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(data.scores[a])}"><i style="width:${data.scores[a]}%"></i></div></div>`).join('')}</div></div><div class="pros-cons"><div><b>연애할 때 강점</b><p>${esc(c.strength)}</p></div><div><b>연애할 때 주의점</b><p>${esc(c.weakness)}</p></div></div><div class="tip"><b>솔로나라 한 줄 팁</b><p>${esc(c.tip)}</p></div>${matchCard('best', c.name, c.best, c.bestReason)}${matchCard('danger', c.name, c.danger, c.dangerReason)}<div class="bridge"><p>${lines(C.copy.result.fortuneBridge.replace('{name}', c.name))}</p><a class="primary result-cta" id="fortune" href="${esc(C.copy.fortuneCta.url)}">${esc(C.copy.fortuneCta.label)} ↗</a></div><div class="action-row"><button class="secondary" id="share">${esc(C.copy.result.share)} ↗</button><button class="secondary" id="restart">${esc(C.copy.result.retry)} ↻</button></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div><details class="context"><summary>이 결과는 어떻게 나왔나요?</summary><p>8개 답변에 미리 정해 둔 점수를 더해 네 가지 성향을 계산하고, 가장 가까운 캐릭터를 골랐어요. 같은 답을 고르면 언제나 같은 결과가 나와요.</p><p>재미로 보는 성향 테스트이며 과학적 성격 진단이나 연애 예측이 아니에요.</p></details><p class="fine center">결과 공유에는 캐릭터 이름만 담겨요.<br>성별, 답변, 점수는 담기지 않아요.</p><p class="fine center disclaimer">${esc(C.copy.disclaimer)}</p></div>`, 'fade');
+    show(`<div class="reveal"><p class="eyebrow">${esc(C.copy.result.heading)}</p><div class="name-card revealing"><div class="name-flip"><div class="name-face back" aria-hidden="true">${silhouette(c.gender)}</div><div class="name-face front"><img class="card-art" src="./result-card.webp?v=2" width="640" height="800" alt=""><span class="tag-text"><small>솔로나라 이름</small><strong>${esc(c.name)}</strong></span></div></div></div><h1 class="result-title after">${esc(c.title)}</h1><p class="quote after">“${esc(c.oneLiner)}”</p><div class="keywords after">${c.keywords.map(k => `<span>#${esc(k)}</span>`).join('')}</div></div><div class="after-group"><p class="readout">${esc(c.description)}</p><div class="ticket"><div class="ticket-top"><span>나의 연애 스타일</span></div><div class="stats">${AXES.map(a => `<div class="stat"><div class="stat-label"><span>${esc(C.copy.result.axisLabels[a])}</span><b>${Math.round(data.scores[a])}<small> /100</small></b></div><div class="bar" role="meter" aria-label="${esc(C.copy.result.axisLabels[a])}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(data.scores[a])}"><i style="width:${data.scores[a]}%"></i></div></div>`).join('')}</div></div><div class="pros-cons"><div><b>연애할 때 강점</b><p>${esc(c.strength)}</p></div><div><b>연애할 때 주의점</b><p>${esc(c.weakness)}</p></div></div><div class="tip"><b>솔로나라 한 줄 팁</b><p>${esc(c.tip)}</p></div>${matchCard('best', c.name, c.best, c.bestReason)}${matchCard('danger', c.name, c.danger, c.dangerReason)}<div class="bridge"><p>${lines(C.copy.result.fortuneBridge.replace('{name}', c.name))}</p><a class="primary result-cta" id="fortune" href="${esc(C.copy.fortuneCta.url)}">${esc(C.copy.fortuneCta.label)} ↗</a></div><div class="action-row"><button class="secondary" id="share">${esc(C.copy.result.share)} ↗</button><button class="secondary" id="restart">${esc(C.copy.result.retry)} ↻</button></div><button class="secondary invite-button" id="invite">친구에게 테스트 보내기 ↗</button><button class="small-button copy-link" id="copy-link">테스트 링크만 복사하기</button><div id="share-fallback"></div></div>`, 'fade');
     on('fortune', () => track('fortune'));
     on('restart', () => { track('restart'); clear(); if (preview) location.href = './'; else home(); });
     on('share', () => share(data.type));
@@ -165,7 +172,7 @@
 
   if (preview) { sampleResult(); return; }
   try {
-    const saved = JSON.parse(sessionStorage.getItem(KEY));
+    const saved = readSaved();
     const fresh = saved && Date.now() - saved.at < 7200000 && Date.now() >= saved.at;
     const valid = fresh && (saved.gender === 'female' || saved.gender === 'male' || (saved.gender === null && Array.isArray(saved.answers) && !saved.answers.length)) && Array.isArray(saved.answers) && saved.answers.length <= N && saved.answers.every(a => Number.isInteger(a) && a >= 0 && a <= 3);
     if (valid) state = saved; else clear();

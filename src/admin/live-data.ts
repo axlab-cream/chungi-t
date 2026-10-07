@@ -16,6 +16,8 @@ export type AdminMemberSummary = {
   lastSignInAt: string | null
   /** Supabase Auth app_metadata.provider (kakao/google/email/…). Null when unknown. */
   signupProvider: string | null
+  /** 2026-10-07: 목록에서 정지 여부를 보이고 잠금 버튼을 정지/정지 해제로 바꾸려고 싣는다. Auth 조회 실패면 false. */
+  banned: boolean
   /** Proxy for "완성된 사주 프로필을 등록했는가" — this app's core personal info is name + birth data, and only name is cheaply checkable here. */
   personalInfoRegistered: boolean
   /** Settled (paid/viewed) order count. */
@@ -161,12 +163,13 @@ async function memberPurchaseFacts(userId: string): Promise<{ purchaseCount: num
 }
 
 /** Best-effort — a single member's Supabase Auth lookup failing must not blank out the whole list. */
-async function memberAuthFacts(userId: string): Promise<{ email: string | null; lastSignInAt: string | null; signupProvider: string | null }> {
+async function memberAuthFacts(userId: string): Promise<{ email: string | null; lastSignInAt: string | null; signupProvider: string | null; banned: boolean }> {
   const authUser = await fetchAuthAdminUser(userId).catch(() => null)
   return {
     email: typeof authUser?.email === 'string' ? authUser.email : null,
     lastSignInAt: typeof authUser?.last_sign_in_at === 'string' ? authUser.last_sign_in_at : null,
     signupProvider: typeof authUser?.app_metadata?.provider === 'string' ? authUser.app_metadata.provider : null,
+    banned: memberIsBanned(authUser?.banned_until),
   }
 }
 
@@ -198,6 +201,7 @@ export async function listLiveMembers(limit = 20, offset = 0): Promise<AdminMemb
       createdAt: clipped(row.created_at, ''),
       lastSignInAt: auth.lastSignInAt,
       signupProvider: auth.signupProvider,
+      banned: auth.banned,
       personalInfoRegistered: Boolean(clipped(row.name, '')),
       purchaseCount: purchases.purchaseCount,
       totalPurchaseAmount: purchases.totalPurchaseAmount,
@@ -281,6 +285,7 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
       createdAt: clipped(row.created_at, ''),
       lastSignInAt: auth.lastSignInAt,
       signupProvider: auth.signupProvider,
+      banned: auth.banned,
       personalInfoRegistered: Boolean(clipped(row.name, '')),
       purchaseCount: purchases.purchaseCount,
       totalPurchaseAmount: purchases.totalPurchaseAmount,
@@ -333,6 +338,7 @@ export async function findLiveMember(memberId: string): Promise<AdminMemberSumma
     createdAt: clipped(row.created_at, ''),
     lastSignInAt: auth.lastSignInAt,
     signupProvider: auth.signupProvider,
+    banned: auth.banned,
     personalInfoRegistered: Boolean(clipped(row.name, '')),
     purchaseCount: purchases.purchaseCount,
     totalPurchaseAmount: purchases.totalPurchaseAmount,
@@ -506,6 +512,9 @@ export type GenerationFailureStats = {
   byService: Array<{ key: string; label: string; attempts: number; failures: number }>
   byDay: Array<{ day: string; attempts: number; failures: number }>
   recent: Array<{ reportId: string; member: string; serviceTitle: string; sectionId: string; type: string; typeLabel: string; error: string; model: string; occurredAt: string }>
+  /** 9단계: AI 사용량(토큰). 비용은 모델 단가표가 없어 계산하지 않는다. */
+  tokens: { prompt: number; completion: number; total: number }
+  byModel: Array<{ model: string; attempts: number; totalTokens: number }>
 }
 
 /**
@@ -530,6 +539,8 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
   const byService = new Map<string, { key: string; label: string; attempts: number; failures: number }>()
   const byDay = new Map<string, { day: string; attempts: number; failures: number }>()
   const recent: GenerationFailureStats['recent'] = []
+  const tokens = { prompt: 0, completion: 0, total: 0 }
+  const byModel = new Map<string, { model: string; attempts: number; totalTokens: number }>()
   for (const row of rows) {
     const serviceKey = clipped(row.reportService, '')
     const serviceLabel = (serviceKey && serviceTitleForKey(serviceKey)) || '서비스 미확인'
@@ -541,6 +552,11 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
         if (!Number.isFinite(started) || started < since) continue
         const failed = attempt.status === 'failed'
         attempts += 1
+        const usage = (attempt.tokenUsage ?? {}) as Record<string, unknown>
+        const promptTokens = Number(usage.promptTokens) || 0; const completionTokens = Number(usage.completionTokens) || 0; const totalTokens = Number(usage.totalTokens) || promptTokens + completionTokens
+        tokens.prompt += promptTokens; tokens.completion += completionTokens; tokens.total += totalTokens
+        const modelName = clipped(attempt.model, '알 수 없음'); const modelRow = byModel.get(modelName) ?? { model: modelName, attempts: 0, totalTokens: 0 }
+        modelRow.attempts += 1; modelRow.totalTokens += totalTokens; byModel.set(modelName, modelRow)
         const day = new Date(started + 9 * 3_600_000).toISOString().slice(0, 10)
         const dayRow = byDay.get(day) ?? { day, attempts: 0, failures: 0 }
         const serviceRow = byService.get(serviceLabel) ?? { key: serviceKey || 'unknown', label: serviceLabel, attempts: 0, failures: 0 }
@@ -567,6 +583,8 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
     byService: [...byService.values()].sort((a, b) => b.failures - a.failures || b.attempts - a.attempts),
     byDay: [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day)),
     recent: recent.slice(0, 100),
+    tokens,
+    byModel: [...byModel.values()].sort((a, b) => b.totalTokens - a.totalTokens),
   }
 }
 
@@ -805,6 +823,45 @@ export async function updateAdminMemberProfile(input: AdminMemberProfileInput): 
   const detail = await getAdminMemberDetail(input.userId)
   if (!detail) throw new Error('MEMBER_PROFILE_SAVE_FAILED')
   return detail
+}
+
+/**
+ * 회원 등록(2026-10 회원 관리 CRUD). Supabase Auth 관리자 API 로 이메일 계정을 만들고(이메일 확인 완료 처리,
+ * 비밀번호 없음 — 회원은 이메일 로그인 링크나 비밀번호 재설정으로 들어온다), 같은 번호로 사주 프로필을 저장한다.
+ * 프로필 저장이 실패하면 방금 만든 계정을 지워 반쪽짜리 회원을 남기지 않는다.
+ */
+export async function createAdminMember(input: Omit<AdminMemberProfileInput, 'userId'> & { email: string }): Promise<AdminMemberProfile> {
+  if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
+  const created = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: { ...serviceHeaders(), 'content-type': 'application/json' },
+    body: JSON.stringify({ email: input.email, email_confirm: true, app_metadata: { provider: 'email', created_by: 'admin' } }),
+  })
+  if (created.status === 422 || created.status === 409) throw new Error('MEMBER_EMAIL_EXISTS')
+  if (!created.ok) throw new Error('MEMBER_CREATE_FAILED')
+  const user = await created.json() as { id?: string }
+  if (!user.id) throw new Error('MEMBER_CREATE_FAILED')
+  try {
+    return await updateAdminMemberProfile({ userId: user.id, name: input.name, birth: input.birth, birthTimeKnown: input.birthTimeKnown })
+  } catch (error) {
+    await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(user.id)}`, { method: 'DELETE', headers: serviceHeaders() }).catch(() => undefined)
+    throw error
+  }
+}
+
+/**
+ * 회원 삭제(2026-10 회원 관리 CRUD). 결제 기록이 한 건이라도 있으면 지우지 않는다 — 거래 기록은 법으로 보관해야 하고
+ * (전자상거래법 5년), 결제 표도 회원 삭제를 거부하도록(on delete restrict) 만들어져 있다. 그런 회원은 계정 정지를 쓴다.
+ * 결제가 없는 회원만 Supabase Auth 계정을 지운다. 프로필·리포트는 데이터베이스 규칙(on delete cascade)으로 함께 지워진다.
+ */
+export async function deleteAdminMember(userId: string): Promise<{ userId: string; deleted: true }> {
+  if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
+  const orders = await listPaymentOrders(userId, 1)
+  if (orders.length) throw new Error('MEMBER_HAS_PAYMENTS')
+  const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, { method: 'DELETE', headers: serviceHeaders() })
+  if (response.status === 404) throw new Error('MEMBER_NOT_FOUND')
+  if (!response.ok) throw new Error('MEMBER_DELETE_FAILED')
+  return { userId, deleted: true }
 }
 
 /**

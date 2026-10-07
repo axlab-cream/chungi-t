@@ -31,6 +31,7 @@ class Element {
       child.name = child.attributes.name ?? ''; this.append(child)
     }
   }
+  querySelectorAll(tag: string) { return this.all.filter(child => child.tag === tag) }
   querySelector(selector: string): Element | undefined {
     const match = selector.match(/^\[([^=\]]+)(?:="([^"]*)")?\]$/)
     return this.all.find(child => match ? match[1] in child.attributes && (match[2] === undefined || child.attributes[match[1]] === match[2]) : child.tag === selector)
@@ -42,7 +43,8 @@ type Reply = { status?: number; data?: unknown; error?: boolean }
 async function harness(replies: Reply[], items: unknown[] = []) {
   const calls: { url: string; method: string; body?: Record<string, unknown>; key?: string }[] = []
   let sequence = 0
-  const context = vm.createContext({ document: { createElement: (tag: string) => new Element(tag) }, crypto: { randomUUID: () => `synthetic-key-${++sequence}` }, fetch: async (url: string, options: { method?: string; body?: string; headers?: Record<string, string> } = {}) => {
+  let editor: Element | undefined
+  const context = vm.createContext({ adminConfirm: async () => true, adminTip: () => new Element('button'), memberChip: () => new Element('span'), memberWhen: () => '—', iconizeButtons: () => {}, showSectionModal: () => {}, adminPageAction: (_key: string, _label: string, section: Element) => { editor = section }, document: { createElement: (tag: string) => new Element(tag) }, crypto: { randomUUID: () => `synthetic-key-${++sequence}` }, fetch: async (url: string, options: { method?: string; body?: string; headers?: Record<string, string> } = {}) => {
     calls.push({ url, method: options.method ?? 'GET', body: options.body ? JSON.parse(options.body) : undefined, key: options.headers?.['Idempotency-Key'] })
     if (calls.length === 1) return { ok: true, json: async () => ({ versionStore: 'ready', items, defaults: DEFAULT_CONSULTATION_SETTINGS }) }
     const reply = replies.shift(); if (!reply || reply.error) throw new Error('synthetic network error')
@@ -50,7 +52,8 @@ async function harness(replies: Reply[], items: unknown[] = []) {
   } })
   vm.runInContext(source, context)
   const body = new Element('body'); await context.loadConsultationManager(body)
-  return { body, form: body.querySelector('form')!, calls }
+  // 2026-10-07: 설정 폼은 목록 위가 아니라 [상담 설정 수정] 팝업 안에 있다.
+  return { body, form: editor!.querySelector('form')!, calls }
 }
 test('admin consultation saves revision zero and publishes only the saved checksum and revision', async () => {
   const content = { id: 'synthetic-draft', revision: 0, checksum: 'synthetic-checksum', state: 'draft' }

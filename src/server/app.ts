@@ -63,10 +63,10 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
-import { listAdminAuditEvents } from '../admin/audit-store.js'
+import { searchAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { adminPushRouter, pushRouter } from '../push/router.js'
@@ -3160,6 +3160,11 @@ app.get('/api/admin/v1/members/:id/overview', async (req, res) => {
 const MEMBER_PROFILE_FAILURES: Record<string, { status: number; error: string }> = {
   MEMBER_PROFILE_SAVE_FAILED: { status: 503, error: '회원 프로필 저장에 실패했습니다.' },
   MEMBER_BAN_UPDATE_FAILED: { status: 503, error: '계정 상태 변경에 실패했습니다.' },
+  MEMBER_EMAIL_EXISTS: { status: 409, error: '이미 가입된 이메일입니다. 회원 목록에서 찾아 주세요.' },
+  MEMBER_CREATE_FAILED: { status: 503, error: '회원 계정을 만들지 못했습니다.' },
+  MEMBER_HAS_PAYMENTS: { status: 409, error: '결제 기록이 있는 회원은 삭제할 수 없습니다. 거래 기록은 법으로 보관해야 합니다. 대신 계정 정지를 써 주세요.' },
+  MEMBER_NOT_FOUND: { status: 404, error: '해당 회원을 찾지 못했습니다.' },
+  MEMBER_DELETE_FAILED: { status: 503, error: '회원을 삭제하지 못했습니다. 아무것도 지우지 않았습니다.' },
   LIVE_DATA_STORE_UNAVAILABLE: { status: 503, error: '회원 저장소에 연결하지 못했습니다.' },
 }
 
@@ -3229,6 +3234,55 @@ app.post('/api/admin/v1/members/:id/status', async (req, res) => {
     }, async () => setMemberBanned(userId, body.banned as boolean))
     res.status(command.replayed ? 200 : 202).json({ member: command.result, replayed: command.replayed })
   } catch (error) { respondMemberProfileFailure(res, error, 'MEMBER_STATUS_UPDATE_FAILED') }
+})
+
+/** 생년월일·이름 검증을 등록과 수정이 같이 쓴다. 문제가 있으면 운영자 문장을, 없으면 null. */
+function memberProfileInputError(name: string, year: number, month: number, day: number, hour: number, minute: number, gender: unknown, calendar: unknown): string | null {
+  if (!isValidProfileName(name)) return '이름은 한글 2자 이상 20자 이하로 입력해 주세요.'
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day) || !validDateParts(year, month, day) || year < 1900 || year > new Date().getFullYear()) return '생년월일을 다시 확인해 주세요.'
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) return '태어난 시간을 다시 확인해 주세요.'
+  if (gender !== 'male' && gender !== 'female') return '성별을 선택해 주세요.'
+  if (calendar !== 'solar' && calendar !== 'lunar') return '양력 또는 음력을 선택해 주세요.'
+  return null
+}
+
+/** 회원 등록(2026-10 CRUD). members:write, 감사 기록 member.account.create. */
+app.post('/api/admin/v1/members', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const idempotencyKey = adminCommandKey(req)
+  const body = asObject(req.body)
+  const email = trimmedString(body.email).toLowerCase()
+  const name = trimmedString(body.name)
+  const birthBody = asObject(body.birth)
+  const birthTimeKnown = body.birthTimeKnown !== false
+  const birth = { year: Number(birthBody.year), month: Number(birthBody.month), day: Number(birthBody.day), hour: Number(birthBody.hour ?? (birthTimeKnown ? Number.NaN : 12)), minute: Number(birthBody.minute ?? 0), gender: birthBody.gender, calendar: birthBody.calendar, isLeapMonth: birthBody.isLeapMonth === true }
+  if (idempotencyKey.length < 8 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) { res.status(422).json({ code: 'INVALID_MEMBER_CREATE', error: '이메일을 확인해 주세요.' }); return }
+  const problem = memberProfileInputError(name, birth.year, birth.month, birth.day, birth.hour, birth.minute, birth.gender, birth.calendar)
+  if (problem) { res.status(422).json({ code: 'INVALID_MEMBER_CREATE', error: problem }); return }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.account.create', idempotencyKey,
+      body: { email, name, ...birth, birthTimeKnown }, target: { type: 'member_auth', id: email },
+    }, async () => createAdminMember({ email, name, birth: birth as never, birthTimeKnown }))
+    res.status(command.replayed ? 200 : 201).json({ member: command.result, replayed: command.replayed })
+  } catch (error) { respondMemberProfileFailure(res, error, 'MEMBER_CREATE_FAILED') }
+})
+
+/** 회원 삭제(2026-10 CRUD). 결제 기록이 있으면 거절. members:write, 감사 기록 member.account.delete. */
+app.delete('/api/admin/v1/members/:id', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const userId = trimmedString(req.params.id).toLowerCase()
+  const idempotencyKey = adminCommandKey(req)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(userId) || idempotencyKey.length < 8 || asObject(req.body).confirm !== true) {
+    res.status(422).json({ code: 'INVALID_MEMBER_DELETE', error: '삭제할 회원과 확인 여부를 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.account.delete', idempotencyKey,
+      body: { userId }, target: { type: 'member_auth', id: userId },
+    }, async () => deleteAdminMember(userId))
+    res.status(command.replayed ? 200 : 202).json({ ...command.result, replayed: command.replayed })
+  } catch (error) { respondMemberProfileFailure(res, error, 'MEMBER_DELETE_FAILED') }
 })
 
 /** Live report index. Report text and birth data deliberately stay on the server. */
@@ -3406,8 +3460,10 @@ app.get('/api/admin/v1/operations-snapshot', async (req, res) => {
 
 app.get('/api/admin/v1/audit', async (req, res) => {
   if (!await requireStaff(req, res, 'audit:read')) return
+  // 2026-10(8단계): 영역·관리자·기간·결과 필터와 페이지. 거른 결과의 전체 수를 함께 준다.
   try {
-    res.json({ events: await listAdminAuditEvents(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+    const { events, total } = await searchAdminAuditEvents({ area: trimmedString(req.query?.area), actor: trimmedString(req.query?.actor), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, result: req.query?.result === 'all' ? 'all' : 'succeeded', limit: Number(req.query?.limit ?? 50), offset: Number(req.query?.offset ?? 0) })
+    res.json({ events, total, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'ADMIN_AUDIT_LOOKUP_FAILED', error: '감사 기록 저장소를 불러오지 못했습니다.' })
   }
