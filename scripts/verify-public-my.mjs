@@ -22,16 +22,17 @@ for (const mode of ['guest','member','disabled','expired']) {
   passed++;
 }
 for(const mode of ['guest','member','offline']){
-  const user={innerHTML:'guest'},status={},login={hidden:false},memberNode={hidden:true},logout={addEventListener(){}};
+  const user={hidden:true},status={},guest={hidden:false},memberNode={hidden:true},logout={addEventListener(){}};
   const auth={session:{access_token:'test-only',user:{email:'member@example.test'}},client:{}};
   let requests=0;
   const win={UMSHAccountPages:{mountAccountChrome(){},requireSession:async(_entry,opts)=>{assert.equal(opts.optional,true);if(mode==='offline')throw Error('offline');return mode==='member'?auth:null},authHeaders:()=>({Authorization:'Bearer test-only'}),escapeHtml:s=>s}};
-  const doc={querySelector:s=>({'[data-my-user]':user,'[data-my-status]':status,'[data-my-login]':login,'[data-my-logout]':logout}[s]),querySelectorAll:()=>[memberNode]};
+  const doc={querySelector:s=>({'[data-my-user]':user,'[data-my-status]':status,'[data-my-guest]':guest,'[data-my-logout]':logout}[s]),querySelectorAll:()=>[memberNode]};
   vm.runInNewContext(mySource,{window:win,document:doc,fetch:async()=>{requests++;return{ok:true,json:async()=>({profile:null})}}});
   await new Promise(r=>setImmediate(r));
-  assert.equal(requests,mode==='member'?1:0);
+  // 회원: 프로필 1번 + 숫자 3개(보관함·쿠폰·결제 내역). 비회원·오프라인은 서버를 부르지 않는다.
+  assert.equal(requests,mode==='member'?4:0);
   assert.equal(memberNode.hidden,mode!=='member');
-  assert.equal(login.hidden,mode==='member');
+  assert.equal(guest.hidden,mode==='member');
   passed++;
 }
 console.log(`${passed} public-MY/session cases passed`);
