@@ -7,11 +7,13 @@ import { normalizeSignupPopupPayload } from '../../src/marketing/signup-popup.js
 const html = readFileSync('admin-ui/index.html', 'utf8')
 test('initial popup form values satisfy the real server validator', () => {
   const names = ['title','headline','subheadline','bodyText','imageSrc','ctaLabel','startsAt','endsAt']
-  const form = { elements: Object.fromEntries(names.map(name => [name, { value: '' }])) }
+  const form = { elements: Object.fromEntries(names.map(name => [name, { value: '' }])), querySelector: () => ({ textContent: '' }) }
   const defaults = html.slice(html.indexOf('var SIGNUP_POPUP_DEFAULTS'), html.indexOf('function toLocalDateTime'))
-  const fill = html.slice(html.indexOf('Object.keys(SIGNUP_POPUP_DEFAULTS)'), html.indexOf("var result = form.querySelector('[data-popup-result]')"))
+  // 2026-10-07: 새 팝업의 초기값은 오른쪽 편집 칸을 여는 fillEditor(null) 이 채운다.
+  const fill = html.slice(html.indexOf('function fillEditor(item) {'), html.indexOf('        function renderList() {'))
   const helper = html.slice(html.indexOf('function toLocalDateTime'), html.indexOf('function popupStateLabel'))
-  runInNewContext(defaults + helper + fill, { form })
+  const noop = () => {}
+  runInNewContext(defaults + helper + fill + 'fillEditor(null)', { form, showEditor: noop, refreshPopupPreview: noop, renderList: noop, editorTitle: {}, result: {}, selectedId: null, popupStateLabel: noop })
   assert.ok(new Date(form.elements.endsAt.value).getTime() > Date.now())
   const value = (key: string) => form.elements[key].value
   assert.doesNotThrow(() => normalizeSignupPopupPayload({title:value('title'),headline:value('headline'),subheadline:value('subheadline'),body:value('bodyText'),imageSrc:value('imageSrc'),ctaLabel:value('ctaLabel'),campaignEndAt:new Date(value('endsAt')).toISOString()},new Date(value('startsAt')).toISOString()))
