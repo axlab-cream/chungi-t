@@ -115,6 +115,10 @@ export interface SoloNaraSummary extends LoveSpeedSummary {
 
 export interface FunnelSummary {
   available?: boolean
+  /** 관리자 요약 카드. 주문 조회 권한이 있을 때만 붙는다. */
+  buyers?: { buyers: number; firstBuyers: number; orders: number; revenue: number }
+  /** 신규 가입. 회원 조회 권한이 있을 때만 붙는다. */
+  signups?: { signups: number; byProvider: Record<string, number>; truncated: boolean }
   loveSpeed?: LoveSpeedSummary
   soloNara?: SoloNaraSummary
   period: FunnelPeriod
@@ -162,6 +166,30 @@ export function purchaseStageOf(row: { step: string | null; route?: string | nul
     case 'payment': return CHECKOUT_ROUTE.test(row.route ?? '') ? 'checkout' : null
     default: return null
   }
+}
+
+/**
+ * 2026-10-08 관리자 요약 › 구매자·첫 구매자·매출. 결제가 확인된 주문(paid·viewed)만 센다.
+ * 첫 구매자는 기간 이전에 결제한 적이 없는 계정이다 — 그래서 기간 이전 주문도 함께 받는다.
+ * 계정 식별자는 세는 데만 쓰고 내보내지 않는다.
+ */
+export function summarizeBuyers(orders: Array<{ ownerId: string; amount: number; status: string; createdAt: string }>, since: string): { buyers: number; firstBuyers: number; orders: number; revenue: number } {
+  const from = Date.parse(since)
+  const earlier = new Set<string>()
+  const inPeriod = new Set<string>()
+  let count = 0
+  let revenue = 0
+  for (const order of orders) {
+    if (order.status !== 'paid' && order.status !== 'viewed') continue
+    const at = Date.parse(order.createdAt)
+    if (!Number.isFinite(at) || !order.ownerId) continue
+    if (at < from) { earlier.add(order.ownerId); continue }
+    inPeriod.add(order.ownerId)
+    count += 1
+    if (Number.isFinite(order.amount)) revenue += order.amount
+  }
+  const firstBuyers = [...inPeriod].filter((id) => !earlier.has(id)).length
+  return { buyers: inPeriod.size, firstBuyers, orders: count, revenue }
 }
 
 /** 결제 완료(paid·viewed) 주문을 상품별로 묶는다. 금액·상품 외의 주문 정보는 내보내지 않는다. */

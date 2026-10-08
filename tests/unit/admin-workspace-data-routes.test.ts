@@ -86,8 +86,8 @@ test('loadFunnelAnalytics 는 실제 퍼널 엔드포인트를 기간과 함께 
   assert.doesNotMatch(body, /if \(payload\.sampled\) addLiveError/, '이벤트가 한 건이라도 있으면 상한 경고를 내면 안 된다')
   // 기간을 바꾸면 이전 결과만 지우고 필터 폼 자체는 남아야 한다.
   // 2026-10-08: 결과는 요약 카드 상자와 보기 상자에만 그리므로 그 둘만 비운다(필터는 root 에 따로 있다).
-  assert.match(body, /root\.append\(filters, status, kpiBox, body\)/)
-  assert.match(body, /kpiBox\.replaceChildren\(\); body\.replaceChildren\(\);/)
+  assert.match(body, /root\.append\(filters, status, body\)/)
+  assert.match(body, /funnelState\.payload = null; body\.replaceChildren\(\);/)
 })
 
 test('loadPopupManager 는 팝업별 실제 버튼 클릭 수를 최근 30일 퍼널에서 표시한다', () => {

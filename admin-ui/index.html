@@ -384,6 +384,10 @@
     .admin-block > .admin-block-title { margin-top: 0; }
     .admin-block > .admin-section { flex: 1; }
     .admin-filter-search { min-width: 220px; }
+    .admin-summary-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
+    .admin-summary-grid .admin-funnel-line { grid-template-columns: 96px minmax(60px, 1fr) 64px minmax(150px, 230px); }
+    .admin-summary-grid .admin-share-line { grid-template-columns: 64px minmax(60px, 1fr) 48px 48px; }
+    @media (max-width: 1100px) { .admin-summary-grid { grid-template-columns: 1fr; } }
     .admin-funnel-line { display: grid; grid-template-columns: 120px minmax(80px, 1fr) 80px minmax(150px, 280px); gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--admin-line); }
     @media (max-width: 720px) { .admin-funnel-line { grid-template-columns: 96px 1fr auto; row-gap: 4px; } .admin-funnel-line > :last-child { grid-column: 1 / -1; } }
     .admin-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 7px; background: #eceef3; }
@@ -4111,20 +4115,20 @@
         //   요약 카드는 늘 보이고, 아래는 보기 버튼으로 하나만 고른다. 기간을 바꿔도 고른 보기는 유지한다.
         var filters = document.createElement('form'); filters.className = 'admin-filterbar';
         filters.innerHTML = '<select id="admin-funnel-period" name="period" aria-label="기간"><option value="day">최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select>';
-        var FUNNEL_VIEWS = [['purchase', '구매 퍼널'], ['services', '서비스별 조회'], ['steps', '페이지 단계'], ['ctas', '많이 눌린 버튼'], ['play', '무료 테스트']];
+        // 2026-10-08: 요약을 첫 화면으로. 숫자 카드 8개 + 구매 퍼널 + 인기 서비스 + 가입 방식이 한 화면에 들어간다.
+        var FUNNEL_VIEWS = [['summary', '요약'], ['purchase', '구매 퍼널'], ['performance', '서비스 성과'], ['pages', '페이지 조회'], ['ctas', '많이 눌린 버튼'], ['play', '무료 테스트']];
         var viewSeg = document.createElement('div'); viewSeg.className = 'admin-seg'; viewSeg.setAttribute('role', 'group'); viewSeg.setAttribute('aria-label', '보기');
         FUNNEL_VIEWS.forEach(function (item) {
           var button = document.createElement('button'); button.type = 'button'; button.textContent = item[1]; button.setAttribute('data-funnel-view', item[0]);
-          button.setAttribute('aria-pressed', item[0] === 'purchase' ? 'true' : 'false');
+          button.setAttribute('aria-pressed', item[0] === 'summary' ? 'true' : 'false');
           viewSeg.appendChild(button);
         });
         filters.appendChild(viewSeg);
         filters.appendChild(adminTip('페이지가 열릴 때 기록되는 실제 조회와 30분 활동 기준 방문을 집계합니다. 로그인 방문자는 선택 기간에 로그인 상태로 페이지를 본 계정 수입니다.'));
         var status = document.createElement('p'); status.className = 'admin-empty';
-        var kpiBox = document.createElement('div');
-        var body = document.createElement('div'); body.style.marginTop = '16px';
-        root.append(filters, status, kpiBox, body);
-        var funnelState = { view: 'purchase', service: '', payload: null };
+        var body = document.createElement('div'); body.style.marginTop = '8px';
+        root.append(filters, status, body);
+        var funnelState = { view: 'summary', service: '', payload: null };
         var serviceNames = {
           cmdg: '천명사주', money_save: '나는 왜 돈이 안 모일까?', quit_fortune: '나 지금 그만둬도 될까?',
           work_move: '나, 회사 옮겨도 될까?', job_choice: '내가 선택한 직장 괜찮을까?', work_job: '직업운',
@@ -4151,7 +4155,91 @@
             var detail = document.createElement('span'); detail.textContent = item[2];
             card.appendChild(label); card.appendChild(value); card.appendChild(detail); grid.appendChild(card);
           });
-          kpiBox.replaceChildren(grid);
+          body.appendChild(grid);
+        }
+        function kpiGrid(items) {
+          var grid = document.createElement('section'); grid.className = 'admin-kpi-grid'; grid.setAttribute('aria-label', '선택 기간 요약');
+          items.forEach(function (item) {
+            var card = document.createElement('article'); card.className = 'admin-kpi';
+            var label = document.createElement('small'); label.textContent = item[0];
+            var value = document.createElement('strong'); value.textContent = item[1];
+            var detail = document.createElement('span'); detail.textContent = item[2];
+            card.append(label, value, detail); grid.appendChild(card);
+          });
+          return grid;
+        }
+        var PROVIDER_NAMES = { kakao: '카카오', google: '구글', naver: '네이버', email: '이메일', apple: '애플', unknown: '확인 불가' };
+        function rateText(part, whole) { return part === null || part === undefined || !whole ? '—' : percent(part, whole); }
+        /*
+         * 2026-10-08 요약. 방문은 30분 활동 기준 방문(세션)이다. 가입·구매 전환율은 방문 대비 비율이라
+         * 사람 수 기준보다 낮게 나온다. 주문·회원 조회 권한이 없거나 조회에 실패하면 0이 아니라 '확인 불가'.
+         */
+        function appendSummary(payload) {
+          var visits = (payload.overview || {}).sessions || 0;
+          var b = payload.buyers || null;
+          var g = payload.signups || null;
+          body.appendChild(kpiGrid([
+            ['방문', count(visits), '30분 활동 기준 방문'],
+            ['신규 가입', g ? count(g.signups) : '확인 불가', g && g.truncated ? '가입자가 많아 일부만 셈' : '새로 만든 계정'],
+            ['가입 전환율', g ? rateText(g.signups, visits) : '—', '방문 대비 신규 가입'],
+            ['첫 구매자', b ? count(b.firstBuyers) : '확인 불가', '처음 결제한 계정'],
+            ['구매자', b ? count(b.buyers) : '확인 불가', '결제한 계정 (' + (b ? count(b.orders) : '—') + '건)'],
+            ['구매 전환율', b ? rateText(b.buyers, visits) : '—', '방문 대비 구매자'],
+            ['매출', b ? count(b.revenue) + '원' : '확인 불가', '결제 확인 금액 (환불 미반영)'],
+            ['객단가', b && b.buyers ? count(Math.round(b.revenue / b.buyers)) + '원' : '—', '매출 ÷ 구매자']
+          ]));
+          var grid = document.createElement('div'); grid.className = 'admin-summary-grid';
+          var left = document.createElement('div'); var right = document.createElement('div');
+          grid.append(left, right); body.appendChild(grid);
+          var purchase = payload.purchase || { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] };
+          var st = purchase.stages; var paid = purchase.paid;
+          left.append(adminBlockTitle('구매 퍼널'), funnelBars([
+            { label: '1. 서비스 소개', value: st.intro, unit: ' 방문' },
+            { label: '2. 입력 시작', value: st.input, unit: ' 방문' },
+            { label: '3. 무료 결과', value: st.teaser, unit: ' 방문' },
+            { label: '4. 결제 화면', value: st.checkout, unit: ' 방문' },
+            { label: '5. 결제 완료', value: paid ? paid.orders : null, unit: '건' }
+          ]));
+          var top = servicePerformance(payload).slice(0, 5);
+          addLiveTable(right, '인기 서비스 TOP 5', ['서비스', '소개', '무료 결과', '결제', '매출'], top, function (item) {
+            return [item.name, count(item.intro), count(item.teaser), item.orders === null ? '—' : count(item.orders) + '건', item.revenue === null ? '—' : count(item.revenue) + '원'];
+          }, '선택 기간에 서비스 이용 기록이 없습니다.');
+          var providers = g ? Object.keys(g.byProvider).map(function (key) { return { label: PROVIDER_NAMES[key] || key, value: g.byProvider[key] }; }).sort(function (x, y) { return y.value - x.value; }) : [];
+          right.appendChild(adminBlockTitle('가입 방식'));
+          if (!g) addLiveError(right, '가입 방식은 회원 조회 권한이 없거나 불러오지 못해 표시하지 않습니다.');
+          else if (!providers.length) addLiveError(right, '선택 기간에 새로 가입한 계정이 없습니다.');
+          else right.appendChild(shareBars(providers, g.signups));
+        }
+        /** 비율 막대. 가입 방식처럼 합계가 정해진 나눔에 쓴다. */
+        function shareBars(rows, total) {
+          var list = document.createElement('section'); list.className = 'admin-section'; list.style.padding = '8px 16px';
+          rows.forEach(function (row) {
+            var line = document.createElement('div'); line.className = 'admin-funnel-line admin-share-line';
+            var label = document.createElement('strong'); label.textContent = row.label; label.style.fontSize = '13px';
+            var track = document.createElement('div'); track.style.cssText = 'height:10px;border-radius:5px;background:var(--admin-bg)';
+            var fill = document.createElement('div'); fill.style.cssText = 'height:100%;border-radius:5px;background:var(--admin-focus)';
+            fill.style.width = total ? Math.max(2, row.value / total * 100) + '%' : '0'; track.appendChild(fill);
+            var value = document.createElement('span'); value.style.cssText = 'font-weight:700;text-align:right'; value.textContent = count(row.value) + '명';
+            var share = document.createElement('span'); share.style.cssText = 'font-size:12px;color:var(--admin-text-muted)'; share.textContent = percent(row.value, total);
+            line.append(label, track, value, share); list.appendChild(line);
+          });
+          return list;
+        }
+        /** 서비스마다 퍼널 단계와 결제·매출을 한 줄로. 매출 → 소개 방문 순. */
+        function servicePerformance(payload) {
+          var purchase = payload.purchase || { services: [] };
+          var paid = purchase.paid;
+          var paidBy = {};
+          (paid && paid.byProduct || []).forEach(function (item) { paidBy[item.productKey] = item; });
+          var rows = (purchase.services || []).map(function (item) {
+            var p = paidBy[item.serviceKey];
+            return { key: item.serviceKey, name: serviceName(item.serviceKey), intro: item.intro, input: item.input, teaser: item.teaser, orders: paid ? (p ? p.orders : 0) : null, revenue: paid ? (p ? p.amount : 0) : null };
+          });
+          // 방문 기록 없이 결제만 있는 상품(예: 천명사주 기본 풀이)도 빠뜨리지 않는다.
+          (paid && paid.byProduct || []).forEach(function (item) {
+            if (!rows.some(function (row) { return row.key === item.productKey; })) rows.push({ key: item.productKey, name: serviceName(item.productKey), intro: 0, input: 0, teaser: 0, orders: item.orders, revenue: item.amount });
+          });
+          return rows.sort(function (x, y) { return (y.revenue || 0) - (x.revenue || 0) || y.intro - x.intro; });
         }
         /*
          * 2026-10-07 구매 퍼널. GA4 퍼널과 같은 단계(소개 → 입력 → 무료 결과 → 결제 화면 → 결제 완료)를
@@ -4185,6 +4273,8 @@
             var prev = index > 0 ? rows[index - 1].value : null;
             if (index === 0) rate.textContent = '기준';
             else if (row.value === null || !prev) rate.textContent = '—';
+            // 개방형이라 중간으로 바로 들어온 방문·결제(앱 결제 등)가 있으면 앞 단계보다 많을 수 있다. 100%를 넘기지 않는다.
+            else if (row.value > prev) rate.textContent = '앞 단계보다 많음 (중간 진입 포함)';
             else rate.textContent = '앞 단계의 ' + percent(row.value, prev) + (prev > row.value ? ' · ' + count(prev - row.value) + ' 빠짐' : '');
             if (index === worst) { rate.style.color = 'var(--admin-state-warn)'; rate.style.fontWeight = '700'; rate.textContent += ' ← 가장 많이 빠짐'; }
             line.append(label, track, value, rate);
@@ -4264,12 +4354,20 @@
           var services = Array.isArray(payload.services) ? payload.services : [];
           var steps = Array.isArray(payload.steps) ? payload.steps : [];
           var ctas = Array.isArray(payload.ctas) ? payload.ctas : [];
-          if (funnelState.view === 'purchase') appendPurchaseFunnel(payload.purchase);
-          else if (funnelState.view === 'services') addLiveTable(body, '서비스별 페이지뷰', ['서비스', '전체 조회', '방문', '스토리', '입력', '무료 티저', '결제', '전체 목차', '상세 해석'], services, function (item) {
+          if (funnelState.view === 'summary') appendSummary(payload);
+          else if (funnelState.view === 'purchase') appendPurchaseFunnel(payload.purchase);
+          else if (funnelState.view === 'performance') addLiveTable(body, '서비스 성과', ['서비스', '소개', '입력', '무료 결과', '결제', '매출', '소개 → 입력', '입력 → 무료 결과', '무료 결과 → 결제'], servicePerformance(payload), function (item) {
+            return [item.name, count(item.intro), count(item.input), count(item.teaser), item.orders === null ? '확인 불가' : count(item.orders) + '건', item.revenue === null ? '확인 불가' : count(item.revenue) + '원', rateText(item.input, item.intro), rateText(item.teaser, item.input), item.orders === null ? '—' : rateText(item.orders, item.teaser)];
+          }, '선택 기간에 서비스 이용 기록이 없습니다.');
+          else if (funnelState.view === 'pages') {
+            // 페이지 조회: 화면이 열린 횟수 중심. 단계 상세는 서비스별 칸으로 함께 보인다.
+            appendKpis(payload.overview || { views: 0, sessions: 0, signedInUsers: 0 }, payload.sampled || 0);
+            addLiveTable(body, '서비스별 페이지뷰', ['서비스', '전체 조회', '방문', '스토리', '입력', '무료 티저', '결제', '전체 목차', '상세 해석'], services, function (item) {
             var byStep = item.steps || {};
             return [serviceName(item.serviceKey), count(item.views), count(item.sessions), count(byStep['01-story']), count((byStep['02-input'] || 0) + (byStep['03-service-input'] || 0)), count(byStep['04-report']), count(byStep.payment), count(byStep['05-toc']), count(byStep['06-detail'])];
           }, '선택 기간에 수집된 서비스 페이지뷰가 없습니다.');
-          else if (funnelState.view === 'steps') addLiveTable(body, '페이지 단계별 상세', ['서비스', '페이지 단계', '조회', '방문'], steps, function (item) { return [serviceName(item.serviceKey), stepName(item.step), count(item.views), count(item.sessions)]; }, '선택 기간에 수집된 단계 조회가 없습니다.');
+            if (!services.length && steps.length) addLiveError(body, '서비스로 묶이지 않은 단계 조회 ' + count(steps.length) + '종이 있습니다.');
+          }
           else if (funnelState.view === 'ctas') addLiveTable(body, '많이 눌린 버튼', ['서비스', '대상', '클릭'], ctas, function (item) { return [serviceName(item.serviceKey), (/^solo_nara:/.test(String(item.target || '')) ? soloActions[String(item.target).replace(/^solo_nara:/, '')] : loveActions[String(item.target || '').replace(/^love_speed:/, '')]) || item.target || '—', count(item.clicks)]; }, '선택 기간에 수집된 버튼 클릭이 없습니다.');
           else if (funnelState.view === 'play') {
             appendLoveSpeed(payload.loveSpeed, payload.available !== false);
@@ -4278,7 +4376,7 @@
           if (payload.truncated) addLiveError(body, '수집 이벤트가 조회 상한(' + count(payload.sampled) + '건)에 도달했습니다. 선택 기간 전체를 보려면 기간을 줄여 주세요.');
         }
         async function load(period) {
-          funnelState.payload = null; kpiBox.replaceChildren(); body.replaceChildren();
+          funnelState.payload = null; body.replaceChildren();
           status.hidden = false; status.textContent = '퍼널 통계를 불러오는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/funnel?period=' + encodeURIComponent(period), { credentials: 'same-origin' });
@@ -4287,7 +4385,6 @@
             if (payload.available !== true) throw new Error('FUNNEL_STORE_UNAVAILABLE');
             status.hidden = true;
             funnelState.payload = payload;
-            appendKpis(payload.overview || { views: 0, sessions: 0, signedInUsers: 0 }, payload.sampled || 0);
             render();
           } catch (_error) {
             status.hidden = false; status.textContent = '퍼널 통계를 불러오지 못했습니다. 조회 실패는 0건을 의미하지 않습니다.';
