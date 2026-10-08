@@ -34,13 +34,12 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
-    <link rel="stylesheet" href="/css/myhub.css?v=20261008-hub-a" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20261008-hub-full" />
   </head>
   <body>
     <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
       <header class="appbar topbar"></header>
       <section class="payment-shell myhub" aria-labelledby="my-title">
-        <p class="payment-eyebrow">MY</p>
         <h1 id="my-title">마이페이지</h1>
 
         <div class="myhub-card" data-my-user hidden>
@@ -54,7 +53,7 @@
           </div>
           <div class="myhub-stats">
             <a href="/vault"><b data-my-count="vault">–</b><span>보관한 풀이</span></a>
-            <a href="/coupons.html"><b data-my-count="coupons">–</b><span>쿠폰·질문권</span></a>
+            <a href="/coupons.html"><b data-my-count="coupons">–</b><span>쿠폰</span></a>
             <a href="/orders"><b data-my-count="orders">–</b><span>결제 완료</span></a>
           </div>
         </div>
@@ -67,27 +66,35 @@
 
         <h2 class="myhub-group-title">내 정보</h2>
         <ul class="myhub-list">
-          <li><a href="/profile"><span><b>사주 프로필 수정</b><small>이름·생년월일·태어난 시간</small></span><i aria-hidden="true">›</i></a></li>
-          <li><a href="/vault"><span><b>보관함</b><small>저장한 풀이와 상담 기록</small></span><i aria-hidden="true">›</i></a></li>
-          <li><a href="/destiny"><span><b>운명록</b><small>원국·신살·대운</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/profile"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-3.6 3.8-5.6 7.5-5.6s6.7 2 7.5 5.6"/></svg><span><b>사주 프로필 수정</b><small>이름 · 생년월일 · 태어난 시간</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/destiny"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7 4.6 3.5 5v13c3.5-.4 6.5 0 8.5 1.5 2-1.5 5-1.9 8.5-1.5V5C17 4.6 14 5 12 6.5Z"/><path d="M12 6.5v13"/></svg><span><b>운명록</b><small>내 사주 원국 · 신살 · 대운</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/vault"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h11v17L12 16.5l-5.5 4Z"/></svg><span><b>보관함</b><small data-my-vault-note>저장한 풀이와 상담 기록</small></span><i aria-hidden="true">›</i></a></li>
         </ul>
 
         <h2 class="myhub-group-title">결제 · 쿠폰</h2>
         <ul class="myhub-list">
-          <li><a href="/coupons.html"><span><b>내 쿠폰</b><small data-my-coupon-note>무료 이용권·상담 질문권·할인 쿠폰</small></span><i aria-hidden="true">›</i></a></li>
-          <li><a href="/orders"><span><b>결제 내역</b><small>결제 상태와 풀이 바로가기</small></span><i aria-hidden="true">›</i></a></li>
-          <li><a href="/refunds"><span><b>환불 신청 · 내역</b></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/coupons.html"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3.5 20.5 10.5 10.5 20.5 3.5 13.5V3.5Z"/><circle cx="8" cy="8" r="1.4"/></svg><span><b>내 쿠폰</b><small data-my-coupon-note>무료 이용권 · 상담 질문권 · 할인 쿠폰</small></span><em class="myhub-right" data-my-coupon-right hidden></em><i aria-hidden="true">›</i></a></li>
+          <li><a href="/orders"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 14.5h4"/></svg><span><b>결제 내역</b><small>구매한 풀이와 결제 상태 확인</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/refunds"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12a7.5 7.5 0 0 1-13 5.1M4.5 12a7.5 7.5 0 0 1 13-5.1"/><path d="M17.5 3.5v3.6h-3.6M6.5 20.5v-3.6h3.6"/></svg><span><b>환불 신청 · 내역</b><small>환불 신청과 진행 상태 확인</small></span><i aria-hidden="true">›</i></a></li>
         </ul>
 
-        <h2 class="myhub-group-title">도움</h2>
+        <h2 class="myhub-group-title" data-my-member hidden>알림</h2>
+        <ul class="myhub-list myhub-switches" data-my-member hidden>
+          <li><div class="myhub-switch-row"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><span><b id="pref-service-label">풀이 · 결제 알림</b><small>풀이 완성, 결제와 환불 안내</small></span><button type="button" class="myhub-switch" role="switch" aria-checked="true" aria-labelledby="pref-service-label" data-pref="servicePush" disabled></button></div></li>
+          <li><div class="myhub-switch-row"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5v8h14v-8M12 8.5v12"/><path d="M12 8.5C10.5 5 7.5 4.5 7.5 6.5s4.5 2 4.5 2 4.5 0 4.5-2-3-1.5-4.5 2Z"/></svg><span><b id="pref-marketing-label">이벤트 · 혜택 알림</b><small>쿠폰, 할인과 이벤트 소식 (광고성 정보)</small></span><button type="button" class="myhub-switch" role="switch" aria-checked="false" aria-labelledby="pref-marketing-label" data-pref="marketingPush" disabled></button></div></li>
+        </ul>
+        <p class="myhub-switch-note" data-my-member data-pref-note hidden>알림은 운명상회 앱에서 받습니다.</p>
+
+        <h2 class="myhub-group-title">고객지원</h2>
         <ul class="myhub-list">
-          <li><a href="/support"><span><b>고객센터</b><small>문의 접수</small></span><i aria-hidden="true">›</i></a></li>
-          <li><a href="/faq"><span><b>자주 묻는 질문</b><small>이용·결제·환불 안내</small></span><i aria-hidden="true">›</i></a></li>
-          <li><a href="/about"><span><b>운명상회 소개</b><small>상담 소개·이용 방법·운영 원칙</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/notices"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l7 4.5v-13L7 10Z"/><path d="M17.5 9a4 4 0 0 1 0 6M7 14l1 5h2.5l-.8-4.2"/></svg><span><b>공지 · 이벤트</b><small>새 소식과 이벤트를 확인하세요</small></span><em class="myhub-badge" data-my-notice-badge hidden>새 글</em><i aria-hidden="true">›</i></a></li>
+          <li><a href="/inquiries"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 4Z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg><span><b>1:1 문의</b><small data-my-inquiry-note>문의하고 답변 받기</small></span><i aria-hidden="true">›</i></a></li>
+          <li><a href="/faq"><svg class="myhub-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8h.01"/></svg><span><b>자주 묻는 질문</b><small>이용 · 결제 · 환불 안내</small></span><i aria-hidden="true">›</i></a></li>
         </ul>
 
         <footer class="myhub-foot">
-          <nav class="myhub-links" aria-label="약관 및 정책">
+          <nav class="myhub-links" aria-label="운명상회 안내와 정책">
+            <a href="/about">운명상회 소개</a>
             <a href="/terms">이용약관</a>
             <a href="/privacy">개인정보처리방침</a>
             <a href="/refund">환불·취소 정책</a>
@@ -108,6 +115,6 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-account-pages.js?v=20261008-hub-a"></script>
-    <script src="/js/my.js?v=20261008-hub-a"></script>
+    <script src="/js/my.js?v=20261008-hub-full"></script>
   </body>
 </html>

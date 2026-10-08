@@ -248,6 +248,38 @@ export async function getActiveSignupPopup(now = Date.now(), useDefaultWhenUnman
   return signupPopupIsActive(DEFAULT_SIGNUP_POPUP, now) ? DEFAULT_SIGNUP_POPUP : null
 }
 
+/** 회원 화면 공지는 이 접두어로 시작하는 위치에 게시한 "공지"만 모은다(2026-10 마이페이지 공지·이벤트). */
+export const MEMBER_NOTICE_PLACEMENT_PREFIX = 'notice/'
+
+export interface MemberNotice { id: string; title: string; body: string; href?: string; publishedAt: string }
+
+/**
+ * 마이페이지 공지·이벤트 목록. 위치(placement)가 notice/ 로 시작하는 게시된 공지를 최근 순으로 준다.
+ * 위치마다 게시본은 하나라서 공지 하나에 위치 하나를 쓴다(예: notice/2026-10-추석-이벤트).
+ */
+export async function listMemberNotices(limit = 30): Promise<MemberNotice[]> {
+  if (!contentStoreAvailable()) return []
+  const url = tableUrl()
+  url.searchParams.set('select', SELECT)
+  url.searchParams.set('content_type', 'eq.notice')
+  url.searchParams.set('state', 'eq.published')
+  url.searchParams.set('placement', `like.${MEMBER_NOTICE_PLACEMENT_PREFIX}*`)
+  url.searchParams.set('order', 'published_at.desc')
+  url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 50)))
+  const notices: MemberNotice[] = []
+  for (const row of await readRows(url)) {
+    const version = fromRow(row)
+    if (version.scheduledAt && Date.parse(version.scheduledAt) > Date.now()) continue
+    try {
+      const payload = normalizeContentPayload(version.payload)
+      notices.push({ id: version.id, title: payload.title, body: payload.body, ...(payload.href ? { href: payload.href } : {}), publishedAt: version.publishedAt ?? version.updatedAt })
+    } catch {
+      // 형식이 맞지 않는 과거 기록은 회원 화면에 내보내지 않는다.
+    }
+  }
+  return notices
+}
+
 export async function getContentVersion(id: string): Promise<ContentVersion | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null
   const url = tableUrl()

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { PUSH_ERROR_MESSAGES, PushError, isUuid, normalizeDeepLink, parseDevice, parseDraft, parseTarget, targetLabel } from './contracts.js'
-import { runPushDispatcher } from './dispatcher.js'
+import { runPushDispatcher, type DispatchDeps } from './dispatcher.js'
 import { pushStore, type PushStore } from './store.js'
 
 type Staff = { email: string }
@@ -13,6 +13,8 @@ interface Deps {
   store?: () => PushStore
   /** "지금 발송"에서 응답 전에 보내 보는 시간. 남은 기기는 매분 cron 이 잇는다. */
   immediateBudgetMs?: number
+  /** 알림을 끈 회원·광고 동의 회원. 매분 cron 과 같은 걸러내기를 "지금 발송"에도 쓴다. */
+  recipients?: Pick<DispatchDeps, 'optedOut' | 'marketingConsented'>
 }
 
 export function pushFailure(res: Response, error: unknown): void {
@@ -105,7 +107,7 @@ export function adminPushRouter(deps: Deps): Router {
       await audit(staff.email, `push.${draft.schedule.mode}`, created.id)
       if (draft.schedule.mode === 'now') {
         // 대상이 적으면 응답 전에 끝난다. 남으면 매분 cron 이 이어 보낸다.
-        await runPushDispatcher({ store: store() }, deps.immediateBudgetMs ?? 20_000).catch(() => undefined)
+        await runPushDispatcher({ store: store(), ...deps.recipients }, deps.immediateBudgetMs ?? 20_000).catch(() => undefined)
       }
       res.status(201).json({ item: await store().getNotification(created.id) ?? created })
     } catch (error) { pushFailure(res, error) }
@@ -122,7 +124,7 @@ export function adminPushRouter(deps: Deps): Router {
       const reopened = await store().reopenFailedDeliveries(current.id)
       if (!reopened) throw new PushError('PUSH_NOTHING_TO_RESEND', 409)
       await audit(staff.email, 'push.resend_failed', current.id)
-      await runPushDispatcher({ store: store() }, deps.immediateBudgetMs ?? 20_000).catch(() => undefined)
+      await runPushDispatcher({ store: store(), ...deps.recipients }, deps.immediateBudgetMs ?? 20_000).catch(() => undefined)
       res.json({ reopened, item: await store().getNotification(current.id) })
     } catch (error) { pushFailure(res, error) }
   })

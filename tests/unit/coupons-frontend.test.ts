@@ -39,7 +39,7 @@ test('signout rejects an in-flight wallet list and clears stale coupons',async()
 })
 test('primary MY page exposes the coupon wallet',()=>{
   const my=readFileSync(new URL('../../사주/my.html',import.meta.url),'utf8')
-  assert.match(my,/href="\/coupons\.html"><span><b>내 쿠폰/)
+  assert.match(my,/href="\/coupons\.html">(?:<svg[^]*?<\/svg>)?<span><b>내 쿠폰/)
 })
 test('reserved ready coupon resumes only its bound checkout',async()=>{
   const item={id:'wallet',title:'Reserved',kind:'amount_off',productKey:'cmdg',value:1000,enabled:true,expiresAt:'2099-01-01',orderId:'order',orderStatus:'ready',orderReportId:'owned-report'}

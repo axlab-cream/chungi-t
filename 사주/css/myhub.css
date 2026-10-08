@@ -427,3 +427,123 @@ body.umsh-has-chrome .payment-page {
 }
 .myhub-account a:hover, .myhub-account button:hover { color: var(--payment-cream); }
 
+/* ── 마이페이지 시안 반영(2026-10-08): 아이콘 줄 · 알림 스위치 · 새 글 표시 ── */
+.myhub h1 { margin-top: 4px; }
+.myhub-provider[data-kind*="kakao"] { border-color: #fee500; background: #fee500; color: #191600; }
+.myhub-provider[data-kind*="naver"] { border-color: #03c75a; background: #03c75a; color: #fff; }
+
+.myhub-ico {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--payment-gold);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.myhub-list a, .myhub-switch-row { gap: 14px; }
+.myhub-right {
+  color: var(--payment-gold);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.myhub-badge {
+  align-self: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--payment-gold);
+  color: #17130b;
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 900;
+}
+.myhub-list a > .myhub-badge { order: 0; }
+
+.myhub-switch-row {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 12px 16px;
+  color: var(--payment-cream);
+}
+.myhub-switch-row > span { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.myhub-switch {
+  /* 누르는 영역은 52×44(손가락 기준), 보이는 스위치는 48×28 이다. */
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 44px;
+  margin: -8px -2px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+.myhub-switch::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 2px;
+  width: 48px;
+  height: 28px;
+  box-sizing: border-box;
+  border: 1px solid var(--payment-line);
+  border-radius: 999px;
+  background: rgba(255, 247, 223, 0.12);
+  transition: background .18s ease, border-color .18s ease;
+}
+.myhub-switch::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--payment-muted);
+  transition: transform .18s ease, background .18s ease;
+}
+.myhub-switch[aria-checked="true"]::before { background: var(--payment-gold); border-color: var(--payment-gold); }
+.myhub-switch[aria-checked="true"]::after { transform: translateX(20px); background: #17130b; }
+/* 저장 중에는 disabled 대신 aria-disabled 로 잠근다. disabled 는 키보드 초점을 빼앗는다. */
+.myhub-switch:disabled, .myhub-switch[aria-disabled="true"] { cursor: wait; opacity: .55; }
+.myhub-switch:focus-visible { outline: 2px solid var(--payment-gold); outline-offset: 0; }
+.myhub-switch-note { margin: -14px 2px 22px; color: var(--payment-muted); font-size: 11.5px; line-height: 1.5; }
+.myhub-switch-note:empty { display: none; }
+.myhub-list.myhub-switches { margin-bottom: 22px; }
+
+.myhub-foot .myhub-links { gap: 8px 14px; }
+@media (prefers-reduced-motion: reduce) { .myhub-switch::before, .myhub-switch::after { transition: none; } }
+
+
+/* ── 공지·이벤트 / 1:1 문의 화면(2026-10-08) ── */
+.myhub-empty { margin: 0; padding: 18px 16px; border: 1px dashed var(--payment-line); border-radius: 12px; color: var(--payment-muted); font-size: 13px; text-align: center; }
+.myhub-notices, .myhub-inquiries { display: grid; gap: 10px; margin-bottom: 8px; }
+.myhub-notice { border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); }
+.myhub-notice summary { display: grid; gap: 3px; padding: 14px 16px; cursor: pointer; list-style: none; }
+.myhub-notice summary::-webkit-details-marker { display: none; }
+.myhub-notice summary b { font-size: 14.5px; line-height: 1.45; }
+.myhub-notice summary small { color: var(--payment-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.myhub-notice p { margin: 0; padding: 0 16px 14px; color: var(--payment-cream); font-size: 13.5px; line-height: 1.7; white-space: pre-line; word-break: keep-all; }
+.myhub-notice-link { display: inline-flex; align-items: center; min-height: 44px; margin: -8px 16px 4px; padding: 0 2px; color: var(--payment-gold); font-size: 13px; font-weight: 800; text-decoration: none; }
+
+.myhub-inquiry-form { display: grid; gap: 12px; margin-bottom: 28px; padding: 18px 16px; border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); }
+.myhub-inquiry-form .payment-label { display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: var(--payment-cream); }
+/* 아이폰 사파리는 16px 보다 작은 입력칸을 누르면 화면을 확대한다. */
+.myhub-inquiry-form textarea { width: 100%; padding: 12px; border: 1px solid rgba(255, 247, 223, 0.14); border-radius: 8px; background: #080807; color: var(--payment-cream); font: inherit; font-size: 16px; line-height: 1.6; resize: vertical; }
+.myhub-inquiry-form textarea:focus { outline: 0; border-color: var(--payment-gold); box-shadow: 0 0 0 3px rgba(216, 186, 114, 0.1); }
+.myhub-count { margin: -6px 0 0; color: var(--payment-muted); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+.myhub-inquiry { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); }
+.myhub-inquiry-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.myhub-inquiry-top b { font-size: 14px; }
+.myhub-inquiry-state { padding: 2px 9px; border: 1px solid var(--payment-line); border-radius: 999px; color: var(--payment-muted); font-size: 11px; font-weight: 800; white-space: nowrap; }
+.myhub-inquiry[data-state="answered"] .myhub-inquiry-state { border-color: var(--payment-gold); background: var(--payment-gold); color: #17130b; }
+.myhub-message { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 247, 223, 0.04); }
+.myhub-message.is-staff { border: 1px solid rgba(232, 199, 111, 0.35); background: rgba(232, 199, 111, 0.07); }
+.myhub-message small { color: var(--payment-muted); font-size: 11px; }
+.myhub-message.is-staff small { color: var(--payment-gold); }
+.myhub-message p { margin: 0; font-size: 13.5px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }

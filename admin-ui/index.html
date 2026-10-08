@@ -2618,7 +2618,7 @@
             var message = document.createElement('div'); message.className = 'admin-msg-cell';
             var title = document.createElement('b'); title.textContent = item.title; var sub = document.createElement('span'); sub.textContent = String(item.body || '').split('\n')[0];
             message.append(title, sub); td(message);
-            td(item.targetLabel || '—');
+            td((item.isMarketing ? '[광고] ' : '') + (item.targetLabel || '—'));
             if (state.view !== 'scheduled') {
               td(done ? fmtNumber(item.totalCount) : '—', 'admin-num');
               td(done ? fmtNumber(item.successCount) : '—', 'admin-num');
@@ -2668,7 +2668,7 @@
           var preview = document.createElement('div'); preview.className = 'admin-detail-preview'; preview.appendChild(pushPreviewCard(item.title, item.body, false));
           var h2 = document.createElement('h4'); h2.textContent = '발송 조건';
           var cond = document.createElement('dl'); cond.className = 'admin-dl';
-          [['대상', item.targetLabel || '—'], ['시점', item.scheduledAt ? fmtWhen(item.scheduledAt) + (item.status === 'scheduled' ? ' 예약' : '') : '—'], ['이동', item.deepLink || '/'], ['작성', item.createdBy || '—']].forEach(function (pair) {
+          [['대상', item.targetLabel || '—'], ['광고 여부', item.isMarketing ? '광고성 알림' : '일반 알림'], ['시점', item.scheduledAt ? fmtWhen(item.scheduledAt) + (item.status === 'scheduled' ? ' 예약' : '') : '—'], ['이동', item.deepLink || '/'], ['작성', item.createdBy || '—']].forEach(function (pair) {
             var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; cond.append(dt, dd);
           });
           left.append(h1, preview, h2, cond);
@@ -2741,7 +2741,12 @@
             + '<label class="admin-label" for="msg-title">제목</label><input id="msg-title" name="title" maxlength="100" placeholder="오늘의 운세가 도착했어요 🔮"><span class="admin-counter" data-count="title"></span>'
             + '<label class="admin-label" for="msg-body">메시지</label><textarea id="msg-body" name="message" maxlength="500" placeholder="오늘 당신에게 들어오는 운은 무엇일까요?"></textarea><span class="admin-counter" data-count="message"></span>'
             + '<label class="admin-label" for="msg-link">누르면 열 페이지</label><input id="msg-link" name="deepLink" maxlength="500" value="/" placeholder="/me/lucky"><span class="admin-hint">운명상회 안의 주소만 됩니다. 비워 두면 첫 화면이 열립니다.</span></section>'
-            + '<section><h4><span class="admin-step">4</span>발송 시점</h4><div class="admin-radio-list">'
+            + '<section><h4><span class="admin-step">4</span>광고 여부</h4><label class="admin-check"><input type="checkbox" name="marketing"> 광고성 알림입니다 (이벤트·할인·쿠폰 소식)</label>'
+            + '<div class="admin-hint" data-marketing-rules hidden><b>광고성 알림 발송 규칙 (정보통신망법)</b><br>'
+            + '· 마이페이지에서 <b>이벤트·혜택 알림에 동의한 회원</b>에게만 보냅니다. 로그인하지 않은 기기와 동의하지 않은 회원은 빠집니다.<br>'
+            + '· 제목 앞에 <b>(광고)</b>, 본문 끝에 <b>수신 거부 방법</b>이 자동으로 붙습니다.<br>'
+            + '· <b>밤 9시~아침 8시에는 보내지 않습니다.</b> 야간 발송에는 별도 동의가 필요한데, 운명상회는 그 동의를 받지 않습니다. 이 시간에는 지금 발송과 예약이 모두 막히고, 예약이 밀려 밤에 걸리면 아침 8시에 보냅니다.</div></section>'
+            + '<section><h4><span class="admin-step">5</span>발송 시점</h4><div class="admin-radio-list">'
             + '<label><input type="radio" name="when" value="now" checked> 지금 발송</label>'
             + '<label><input type="radio" name="when" value="scheduled"> 예약 발송 <input type="datetime-local" name="scheduledAt" aria-label="예약 시각"></label>'
             + '</div></section>';
@@ -2751,14 +2756,17 @@
           var selectedUsers = {};
           var audience = { count: null, label: '' };
           var later = new Date(Date.now() + 60 * 60 * 1000); later.setMinutes(0, 0, 0); form.elements.scheduledAt.value = toLocalDateTime(later);
-          if (source) { form.elements.title.value = source.title; form.elements.message.value = source.body; form.elements.deepLink.value = source.deepLink || '/'; }
+          if (source) { form.elements.title.value = source.title; form.elements.message.value = source.body; form.elements.deepLink.value = source.deepLink || '/'; form.elements.marketing.checked = Boolean(source.isMarketing); }
           function counter(name, value, visible, limit) {
             var node = form.querySelector('[data-count="' + name + '"]'); var over = value.length > visible;
             node.setAttribute('data-over', over ? 'true' : 'false');
             node.textContent = value.length + ' / ' + limit + '자' + (over ? ' · 접힌 알림에서는 ' + visible + '자 뒤가 잘려 보입니다' : '');
           }
           function refreshPreview() {
-            renderPushPhone(phone, form.elements.title.value.trim(), form.elements.message.value.trim());
+            // 광고성이면 고객 기기에 실제로 보이는 문구(제목 앞 (광고), 본문 끝 수신 거부 안내)로 미리 보여 준다.
+            var marketing = form.elements.marketing.checked;
+            form.querySelector('[data-marketing-rules]').hidden = !marketing;
+            renderPushPhone(phone, (marketing ? '(광고) ' : '') + form.elements.title.value.trim(), form.elements.message.value.trim() + (marketing ? '\n\n수신 거부: 운명상회 앱 › 마이페이지 › 알림' : ''));
             counter('title', form.elements.title.value.trim(), 40, 100); counter('message', form.elements.message.value.trim(), 60, 500);
           }
           function selectedTarget() {
@@ -2778,13 +2786,14 @@
               pushRequest('/audience', { target: target }).then(function (data) {
                 audience = { count: data.count, label: data.label };
                 node.innerHTML = ''; var strong = document.createElement('b'); strong.textContent = '예상 발송 대상 ' + fmtNumber(data.count) + '대';
-                node.append(strong, document.createTextNode(' · ' + data.label)); node.appendChild(adminTip('지금 알림을 받을 수 있는 앱 설치 기기 수입니다. 한 사람이 기기 두 대를 쓰면 두 대로 셉니다.'));
+                node.append(strong, document.createTextNode(' · ' + data.label + (form.elements.marketing.checked ? ' · 이 중 이벤트·혜택 알림에 동의한 회원에게만 갑니다' : ''))); node.appendChild(adminTip('지금 알림을 받을 수 있는 앱 설치 기기 수입니다. 한 사람이 기기 두 대를 쓰면 두 대로 셉니다.'));
               }).catch(function (error) { audience = { count: null, label: '' }; node.textContent = error.message; });
             }, 250);
           }
           form.addEventListener('input', function (event) {
             var name = event.target.name;
-            if (name === 'title' || name === 'message') refreshPreview();
+            if (name === 'title' || name === 'message' || name === 'marketing') refreshPreview();
+            if (name === 'marketing') { var guests = form.querySelector('input[name="target"][value="guests"]'); guests.disabled = form.elements.marketing.checked; if (guests.checked && guests.disabled) { form.elements.target.value = 'all'; } refreshAudience(); }
             if (name === 'target') form.querySelector('[data-user-picker]').hidden = form.elements.target.value !== 'users';
             if (['target', 'activeDays', 'signupDays'].indexOf(name) >= 0) refreshAudience();
           });
@@ -2823,7 +2832,8 @@
             var lead = document.createElement('p'); lead.className = 'admin-confirm-lead';
             lead.textContent = '푸시를 ' + (audience.count === null ? '대상 기기' : fmtNumber(audience.count) + '대') + '에 ' + (schedule.mode === 'now' ? '지금 발송합니다.' : new Date(schedule.at).toLocaleString('ko-KR') + '에 예약합니다.');
             var dl = document.createElement('dl'); dl.className = 'admin-dl';
-            [['대상', audience.label || '—'], ['제목', title], ['메시지', message], ['이동', form.elements.deepLink.value.trim() || '/']].forEach(function (pair) {
+            var marketing = form.elements.marketing.checked;
+            [['대상', (audience.label || '—') + (marketing ? ' (수신 동의한 회원만)' : '')], ['광고 여부', marketing ? '광고성 알림 · 제목 앞에 (광고)가 붙습니다' : '일반 알림'], ['제목', title], ['메시지', message], ['이동', form.elements.deepLink.value.trim() || '/']].forEach(function (pair) {
               var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; dl.append(dt, dd);
             });
             var irreversible = document.createElement('p'); irreversible.className = 'admin-confirm-warn'; irreversible.textContent = schedule.mode === 'now' ? '발송하면 취소하거나 회수할 수 없습니다. 내용과 대상을 다시 확인해 주세요.' : '예약 시각이 되면 자동으로 발송됩니다. 그 전에는 발송 내역에서 취소할 수 있습니다.';
@@ -2833,7 +2843,7 @@
               { label: schedule.mode === 'now' ? '지금 발송' : '예약하기', primary: true, danger: schedule.mode === 'now', onClick: async function (d) {
                 var buttons = d.querySelectorAll('button'); buttons.forEach(function (b) { b.disabled = true; });
                 try {
-                  var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule });
+                  var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule, marketing: marketing });
                   d.close(); composer.close();
                   await load(); openDetail(data.item);
                 } catch (error) { adminToast(error.message); buttons.forEach(function (b) { b.disabled = false; }); }
@@ -3558,7 +3568,8 @@
       /*
        * 회원 › 고객 지원 (2026-10 개편 7단계). 목록 먼저(답변 대기·처리 중·완료), 행 → 문의 상세 팝업.
        * 상세에서 회원·결제·리포트로 바로 넘어가고, 상태·담당 저장과 처리 기록을 한 화면에서 한다.
-       * 고객에게 자동으로 보내는 것은 없다 — "고객 답변 초안"도 내부 기록이다.
+       * "고객 답변 초안"은 내부 기록이다. "고객에게 답변"만 회원의 마이페이지 1:1 문의에 보인다(2026-10).
+       * 회원이 마이페이지에서 쓴 문의는 "고객 문의"로 기록에 나온다.
        */
       var SUPPORT_GROUPS = { waiting: ['received', 'triaged', 'assigned', 'reopened'], working: ['investigating', 'awaiting_customer'], done: ['resolved', 'closed'] };
       var SUPPORT_PRIORITY_VIEW = { urgent: { label: '긴급', tone: 'error' }, high: { label: '높음', tone: 'warn' }, normal: { label: '보통', tone: '' }, low: { label: '낮음', tone: '' } };
@@ -3648,7 +3659,7 @@
         var h3 = document.createElement('h4'); h3.textContent = '처리 기록';
         var timeline = document.createElement('div'); timeline.className = 'admin-timeline'; timeline.appendChild(memberEmpty('불러오는 중입니다.'));
         var noteForm = document.createElement('form'); noteForm.className = 'admin-note-form';
-        noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="internal">내부 메모</option><option value="customer_reply_draft">고객 답변 초안</option></select><textarea name="text" maxlength="4000" rows="3" placeholder="처리한 내용을 남겨 주세요. 고객에게 보내지지 않습니다."></textarea><button class="admin-button" type="submit">기록 추가</button>';
+        noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="internal">내부 메모</option><option value="customer_reply_draft">고객 답변 초안</option><option value="customer_reply">고객에게 답변 (회원 화면에 보임)</option></select><textarea name="text" maxlength="4000" rows="3" placeholder="처리한 내용을 남겨 주세요. 내부 메모와 초안은 고객에게 보이지 않습니다."></textarea><button class="admin-button" type="submit">기록 추가</button>';
         right.append(h3, timeline, noteForm);
         wrap.append(left, right);
         async function loadNotes() {
@@ -3659,7 +3670,7 @@
             if (!entries.length) timeline.appendChild(memberEmpty('아직 기록이 없습니다.'));
             entries.forEach(function (entry) {
               var line = document.createElement('div'); line.className = 'admin-timeline-item';
-              var meta = document.createElement('small'); meta.textContent = (entry.kind === 'internal' ? '내부 메모' : '고객 답변 초안') + ' · ' + String(entry.author || '').split('@')[0] + ' · ' + memberWhen(entry.createdAt);
+              var meta = document.createElement('small'); meta.textContent = ({ internal: '내부 메모', customer_reply_draft: '고객 답변 초안', customer_message: '고객 문의', customer_reply: '고객에게 답변' }[entry.kind] || '기록') + ' · ' + String(entry.author || '').split('@')[0] + ' · ' + memberWhen(entry.createdAt);
               var text = document.createElement('p'); text.textContent = entry.text;
               line.append(meta, text); timeline.appendChild(line);
             });
