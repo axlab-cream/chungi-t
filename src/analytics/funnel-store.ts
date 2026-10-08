@@ -149,6 +149,8 @@ export interface PurchaseFunnel {
   paid?: { orders: number; amount: number; byProduct: Array<{ productKey: string; orders: number; amount: number }> }
 }
 
+const FREE_PLAY_SERVICES = new Set(['love_speed', 'solo_nara'])
+
 /** 결제 결과·테스트 화면을 빼고 실제 결제 화면만. */
 const CHECKOUT_ROUTE = /^\/payment(\/|\/index\.html)?$/
 
@@ -271,7 +273,8 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
   for (const row of rows) {
     if (isSoloResultMarker(row)) continue
     if (row.event === 'step_view') {
-      const stage = purchaseStageOf(row)
+      // 무료 테스트(금사빠·솔로나라)는 결제 상품이 아니다. 구매 퍼널 소개 단계를 부풀리지 않게 뺀다.
+      const stage = FREE_PLAY_SERVICES.has(row.service_key ?? '') ? null : purchaseStageOf(row)
       if (stage) {
         stageSessions[stage].add(row.session_id)
         if (stage !== 'checkout' && row.service_key) {

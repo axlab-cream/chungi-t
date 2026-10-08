@@ -33,6 +33,8 @@ test('stages count distinct visits, not page views', () => {
     view('b', 'couple_signal', 'entry'), view('b', 'couple_signal', '02-input'),
     view('c', 'cat_compatibility', '01-story'),
     view('d', null, 'payment', '/payment/result'),
+    // 무료 테스트는 결제 상품이 아니라 구매 퍼널에 넣지 않는다.
+    view('e', 'solo_nara', 'entry'), view('f', 'love_speed', 'entry'),
   ]
   const { purchase } = summarizeFunnelRows(rows, 'day', '2026-10-06T00:00:00.000Z')
   assert.deepEqual(purchase.stages, { intro: 3, input: 2, teaser: 1, checkout: 1 })
@@ -58,6 +60,9 @@ test('admin dashboard renders the purchase funnel and the server gates paid orde
   const admin = readFileSync(new URL('../../admin-ui/index.html', import.meta.url), 'utf8')
   const app = readFileSync(new URL('../../src/server/app.ts', import.meta.url), 'utf8')
   assert.ok(admin.includes('appendPurchaseFunnel(payload.purchase)'))
-  assert.ok(admin.includes("'구매 퍼널'") && admin.includes("'서비스별 구매 퍼널'"))
+  // 2026-10-08: 표를 한 화면에 쌓지 않고 보기 버튼으로 하나씩 고른다. 구매 퍼널이 첫 보기다.
+  assert.ok(admin.includes("['purchase', '구매 퍼널']"))
+  assert.ok(admin.includes("var funnelState = { view: 'purchase'"))
+  assert.ok(admin.includes('function funnelBars(rows)'))
   assert.ok(app.includes("staff.scopes.includes('orders:read')"))
 })

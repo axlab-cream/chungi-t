@@ -46,7 +46,7 @@ test('unavailable statistics are rejected before zero-valued KPI rendering', () 
   assert.ok(popup.indexOf("funnelPayload.available !== true") < popup.indexOf('popupClickCounts = {}'))
   assert.match(popup,/responsePayload.versionStore !== 'ready'/)
   const funnel=html.slice(html.indexOf('async function loadFunnelAnalytics'),html.indexOf('async function loadReleaseInfo'))
-  assert.ok(funnel.indexOf("payload.available !== true") < funnel.indexOf('appendKpis(overview, payload.sampled'))
+  assert.ok(funnel.indexOf("payload.available !== true") < funnel.indexOf('appendKpis(payload.overview'))
 })
 
 
