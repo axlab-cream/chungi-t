@@ -547,3 +547,13 @@ body.umsh-has-chrome .payment-page {
 .myhub-message small { color: var(--payment-muted); font-size: 11px; }
 .myhub-message.is-staff small { color: var(--payment-gold); }
 .myhub-message p { margin: 0; font-size: 13.5px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
+
+/* ── 칸별 오류와 오류 코드(2026-10-08) · 코드 규정은 docs/ERROR-CODES.md ── */
+.profile-field { display: grid; gap: 7px; }
+.profile-field > input { width: 100%; min-width: 0; height: 52px; padding: 0 14px; border: 1px solid rgba(255, 247, 223, .14); border-radius: 8px; outline: 0; background: #080807; color: var(--payment-cream); font-size: 16px; }
+.profile-field > input:focus { border-color: var(--payment-gold); box-shadow: 0 0 0 3px rgba(216, 186, 114, .1); }
+.profile-field > input::placeholder { color: rgba(170, 162, 148, .6); }
+.field-required { margin-left: 4px; color: var(--payment-gold); font-size: 10.5px; font-weight: 800; }
+.payment-form [aria-invalid="true"] { border-color: var(--payment-danger) !important; box-shadow: 0 0 0 3px rgba(238, 141, 124, .12) !important; }
+.field-error { margin: 2px 0 0; color: var(--payment-danger); font-size: 12.5px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.error-code { display: inline-block; margin-left: 2px; padding: 0 6px; border: 1px solid rgba(238, 141, 124, .45); border-radius: 999px; color: var(--payment-danger); font-size: 10.5px; font-weight: 800; letter-spacing: .02em; font-variant-numeric: tabular-nums; vertical-align: 1px; white-space: nowrap; }

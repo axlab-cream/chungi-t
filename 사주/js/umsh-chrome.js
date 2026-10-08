@@ -12,8 +12,8 @@
    * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
    * unchanged, so no page markup had to move.
    */
-  var SHELL_CSS = '/css/service-shell.css?v=20260917-overlay';
-  var SHELL_JS = '/js/service-shell.js?v=20260917-overlay';
+  var SHELL_CSS = '/css/service-shell.css?v=20261008-inline-back';
+  var SHELL_JS = '/js/service-shell.js?v=20261008-inline-back';
   var SIGNUP_BENEFIT_POPUP_CSS = '/css/umsh-signup-benefit-popup.css?v=20260922-love-fortune';
   var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup';
   var FLAG_JS = '/js/ai-report-flag.js';
