@@ -5,6 +5,46 @@
 <script src="/js/umsh-chrome.js?v=20260922c" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* MY·운명록·보관함으로 가는 로그인 중계 화면. 로그인에서 돌아왔거나 이미 로그인된 채로 이 주소에
+         들어오면, 목적지로 넘어가기 전까지 로그인 시트·사주 입력이 잠깐 비치지 않게 덮어 둔다. */
+      html.umsh-auth-handoff, html.umsh-auth-handoff body { background: #0a0908; }
+      html.umsh-auth-handoff body > * { visibility: hidden !important; }
+      html.umsh-auth-handoff::after {
+        content: "로그인 정보를 확인하고 있어요";
+        position: fixed; inset: 0; z-index: 2147483647;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(240, 214, 160, 0.82); font: 500 14px/1.5 system-ui, sans-serif; letter-spacing: 0.02em;
+        animation: umsh-auth-handoff-pulse 1.2s ease-in-out infinite alternate;
+      }
+      @keyframes umsh-auth-handoff-pulse { from { opacity: 0.45; } to { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { html.umsh-auth-handoff::after { animation: none; } }
+    </style>
+    <script>
+      (function () {
+        try {
+          var query = new URLSearchParams(location.search);
+          var entry = query.get("authEntry") || query.get("entry") || "";
+          if (!/^(my|destiny|vault)$/.test(entry)) return;
+          var returning = query.get("signupReturn") === "1" || query.get("authReturn") === "1" || query.has("code") || /access_token=/.test(location.hash);
+          var signedIn = false;
+          for (var index = 0; index < localStorage.length; index += 1) {
+            if (/^sb-.+-auth-token$/.test(localStorage.key(index) || "")) { signedIn = true; break; }
+          }
+          if (!returning && !signedIn) return;
+          document.documentElement.classList.add("umsh-auth-handoff");
+          // 로그인을 마친 뒤 뒤로 가기로 이 로그인 시트에 되돌아온 경우다. 시트를 다시 보이지 않고
+          // 로그인 전에 있던 화면까지 한 칸 더 물러난다.
+          var navigation = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+          if (signedIn && !returning && navigation && navigation.type === "back_forward" && history.length > 1) {
+            history.back();
+            return;
+          }
+          // 어떤 이유로든 목적지 판단이 멈추면 원래 화면을 돌려준다.
+          setTimeout(function () { document.documentElement.classList.remove("umsh-auth-handoff"); }, 10000);
+        } catch (_error) { /* 저장소를 못 읽으면 덮지 않는다. */ }
+      })();
+    </script>
     <title>운명상회 - 운명을 팝니다.</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
@@ -4069,6 +4109,11 @@
         return "해당 메뉴";
       }
 
+      /** 이 페이지에 머물기로 정해지면 중계 화면 덮개를 걷는다. 다른 곳으로 넘어갈 때는 부르지 않는다. */
+      function endAuthHandoff() {
+        document.documentElement.classList.remove("umsh-auth-handoff");
+      }
+
       function protectedEntryTarget() {
         if (initialAuthEntry === "destiny") return "/destiny";
         if (initialAuthEntry === "vault") return "/vault";
@@ -4392,7 +4437,8 @@
           await saveCurrentUserProfile();
           const target = protectedEntryTarget();
           if (target) {
-            location.href = target;
+            // 뒤로 가기에 로그인·입력 화면이 남지 않게 기록을 덮어쓴다.
+            location.replace(target);
             return;
           }
           clearSignupQuery();
@@ -4410,10 +4456,12 @@
         try {
           session = await currentAuthSession();
         } catch (err) {
+          endAuthHandoff();
           showAuthGate(err.message || `${label} 접근 상태를 확인하지 못했습니다.`);
           return;
         }
         if (!session?.access_token) {
+          endAuthHandoff();
           showAuthGate(`${label}${topicParticle(label)} 로그인과 사주등록 후 열 수 있습니다.`);
           return;
         }
@@ -4429,6 +4477,7 @@
         }
 
         if (!profile?.name || !applyUserProfile(profile)) {
+          endAuthHandoff();
           go("name", false);
           showNudge(`${label}${objectParticle(label)} 열려면 사주 프로필을 먼저 등록해주세요.`);
           return;
@@ -4436,9 +4485,11 @@
 
         const target = protectedEntryTarget();
         if (target) {
-          location.href = target;
+          // 뒤로 가기에 로그인 화면이 남지 않게 기록을 덮어쓴다.
+          location.replace(target);
           return;
         }
+        endAuthHandoff();
         clearSignupQuery();
         go("my", false);
       }
@@ -8285,6 +8336,8 @@
           beginProtectedEntryAfterAuth();
           return;
         }
+        // 로그인되지 않았거나 다른 흐름이면 이 페이지를 그대로 보여 준다.
+        endAuthHandoff();
         if (isLifelongTeaserEntry) {
           clearTodayEntryPending();
           if (!initialReportId) beginLifelongTeaserAfterAuth();
@@ -8298,6 +8351,7 @@
           beginAnalysisAfterAuth();
         }
       }).catch((err) => {
+        endAuthHandoff();
         if (isLifelongTeaserEntry || wantsTodayEntry() || isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
           showAuthGate(err.message || "회원 인증을 확인하지 못했습니다.");
         }

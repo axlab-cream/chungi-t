@@ -241,22 +241,40 @@
     }).catch(function () { /* 버전을 못 읽어도 화면은 그대로다. */ });
   }
 
+  /** 로그인 상태가 정해진 뒤에만 회원 카드나 안내 상자 중 하나를 보인다. */
+  function settleAuthView(isMember) {
+    var pending = document.querySelector('[data-my-pending]');
+    if (pending) pending.hidden = true;
+    var guest = document.querySelector('[data-my-guest]');
+    if (guest) guest.hidden = isMember;
+  }
+
+  // 로그인 시트로 갈 때 MY 기록을 덮어쓴다. 로그인을 마치고 MY 로 돌아온 뒤 뒤로 가기를 누르면
+  // 로그아웃 상태의 MY 나 로그인 시트가 아니라 MY 에 오기 전 화면으로 간다.
+  var loginLink = document.querySelector('[data-my-login]');
+  if (loginLink) {
+    loginLink.addEventListener('click', function (event) {
+      event.preventDefault();
+      global.location.replace(loginLink.href);
+    });
+  }
+
   async function init() {
     if (helper && helper.mountAccountChrome) helper.mountAccountChrome('account');
     showAppVersion();
     loadNoticeBadge();
-    if (!helper) return;
+    if (!helper) { settleAuthView(false); return; }
     var auth;
     try {
       auth = await helper.requireSession('my', { optional: true });
     } catch (_error) {
+      settleAuthView(false);
       setStatus('로그인 상태를 확인하지 못했습니다. 공개 안내는 계속 이용하실 수 있습니다.');
       return;
     }
-    if (!auth) return;
+    if (!auth) { settleAuthView(false); return; }
     document.querySelectorAll('[data-my-member], [data-my-user]').forEach(function (element) { element.hidden = false; });
-    var guest = document.querySelector('[data-my-guest]');
-    if (guest) guest.hidden = true;
+    settleAuthView(true);
 
     renderUser(null, auth.session);
     loadCounts(auth.session);
@@ -285,6 +303,7 @@
   }
 
   init().catch(function (error) {
+    settleAuthView(false);
     setStatus((error && error.message) || '마이페이지를 불러오지 못했습니다.');
   });
 })(window);
