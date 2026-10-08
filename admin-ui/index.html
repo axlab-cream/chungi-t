@@ -195,6 +195,10 @@
     .admin-kpi { min-height: 104px; padding: var(--admin-space-4); border: 1px solid var(--admin-line); background: var(--admin-surface); }
     .admin-kpi small { display: block; color: var(--admin-text-muted); font-size: 12px; }
     .admin-kpi strong { display: block; margin-top: var(--admin-space-2); font-size: 20px; font-variant-numeric: tabular-nums; }
+    /* 2026-10-08: 카드 이름 옆 ⓘ — 숫자의 출처와 세는 기준. 상자는 왼쪽 정렬로 열어 화면 밖으로 나가지 않게 한다. */
+    .admin-kpi small .admin-tip { vertical-align: 0; }
+    .admin-kpi .admin-tip-box, .admin-block-title .admin-tip-box { left: -8px; transform: none; max-width: 300px; }
+    .admin-kpi-grid > .admin-kpi:nth-child(4n) .admin-tip-box { left: auto; right: -8px; }
     .admin-kpi span { display: block; margin-top: var(--admin-space-1); color: var(--admin-text-disabled); font-size: 12px; }
     .admin-section { border: 1px solid var(--admin-line); background: var(--admin-surface); }
     .admin-section-head { display: flex; justify-content: space-between; align-items: center; gap: var(--admin-space-3); padding: var(--admin-space-3) var(--admin-space-4); border-bottom: 1px solid var(--admin-line); }
@@ -385,11 +389,12 @@
     .admin-block > .admin-section { flex: 1; }
     .admin-filter-search { min-width: 220px; }
     .admin-summary-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
-    .admin-summary-grid .admin-funnel-line { grid-template-columns: 96px minmax(60px, 1fr) 64px minmax(150px, 230px); }
+    .admin-summary-grid .admin-funnel-line { grid-template-columns: 190px minmax(60px, 1fr) 64px minmax(150px, 230px); }
     .admin-summary-grid .admin-share-line { grid-template-columns: 64px minmax(60px, 1fr) 48px 48px; }
     @media (max-width: 1100px) { .admin-summary-grid { grid-template-columns: 1fr; } }
-    .admin-funnel-line { display: grid; grid-template-columns: 120px minmax(80px, 1fr) 80px minmax(150px, 280px); gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--admin-line); }
-    @media (max-width: 720px) { .admin-funnel-line { grid-template-columns: 96px 1fr auto; row-gap: 4px; } .admin-funnel-line > :last-child { grid-column: 1 / -1; } }
+    .admin-funnel-path { display: block; margin-top: 2px; color: var(--admin-text-muted); font-size: 11px; font-weight: 500; overflow-wrap: anywhere; }
+    .admin-funnel-line { display: grid; grid-template-columns: 210px minmax(80px, 1fr) 80px minmax(150px, 280px); gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--admin-line); }
+    @media (max-width: 720px) { .admin-funnel-line { grid-template-columns: 150px 1fr auto; row-gap: 4px; } .admin-funnel-line > :last-child { grid-column: 1 / -1; } }
     .admin-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 7px; background: #eceef3; }
     .admin-seg button { border: 0; background: none; padding: 5px 12px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; color: var(--admin-text-muted); cursor: pointer; }
     .admin-seg button[aria-pressed='true'] { background: var(--admin-surface); color: var(--admin-text); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
@@ -4161,13 +4166,14 @@
         function appendKpis(overview, sampled) {
           var grid = document.createElement('section'); grid.className = 'admin-kpi-grid'; grid.setAttribute('aria-label', '선택 기간 이용 요약');
           [
-            ['페이지뷰', overview.views, '고객 화면이 열린 횟수'],
-            ['방문', overview.sessions, '30분 활동 기준 고유 세션'],
-            ['로그인 방문자', overview.signedInUsers, '로그인 상태로 본 고유 계정'],
-            ['수집 이벤트', sampled, '페이지뷰와 CTA 이벤트 합계']
+            ['페이지뷰', overview.views, '고객 화면이 열린 횟수', '출처: 자체 방문 기록. 기준: 손님 화면이 열린 횟수입니다. 새로고침하거나 다시 열면 또 셉니다.'],
+            ['방문', overview.sessions, '30분 활동 기준 고유 세션', KPI_TIPS.visits],
+            ['로그인 방문자', overview.signedInUsers, '로그인 상태로 본 고유 계정', '출처: 자체 방문 기록. 기준: 선택 기간에 로그인한 상태로 손님 화면을 연 계정 수입니다.'],
+            ['수집 이벤트', sampled, '페이지뷰와 CTA 이벤트 합계', '출처: 자체 방문 기록. 기준: 선택 기간에 쌓인 화면 열림·버튼 클릭·유입·가입 기록의 합입니다. 조회 상한(기본 5,000건, 직접 선택 20,000건)에 닿으면 경고가 나옵니다.']
           ].forEach(function (item) {
             var card = document.createElement('article'); card.className = 'admin-kpi';
             var label = document.createElement('small'); label.textContent = item[0];
+            if (item[3]) label.appendChild(adminTip(item[3]));
             var value = document.createElement('strong'); value.textContent = count(item[1]);
             var detail = document.createElement('span'); detail.textContent = item[2];
             card.appendChild(label); card.appendChild(value); card.appendChild(detail); grid.appendChild(card);
@@ -4179,12 +4185,30 @@
           items.forEach(function (item) {
             var card = document.createElement('article'); card.className = 'admin-kpi';
             var label = document.createElement('small'); label.textContent = item[0];
+            if (item[3]) label.appendChild(adminTip(item[3]));
             var value = document.createElement('strong'); value.textContent = item[1];
             var detail = document.createElement('span'); detail.textContent = item[2];
             card.append(label, value, detail); grid.appendChild(card);
           });
           return grid;
         }
+        /** 블록 제목 + ⓘ. */
+        function tipTitle(text, tip) { var heading = adminBlockTitle(text); heading.appendChild(adminTip(tip)); return heading; }
+        /*
+         * 2026-10-08 사용자 요청: 숫자마다 어디서, 어떤 기준으로 가져오는지 ⓘ 에 적는다.
+         * 출처 — 방문 기록: 손님 화면이 열릴 때 우리 서버에 남기는 기록(umsh_funnel_events). GA4 와는 따로 센다.
+         *        계정: 로그인 계정 저장소(Supabase Auth). 주문: 결제 주문 저장소.
+         */
+        var KPI_TIPS = {
+          visits: '출처: 운명상회 자체 방문 기록(손님 화면이 열릴 때 서버에 남는 기록). 기준: 30분 안의 활동을 1번으로 묶은 방문 수입니다. 사람 수가 아니어서 같은 사람이 30분 넘게 쉬었다 오면 2번으로 셉니다. 관리자 화면은 빠지고, 직원이 손님 화면을 연 것은 포함됩니다. GA4 와 세는 방식이 달라 숫자가 다를 수 있습니다.',
+          signups: '출처: 로그인 계정 저장소(Supabase Auth). 기준: 선택 기간에 새로 만들어진 계정 수입니다(카카오·구글·네이버·이메일). 탈퇴한 계정은 빠집니다. 회원 조회 권한이 없으면 확인 불가로 보입니다.',
+          signupRate: '계산: 신규 가입 ÷ 방문. 방문이 사람 수가 아니라 30분 단위 방문이라, 사람 수로 나눈 비율보다 낮게 나옵니다.',
+          firstBuyers: '출처: 결제 주문 저장소. 기준: 선택 기간에 결제가 확인됐고(결제 완료·열람), 그 전에는 한 번도 결제한 적 없는 계정 수입니다.',
+          buyers: '출처: 결제 주문 저장소. 기준: 선택 기간에 결제가 확인된(결제 완료·열람) 주문이 1건 이상 있는 계정 수입니다. 괄호 안은 주문 건수입니다. 결제 대기·승인 중·실패·취소 주문은 빠지고, 환불은 반영하지 않습니다.',
+          buyRate: '계산: 구매자 ÷ 방문. 방문이 30분 단위라 사람 수 기준보다 낮게 나옵니다.',
+          revenue: '출처: 결제 주문 저장소. 기준: 선택 기간에 결제가 확인된 주문의 결제 금액 합계입니다(쿠폰 할인 후 실제 결제액). 환불한 금액은 빼지 않습니다. 정산용 숫자는 결제 관리 › 매출에서 확인하세요.',
+          perBuyer: '계산: 매출 ÷ 구매자. 결제한 사람 한 명이 선택 기간에 평균 얼마를 냈는지 보여 줍니다.'
+        };
         var PROVIDER_NAMES = { kakao: '카카오', google: '구글', naver: '네이버', email: '이메일', apple: '애플', unknown: '확인 불가' };
         function rateText(part, whole) { return part === null || part === undefined || !whole ? '—' : percent(part, whole); }
         /*
@@ -4196,33 +4220,37 @@
           var b = payload.buyers || null;
           var g = payload.signups || null;
           body.appendChild(kpiGrid([
-            ['방문', count(visits), '30분 활동 기준 방문'],
-            ['신규 가입', g ? count(g.signups) : '확인 불가', g && g.truncated ? '가입자가 많아 일부만 셈' : '새로 만든 계정'],
-            ['가입 전환율', g ? rateText(g.signups, visits) : '—', '방문 대비 신규 가입'],
-            ['첫 구매자', b ? count(b.firstBuyers) : '확인 불가', '처음 결제한 계정'],
-            ['구매자', b ? count(b.buyers) : '확인 불가', '결제한 계정 (' + (b ? count(b.orders) : '—') + '건)'],
-            ['구매 전환율', b ? rateText(b.buyers, visits) : '—', '방문 대비 구매자'],
-            ['매출', b ? count(b.revenue) + '원' : '확인 불가', '결제 확인 금액 (환불 미반영)'],
-            ['객단가', b && b.buyers ? count(Math.round(b.revenue / b.buyers)) + '원' : '—', '매출 ÷ 구매자']
+            ['방문', count(visits), '30분 활동 기준 방문', KPI_TIPS.visits],
+            ['신규 가입', g ? count(g.signups) : '확인 불가', g && g.truncated ? '가입자가 많아 일부만 셈' : '새로 만든 계정', KPI_TIPS.signups],
+            ['가입 전환율', g ? rateText(g.signups, visits) : '—', '방문 대비 신규 가입', KPI_TIPS.signupRate],
+            ['첫 구매자', b ? count(b.firstBuyers) : '확인 불가', '처음 결제한 계정', KPI_TIPS.firstBuyers],
+            ['구매자', b ? count(b.buyers) : '확인 불가', '결제한 계정 (' + (b ? count(b.orders) : '—') + '건)', KPI_TIPS.buyers],
+            ['구매 전환율', b ? rateText(b.buyers, visits) : '—', '방문 대비 구매자', KPI_TIPS.buyRate],
+            ['매출', b ? count(b.revenue) + '원' : '확인 불가', '결제 확인 금액 (환불 미반영)', KPI_TIPS.revenue],
+            ['객단가', b && b.buyers ? count(Math.round(b.revenue / b.buyers)) + '원' : '—', '매출 ÷ 구매자', KPI_TIPS.perBuyer]
           ]));
           var grid = document.createElement('div'); grid.className = 'admin-summary-grid';
           var left = document.createElement('div'); var right = document.createElement('div'); right.setAttribute('data-plain', '');
           grid.append(left, right); body.appendChild(grid);
           var purchase = payload.purchase || { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] };
           var st = purchase.stages; var paid = purchase.paid;
-          left.append(adminBlockTitle('구매 퍼널'), funnelBars([
-            { label: '1. 서비스 소개', value: st.intro, unit: ' 방문' },
-            { label: '2. 입력 시작', value: st.input, unit: ' 방문' },
-            { label: '3. 무료 결과', value: st.teaser, unit: ' 방문' },
-            { label: '4. 결제 화면', value: st.checkout, unit: ' 방문' },
-            { label: '5. 결제 완료', value: paid ? paid.orders : null, unit: '건' }
+          var sp = stagePaths('');
+          left.append(tipTitle('구매 퍼널', '출처: 1~4단계는 자체 방문 기록, 5단계는 결제 주문 저장소. 기준: 1~4단계는 그 화면을 한 번이라도 연 방문 수(30분 단위), 5단계는 결제가 확인된 주문 건수입니다. 중간 단계로 바로 들어온 방문도 세므로 앞 단계보다 클 수 있습니다. 무료 서비스(솔로나라·금사빠·오늘운)는 뺍니다.'), funnelBars([
+            { label: '1. 서비스 소개', value: st.intro, unit: ' 방문', path: sp.intro },
+            { label: '2. 입력 시작', value: st.input, unit: ' 방문', path: sp.input },
+            { label: '3. 무료 결과', value: st.teaser, unit: ' 방문', path: sp.teaser },
+            { label: '4. 결제 화면', value: st.checkout, unit: ' 방문', path: sp.checkout },
+            { label: '5. 결제 완료', value: paid ? paid.orders : null, unit: '건', path: sp.paid }
           ]));
           var top = servicePerformance(payload).slice(0, 5);
+          var topStart = right.children.length;
           addLiveTable(right, '인기 서비스 TOP 5', ['서비스', '소개', '무료 결과', '결제', '매출'], top, function (item) {
             return [item.name, count(item.intro), count(item.teaser), item.orders === null ? '—' : count(item.orders) + '건', item.revenue === null ? '—' : count(item.revenue) + '원'];
           }, '선택 기간에 서비스 이용 기록이 없습니다.');
           var providers = g ? Object.keys(g.byProvider).map(function (key) { return { label: PROVIDER_NAMES[key] || key, value: g.byProvider[key] }; }).sort(function (x, y) { return y.value - x.value; }) : [];
-          right.appendChild(adminBlockTitle('가입 방식'));
+          var topTitle = right.children[topStart];
+          if (topTitle) topTitle.appendChild(adminTip('출처: 소개·무료 결과는 자체 방문 기록, 결제·매출은 결제 주문 저장소. 기준: 매출이 큰 순서, 같으면 소개 방문이 많은 순서입니다. 소개·무료 결과는 방문 수, 결제는 결제가 확인된 주문 건수입니다. 무료 서비스는 뺍니다.'));
+          right.appendChild(tipTitle('가입 방식', '출처: 로그인 계정 저장소(Supabase Auth). 기준: 선택 기간에 새로 만든 계정이 처음 가입할 때 쓴 로그인 수단입니다. 네이버는 한 줄로 합칩니다.'));
           if (!g) addLiveError(right, '가입 방식은 회원 조회 권한이 없거나 불러오지 못해 표시하지 않습니다.');
           else if (!providers.length) addLiveError(right, '선택 기간에 새로 가입한 계정이 없습니다.');
           else right.appendChild(shareBars(providers, g.signups));
@@ -4310,6 +4338,20 @@
          * 2026-10-07 구매 퍼널. GA4 퍼널과 같은 단계(소개 → 입력 → 무료 결과 → 결제 화면 → 결제 완료)를
          * 자체 수집 기록과 주문 저장소로 센다. 앞 단계 대비 비율이 가장 낮은 곳이 먼저 고칠 곳이다.
          */
+        // 서비스 키 → 손님 화면 주소. 수집기(umsh-track.js placeOf)가 주소로 서비스를 정하는 규칙과 같다.
+        var SERVICE_PATHS = {
+          cmdg: '/cmdg', money_save: '/money/save', quit_fortune: '/work/quit', work_move: '/work/move', job_choice: '/work/job-choice', work_job: '/work/job',
+          love_this_year: '/love/this-year', couple_signal: '/love/signal', love_mind: '/love/mind', love_again: '/love/again', love_spouse: '/love/spouse',
+          match_couple: '/match/couple', marry_match: '/match/marry', cat_compatibility: '/match/cat', lucky_color: '/me/lucky', pass_angle: '/me/pass-angle',
+          newyear_flow: '/flow/newyear', wedding_day: '/day/wedding', home_pungsu: '/place/home'
+        };
+        /** 구매 퍼널 단계별로 세는 화면 주소. 서비스를 고르면 그 서비스의 실제 주소를 보인다. */
+        function stagePaths(serviceKey) {
+          if (serviceKey === 'cmdg') return { intro: '/cmdg', input: '/cmdg 입력 장면', teaser: '/cmdg 결과 장면', checkout: '/payment', paid: '/payment/result · 주문 확인' };
+          var base = serviceKey && SERVICE_PATHS[serviceKey];
+          if (base) return { intro: base + '/ · 01-step-1-story', input: base + '/02-step-2-saju-input · 03-step-3-service-input', teaser: base + '/04-step-4-report', checkout: '/payment', paid: '/payment/result · 주문 확인' };
+          return { intro: '/서비스 · 01-step-1-story', input: '02-step-2-saju-input · 03-step-3-service-input', teaser: '04-step-4-report', checkout: '/payment', paid: '/payment/result · 주문 확인' };
+        }
         function percent(part, whole) { return whole > 0 ? Math.round(part / whole * 1000) / 10 + '%' : '—'; }
         /** 막대 하나 = 단계 하나. 표의 검색·쪽 넘김 없이 다섯 줄로 끝난다. */
         function funnelBars(rows) {
@@ -4327,6 +4369,8 @@
             line.className = 'admin-funnel-line';
             if (index === rows.length - 1) line.style.borderBottom = '0';
             var label = document.createElement('strong'); label.textContent = row.label; label.style.fontSize = '13px';
+            // 2026-10-08 사용자 요청: 단계 이름 옆에 어떤 화면 주소를 세는지 괄호로 보인다.
+            if (row.path) { var where = document.createElement('small'); where.className = 'admin-funnel-path'; where.textContent = '(' + row.path + ')'; label.appendChild(where); }
             var track = document.createElement('div'); track.style.cssText = 'height:14px;border-radius:7px;background:var(--admin-bg)';
             var fill = document.createElement('div');
             fill.style.cssText = 'height:100%;border-radius:7px;background:' + (index === worst ? 'var(--admin-state-warn)' : 'var(--admin-focus)');
@@ -4369,13 +4413,14 @@
           var selected = funnelState.service ? services.filter(function (item) { return item.serviceKey === funnelState.service; })[0] : null;
           var st = purchase.stages;
           var done = paid ? (selected ? (paidBy[selected.serviceKey] || { orders: 0 }).orders : paid.orders) : null;
+          var sp = stagePaths(selected ? selected.serviceKey : '');
           var rows = [
-            { label: '1. 서비스 소개', value: selected ? selected.intro : st.intro, unit: ' 방문' },
-            { label: '2. 입력 시작', value: selected ? selected.input : st.input, unit: ' 방문' },
-            { label: '3. 무료 결과', value: selected ? selected.teaser : st.teaser, unit: ' 방문' }
+            { label: '1. 서비스 소개', value: selected ? selected.intro : st.intro, unit: ' 방문', path: sp.intro },
+            { label: '2. 입력 시작', value: selected ? selected.input : st.input, unit: ' 방문', path: sp.input },
+            { label: '3. 무료 결과', value: selected ? selected.teaser : st.teaser, unit: ' 방문', path: sp.teaser }
           ];
-          if (!selected) rows.push({ label: '4. 결제 화면', value: st.checkout, unit: ' 방문' });
-          rows.push({ label: (selected ? '4' : '5') + '. 결제 완료', value: done, unit: '건' });
+          if (!selected) rows.push({ label: '4. 결제 화면', value: st.checkout, unit: ' 방문', path: sp.checkout });
+          rows.push({ label: (selected ? '4' : '5') + '. 결제 완료', value: done, unit: '건', path: sp.paid });
           body.appendChild(funnelBars(rows));
           var amount = paid ? (selected ? (paidBy[selected.serviceKey] || { amount: 0 }).amount : paid.amount) : null;
           var foot = document.createElement('p'); foot.className = 'admin-note'; foot.style.padding = '0 4px';
