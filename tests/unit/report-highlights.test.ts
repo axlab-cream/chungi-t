@@ -24,11 +24,11 @@ test('saju_master reads the cmdg block through the service alias', () => {
   assert.equal(topics?.[0]?.title, '타고난 그릇과 쓰는 법')
 })
 
-test('cmdg first highlight uses a distinct photographic wood-path banner', () => {
+test('cmdg first highlight uses a distinct illustrated report banner', () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
   const blocks = JSON.parse(readFileSync(join(root, '사주/data/longform-blocks.json'), 'utf8').replace(/^﻿/, ''))
   const banner = blocks.services.cmdg.cutB
-  assert.equal(banner, '/assets/cmdg-wood-path-highlight-v2.webp')
+  assert.equal(banner, '/assets/cmdg-report-20261009/01-highlight.webp')
   assert.notEqual(banner, blocks.services.cmdg.cutA)
   const bytes = readFileSync(join(root, '사주/사주', banner.slice(1)))
   assert.equal(bytes.toString('ascii', 0, 4), 'RIFF')

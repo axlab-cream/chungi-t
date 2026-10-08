@@ -18,10 +18,10 @@
   var LEGACY = {newyear_flow:['umsh_newyear_report_v1'],love_this_year:['umsh:report:love_this_year'],job_choice:['umsh:report:job_choice'],quit_fortune:['umsh_quit_report_v1'],money_save:['umsh_save_report_v1'],cat_compatibility:['umsh:report:cat_compatibility'],lucky_color:['umsh:report:lucky_color'],match_couple:['umsh:couple-match:report-v1'],marry_match:['umsh_marry_report_v1'],couple_signal:['umsh:report:couple_signal'],pass_angle:['umsh_pass_angle_report_v1'],work_move:['umsh_work_move_report_v1','umsh_work_move_analysis_v1'],home_fit:['umsh_home_fit_report_v1'],saju_master:['cheongi_analysis']};
   var NESTED = {work_move:['umsh_work_move_input_payload_v1','umsh:work_move:form_v1'],home_fit:['umsh_home_fit_step2_payload_v1','umsh_home_fit_input_payload_v1']};
   var CMDG_TEMPLATE_IMAGES = {
-    profile: '01-core-strength.png', 'day-master-strength': '02-resilience.png', 'hidden-personality': '03-private-presence.png', balance: '04-energy-focus.png',
-    'useful-god-eokbu': '05-restoration.png', 'concern-loop': '06-priority.png', 'career-money': '07-work-money.png', 'career-transition': '08-stay-or-move.png',
-    'wealth-flow': '09-value-created.png', 'love-loop': '10-relationship-pattern.png', 'destiny-partner': '11-relationship-atmosphere.png', 'avoid-relationship': '12-boundary.png',
-    'love-timing': '13-relationship-timing.png', 'future-flow': '14-long-current.png', 'sewoon-detail': '15-yearly-change.png', 'action-guide': '16-next-signal.png'
+    profile: '02-core-strength.webp', 'day-master-strength': '03-resilience.webp', 'hidden-personality': '04-criteria.webp', balance: '05-energy-focus.webp',
+    'useful-god-eokbu': '06-restoration.webp', 'concern-loop': '07-priority.webp', 'career-money': '08-work-money.webp', 'career-transition': '09-stay-move.webp',
+    'wealth-flow': '10-value.webp', 'love-loop': '11-pattern.webp', 'destiny-partner': '12-comfort.webp', 'avoid-relationship': '13-boundary.webp',
+    'love-timing': '14-timing.webp', 'future-flow': '15-long-flow.webp', 'sewoon-detail': '16-year-change.webp', 'action-guide': '17-next-signal.webp'
   };
   var CMDG_CARD_TITLES = {
     profile: '타고난 강점을 쓰는 법', 'day-master-strength': '힘들 때 버티는 방식', 'hidden-personality': '선택할 때 드러나는 기준', balance: '내 힘이 집중되는 곳',
@@ -96,7 +96,7 @@
       if (!filename) return section;
       return Object.assign({}, section, {
         imageKey: 'cmdg-review-' + String(section.order || ''),
-        imageSrc: '/assets/cmdg-review/' + filename,
+        imageSrc: '/assets/cmdg-report-20261009/' + filename,
         imageAlt: String(section.category || '천명사주') + ' 풀이 이미지'
       });
     }) });
@@ -390,7 +390,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260926-money-summary-v2', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20261009-cmdg-images', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;

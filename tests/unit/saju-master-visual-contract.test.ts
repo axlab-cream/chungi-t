@@ -52,16 +52,24 @@ test('saju master uses the same sixteen public thumbnails for new and saved repo
   const generator = read('src/report/report-generator.ts')
   const reader = read('사주/js/umsh-report-access.js')
   const images = [
-    '01-core-strength.png', '02-resilience.png', '03-private-presence.png', '04-energy-focus.png',
-    '05-restoration.png', '06-priority.png', '07-work-money.png', '08-stay-or-move.png',
-    '09-value-created.png', '10-relationship-pattern.png', '11-relationship-atmosphere.png', '12-boundary.png',
-    '13-relationship-timing.png', '14-long-current.png', '15-yearly-change.png', '16-next-signal.png',
+    '02-core-strength.webp', '03-resilience.webp', '04-criteria.webp', '05-energy-focus.webp',
+    '06-restoration.webp', '07-priority.webp', '08-work-money.webp', '09-stay-move.webp',
+    '10-value.webp', '11-pattern.webp', '12-comfort.webp', '13-boundary.webp',
+    '14-timing.webp', '15-long-flow.webp', '16-year-change.webp', '17-next-signal.webp',
   ]
 
   assert.match(generator, /SAJU_MASTER_REVIEW_IMAGES/)
-  assert.match(generator, /\/assets\/cmdg-review\//)
+  assert.match(generator, /\/assets\/cmdg-report-20261009\//)
   assert.match(reader, /CMDG_TEMPLATE_IMAGES/)
-  images.forEach((image) => assert.equal(existsSync(join(root, '사주/사주/assets/cmdg-review', image)), true, image))
+  images.forEach((image) => {
+    assert.equal(existsSync(join(root, '사주/사주/assets/cmdg-report-20261009', image)), true, image)
+    assert.ok(generator.includes(`'${image}'`), `new report: ${image}`)
+    assert.ok(reader.includes(`'${image}'`), `saved report: ${image}`)
+  })
+  const config = JSON.parse(read('사주/data/longform-blocks.json')).services.cmdg
+  assert.equal(config.summaryImage, '/assets/cmdg-report-20261009/00-summary.webp')
+  assert.equal(config.cutB, '/assets/cmdg-report-20261009/01-highlight.webp')
+  assert.equal(config.thumbnail, '/assets/umsh-cmdg-card-bg.webp')
 })
 
 test('saju master release requires sanitized desktop, mobile and print evidence', () => {

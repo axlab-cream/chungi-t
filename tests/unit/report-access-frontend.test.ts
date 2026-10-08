@@ -635,7 +635,7 @@ test('saved report renders only the API-calculated daewoon timeline and shared m
   assert.match(html,/삼재/)
   assert.match(html,/2025~2027년/)
   assert.match(html,/가운데 해/)
-  assert.match(html,/\/assets\/cmdg-review\/01-core-strength\.png/)
+  assert.match(html,/\/assets\/cmdg-report-20261009\/02-core-strength\.webp/)
   assert.match(html,/역할과 평가 기준을 한 문장으로 정리/)
   assert.doesNotMatch(html,/운세 점수|상승 곡선/)
 })

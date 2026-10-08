@@ -53,15 +53,15 @@ import {
 
 const COMMON_IMAGE_SRC = '/assets/hero-mystic.webp'
 const SAJU_MASTER_REVIEW_IMAGES = [
-  '01-core-strength.png', '02-resilience.png', '03-private-presence.png', '04-energy-focus.png',
-  '05-restoration.png', '06-priority.png', '07-work-money.png', '08-stay-or-move.png',
-  '09-value-created.png', '10-relationship-pattern.png', '11-relationship-atmosphere.png', '12-boundary.png',
-  '13-relationship-timing.png', '14-long-current.png', '15-yearly-change.png', '16-next-signal.png',
+  '02-core-strength.webp', '03-resilience.webp', '04-criteria.webp', '05-energy-focus.webp',
+  '06-restoration.webp', '07-priority.webp', '08-work-money.webp', '09-stay-move.webp',
+  '10-value.webp', '11-pattern.webp', '12-comfort.webp', '13-boundary.webp',
+  '14-timing.webp', '15-long-flow.webp', '16-year-change.webp', '17-next-signal.webp',
 ]
 
 function sajuMasterReviewImage(index: number): string | null {
   const filename = SAJU_MASTER_REVIEW_IMAGES[index]
-  return filename ? `/assets/cmdg-review/${filename}` : null
+  return filename ? `/assets/cmdg-report-20261009/${filename}` : null
 }
 
 /** Always appended to report system prompts (scores, leak, invent, framing). */
