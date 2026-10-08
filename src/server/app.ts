@@ -77,7 +77,7 @@ import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, de
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeBuyers, summarizeFunnel, summarizePaidOrders, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
-import { SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { STAFF_NOTE_KINDS, SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
 import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentUpdate, listIncidentUpdates, listIncidents, updateIncident } from '../admin/incident-store.js'
 import {
   NEW_SERVICE_DRAFT_REVISION,
@@ -117,6 +117,8 @@ import {
 } from '../user/profile-store.js'
 import type { UserBirthProfile, UserLifeContext } from '../user/profile-store.js'
 import { deleteOwnAccount } from '../user/account-deletion.js'
+import { memberHubRouter } from '../user/hub-router.js'
+import { marketingConsentedUserIds, optedOutUserIds } from '../user/hub-store.js'
 import {
   canonicalPaymentProductKey,
   getPaymentProduct,
@@ -305,6 +307,8 @@ const SEARCH_PAGE = join(SAJU_ROOT, 'search.html')
 const VAULT_PAGE = join(SAJU_ROOT, 'vault.html')
 const PROFILE_PAGE = join(SAJU_ROOT, 'profile.html')
 const REFUNDS_PAGE = join(SAJU_ROOT, 'refunds.html')
+const NOTICES_PAGE = join(SAJU_ROOT, 'notices.html')
+const INQUIRIES_PAGE = join(SAJU_ROOT, 'inquiries.html')
 const PORT = Number(process.env.PORT ?? 8790)
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_PUBLIC_KEY =
@@ -468,6 +472,13 @@ app.get(['/profile', '/profile/', '/profile.html'], (_req, res) => {
 })
 app.get(['/refunds', '/refunds/', '/refunds.html'], (_req, res) => {
   res.sendFile(REFUNDS_PAGE)
+})
+// 마이페이지 › 공지·이벤트, 1:1 문의(2026-10)
+app.get(['/notices', '/notices/', '/notices.html'], (_req, res) => {
+  res.sendFile(NOTICES_PAGE)
+})
+app.get(['/inquiries', '/inquiries/', '/inquiries.html'], (_req, res) => {
+  res.sendFile(INQUIRIES_PAGE)
 })
 // 올해 연애운 runs as the 01 → 02 → 04 → 05 → 06_1 flow; these are the readable entry points.
 app.get(['/love/this-year', '/love/this-year/', '/love/this-year.html', '/love/this-year/index.html'], (req, res) => {
@@ -2330,7 +2341,7 @@ app.get('/api/cron/ops', async (req, res) => {
    * 예약 푸시가 기다리지 않게. 푸시 실패가 리포트 처리를 막지 않도록 오류를 여기서 삼킨다.
    */
   const pushRun = pushStoreAvailable()
-    ? runPushDispatcher({ store: pushStore() }, 200_000).catch((cause) => ({ error: cause instanceof Error ? cause.message.slice(0, 120) : 'PUSH_DISPATCH_FAILED' }))
+    ? runPushDispatcher({ store: pushStore(), optedOut: optedOutUserIds, marketingConsented: marketingConsentedUserIds }, 200_000).catch((cause) => ({ error: cause instanceof Error ? cause.message.slice(0, 120) : 'PUSH_DISPATCH_FAILED' }))
     : Promise.resolve(undefined)
   // 구글플레이 환불 반영. 호출 한도가 있어 10분마다만 묻고, 실패해도 다른 작업을 막지 않는다.
   const voidedRun = isGooglePlayConfigured() && shouldSyncVoidedPurchases(new Date())
@@ -3599,7 +3610,7 @@ app.patch('/api/admin/v1/support/:id', async (req, res) => {
 app.post('/api/admin/v1/support/:id/notes', async (req, res) => {
   const membership = await requireStaff(req, res, 'support:write'); if (!membership) return
   const body = asObject(req.body); const id = trimmedString(req.params.id); const kind = trimmedString(body.kind); const text = typeof body.text === 'string' ? body.text.trim() : ''; const idempotencyKey = trimmedString(req.header('idempotency-key'))
-  if (!id || !(SUPPORT_NOTE_KINDS as readonly string[]).includes(kind) || text.length < 1 || text.length > 4000 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_SUPPORT_NOTE_INPUT', error: '메모 종류, 내용, 멱등 키를 확인해 주세요.' }); return }
+  if (!id || !(STAFF_NOTE_KINDS as readonly string[]).includes(kind) || text.length < 1 || text.length > 4000 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_SUPPORT_NOTE_INPUT', error: '메모 종류, 내용, 멱등 키를 확인해 주세요.' }); return }
   try {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'support.note.create', idempotencyKey, body: { id, kind, textLength: text.length }, target: { type: 'support_case', id } }, async () => createSupportNote({ caseId: id, kind: kind as typeof SUPPORT_NOTE_KINDS[number], text, actorEmail: membership.email }))
     res.status(command.replayed ? 200 : 201).json({ note: command.result, replayed: command.replayed })
@@ -3778,6 +3789,7 @@ const pushDeps = {
   optionalUser: async (req: Request) => { const owner = await verifySupabaseUser(req).catch(() => undefined); return owner ? { id: owner.id } : null },
   staff: requireStaff,
   audit: (actor: string, action: string, targetId: string) => postgrestAdminCommandStore().appendAuditEvent({ actorEmail: actor, action, target: { type: 'push_notification', id: targetId }, result: 'succeeded' }),
+  recipients: { optedOut: optedOutUserIds, marketingConsented: marketingConsentedUserIds },
 }
 // 앱 푸시: 기기 등록·알림 클릭(공개), 작성·발송·이력(관리자). 설계는 src/push/.
 app.use('/api/push', pushRouter(pushDeps))
@@ -4375,6 +4387,9 @@ async function saveUserProfileHandler(req: Request, res: Response) {
 
 app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
+
+// 마이페이지 알림 설정·1:1 문의·공지(2026-10). 규칙은 src/user/hub-store.ts.
+app.use('/api', memberHubRouter({ authenticate: requireSupabaseUser }))
 
 // 회원 탈퇴. 결제 기록은 법정 기간 보관하고 나머지는 지운다 — 기준은 src/user/account-deletion.ts.
 app.delete('/api/user/account', async (req, res) => {

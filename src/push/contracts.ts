@@ -36,6 +36,8 @@ export interface PushDraftInput {
   target: PushTarget
   /** draft: 저장만. now: 바로 보냄. scheduled: at 에 보냄. */
   schedule: { mode: 'draft' | 'now' } | { mode: 'scheduled'; at: string }
+  /** 광고성 정보(이벤트·할인). 수신 동의한 회원에게만, 낮 시간에만, "(광고)"를 붙여 보낸다. */
+  marketing?: boolean
 }
 
 export interface PushNotificationRecord {
@@ -56,6 +58,7 @@ export interface PushNotificationRecord {
   failureCount: number
   clickCount: number
   lastError: string | null
+  isMarketing: boolean
   createdBy: string
   cancelledBy: string | null
   cancelledAt: string | null
@@ -139,6 +142,36 @@ export function targetFromRecord(record: Pick<PushNotificationRecord, 'targetTyp
   return parseTarget({ type: record.targetType, ...record.targetFilter })
 }
 
+/**
+ * 광고성 앱 푸시 규칙(정보통신망법 제50조·시행령 제61조, 2026-10 기준으로 정리).
+ * - 제목 맨 앞에 "(광고)"를 붙인다.
+ * - 수신 거부 방법을 본문에 적는다.
+ * - 21시~다음 날 8시에는 보내지 않는다. 야간 수신 동의는 따로 받지 않으므로 이 시간은 언제나 막는다.
+ * 문구는 발송 때 붙인다. 저장된 제목·본문은 관리자가 쓴 그대로 둔다.
+ */
+export const MARKETING_TITLE_PREFIX = '(광고) '
+export const MARKETING_OPT_OUT_NOTICE = '\n\n수신 거부: 운명상회 앱 › 마이페이지 › 알림'
+const KST_OFFSET_MS = 9 * 3_600_000
+
+/** 한국 시간 21:00~07:59 인가. */
+export function isMarketingQuietHour(at: number): boolean {
+  const hour = new Date(at + KST_OFFSET_MS).getUTCHours()
+  return hour >= 21 || hour < 8
+}
+
+/** 야간이면 다음 08:00(한국 시간)까지 남은 밀리초, 아니면 0. */
+export function msUntilMarketingWindow(at: number): number {
+  if (!isMarketingQuietHour(at)) return 0
+  const kst = new Date(at + KST_OFFSET_MS)
+  const next = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + (kst.getUTCHours() >= 21 ? 1 : 0), 8) - KST_OFFSET_MS
+  return next - at
+}
+
+export function deliveredText(record: Pick<PushNotificationRecord, 'title' | 'body' | 'isMarketing'>): { title: string; body: string } {
+  if (!record.isMarketing) return { title: record.title, body: record.body }
+  return { title: MARKETING_TITLE_PREFIX + record.title, body: record.body + MARKETING_OPT_OUT_NOTICE }
+}
+
 /** 예약은 지금부터 1분 뒤 ~ 90일 안. 지난 시각으로 예약하면 즉시 발송과 구분이 안 된다. */
 export const PUSH_SCHEDULE_MIN_LEAD_MS = 60_000
 export const PUSH_SCHEDULE_MAX_DAYS = 90
@@ -155,13 +188,18 @@ export function parseDraft(value: unknown, now = Date.now()): PushDraftInput {
   if (!deepLink) throw new PushError('PUSH_DEEP_LINK_INVALID')
   const target = parseTarget(raw.target)
   const schedule = (raw.schedule && typeof raw.schedule === 'object' ? raw.schedule : {}) as Record<string, unknown>
-  if (schedule.mode === 'draft' || schedule.mode === 'now') return { title, body, deepLink, target, schedule: { mode: schedule.mode } }
+  const marketing = raw.marketing === true
+  // 로그인하지 않은 기기는 수신 동의를 받을 방법이 없다.
+  if (marketing && target.type === 'guests') throw new PushError('PUSH_MARKETING_GUESTS')
+  if (marketing && schedule.mode === 'now' && isMarketingQuietHour(now)) throw new PushError('PUSH_MARKETING_QUIET_HOURS')
+  if (schedule.mode === 'draft' || schedule.mode === 'now') return { title, body, deepLink, target, schedule: { mode: schedule.mode }, marketing }
   if (schedule.mode === 'scheduled') {
     const at = typeof schedule.at === 'string' ? Date.parse(schedule.at) : NaN
     if (!Number.isFinite(at)) throw new PushError('PUSH_SCHEDULE_INVALID')
     if (at < now + PUSH_SCHEDULE_MIN_LEAD_MS) throw new PushError('PUSH_SCHEDULE_TOO_SOON')
     if (at > now + PUSH_SCHEDULE_MAX_DAYS * 86_400_000) throw new PushError('PUSH_SCHEDULE_TOO_FAR')
-    return { title, body, deepLink, target, schedule: { mode: 'scheduled', at: new Date(at).toISOString() } }
+    if (marketing && isMarketingQuietHour(at)) throw new PushError('PUSH_MARKETING_QUIET_HOURS')
+    return { title, body, deepLink, target, schedule: { mode: 'scheduled', at: new Date(at).toISOString() }, marketing }
   }
   throw new PushError('PUSH_SCHEDULE_INVALID')
 }
@@ -181,6 +219,8 @@ export function parseDevice(value: unknown, userId: string | null): PushDeviceIn
 }
 
 export const PUSH_ERROR_MESSAGES: Record<string, string> = {
+  PUSH_MARKETING_GUESTS: '광고성 알림은 수신에 동의한 회원에게만 보낼 수 있습니다. 로그인하지 않은 기기는 고를 수 없습니다.',
+  PUSH_MARKETING_QUIET_HOURS: '광고성 알림은 밤 9시부터 아침 8시까지 보낼 수 없습니다. 야간 발송에는 별도 동의가 필요한데, 운명상회는 그 동의를 받지 않습니다. 아침 8시~밤 9시로 예약해 주세요.',
   PUSH_TITLE_REQUIRED: '제목을 입력해 주세요.',
   PUSH_TITLE_TOO_LONG: `제목은 ${PUSH_TITLE_LIMIT}자 이하로 써 주세요.`,
   PUSH_BODY_REQUIRED: '메시지를 입력해 주세요.',

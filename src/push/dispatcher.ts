@@ -1,4 +1,4 @@
-import { targetFromRecord } from './contracts.js'
+import { deliveredText, msUntilMarketingWindow, targetFromRecord } from './contracts.js'
 import { sendFcmMessage, type FcmMessage, type FcmResult } from './fcm.js'
 import { fcmAccessToken, pushGoogleConfig } from './google-auth.js'
 import type { PushStore } from './store.js'
@@ -19,6 +19,10 @@ export interface DispatchDeps {
   send?: (message: FcmMessage) => Promise<FcmResult>
   accessToken?: () => Promise<string>
   now?: () => number
+  /** 마이페이지에서 알림을 끈 회원. 그 회원의 기기는 발송 목록에 넣지 않는다. */
+  optedOut?: (userIds: string[]) => Promise<Set<string>>
+  /** 이벤트·혜택 알림에 동의한 회원. 광고성 푸시는 이 회원의 기기에만 간다. 없으면 아무에게도 안 간다. */
+  marketingConsented?: (userIds: string[]) => Promise<Set<string>>
 }
 
 export interface DispatchOutcome { claimed: number; sent: number; failed: number; finished: number; error?: string }
@@ -53,8 +57,27 @@ export async function runPushDispatcher(deps: DispatchDeps, budgetMs: number): P
     if (!notification) break
     outcome.claimed += 1
 
+    // 광고성 푸시는 한국 시간 21시~8시에 보내지 않는다. 예약이 밀려 밤에 잡혔으면 아침 8시까지 미룬다.
+    if (notification.isMarketing) {
+      const wait = msUntilMarketingWindow(now())
+      if (wait > 0) {
+        await store.noteError(notification.id, 'MARKETING_QUIET_HOURS', Math.ceil(wait / 1000))
+        continue
+      }
+    }
+
     if (!notification.preparedAt) {
-      const devices = await store.selectTargetDevices(targetFromRecord(notification), 20_000)
+      let devices = await store.selectTargetDevices(targetFromRecord(notification), 20_000)
+      if (deps.optedOut) {
+        const userIds = devices.map((device) => device.userId).filter((id): id is string => !!id)
+        const off = userIds.length ? await deps.optedOut(userIds) : new Set<string>()
+        if (off.size) devices = devices.filter((device) => !device.userId || !off.has(device.userId))
+      }
+      if (notification.isMarketing) {
+        const userIds = devices.map((device) => device.userId).filter((id): id is string => !!id)
+        const consented = deps.marketingConsented && userIds.length ? await deps.marketingConsented(userIds) : new Set<string>()
+        devices = devices.filter((device) => !!device.userId && consented.has(device.userId))
+      }
       await store.insertDeliveries(notification.id, devices)
       await store.markPrepared(notification.id)
       await store.refreshCounts(notification.id)
@@ -94,8 +117,9 @@ export async function runPushDispatcher(deps: DispatchDeps, budgetMs: number): P
             outcome.failed += 1
             return
           }
+          const text = deliveredText(notification)
           const result = await send({
-            token: delivery.token, title: notification.title, body: notification.body, deepLink: notification.deepLink,
+            token: delivery.token, title: text.title, body: text.body, deepLink: notification.deepLink,
             notificationId: notification.id, deliveryId: delivery.id,
           })
           if (result.ok) {

@@ -26,11 +26,12 @@ for(const mode of ['guest','member','offline']){
   const auth={session:{access_token:'test-only',user:{email:'member@example.test'}},client:{}};
   let requests=0;
   const win={UMSHAccountPages:{mountAccountChrome(){},requireSession:async(_entry,opts)=>{assert.equal(opts.optional,true);if(mode==='offline')throw Error('offline');return mode==='member'?auth:null},authHeaders:()=>({Authorization:'Bearer test-only'}),escapeHtml:s=>s}};
-  const doc={querySelector:s=>({'[data-my-user]':user,'[data-my-status]':status,'[data-my-guest]':guest,'[data-my-logout]':logout}[s]),querySelectorAll:()=>[memberNode]};
-  vm.runInNewContext(mySource,{window:win,document:doc,fetch:async()=>{requests++;return{ok:true,json:async()=>({profile:null})}}});
+  const doc={querySelector:s=>({'[data-my-user]':user,'[data-my-status]':status,'[data-my-guest]':guest,'[data-my-logout]':logout}[s]),querySelectorAll:s=>s==='[data-pref]'?[]:[memberNode]};
+  vm.runInNewContext(mySource,{window:win,document:doc,fetch:async(url)=>{if(!String(url).startsWith('/api/notices'))requests++;return{ok:true,json:async()=>({profile:null})}}});
   await new Promise(r=>setImmediate(r));
-  // 회원: 프로필 1번 + 숫자 3개(보관함·쿠폰·결제 내역). 비회원·오프라인은 서버를 부르지 않는다.
-  assert.equal(requests,mode==='member'?4:0);
+  // 회원: 프로필 + 숫자 3개(보관함·쿠폰·결제 내역) + 문의 답변 확인. 비회원·오프라인은 회원 API 를 부르지 않는다.
+  // 공지(/api/notices)는 로그인 없이 보는 정보라 세지 않는다. 알림 스위치는 이 가짜 문서에 없다.
+  assert.equal(requests,mode==='member'?5:0);
   assert.equal(memberNode.hidden,mode!=='member');
   assert.equal(guest.hidden,mode==='member');
   passed++;

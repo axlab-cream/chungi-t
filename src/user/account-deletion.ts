@@ -34,6 +34,7 @@ const OWNED_ROWS: Array<{ table: string; filters: (userId: string) => Record<str
   { table: 'cheongi_user_profiles', filters: (userId) => ({ user_id: `eq.${userId}` }) },
   { table: 'push_devices', filters: (userId) => ({ user_id: `eq.${userId}` }) },
   { table: 'job_choice_free_preview_claims', filters: (userId) => ({ user_id: `eq.${userId}` }) },
+  { table: 'umsh_notification_prefs', filters: (userId) => ({ user_id: `eq.${userId}` }) },
 ]
 
 export async function deleteOwnAccount(userId: string, store: AccountDeletionStore = restAccountDeletionStore()): Promise<AccountDeletionResult> {

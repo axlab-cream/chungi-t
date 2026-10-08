@@ -72,6 +72,7 @@ function toRecord(row: Row): PushNotificationRecord {
     failureCount: num(row.failure_count),
     clickCount: num(row.click_count),
     lastError: str(row.last_error),
+    isMarketing: row.is_marketing === true,
     createdBy: String(row.created_by ?? ''),
     cancelledBy: str(row.cancelled_by),
     cancelledAt: str(row.cancelled_at),
@@ -186,6 +187,8 @@ export function restPushStore(): PushStore {
           title: input.title, body: input.body, deep_link: input.deepLink,
           target_type: input.target.type, target_filter: targetFilter(input.target), target_label: targetLabel(input.target),
           status, scheduled_at: scheduledAt, created_by: createdBy,
+          // 마이그레이션 전 DB 에는 열이 없다. 광고성일 때만 보내서 기존 발송은 그대로 동작하게 한다.
+          ...(input.marketing ? { is_marketing: true } : {}),
         }),
       })
       if (!result[0]) throw new PushError('PUSH_STORE_UNAVAILABLE', 503)
@@ -380,7 +383,7 @@ export function createMemoryPushStore(state: MemoryPushState = { devices: [], no
         id: randomUUID(), title: input.title, body: input.body, deepLink: input.deepLink,
         targetType: input.target.type, targetFilter: targetFilter(input.target), targetLabel: targetLabel(input.target),
         status, scheduledAt, startedAt: null, sentAt: null, preparedAt: null,
-        totalCount: 0, successCount: 0, failureCount: 0, clickCount: 0, lastError: null,
+        totalCount: 0, successCount: 0, failureCount: 0, clickCount: 0, lastError: null, isMarketing: input.marketing === true,
         createdBy, cancelledBy: null, cancelledAt: null, createdAt: now.toISOString(), updatedAt: now.toISOString(), leaseUntil: null,
       }
       state.notifications.push(record); return strip(record)

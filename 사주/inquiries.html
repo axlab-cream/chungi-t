@@ -4,7 +4,7 @@
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>회원 탈퇴 · 운명상회</title>
+    <title>1:1 문의 · 운명상회</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
     <meta property="og:type" content="website" />
@@ -28,35 +28,45 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
-    <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
-    <style>
-      /* 공용 하단 메뉴는 화면에 고정된다. 본문 아래에 그만큼 자리를 비워 두지 않으면
-         마지막 버튼이 메뉴 뒤로 들어간다. 서비스 페이지들과 같은 규칙이다. */
-      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
-      /* 동의 체크는 글자까지 눌러도 되게 줄 전체를 44px 이상으로 둔다. */
-      #leave-form .payment-consent { min-height: 44px; align-items: center; padding: 6px 0; cursor: pointer; }
-      #leave-form .payment-consent input { width: 20px; height: 20px; margin-top: 0; flex: none; }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/common-auth-return.js"></script>
+    <link rel="stylesheet" href="/css/myhub.css?v=20261008-hub-full" />
   </head>
   <body>
     <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
       <header class="appbar topbar"></header>
-      <section class="payment-shell" aria-labelledby="leave-title">
-        <p class="payment-eyebrow">MY</p>
-        <h1 id="leave-title">회원 탈퇴</h1>
-        <p class="payment-intro">탈퇴하면 저장한 사주 프로필과 풀이 기록을 삭제합니다. 결제·거래 기록은 관련 법령이 정한 기간 동안 보관될 수 있습니다.</p>
-        <div class="payment-notice"><strong>탈퇴 전 확인</strong><br />탈퇴 후에는 보관함과 상담 기록을 복구할 수 없습니다. 결제 후 아직 열람하지 않은 상품의 환불 요청은 탈퇴 전에 고객센터로 접수해 주세요.</div>
-        <form class="payment-form" id="leave-form">
-          <label class="payment-consent"><input type="checkbox" name="confirm" required /><span>삭제 대상과 결제 기록 보관 안내를 확인했습니다.</span></label>
-          <button class="payment-submit" type="submit">탈퇴하고 정보 삭제하기</button>
-          <p class="payment-status" data-leave-status role="status" aria-live="polite"></p>
+      <section class="payment-shell myhub" aria-labelledby="page-title">
+        <h1 id="page-title">1:1 문의</h1>
+        <p class="payment-intro">문의를 남기면 확인 후 이 화면에서 답변을 드립니다. 급한 결제 문의는 결제 내역에서 주문을 확인한 뒤 남겨 주세요.</p>
+        <form class="myhub-inquiry-form" data-inquiry-form>
+          <label class="payment-label" for="inquiry-category">문의 종류
+            <select id="inquiry-category" name="category" required>
+              <option value="">골라 주세요</option>
+              <option value="payment">결제·환불</option>
+              <option value="generation">풀이가 만들어지지 않아요</option>
+              <option value="interpretation">풀이 내용</option>
+              <option value="access">로그인·이용</option>
+              <option value="privacy">개인정보</option>
+              <option value="other">기타</option>
+            </select>
+          </label>
+          <label class="payment-label" for="inquiry-text">문의 내용
+            <textarea id="inquiry-text" name="text" rows="6" minlength="10" maxlength="2000" required placeholder="어떤 화면에서 무엇이 안 되는지 적어 주세요. 결제 문의는 결제일과 상품명을 함께 적어 주시면 빨리 확인합니다."></textarea>
+          </label>
+          <p class="myhub-count" data-inquiry-count>0 / 2,000자</p>
+          <button class="payment-submit" type="submit">문의 남기기</button>
+          <p class="payment-status" data-inquiry-status role="status" aria-live="polite"></p>
         </form>
+        <h2 class="myhub-group-title">내 문의</h2>
+        <div class="myhub-inquiries" data-inquiry-list><p class="myhub-empty">불러오는 중입니다.</p></div>
+        <p class="myhub-links" style="margin-top:18px"><a href="/faq">자주 묻는 질문</a><a href="/support">고객센터 안내</a><a href="/my">마이페이지로</a></p>
       </section>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
-    <script src="/js/leave.js?v=20261008-qc"></script>
+    <script src="/js/umsh-account-pages.js?v=20261008-hub-a"></script>
+    <script src="/js/inquiries.js?v=20261008-hub-full"></script>
   </body>
 </html>

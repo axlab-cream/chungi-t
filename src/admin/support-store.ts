@@ -18,7 +18,10 @@ function headers(): Record<string, string> {
 export const SUPPORT_CATEGORIES = ['payment', 'generation', 'interpretation', 'access', 'privacy', 'other'] as const
 export const SUPPORT_STATUSES = ['received', 'triaged', 'assigned', 'investigating', 'awaiting_customer', 'resolved', 'closed', 'reopened'] as const
 export const SUPPORT_PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const
-export const SUPPORT_NOTE_KINDS = ['internal', 'customer_reply_draft'] as const
+// customer_message: 회원이 마이페이지 1:1 문의로 쓴 글. customer_reply: 회원에게 보이는 답변(2026-10).
+export const SUPPORT_NOTE_KINDS = ['internal', 'customer_reply_draft', 'customer_message', 'customer_reply'] as const
+/** 관리자가 직접 남길 수 있는 종류. 회원 문의 글은 회원만 쓴다. */
+export const STAFF_NOTE_KINDS = ['internal', 'customer_reply_draft', 'customer_reply'] as const
 export type SupportCategory = typeof SUPPORT_CATEGORIES[number]
 export type SupportStatus = typeof SUPPORT_STATUSES[number]
 export type SupportPriority = typeof SUPPORT_PRIORITIES[number]
