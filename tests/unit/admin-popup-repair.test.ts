@@ -46,7 +46,9 @@ test('unavailable statistics are rejected before zero-valued KPI rendering', () 
   assert.ok(popup.indexOf("funnelPayload.available !== true") < popup.indexOf('popupClickCounts = {}'))
   assert.match(popup,/responsePayload.versionStore !== 'ready'/)
   const funnel=html.slice(html.indexOf('async function loadFunnelAnalytics'),html.indexOf('async function loadReleaseInfo'))
-  assert.ok(funnel.indexOf("payload.available !== true") < funnel.indexOf('appendKpis(overview, payload.sampled'))
+  assert.ok(funnel.indexOf("payload.available !== true") < funnel.indexOf('funnelState.payload = payload'))
+  // 2026-10-08: 숫자는 render() 가 그린다. render 는 확인을 통과해 payload 가 채워진 뒤에만 그린다.
+  assert.match(funnel, /var payload = funnelState\.payload;\s+body\.replaceChildren\(\);\s+if \(!payload\) return;/)
 })
 
 

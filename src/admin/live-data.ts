@@ -880,3 +880,37 @@ export async function setMemberBanned(userId: string, banned: boolean): Promise<
   if (!detail) throw new Error('MEMBER_BAN_UPDATE_FAILED')
   return detail
 }
+
+/**
+ * 2026-10-08 관리자 요약 › 신규 가입. 프로필 표(사주를 입력한 사람)가 아니라 로그인 계정 기준으로 센다.
+ * 정렬 순서에 기대지 않고 쪽마다 끝까지 훑는다. 상한(쪽 수)에 닿으면 truncated 로 알린다.
+ * 계정별 정보는 내보내지 않고 수와 가입 수단별 수만 돌려준다.
+ */
+export function countSignups(users: Array<{ created_at?: string | null; app_metadata?: { provider?: unknown } | null }>, since: string): { signups: number; byProvider: Record<string, number> } {
+  const from = Date.parse(since)
+  const byProvider: Record<string, number> = {}
+  let signups = 0
+  for (const user of users) {
+    if (!(Date.parse(user.created_at ?? '') >= from)) continue
+    signups += 1
+    const raw = typeof user.app_metadata?.provider === 'string' ? user.app_metadata.provider : 'unknown'
+    const provider = raw === 'custom:naver' ? 'naver' : raw
+    byProvider[provider] = (byProvider[provider] ?? 0) + 1
+  }
+  return { signups, byProvider }
+}
+
+export async function signupStats(since: string, maxPages = 20): Promise<{ signups: number; byProvider: Record<string, number>; truncated: boolean }> {
+  if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
+  const perPage = 500
+  const users: Array<{ created_at?: string | null; app_metadata?: { provider?: unknown } | null }> = []
+  let truncated = true
+  for (let page = 1; page <= maxPages; page += 1) {
+    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users?page=${page}&per_page=${perPage}`, { headers: serviceHeaders() })
+    if (!response.ok) throw new Error('MEMBER_AUTH_LOOKUP_FAILED')
+    const batch = ((await response.json()) as { users?: typeof users }).users ?? []
+    users.push(...batch)
+    if (batch.length < perPage) { truncated = false; break }
+  }
+  return { ...countSignups(users, since), truncated }
+}
