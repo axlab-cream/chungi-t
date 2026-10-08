@@ -69,7 +69,8 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 21px 20px 12px;
+  /* 홈(portal.css .appbar)과 같은 값. 2026-10-08 홈과 헤더 높이를 맞췄다(PC 64px). */
+  padding: 14px 20px 9px;
   border-bottom: 1px solid var(--shell-line-soft);
   background: rgba(8, 8, 7, 0.96);
 }
@@ -84,7 +85,7 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
  * 비쳤다. position 이 static 이 되면 활성 탭 표시(.is-active::before)도 자리를
  * 잃는다. 공용 크롬이 스스로 칠하는 값은 페이지 초기화의 대상이 아니다. */
 body.umsh-has-chrome .umsh-service-shell .appbar {
-  padding: 21px 20px 12px;
+  padding: 14px 20px 9px;
   border-bottom: 1px solid var(--shell-line-soft);
   background: rgba(8, 8, 7, 0.96);
 }
@@ -193,8 +194,8 @@ body.has-umsh-service-shell .cta-dock {
 
 .umsh-service-shell .app-brand img {
   display: block;
-  width: 132px;
-  height: 50px;
+  width: 106px;
+  height: 40px;
   object-fit: contain;
 }
 
@@ -229,6 +230,11 @@ body.has-umsh-service-shell .cta-dock {
   grid-template-columns: none;
   backdrop-filter: none;
   box-sizing: border-box;
+  /* 커플궁합 06 의 .topbar 는 사방 테두리를 둔다. 아래 줄 하나만 남겨야 홈과 높이가 같다. */
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
   /* 스토리 01 류는 옛 캡슐 바에 pointer-events:none 을 걸어 두고 안쪽 .topbar-inner 만
      클릭을 받았다. 공용 GNB 는 그 inner 없이 .topbar 클래스를 물려받아, 로고가
      href="/" 인데도 클릭이 통과했다. 직장 선택은 페이지 CSS 로 되돌려 뒀고, 여기서
@@ -762,37 +768,82 @@ body.umsh-has-chrome .umsh-service-bottom .bottom-nav button {
   transform: translateY(0);
 }
 
-@media (max-width: 430px) {
+/* 본문 뒤로 가기(service-shell.js mountInlineBack). 이 화면에서는 헤더의 뒤로 버튼을 숨긴다. */
+body.has-inline-back .umsh-service-shell .app-back { display: none; }
+
+.umsh-inline-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin: -8px 0 4px -8px;
+  padding: 0 12px 0 4px;
+  border-radius: 999px;
+  color: var(--shell-gold-200, #f0e2b8);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.umsh-inline-back:hover,
+.umsh-inline-back:focus-visible {
+  background: rgba(216, 186, 114, 0.1);
+}
+
+.umsh-inline-back:focus-visible {
+  outline: 2px solid var(--shell-gold-200, #f0e2b8);
+  outline-offset: 0;
+}
+
+/*
+ * 2026-10-08: 하단 탭 화면의 헤더를 홈과 똑같이 맞췄다(portal.css 의 520px·360px 규칙과 같은 값).
+ * 폰 46px·좁은 폰 43px. 홈에는 없는 뒤로·메뉴 버튼은 보이는 원만 로고 높이로 줄이고,
+ * 닿는 넓이는 위의 ::after 판(44px)이 그대로 지킨다.
+ */
+@media (max-width: 520px) {
   .umsh-service-shell .appbar,
   body.umsh-has-chrome .umsh-service-shell .appbar {
-    padding: 10px 14px 8px;
+    padding: 7px 14px 6px;
     gap: 10px;
   }
 
   .umsh-service-shell .app-brand img {
-    width: 112px;
-    height: 40px;
+    width: 90px;
+    height: 32px;
   }
 
+  .umsh-service-shell .app-back,
+  .umsh-service-shell .topbar-vault-button {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .umsh-service-shell .app-brand img {
+    width: 80px;
+    height: 29px;
+  }
+
+  .umsh-service-shell .app-back,
+  .umsh-service-shell .topbar-vault-button {
+    width: 29px;
+    height: 29px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 430px) {
   .umsh-service-shell .category-rail {
     padding: 8px 14px 12px;
   }
 }
 
 @media (max-width: 372px) {
-  .umsh-service-shell .appbar {
-    padding-right: 12px;
-    padding-left: 12px;
-  }
-
   .umsh-service-shell .category-rail {
     padding-right: 12px;
     padding-left: 12px;
-  }
-
-  .umsh-service-shell .app-brand img {
-    width: 100px;
-    height: 36px;
   }
 }
 
