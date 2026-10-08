@@ -105,14 +105,37 @@
     on('copy-link', () => share(undefined, true));
     stage.querySelectorAll('[data-type]').forEach(button => button.addEventListener('click', () => sampleResult(button.dataset.type)));
   }
+  // The phone's own share sheet wins wherever it exists (phone Chrome/Safari, the app with its Share plugin).
+  // Android WebViews (KakaoTalk/Naver in-app browsers) have none, so they get a small sheet instead of a silent copy.
   async function share(data, copyOnly = false) {
     track(copyOnly ? 'copy' : 'share');
     const type = data && Object.hasOwn(types, data.type) ? data.type : null;
     const url = 'https://umsh.kr/play/love-speed/' + (type ? '?type=' + encodeURIComponent(type) + '&src=share' : '?src=share');
-    const payload = { title: '시작은 풀악셀, 마음은 급정거? | 운명상회', text: type ? `나는 ${types[type].name}! 너의 연애 속도는? 5문항으로 확인해봐.` : '너는 금사빠? 금사식? 30초, 5문항으로 같이 알아보자!', url };
-    try { if (!copyOnly && navigator.share) { await navigator.share(payload); track('share_success'); return; } } catch (e) { if (e.name === 'AbortError') return; }
-    try { await navigator.clipboard.writeText(url); notice(type ? '개인정보 없이 유형 링크를 복사했어요.' : '테스트 링크를 복사했어요. 친구에게 보내보세요!'); }
-    catch { document.getElementById('share-fallback').innerHTML = `<p class="fine" style="margin-top:16px">아래 링크를 길게 눌러 복사해주세요.</p><input class="share-url" aria-label="공유 링크" readonly value="${esc(url)}">`; }
+    const p = { type, url, title: '시작은 풀악셀, 마음은 급정거? | 운명상회', text: type ? `나는 ${types[type].name}! 너의 연애 속도는? 5문항으로 확인해봐.` : '너는 금사빠? 금사식? 30초, 5문항으로 같이 알아보자!' };
+    if (copyOnly) return copyLink(p);
+    const Native = window.Capacitor?.Plugins?.Share;
+    if (navigator.share) {
+      try { await navigator.share({ title: p.title, text: p.text, url: p.url }); track('share_success'); } catch (e) { if (e.name !== 'AbortError') await copyLink(p); }
+    } else if (Native) {
+      try { await Native.share({ title: p.title, text: p.text, url: p.url, dialogTitle: '친구에게 보내기' }); track('share_success'); } catch { /* Closing the sheet is not an error. */ }
+    } else openSheet(p);
+  }
+  async function copyLink(p) {
+    try { await navigator.clipboard.writeText(p.url); notice(p.type ? '개인정보 없이 유형 링크를 복사했어요.' : '테스트 링크를 복사했어요. 친구에게 보내보세요!'); }
+    catch { const box = document.getElementById('share-fallback'); if (box) box.innerHTML = `<p class="fine" style="margin-top:16px">아래 링크를 길게 눌러 복사해주세요.</p><input class="share-url" aria-label="공유 링크" readonly value="${esc(p.url)}">`; }
+  }
+  function openSheet(p) {
+    document.getElementById('share-sheet')?.remove();
+    const opener = document.activeElement;
+    const wrap = document.createElement('div');
+    wrap.id = 'share-sheet';
+    wrap.innerHTML = `<div class="sheet-backdrop" data-close></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><p class="eyebrow" id="sheet-title">${p.type ? '내 유형 공유하기' : '친구에게 테스트 보내기'}</p><p class="fine sheet-note">이 화면에서는 휴대폰 공유창을 열 수 없어요.<br>링크를 복사해서 보내주세요.</p><button class="primary" id="sheet-copy">링크 복사하기</button><button class="small-button" data-close>닫기</button></div>`;
+    document.body.appendChild(wrap);
+    const close = () => { wrap.remove(); opener?.focus?.(); };
+    wrap.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', close));
+    wrap.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    wrap.querySelector('#sheet-copy').addEventListener('click', () => { close(); copyLink(p); });
+    wrap.querySelector('#sheet-copy').focus();
   }
   function sampleResult(type = 'spark') { renderResult({ ...types[type], type }, true); }
   if (preview) { sampleResult(); return; }
