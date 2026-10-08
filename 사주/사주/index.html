@@ -4072,6 +4072,9 @@
       function protectedEntryTarget() {
         if (initialAuthEntry === "destiny") return "/destiny";
         if (initialAuthEntry === "vault") return "/vault";
+        // MY 탭에서 로그인하면 MY 페이지로 돌아간다. 비워 두면 이 페이지 안의 예전
+        // "내 사주 프로필" 화면이 열려, 앱에서 홈 탭에 불이 켜진 채 엉뚱한 화면이 보였다.
+        if (initialAuthEntry === "my") return "/my";
         return "";
       }
 
