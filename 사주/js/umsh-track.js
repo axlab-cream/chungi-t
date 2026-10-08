@@ -146,7 +146,8 @@
     var place = placeOf(location.pathname);
     queue.push({
       event: event,
-      serviceKey: place.service,
+      // 결제 화면은 주소에 서비스가 없다. 상품 키를 넘기면 그 서비스로 센다.
+      serviceKey: (extra && /^[a-z0-9_]{1,60}$/.test(extra.serviceKey || '')) ? extra.serviceKey : place.service,
       // 한 화면 안에서 단계가 바뀌는 서비스(천명사주)는 단계를 직접 넘긴다. 정해진 단계 이름만 받는다.
       step: (extra && /^0[1-6]-[a-z0-9_-]{2,30}$/.test(extra.step || '')) ? extra.step : place.step,
       target: (extra && extra.target) || null,
@@ -155,6 +156,39 @@
     if (flushTimer) clearTimeout(flushTimer);
     // 클릭 여러 개를 한 번에 보낸다. 누를 때마다 요청을 내면 느린 회선에서 화면이 밀린다.
     flushTimer = setTimeout(send, 1200);
+  }
+
+  /*
+   * 2026-10-08 구매 퍼널 세분화. 서비스 화면마다 고치지 않고 공통 이름표로 감지한다.
+   *  input_done  입력 화면에서 제출(입력이 두 장인 서비스는 두 번째 장에서)
+   *  locked_view 무료 결과의 잠긴 목차·잠긴 요약이 실제로 화면에 보임
+   *  buy_click   서비스 화면에서 결제 화면(/payment)으로 가는 링크를 누름
+   *  checkout · pay_open 은 결제 화면(payment.js)이 상품 키와 함께 남긴다.
+   * 한 화면에서 같은 표시는 한 번만 남긴다.
+   */
+  var TWO_STEP_INPUT = { pass_angle: true, quit_fortune: true };
+  var LOCKED_SELECTOR = '.job-teaser-toc, .umsh-lf-locked, .umsh-highlight.is-locked';
+  var marked = {};
+  function mark(name, serviceKey) {
+    if (!/^[a-z_]{2,30}$/.test(name || '') || marked[name]) return;
+    marked[name] = true;
+    push('cta_click', { target: 'funnel:' + name, serviceKey: serviceKey });
+  }
+  function watchLockedSection() {
+    if (typeof global.IntersectionObserver !== 'function' || typeof global.MutationObserver !== 'function' || !document.body) return;
+    var seen = typeof WeakSet === 'function' ? new WeakSet() : null;
+    var io = new global.IntersectionObserver(function (entries) {
+      if (entries.some(function (entry) { return entry.isIntersecting; })) { mark('locked_view'); io.disconnect(); mo.disconnect(); }
+    }, { threshold: 0.3 });
+    function scan() {
+      if (marked.locked_view) return;
+      var nodes = document.querySelectorAll(LOCKED_SELECTOR);
+      for (var i = 0; i < nodes.length; i += 1) { if (!seen || !seen.has(nodes[i])) { if (seen) seen.add(nodes[i]); io.observe(nodes[i]); } }
+    }
+    // 무료 결과는 서버 응답 뒤에 그려진다. 새로 붙는 잠긴 상자를 놓치지 않게 화면 변화를 지켜본다.
+    var mo = new global.MutationObserver(scan);
+    mo.observe(document.body, { childList: true, subtree: true });
+    scan();
   }
 
   /** 안정적인 행동 이름을 고른다. 없으면 세지 않는다 — 문구로 세지 않기 위해서다. */
@@ -185,10 +219,21 @@
       var channel = channelOf(location.href, document.referrer, location.origin);
       if (channel) push('cta_click', { target: 'source:' + channel });
     }
-    // 측정 태그가 이 수집기보다 먼저 남긴 가입 단계(로그인 복귀 직후 등)를 이어 보낸다.
+    // 측정 태그·결제 화면이 이 수집기보다 먼저 남긴 단계(로그인 복귀 직후 등)를 이어 보낸다.
     var pending = global.__umshTrackQueue;
     global.__umshTrackQueue = null;
-    if (Array.isArray(pending)) pending.slice(0, 10).forEach(function (target) { if (typeof target === 'string') push('cta_click', { target: target }); });
+    if (Array.isArray(pending)) pending.slice(0, 10).forEach(function (item) {
+      if (typeof item === 'string') push('cta_click', { target: item });
+      else if (item && typeof item.target === 'string') push('cta_click', { target: item.target, serviceKey: item.serviceKey });
+    });
+    var here = placeOf(location.pathname);
+    if (here.service && !play) {
+      document.addEventListener('submit', function () {
+        var step = placeOf(location.pathname).step;
+        if (step === '03-service-input' || (step === '02-input' && !TWO_STEP_INPUT[here.service])) mark('input_done');
+      }, true);
+      if (here.step === '04-report' || here.service === 'cmdg') watchLockedSection();
+    }
     // 같은 단계 판정을 GA4 퍼널에도 쓴다. 측정 태그가 꺼진 환경(로컬·DNT)에는 UMSHAnalytics 가 없다.
     if (global.UMSHAnalytics && typeof global.UMSHAnalytics.funnelStep === 'function') global.UMSHAnalytics.funnelStep(placeOf(location.pathname));
     document.addEventListener('click', function (event) {
@@ -197,6 +242,8 @@
       var target = targetOf(node);
       if (target && (target.indexOf('love_speed:') === 0 || target.indexOf('solo_nara:') === 0) && (global.navigator.doNotTrack === '1' || global.navigator.globalPrivacyControl === true)) return;
       if (target) push('cta_click', { target: target });
+      var link = node.closest('a[href]');
+      if (link && placeOf(location.pathname).service && !play && /^\/payment(\/|\?|$)/.test(new URL(link.getAttribute('href'), location.href).pathname + '?')) mark('buy_click');
       if (target === 'love_speed:home' && global.UMSHAnalytics && typeof global.gtag === 'function' && global.navigator.doNotTrack !== '1' && global.navigator.globalPrivacyControl !== true) global.gtag('event', 'love_speed_banner_click', { service_key: 'love_speed', link_source: 'home' });
     }, true);
     // 떠나기 직전에 남은 것을 보낸다.
@@ -207,5 +254,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 
-  global.UMSHTrack = { push: push, flush: function () { return send(true); }, sessionTimeoutMs: SESSION_TTL_MS, channelOf: channelOf };
+  global.UMSHTrack = { push: push, mark: mark, flush: function () { return send(true); }, sessionTimeoutMs: SESSION_TTL_MS, channelOf: channelOf };
 })(typeof window !== 'undefined' ? window : globalThis);
