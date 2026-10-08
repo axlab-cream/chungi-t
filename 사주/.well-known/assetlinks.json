@@ -5,8 +5,8 @@
       "namespace": "android_app",
       "package_name": "kr.umsh.app",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_UPLOAD_KEY_SHA256",
-        "REPLACE_WITH_PLAY_APP_SIGNING_SHA256"
+        "76:B4:D9:84:6E:0D:39:F7:AD:0D:97:08:2F:68:AF:82:FA:0A:DF:69:6D:45:11:26:D3:B9:43:02:93:78:74:42",
+        "89:56:B7:7E:CF:9F:21:78:AA:2F:62:7A:84:75:9D:86:0B:A9:93:20:11:3D:80:88:37:65:84:A8:41:99:0F:34"
       ]
     }
   }
