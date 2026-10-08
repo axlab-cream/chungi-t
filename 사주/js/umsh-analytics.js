@@ -141,12 +141,24 @@
   function isSignupMethod(method) {
     return ['google', 'kakao', 'naver'].includes(method);
   }
+  /*
+   * 2026-10-08 관리자 가입 퍼널. GA4 와 같은 세 단계(가입 안내 노출 → 로그인 버튼 → 가입 완료)를 자체 수집기에도 남긴다.
+   * 수집기가 아직 실리지 않았으면(로그인 복귀 직후) 줄을 세워 두고 수집기가 시작할 때 보낸다.
+   */
+  function trackSignupStep(target) {
+    try {
+      if (global.UMSHTrack && typeof global.UMSHTrack.push === 'function') global.UMSHTrack.push('cta_click', { target: target });
+      else (global.__umshTrackQueue = global.__umshTrackQueue || []).push(target);
+    } catch (_) {}
+  }
   function viewSignupWall() {
     try { global.gtag('event', 'view_signup_wall', {}); } catch (_) {}
+    trackSignupStep('signup:wall');
   }
   function signupClick(method) {
     if (!isSignupMethod(method)) return;
     try { global.gtag('event', 'signup_click', { method: method }); } catch (_) {}
+    trackSignupStep('signup:click:' + method);
   }
   async function beginSignup(method) {
     cancelSignup();
@@ -187,6 +199,7 @@
         if (global.localStorage.getItem(key)) return;
         // Consume before sending: repeated auth callbacks and reloads must not count twice.
         global.localStorage.setItem(key, '1');
+        trackSignupStep('signup:complete:' + pending.method);
         await new Promise(function (resolve) {
           var deliveryTimer = setTimeout(resolve, 1000);
           global.gtag('event', 'sign_up', {

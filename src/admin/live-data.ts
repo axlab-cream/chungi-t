@@ -886,12 +886,14 @@ export async function setMemberBanned(userId: string, banned: boolean): Promise<
  * 정렬 순서에 기대지 않고 쪽마다 끝까지 훑는다. 상한(쪽 수)에 닿으면 truncated 로 알린다.
  * 계정별 정보는 내보내지 않고 수와 가입 수단별 수만 돌려준다.
  */
-export function countSignups(users: Array<{ created_at?: string | null; app_metadata?: { provider?: unknown } | null }>, since: string): { signups: number; byProvider: Record<string, number> } {
+export function countSignups(users: Array<{ created_at?: string | null; app_metadata?: { provider?: unknown } | null }>, since: string, until?: string): { signups: number; byProvider: Record<string, number> } {
   const from = Date.parse(since)
+  const to = until ? Date.parse(until) : Infinity
   const byProvider: Record<string, number> = {}
   let signups = 0
   for (const user of users) {
-    if (!(Date.parse(user.created_at ?? '') >= from)) continue
+    const at = Date.parse(user.created_at ?? '')
+    if (!(at >= from) || !(at < to)) continue
     signups += 1
     const raw = typeof user.app_metadata?.provider === 'string' ? user.app_metadata.provider : 'unknown'
     const provider = raw === 'custom:naver' ? 'naver' : raw
@@ -900,7 +902,7 @@ export function countSignups(users: Array<{ created_at?: string | null; app_meta
   return { signups, byProvider }
 }
 
-export async function signupStats(since: string, maxPages = 20): Promise<{ signups: number; byProvider: Record<string, number>; truncated: boolean }> {
+export async function signupStats(since: string, maxPages = 20, until?: string): Promise<{ signups: number; byProvider: Record<string, number>; truncated: boolean }> {
   if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
   const perPage = 500
   const users: Array<{ created_at?: string | null; app_metadata?: { provider?: unknown } | null }> = []
@@ -912,5 +914,5 @@ export async function signupStats(since: string, maxPages = 20): Promise<{ signu
     users.push(...batch)
     if (batch.length < perPage) { truncated = false; break }
   }
-  return { ...countSignups(users, since), truncated }
+  return { ...countSignups(users, since, until), truncated }
 }

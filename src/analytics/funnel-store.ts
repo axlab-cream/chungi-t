@@ -121,8 +121,14 @@ export interface FunnelSummary {
   signups?: { signups: number; byProvider: Record<string, number>; truncated: boolean }
   loveSpeed?: LoveSpeedSummary
   soloNara?: SoloNaraSummary
-  period: FunnelPeriod
+  period: FunnelPeriod | 'custom'
   since: string
+  /** 직접 고른 기간의 끝. 없으면 지금까지. */
+  until?: string
+  /** 2026-10-08 유입 채널: 새 방문의 첫 화면에서 남긴 채널별 방문과, 그 방문이 어디까지 갔는지. */
+  acquisition: Array<{ channel: string; visits: number; input: number; teaser: number; checkout: number; signups: number }>
+  /** 2026-10-08 가입 퍼널: 가입 안내 노출 → 로그인 버튼 → 가입 완료(방문 수). 수단별 클릭·완료. */
+  signupFunnel: { wall: number; click: number; complete: number; methods: Array<{ method: string; clicks: number; completes: number }> }
   /** 선택 기간 전체의 페이지 조회·방문·로그인 방문자. 서로 다른 서비스 행을 더해서 만들지 않는다. */
   overview: { views: number; sessions: number; signedInUsers: number }
   /** 서비스 하나를 가로로 읽는 운영 요약. steps 는 실제로 수집된 단계만 가진다. */
@@ -153,7 +159,8 @@ export interface PurchaseFunnel {
   paid?: { orders: number; amount: number; byProduct: Array<{ productKey: string; orders: number; amount: number }> }
 }
 
-const FREE_PLAY_SERVICES = new Set(['love_speed', 'solo_nara'])
+// 무료 서비스: 결제 상품이 아니다(무료 테스트 2종, 오늘운).
+const FREE_PLAY_SERVICES = new Set(['love_speed', 'solo_nara', 'today_fortune'])
 
 /** 결제 결과·테스트 화면을 빼고 실제 결제 화면만. */
 const CHECKOUT_ROUTE = /^\/payment(\/|\/index\.html)?$/
@@ -173,8 +180,9 @@ export function purchaseStageOf(row: { step: string | null; route?: string | nul
  * 첫 구매자는 기간 이전에 결제한 적이 없는 계정이다 — 그래서 기간 이전 주문도 함께 받는다.
  * 계정 식별자는 세는 데만 쓰고 내보내지 않는다.
  */
-export function summarizeBuyers(orders: Array<{ ownerId: string; amount: number; status: string; createdAt: string }>, since: string): { buyers: number; firstBuyers: number; orders: number; revenue: number } {
+export function summarizeBuyers(orders: Array<{ ownerId: string; amount: number; status: string; createdAt: string }>, since: string, until?: string): { buyers: number; firstBuyers: number; orders: number; revenue: number } {
   const from = Date.parse(since)
+  const to = until ? Date.parse(until) : Infinity
   const earlier = new Set<string>()
   const inPeriod = new Set<string>()
   let count = 0
@@ -184,6 +192,7 @@ export function summarizeBuyers(orders: Array<{ ownerId: string; amount: number;
     const at = Date.parse(order.createdAt)
     if (!Number.isFinite(at) || !order.ownerId) continue
     if (at < from) { earlier.add(order.ownerId); continue }
+    if (!(at < to)) continue
     inPeriod.add(order.ownerId)
     count += 1
     if (Number.isFinite(order.amount)) revenue += order.amount
@@ -193,14 +202,16 @@ export function summarizeBuyers(orders: Array<{ ownerId: string; amount: number;
 }
 
 /** 결제 완료(paid·viewed) 주문을 상품별로 묶는다. 금액·상품 외의 주문 정보는 내보내지 않는다. */
-export function summarizePaidOrders(orders: Array<{ productKey: string; amount: number; status: string; createdAt: string }>, since: string): NonNullable<PurchaseFunnel['paid']> {
+export function summarizePaidOrders(orders: Array<{ productKey: string; amount: number; status: string; createdAt: string }>, since: string, until?: string): NonNullable<PurchaseFunnel['paid']> {
   const from = Date.parse(since)
+  const to = until ? Date.parse(until) : Infinity
   const byProduct = new Map<string, { productKey: string; orders: number; amount: number }>()
   let count = 0
   let amount = 0
   for (const order of orders) {
     if (order.status !== 'paid' && order.status !== 'viewed') continue
-    if (!(Date.parse(order.createdAt) >= from) || !Number.isFinite(order.amount)) continue
+    const at = Date.parse(order.createdAt)
+    if (!(at >= from) || !(at < to) || !Number.isFinite(order.amount)) continue
     count += 1
     amount += order.amount
     const entry = byProduct.get(order.productKey) ?? { productKey: order.productKey, orders: 0, amount: 0 }
@@ -288,8 +299,22 @@ export function summarizeSoloNaraRows(rows: FunnelRow[]): SoloNaraSummary {
     results: soloNaraSpec.characters.map(c => ({ typeId: c.typeId, name: c.name, gender: c.gender, views: results.get(c.typeId) || 0 })) }
 }
 
+function summarizeChannels(sessionChannel: Map<string, string>, stages: Record<PurchaseStage, Set<string>>, signedUp: Set<string>): FunnelSummary['acquisition'] {
+  const byChannel = new Map<string, { channel: string; visits: number; input: number; teaser: number; checkout: number; signups: number }>()
+  for (const [session, channel] of sessionChannel) {
+    const entry = byChannel.get(channel) ?? { channel, visits: 0, input: 0, teaser: 0, checkout: 0, signups: 0 }
+    entry.visits += 1
+    if (stages.input.has(session)) entry.input += 1
+    if (stages.teaser.has(session)) entry.teaser += 1
+    if (stages.checkout.has(session)) entry.checkout += 1
+    if (signedUp.has(session)) entry.signups += 1
+    byChannel.set(channel, entry)
+  }
+  return [...byChannel.values()].sort((a, b) => b.visits - a.visits)
+}
+
 /** PostgREST I/O와 분리한 실제 집계 규칙. 관리자 화면과 단위 테스트가 같은 계산을 쓴다. */
-export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, since: string, truncated = false): FunnelSummary {
+export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod | 'custom', since: string, truncated = false, until?: string): FunnelSummary {
   const stepViews = new Map<string, { serviceKey: string | null; step: string | null; views: number; sessions: Set<string> }>()
   const serviceViews = new Map<string, { serviceKey: string | null; views: number; sessions: Set<string>; steps: Record<string, number> }>()
   const ctaClicks = new Map<string, { serviceKey: string | null; target: string | null; clicks: number }>()
@@ -297,6 +322,10 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
   const signedInUsers = new Set<string>()
   const stageSessions = Object.fromEntries(PURCHASE_STAGES.map((stage) => [stage, new Set<string>()])) as Record<PurchaseStage, Set<string>>
   const serviceStages = new Map<string, Record<Exclude<PurchaseStage, 'checkout'>, Set<string>>>()
+  const sessionChannel = new Map<string, string>()
+  const signupSessions = { wall: new Set<string>(), click: new Set<string>(), complete: new Set<string>() }
+  const methodClicks = new Map<string, Set<string>>()
+  const methodCompletes = new Map<string, Set<string>>()
 
   for (const row of rows) {
     if (isSoloResultMarker(row)) continue
@@ -327,6 +356,18 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
       const step = row.step ?? 'other'
       serviceEntry.steps[step] = (serviceEntry.steps[step] ?? 0) + 1
       serviceViews.set(serviceKey, serviceEntry)
+    } else if (row.event === 'cta_click' && (row.target ?? '').startsWith('source:')) {
+      // 행은 최신순으로 온다. 덮어쓰면 그 방문의 가장 이른 채널이 남는다.
+      sessionChannel.set(row.session_id, (row.target as string).slice('source:'.length) || 'other')
+    } else if (row.event === 'cta_click' && (row.target ?? '').startsWith('signup:')) {
+      const [, kind, method] = (row.target as string).split(':')
+      if (kind === 'wall') signupSessions.wall.add(row.session_id)
+      if (kind === 'click' || kind === 'complete') {
+        signupSessions[kind].add(row.session_id)
+        const byMethod = kind === 'click' ? methodClicks : methodCompletes
+        const key = method || 'unknown'
+        byMethod.set(key, (byMethod.get(key) ?? new Set<string>()).add(row.session_id))
+      }
     } else if (row.event === 'cta_click') {
       const key = `${row.service_key ?? ''}|${row.target ?? ''}`
       const entry = ctaClicks.get(key) ?? { serviceKey: row.service_key, target: row.target, clicks: 0 }
@@ -338,6 +379,7 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
   return {
     period,
     since,
+    ...(until ? { until } : {}),
     available: true,
     loveSpeed: summarizeLoveSpeedRows(rows),
     soloNara: summarizeSoloNaraRows(rows),
@@ -358,6 +400,15 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
         .map(([serviceKey, entry]) => ({ serviceKey, intro: entry.intro.size, input: entry.input.size, teaser: entry.teaser.size }))
         .sort((a, b) => b.intro - a.intro || b.teaser - a.teaser),
     },
+    acquisition: summarizeChannels(sessionChannel, stageSessions, signupSessions.complete),
+    signupFunnel: {
+      wall: signupSessions.wall.size,
+      click: signupSessions.click.size,
+      complete: signupSessions.complete.size,
+      methods: [...new Set([...methodClicks.keys(), ...methodCompletes.keys()])]
+        .map((method) => ({ method, clicks: methodClicks.get(method)?.size ?? 0, completes: methodCompletes.get(method)?.size ?? 0 }))
+        .sort((a, b) => b.clicks - a.clicks),
+    },
     ctas: [...ctaClicks.values()].sort((a, b) => b.clicks - a.clicks).slice(0, 100),
     sampled: rows.length,
     truncated,
@@ -370,21 +421,23 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod, sin
  * PostgREST 에 group by 가 없어 행을 받아 서버에서 센다. 그래서 상한을 둔다 — 통계를
  * 보려다 함수가 메모리로 죽으면 안 된다. 상한에 닿으면 `sampled` 로 알린다.
  */
-export async function summarizeFunnel(period: FunnelPeriod, limit = 5000): Promise<FunnelSummary> {
-  const since = periodStart(period)
-  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), soloNara: summarizeSoloNaraRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], purchase: { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] }, ctas: [], sampled: 0, truncated: false }
+export async function summarizeFunnel(period: FunnelPeriod | 'custom', limit = 5000, range?: { since: string; until: string }): Promise<FunnelSummary> {
+  const since = range?.since ?? periodStart(period === 'custom' ? 'day' : period)
+  const until = range?.until
+  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), soloNara: summarizeSoloNaraRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], purchase: { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] }, acquisition: [], signupFunnel: { wall: 0, click: 0, complete: 0, methods: [] }, ctas: [], sampled: 0, truncated: false }
   if (!opsStoreAvailable()) return empty
 
   const safeLimit = Math.min(Math.max(limit, 1), 20000)
   const url = new URL(`${opsBase()}/rest/v1/umsh_funnel_events`)
   url.searchParams.set('select', 'event,service_key,step,target,session_id,user_id,route')
   url.searchParams.set('occurred_at', `gte.${since}`)
+  if (until) url.searchParams.append('occurred_at', `lt.${until}`)
   url.searchParams.set('order', 'occurred_at.desc')
   url.searchParams.set('limit', String(safeLimit))
   const response = await fetch(url, { headers: opsHeaders() })
   if (!response.ok) return empty
   const rows = await response.json() as FunnelRow[]
-  return summarizeFunnelRows(rows, period, since, rows.length >= safeLimit)
+  return summarizeFunnelRows(rows, period, since, rows.length >= safeLimit, until)
 }
 
 export interface FunnelStoreReadiness {

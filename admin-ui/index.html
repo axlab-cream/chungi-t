@@ -4125,9 +4125,11 @@
         // 2026-10-08: 표를 한 화면에 모두 쌓으면 스크롤이 끝없이 길어진다(사용자 지적).
         //   요약 카드는 늘 보이고, 아래는 보기 버튼으로 하나만 고른다. 기간을 바꿔도 고른 보기는 유지한다.
         var filters = document.createElement('form'); filters.className = 'admin-filterbar';
-        filters.innerHTML = '<select id="admin-funnel-period" name="period" aria-label="기간"><option value="day">최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select>';
+        // 2026-10-08: 날짜·시간을 직접 골라 조회한다(최대 92일). 미리 정한 기간은 그대로 둔다.
+        filters.innerHTML = '<select id="admin-funnel-period" name="period" aria-label="기간"><option value="today">오늘</option><option value="day" selected>최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option><option value="custom">직접 선택</option></select>'
+          + '<span data-funnel-range hidden style="display:inline-flex;align-items:center;gap:6px"><input type="datetime-local" name="from" aria-label="시작 날짜·시간"><span aria-hidden="true">~</span><input type="datetime-local" name="to" aria-label="끝 날짜·시간"><button type="submit" class="admin-button">조회</button></span>';
         // 2026-10-08: 요약을 첫 화면으로. 숫자 카드 8개 + 구매 퍼널 + 인기 서비스 + 가입 방식이 한 화면에 들어간다.
-        var FUNNEL_VIEWS = [['summary', '요약'], ['purchase', '구매 퍼널'], ['performance', '서비스 성과'], ['pages', '페이지 조회'], ['ctas', '많이 눌린 버튼'], ['play', '무료 테스트']];
+        var FUNNEL_VIEWS = [['summary', '요약'], ['purchase', '구매 퍼널'], ['signup', '가입 퍼널'], ['acquisition', '유입 채널'], ['performance', '서비스 성과'], ['pages', '페이지 조회'], ['ctas', '많이 눌린 버튼'], ['play', '무료 테스트']];
         var viewSeg = document.createElement('div'); viewSeg.className = 'admin-seg'; viewSeg.setAttribute('role', 'group'); viewSeg.setAttribute('aria-label', '보기');
         FUNNEL_VIEWS.forEach(function (item) {
           var button = document.createElement('button'); button.type = 'button'; button.textContent = item[1]; button.setAttribute('data-funnel-view', item[0]);
@@ -4136,6 +4138,10 @@
         });
         filters.appendChild(viewSeg);
         filters.appendChild(adminTip('페이지가 열릴 때 기록되는 실제 조회와 30분 활동 기준 방문을 집계합니다. 로그인 방문자는 선택 기간에 로그인 상태로 페이지를 본 계정 수입니다.'));
+        // 체류 시간·재방문은 GA4, 클릭·스크롤 히트맵과 녹화는 Clarity 에서 본다. 운영 공용 계정으로 로그인한다.
+        var external = document.createElement('span'); external.style.cssText = 'margin-left:auto;display:inline-flex;gap:12px;font-size:13px';
+        external.innerHTML = '<a href="https://analytics.google.com/analytics/web/" target="_blank" rel="noopener">GA4 열기 ↗</a><a href="https://clarity.microsoft.com/projects/view/ytxpdvt9bu/dashboard" target="_blank" rel="noopener">Clarity 히트맵 ↗</a>';
+        filters.appendChild(external);
         var status = document.createElement('p'); status.className = 'admin-empty';
         var body = document.createElement('div'); body.style.marginTop = '8px';
         root.append(filters, status, body);
@@ -4200,7 +4206,7 @@
             ['객단가', b && b.buyers ? count(Math.round(b.revenue / b.buyers)) + '원' : '—', '매출 ÷ 구매자']
           ]));
           var grid = document.createElement('div'); grid.className = 'admin-summary-grid';
-          var left = document.createElement('div'); var right = document.createElement('div');
+          var left = document.createElement('div'); var right = document.createElement('div'); right.setAttribute('data-plain', '');
           grid.append(left, right); body.appendChild(grid);
           var purchase = payload.purchase || { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] };
           var st = purchase.stages; var paid = purchase.paid;
@@ -4220,6 +4226,54 @@
           if (!g) addLiveError(right, '가입 방식은 회원 조회 권한이 없거나 불러오지 못해 표시하지 않습니다.');
           else if (!providers.length) addLiveError(right, '선택 기간에 새로 가입한 계정이 없습니다.');
           else right.appendChild(shareBars(providers, g.signups));
+        }
+        // 수집기가 남기는 버튼 이름(data-action·메뉴 키)을 운영자 말로. 모르는 이름은 그대로 보인다.
+        var BUTTON_NAMES = {
+          'nav:home': '위 메뉴 · 홈', 'nav:account': '위 메뉴 · 내 정보', 'nav:search': '위 메뉴 · 검색', 'nav:vault': '위 메뉴 · 보관함', 'nav:back': '위 메뉴 · 뒤로',
+          'menu:home': '아래 메뉴 · 홈', 'menu:vault': '아래 메뉴 · 보관함', 'menu:search': '아래 메뉴 · 검색', 'menu:account': '아래 메뉴 · 내 정보', 'menu:my': '아래 메뉴 · MY',
+          'toggle-agree-all': '결제 동의 · 전체 선택', 'toggle-agree': '결제 동의 · 항목 선택', 'pay-demo': '결제하기', 'open-purchase': '전체 풀이 사러 가기',
+          'copy-report-link': '리포트 링크 복사', 'report-next': '리포트 · 다음 쪽', 'report-prev': '리포트 · 이전 쪽', 'report-jump': '리포트 · 목차 이동'
+        };
+        function buttonName(target) {
+          var text = String(target || '');
+          if (/^solo_nara:/.test(text)) return soloActions[text.replace(/^solo_nara:/, '')] || text;
+          if (/^love_speed:/.test(text)) return loveActions[text.replace(/^love_speed:/, '')] || text;
+          return BUTTON_NAMES[text] || text || '—';
+        }
+        var CHANNEL_NAMES = { direct: '직접 방문·메신저', google: '구글 검색', google_ads: '구글 광고', naver: '네이버', daum: '다음', bing: '빙', instagram: '인스타그램', facebook: '페이스북', kakao: '카카오', youtube: '유튜브', x: 'X(트위터)', threads: '스레드', other: '기타 사이트' };
+        /*
+         * 2026-10-08 가입 퍼널. 가입 안내가 뜬 방문 → 로그인 버튼을 누른 방문 → 새 계정을 만든 방문.
+         * 이 기능 배포 이후 방문부터 쌓인다. 같은 단계를 GA4(view_signup_wall → signup_click → sign_up)에서도 본다.
+         */
+        function appendSignupFunnel(payload) {
+          var f = payload.signupFunnel || { wall: 0, click: 0, complete: 0, methods: [] };
+          body.appendChild(funnelBars([
+            { label: '1. 가입 안내 노출', value: f.wall, unit: ' 방문' },
+            { label: '2. 로그인 버튼', value: f.click, unit: ' 방문' },
+            { label: '3. 가입 완료', value: f.complete, unit: ' 방문' }
+          ]));
+          var methods = f.methods || [];
+          var box = document.createElement('div'); box.setAttribute('data-plain', ''); body.appendChild(box);
+          addLiveTable(box, '로그인 수단별', ['수단', '버튼 누른 방문', '가입 완료', '완료율'], methods, function (item) {
+            return [PROVIDER_NAMES[item.method] || item.method, count(item.clicks), count(item.completes), rateText(item.completes, item.clicks)];
+          }, '선택 기간에 로그인 버튼 기록이 없습니다. 이 기능을 배포한 뒤의 방문부터 쌓입니다.');
+          var note = document.createElement('p'); note.className = 'admin-note'; note.style.padding = '0 4px';
+          note.textContent = '가입 완료는 새로 만든 계정만 셉니다(기존 회원 로그인 제외). 요약의 신규 가입은 모든 계정 생성을 세므로 숫자가 다를 수 있습니다.';
+          body.appendChild(note);
+        }
+        /*
+         * 2026-10-08 유입 채널. 새 방문의 첫 화면에서 utm_source 또는 이전 사이트 주소로 채널을 정한다.
+         * 카카오톡 등 메신저로 연 링크는 이전 주소가 오지 않아 직접 방문으로 잡힌다 — 홍보 링크에 utm 을 붙여야 나뉜다.
+         */
+        function appendAcquisition(payload) {
+          var rows = Array.isArray(payload.acquisition) ? payload.acquisition : [];
+          var box = document.createElement('div'); box.setAttribute('data-plain', ''); body.appendChild(box);
+          addLiveTable(box, '유입 채널', ['채널', '방문', '입력', '무료 결과', '결제 화면', '가입', '방문 → 가입', '방문 → 무료 결과'], rows, function (item) {
+            return [CHANNEL_NAMES[item.channel] || item.channel, count(item.visits), count(item.input), count(item.teaser), count(item.checkout), count(item.signups), rateText(item.signups, item.visits), rateText(item.teaser, item.visits)];
+          }, '선택 기간에 유입 기록이 없습니다. 이 기능을 배포한 뒤의 방문부터 쌓입니다.');
+          var note = document.createElement('p'); note.className = 'admin-note'; note.style.padding = '0 4px';
+          note.textContent = '카카오톡 같은 메신저로 연 링크는 어디서 왔는지 전달되지 않아 "직접 방문·메신저"로 잡힙니다. 홍보 링크에 ?utm_source=instagram 처럼 꼬리표를 붙이면 채널별로 나뉩니다.';
+          body.appendChild(note);
         }
         /** 비율 막대. 가입 방식처럼 합계가 정해진 나눔에 쓴다. */
         function shareBars(rows, total) {
@@ -4267,7 +4321,7 @@
             if (row.rate !== null && (worst < 0 || row.rate < rows[worst].rate)) worst = index;
           });
           var list = document.createElement('section'); list.className = 'admin-section'; list.setAttribute('aria-label', '구매 퍼널 단계');
-          list.style.padding = '8px 16px';
+          list.style.padding = '8px 16px'; list.style.marginBottom = '16px';
           rows.forEach(function (row, index) {
             var line = document.createElement('div');
             line.className = 'admin-funnel-line';
@@ -4367,6 +4421,8 @@
           var ctas = Array.isArray(payload.ctas) ? payload.ctas : [];
           if (funnelState.view === 'summary') appendSummary(payload);
           else if (funnelState.view === 'purchase') appendPurchaseFunnel(payload.purchase);
+          else if (funnelState.view === 'signup') appendSignupFunnel(payload);
+          else if (funnelState.view === 'acquisition') appendAcquisition(payload);
           else if (funnelState.view === 'performance') addLiveTable(body, '서비스 성과', ['서비스', '소개', '입력', '무료 결과', '결제', '매출', '소개 → 입력', '입력 → 무료 결과', '무료 결과 → 결제'], servicePerformance(payload), function (item) {
             return [item.name, count(item.intro), count(item.input), count(item.teaser), item.orders === null ? '확인 불가' : count(item.orders) + '건', item.revenue === null ? '확인 불가' : count(item.revenue) + '원', rateText(item.input, item.intro), rateText(item.teaser, item.input), item.orders === null ? '—' : rateText(item.orders, item.teaser)];
           }, '선택 기간에 서비스 이용 기록이 없습니다.');
@@ -4379,18 +4435,44 @@
           }, '선택 기간에 수집된 서비스 페이지뷰가 없습니다.');
             if (!services.length && steps.length) addLiveError(body, '서비스로 묶이지 않은 단계 조회 ' + count(steps.length) + '종이 있습니다.');
           }
-          else if (funnelState.view === 'ctas') addLiveTable(body, '많이 눌린 버튼', ['서비스', '대상', '클릭'], ctas, function (item) { return [serviceName(item.serviceKey), (/^solo_nara:/.test(String(item.target || '')) ? soloActions[String(item.target).replace(/^solo_nara:/, '')] : loveActions[String(item.target || '').replace(/^love_speed:/, '')]) || item.target || '—', count(item.clicks)]; }, '선택 기간에 수집된 버튼 클릭이 없습니다.');
+          else if (funnelState.view === 'ctas') {
+            // 2026-10-08: 표는 "몇 번"만 알려 준다. 화면 위 어디를 눌렀는지·녹화는 Clarity 에서 본다(사용자 요청).
+            var callout = document.createElement('section'); callout.className = 'admin-section'; callout.style.cssText = 'padding:14px 16px;margin-bottom:12px;display:flex;flex-wrap:wrap;align-items:center;gap:12px';
+            callout.innerHTML = '<span style="flex:1;min-width:240px">실제 화면 위에서 어디를 눌렀는지(클릭 히트맵), 어디까지 내려 읽었는지(스크롤), 손님 화면 녹화는 Clarity 에서 봅니다. 공용 계정으로 로그인하세요.</span>'
+              + '<a class="admin-button" href="https://clarity.microsoft.com/projects/view/ytxpdvt9bu/heatmaps" target="_blank" rel="noopener">히트맵 보기 ↗</a>'
+              + '<a class="admin-button" href="https://clarity.microsoft.com/projects/view/ytxpdvt9bu/impressions" target="_blank" rel="noopener">녹화 보기 ↗</a>';
+            body.appendChild(callout);
+            addLiveTable(body, '많이 눌린 버튼', ['서비스', '버튼', '클릭'], ctas, function (item) { return [serviceName(item.serviceKey), buttonName(item.target), count(item.clicks)]; }, '선택 기간에 수집된 버튼 클릭이 없습니다.');
+          }
           else if (funnelState.view === 'play') {
             appendLoveSpeed(payload.loveSpeed, payload.available !== false);
             appendSoloNara(payload.soloNara, payload.available !== false);
           }
           if (payload.truncated) addLiveError(body, '수집 이벤트가 조회 상한(' + count(payload.sampled) + '건)에 도달했습니다. 선택 기간 전체를 보려면 기간을 줄여 주세요.');
         }
+        /** 화면의 기간 선택을 조회 주소로 바꾼다. '오늘'은 한국 시간 0시부터, 직접 선택은 입력한 날짜·시간(이 컴퓨터 시간대). */
+        function periodQuery(period) {
+          if (period === 'today') {
+            var now = new Date();
+            var kst = new Date(now.getTime() + 9 * 3600000);
+            var midnight = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate()) - 9 * 3600000;
+            return 'from=' + encodeURIComponent(new Date(midnight).toISOString()) + '&to=' + encodeURIComponent(new Date(now.getTime() + 60000).toISOString());
+          }
+          if (period === 'custom') {
+            var from = filters.querySelector('[name="from"]').value; var to = filters.querySelector('[name="to"]').value;
+            if (!from || !to) return null;
+            return 'from=' + encodeURIComponent(new Date(from).toISOString()) + '&to=' + encodeURIComponent(new Date(to).toISOString());
+          }
+          return 'period=' + encodeURIComponent(period);
+        }
         async function load(period) {
           funnelState.payload = null; body.replaceChildren();
+          var query = periodQuery(period);
+          if (!query) { status.hidden = false; status.textContent = '시작과 끝 날짜·시간을 고른 뒤 조회를 눌러 주세요.'; return; }
           status.hidden = false; status.textContent = '퍼널 통계를 불러오는 중입니다.';
           try {
-            var response = await fetch('/api/admin/v1/funnel?period=' + encodeURIComponent(period), { credentials: 'same-origin' });
+            var response = await fetch('/api/admin/v1/funnel?' + query, { credentials: 'same-origin' });
+            if (response.status === 422) { status.textContent = '조회 기간을 확인해 주세요. 시작이 끝보다 앞이어야 하고, 최대 92일까지 볼 수 있습니다.'; return; }
             if (!response.ok) throw new Error('FUNNEL_SUMMARY_FAILED');
             var payload = await response.json();
             if (payload.available !== true) throw new Error('FUNNEL_STORE_UNAVAILABLE');
@@ -4408,8 +4490,23 @@
           Array.from(viewSeg.children).forEach(function (node) { node.setAttribute('aria-pressed', node === button ? 'true' : 'false'); });
           render();
         });
-        filters.querySelector('select').addEventListener('change', function (event) { load(event.target.value); });
-        filters.addEventListener('submit', function (event) { event.preventDefault(); });
+        var rangeBox = filters.querySelector('[data-funnel-range]');
+        filters.querySelector('select').addEventListener('change', function (event) {
+          var value = event.target.value;
+          rangeBox.hidden = value !== 'custom';
+          rangeBox.style.display = value === 'custom' ? 'inline-flex' : 'none';
+          if (value === 'custom') {
+            // 처음 열면 최근 7일을 채워 둔다.
+            var pad = function (n) { return String(n).padStart(2, '0'); };
+            var local = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+            var fromInput = filters.querySelector('[name="from"]'); var toInput = filters.querySelector('[name="to"]');
+            if (!fromInput.value) fromInput.value = local(new Date(Date.now() - 7 * 86400000));
+            if (!toInput.value) toInput.value = local(new Date());
+          }
+          load(value);
+        });
+        filters.addEventListener('submit', function (event) { event.preventDefault(); load(filters.querySelector('select').value); });
+        rangeBox.style.display = 'none';
         await load('day');
       }
       async function loadReleaseInfo(body) {

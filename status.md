@@ -1,5 +1,15 @@
 # Status
 
+## 2026-10-08 — 관리자 방문·전환 2단계: 유입 채널·가입 퍼널·기간 직접 선택
+
+- [DONE] 기간: 오늘(KST 0시~) / 최근 24시간·7일·30일 / 직접 선택(날짜·시간, 최대 92일, 끝 시각 미포함). `GET /api/admin/v1/funnel?from&to`, 잘못된 기간은 422 INVALID_FUNNEL_WINDOW.
+- [DONE] 유입 채널: 새 방문 첫 화면에서 `cta_click source:<채널>` 1회(utm_source → 광고 클릭 ID → 이전 사이트 도메인 → direct). 주소 전체는 남기지 않음. 채널별 방문·입력·무료 결과·결제 화면·가입. 매출은 사용자 결정으로 제외.
+- [DONE] 가입 퍼널: `signup:wall` → `signup:click:<수단>` → `signup:complete:<수단>`(검증된 신규 가입만). 수집기보다 먼저 남긴 단계는 `__umshTrackQueue` 로 넘김.
+- [DONE] 천명사주(한 화면 SPA) 장면 birth/result 를 02-input/04-report 로 기록. 오늘운(today_fortune)을 구매 퍼널에서 제외(무료).
+- [DONE] 많이 눌린 버튼: 버튼 이름을 운영자 말로, Clarity 히트맵·녹화 바로가기. 필터줄에 GA4·Clarity 링크.
+- 유입·가입 표시(source:·signup:)는 버튼 클릭 표에서 뺀다. 이 기능 배포 이후 방문부터 쌓인다.
+- 검증: 신규 7/7, tsc PASS, 헤드리스 크롬 캡처(버튼·유입 채널·가입 퍼널·직접 선택). Clarity 딥링크 주소(heatmaps·impressions)는 실제 로그인 화면에서 확인 필요.
+
 ## 2026-10-08 — 관리자 방문·전환: 보기 전환 + 요약 (1단계)
 
 - [DONE] 표를 한 화면에 쌓던 구조 → 보기 버튼(요약 / 구매 퍼널 / 서비스 성과 / 페이지 조회 / 많이 눌린 버튼 / 무료 테스트). 사용자 지적: 스크롤이 너무 길다.
