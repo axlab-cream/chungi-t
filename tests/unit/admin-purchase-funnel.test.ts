@@ -37,9 +37,9 @@ test('stages count distinct visits, not page views', () => {
     view('e', 'solo_nara', 'entry'), view('f', 'love_speed', 'entry'),
   ]
   const { purchase } = summarizeFunnelRows(rows, 'day', '2026-10-06T00:00:00.000Z')
-  assert.deepEqual(purchase.stages, { intro: 3, input: 2, teaser: 1, checkout: 1 })
-  assert.deepEqual(purchase.services[0], { serviceKey: 'couple_signal', intro: 2, input: 2, teaser: 1 })
-  assert.deepEqual(purchase.services[1], { serviceKey: 'cat_compatibility', intro: 1, input: 0, teaser: 0 })
+  assert.deepEqual(purchase.stages, { intro: 3, input: 2, teaser: 1, checkout: 1, inputDone: 0, locked: 0, buy: 0, payOpen: 0 })
+  assert.deepEqual(purchase.services[0], { serviceKey: 'couple_signal', intro: 2, input: 2, teaser: 1, checkout: 0, inputDone: 0, locked: 0, buy: 0, payOpen: 0 })
+  assert.deepEqual(purchase.services[1], { serviceKey: 'cat_compatibility', intro: 1, input: 0, teaser: 0, checkout: 0, inputDone: 0, locked: 0, buy: 0, payOpen: 0 })
   assert.equal(purchase.paid, undefined, 'paid orders are attached by the server only with order scope')
 })
 
@@ -103,7 +103,7 @@ test('every summary card and block explains its source and rule in a tooltip', (
     assert.ok(admin.includes('KPI_TIPS.' + key + ']'), key)
   }
   assert.ok(admin.includes("if (item[3]) label.appendChild(adminTip(item[3]));"))
-  assert.ok(admin.includes("tipTitle('구매 퍼널'") && admin.includes("tipTitle('가입 방식'"))
+  assert.ok(admin.includes("tipTitle('구매 퍼널', FUNNEL_TIP)") && admin.includes("tipTitle('가입 방식'"))
   // 환불은 주문 상태로 나뉘지 않는다. 빠진다고 쓰면 안 된다.
   assert.ok(!admin.includes('환불 처리된 주문은 빠집니다'))
 })

@@ -392,6 +392,11 @@
     .admin-summary-grid .admin-funnel-line { grid-template-columns: 190px minmax(60px, 1fr) 64px minmax(150px, 230px); }
     .admin-summary-grid .admin-share-line { grid-template-columns: 64px minmax(60px, 1fr) 48px 48px; }
     @media (max-width: 1100px) { .admin-summary-grid { grid-template-columns: 1fr; } }
+    .admin-perf-table td strong { display: block; font-weight: 600; }
+    .admin-perf-table td small { display: block; color: var(--admin-text-muted); font-size: 11px; }
+    .admin-perf-table td.is-worst { background: #fff1db; }
+    .admin-perf-table td.is-worst small { color: var(--admin-state-warn); font-weight: 700; }
+    .admin-perf-table tr.is-small-sample td { opacity: .45; }
     .admin-funnel-path { display: block; margin-top: 2px; color: var(--admin-text-muted); font-size: 11px; font-weight: 500; overflow-wrap: anywhere; }
     .admin-funnel-line { display: grid; grid-template-columns: 210px minmax(80px, 1fr) 80px minmax(150px, 280px); gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--admin-line); }
     @media (max-width: 720px) { .admin-funnel-line { grid-template-columns: 150px 1fr auto; row-gap: 4px; } .admin-funnel-line > :last-child { grid-column: 1 / -1; } }
@@ -4199,6 +4204,7 @@
          * 출처 — 방문 기록: 손님 화면이 열릴 때 우리 서버에 남기는 기록(umsh_funnel_events). GA4 와는 따로 센다.
          *        계정: 로그인 계정 저장소(Supabase Auth). 주문: 결제 주문 저장소.
          */
+        var FUNNEL_TIP = '출처: 1~8단계는 자체 방문 기록, 9단계는 결제 주문 저장소. 기준: 1·2·4·7단계는 그 화면을 연 방문, 3단계는 입력 제출(천명사주는 로딩으로 넘어감), 5단계는 잠긴 목차가 화면에 보임, 6단계는 결제 화면으로 가는 버튼 클릭, 8단계는 결제창 열기 버튼, 9단계는 결제가 확인된 주문 건수입니다. 모두 30분 단위 방문으로 셉니다. 중간 단계로 바로 들어온 방문도 세므로 앞 단계보다 클 수 있습니다. 3·5·6·8단계와 서비스별 결제 화면은 2026-10-08 배포 이후 방문부터 쌓입니다. 무료 서비스(솔로나라·금사빠·오늘운)는 뺍니다.';
         var KPI_TIPS = {
           visits: '출처: 운명상회 자체 방문 기록(손님 화면이 열릴 때 서버에 남는 기록). 기준: 30분 안의 활동을 1번으로 묶은 방문 수입니다. 사람 수가 아니어서 같은 사람이 30분 넘게 쉬었다 오면 2번으로 셉니다. 관리자 화면은 빠지고, 직원이 손님 화면을 연 것은 포함됩니다. GA4 와 세는 방식이 달라 숫자가 다를 수 있습니다.',
           signups: '출처: 로그인 계정 저장소(Supabase Auth). 기준: 선택 기간에 새로 만들어진 계정 수입니다(카카오·구글·네이버·이메일). 탈퇴한 계정은 빠집니다. 회원 조회 권한이 없으면 확인 불가로 보입니다.',
@@ -4235,13 +4241,7 @@
           var purchase = payload.purchase || { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] };
           var st = purchase.stages; var paid = purchase.paid;
           var sp = stagePaths('');
-          left.append(tipTitle('구매 퍼널', '출처: 1~4단계는 자체 방문 기록, 5단계는 결제 주문 저장소. 기준: 1~4단계는 그 화면을 한 번이라도 연 방문 수(30분 단위), 5단계는 결제가 확인된 주문 건수입니다. 중간 단계로 바로 들어온 방문도 세므로 앞 단계보다 클 수 있습니다. 무료 서비스(솔로나라·금사빠·오늘운)는 뺍니다.'), funnelBars([
-            { label: '1. 서비스 소개', value: st.intro, unit: ' 방문', path: sp.intro },
-            { label: '2. 입력 시작', value: st.input, unit: ' 방문', path: sp.input },
-            { label: '3. 무료 결과', value: st.teaser, unit: ' 방문', path: sp.teaser },
-            { label: '4. 결제 화면', value: st.checkout, unit: ' 방문', path: sp.checkout },
-            { label: '5. 결제 완료', value: paid ? paid.orders : null, unit: '건', path: sp.paid }
-          ]));
+          left.append(tipTitle('구매 퍼널', FUNNEL_TIP), funnelBars(stageRows(st, paid ? paid.orders : null, sp)));
           var top = servicePerformance(payload).slice(0, 5);
           var topStart = right.children.length;
           addLiveTable(right, '인기 서비스 TOP 5', ['서비스', '소개', '무료 결과', '결제', '매출'], top, function (item) {
@@ -4318,6 +4318,54 @@
           });
           return list;
         }
+        /*
+         * 2026-10-08 서비스 성과: 서비스마다 9단계 수와 앞 단계 대비 %를 한 줄로. 서비스마다 가장 많이 빠지는 칸은 주황,
+         * 소개 방문이 10번 미만인 서비스는 우연히 튄 숫자일 수 있어 회색으로 흐리게 둔다.
+         */
+        var SMALL_SAMPLE = 10;
+        function appendPerformance(payload) {
+          var rows = servicePerformance(payload);
+          var bar = document.createElement('div'); bar.className = 'admin-filterbar';
+          bar.append(adminBlockTitle('서비스 성과'), adminTip(FUNNEL_TIP + ' 칸마다 위는 방문 수, 아래는 앞 단계 대비 비율입니다. 주황 칸은 그 서비스에서 가장 많이 빠지는 단계, 회색 줄은 소개 방문이 ' + SMALL_SAMPLE + '번 미만이라 판단을 미뤄야 하는 서비스입니다.'));
+          body.appendChild(bar);
+          if (!rows.length) { addLiveError(body, '선택 기간에 서비스 이용 기록이 없습니다.'); return; }
+          var section = document.createElement('section'); section.className = 'admin-section'; section.setAttribute('data-plain', '');
+          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll';
+          var table = document.createElement('table'); table.className = 'admin-table admin-perf-table';
+          var headRow = document.createElement('tr');
+          ['서비스'].concat(STAGE_KEYS.map(function (key) { return STAGE_LABELS[key]; }), [STAGE_LABELS.paid, '매출']).forEach(function (text) { var th = document.createElement('th'); th.scope = 'col'; th.textContent = text; headRow.appendChild(th); });
+          var thead = document.createElement('thead'); thead.appendChild(headRow);
+          var tbody = document.createElement('tbody');
+          rows.forEach(function (item) {
+            var values = STAGE_KEYS.map(function (key) { return Number(item[key] || 0); }).concat([item.orders]);
+            var worst = -1; var worstRate = Infinity;
+            values.forEach(function (value, index) {
+              if (index === 0 || value === null) return;
+              var prev = values[index - 1];
+              if (!prev || value > prev) return;
+              var rate = value / prev;
+              if (rate < worstRate) { worstRate = rate; worst = index; }
+            });
+            var tr = document.createElement('tr');
+            if (item.intro < SMALL_SAMPLE) tr.className = 'is-small-sample';
+            var name = document.createElement('td'); name.textContent = item.name; tr.appendChild(name);
+            values.forEach(function (value, index) {
+              var td = document.createElement('td');
+              var main = document.createElement('strong'); main.textContent = value === null ? '확인 불가' : count(value) + (index === values.length - 1 ? '건' : '');
+              td.appendChild(main);
+              var prev = index > 0 ? values[index - 1] : null;
+              if (index > 0 && value !== null && prev) { var rate = document.createElement('small'); rate.textContent = value > prev ? '↑' : percent(value, prev); td.appendChild(rate); }
+              if (index === worst) td.className = 'is-worst';
+              tr.appendChild(td);
+            });
+            var revenue = document.createElement('td'); revenue.textContent = item.revenue === null ? '확인 불가' : count(item.revenue) + '원'; tr.appendChild(revenue);
+            tbody.appendChild(tr);
+          });
+          table.append(thead, tbody); scroll.appendChild(table); section.appendChild(scroll); body.appendChild(section);
+          var note = document.createElement('p'); note.className = 'admin-note'; note.style.padding = '0 4px';
+          note.textContent = '↑ 는 앞 단계보다 많다는 뜻입니다(중간 단계로 바로 들어온 방문). 회색 줄은 소개 방문 ' + SMALL_SAMPLE + '번 미만입니다.';
+          body.appendChild(note);
+        }
         /** 서비스마다 퍼널 단계와 결제·매출을 한 줄로. 매출 → 소개 방문 순. */
         function servicePerformance(payload) {
           var purchase = payload.purchase || { services: [] };
@@ -4326,11 +4374,17 @@
           (paid && paid.byProduct || []).forEach(function (item) { paidBy[item.productKey] = item; });
           var rows = (purchase.services || []).map(function (item) {
             var p = paidBy[item.serviceKey];
-            return { key: item.serviceKey, name: serviceName(item.serviceKey), intro: item.intro, input: item.input, teaser: item.teaser, orders: paid ? (p ? p.orders : 0) : null, revenue: paid ? (p ? p.amount : 0) : null };
+            var row = { key: item.serviceKey, name: serviceName(item.serviceKey), orders: paid ? (p ? p.orders : 0) : null, revenue: paid ? (p ? p.amount : 0) : null };
+            STAGE_KEYS.forEach(function (key) { row[key] = Number(item[key] || 0); });
+            return row;
           });
           // 방문 기록 없이 결제만 있는 상품(예: 천명사주 기본 풀이)도 빠뜨리지 않는다.
           (paid && paid.byProduct || []).forEach(function (item) {
-            if (!rows.some(function (row) { return row.key === item.productKey; })) rows.push({ key: item.productKey, name: serviceName(item.productKey), intro: 0, input: 0, teaser: 0, orders: item.orders, revenue: item.amount });
+            if (!rows.some(function (row) { return row.key === item.productKey; })) {
+              var extra = { key: item.productKey, name: serviceName(item.productKey), orders: item.orders, revenue: item.amount };
+              STAGE_KEYS.forEach(function (key) { extra[key] = 0; });
+              rows.push(extra);
+            }
           });
           return rows.sort(function (x, y) { return (y.revenue || 0) - (x.revenue || 0) || y.intro - x.intro; });
         }
@@ -4347,10 +4401,28 @@
         };
         /** 구매 퍼널 단계별로 세는 화면 주소. 서비스를 고르면 그 서비스의 실제 주소를 보인다. */
         function stagePaths(serviceKey) {
-          if (serviceKey === 'cmdg') return { intro: '/cmdg', input: '/cmdg 입력 장면', teaser: '/cmdg 결과 장면', checkout: '/payment', paid: '/payment/result · 주문 확인' };
+          var common = { checkout: '/payment', payOpen: '/payment 결제창 열기 버튼', paid: '/payment/result · 주문 확인' };
+          if (serviceKey === 'cmdg') return Object.assign({ intro: '/cmdg', input: '/cmdg 입력 장면', inputDone: '/cmdg 로딩 장면', teaser: '/cmdg 결과 장면', locked: '/cmdg 잠긴 목차 보임', buy: '/cmdg 구매 장면' }, common);
           var base = serviceKey && SERVICE_PATHS[serviceKey];
-          if (base) return { intro: base + '/ · 01-step-1-story', input: base + '/02-step-2-saju-input · 03-step-3-service-input', teaser: base + '/04-step-4-report', checkout: '/payment', paid: '/payment/result · 주문 확인' };
-          return { intro: '/서비스 · 01-step-1-story', input: '02-step-2-saju-input · 03-step-3-service-input', teaser: '04-step-4-report', checkout: '/payment', paid: '/payment/result · 주문 확인' };
+          var root = base ? base + '/' : '/서비스/';
+          return Object.assign({
+            intro: (base || '/서비스') + ' · 01-step-1-story',
+            input: root + '02-step-2-saju-input · 03-step-3-service-input',
+            inputDone: root + '02·03 입력 제출',
+            teaser: root + '04-step-4-report',
+            locked: root + '04 잠긴 목차 보임',
+            buy: root + '04 → /payment 버튼'
+          }, common);
+        }
+        var STAGE_KEYS = ['intro', 'input', 'inputDone', 'teaser', 'locked', 'buy', 'checkout', 'payOpen'];
+        var STAGE_LABELS = { intro: '서비스 소개', input: '입력 시작', inputDone: '입력 완료', teaser: '무료 결과', locked: '잠긴 목차까지 봄', buy: '구매 버튼', checkout: '결제 화면', payOpen: '결제창 열기', paid: '결제 완료' };
+        /** 9단계 막대의 줄. values 는 단계별 방문 수, paid 는 결제 완료 건수(null = 확인 불가). */
+        function stageRows(values, paid, paths) {
+          var rows = STAGE_KEYS.map(function (key, index) {
+            return { label: (index + 1) + '. ' + STAGE_LABELS[key], value: Number(values[key] || 0), unit: ' 방문', path: paths[key] };
+          });
+          rows.push({ label: '9. ' + STAGE_LABELS.paid, value: paid, unit: '건', path: paths.paid });
+          return rows;
         }
         function percent(part, whole) { return whole > 0 ? Math.round(part / whole * 1000) / 10 + '%' : '—'; }
         /** 막대 하나 = 단계 하나. 표의 검색·쪽 넘김 없이 다섯 줄로 끝난다. */
@@ -4414,17 +4486,10 @@
           var st = purchase.stages;
           var done = paid ? (selected ? (paidBy[selected.serviceKey] || { orders: 0 }).orders : paid.orders) : null;
           var sp = stagePaths(selected ? selected.serviceKey : '');
-          var rows = [
-            { label: '1. 서비스 소개', value: selected ? selected.intro : st.intro, unit: ' 방문', path: sp.intro },
-            { label: '2. 입력 시작', value: selected ? selected.input : st.input, unit: ' 방문', path: sp.input },
-            { label: '3. 무료 결과', value: selected ? selected.teaser : st.teaser, unit: ' 방문', path: sp.teaser }
-          ];
-          if (!selected) rows.push({ label: '4. 결제 화면', value: st.checkout, unit: ' 방문', path: sp.checkout });
-          rows.push({ label: (selected ? '4' : '5') + '. 결제 완료', value: done, unit: '건', path: sp.paid });
-          body.appendChild(funnelBars(rows));
+          body.appendChild(funnelBars(stageRows(selected || st, done, sp)));
           var amount = paid ? (selected ? (paidBy[selected.serviceKey] || { amount: 0 }).amount : paid.amount) : null;
           var foot = document.createElement('p'); foot.className = 'admin-note'; foot.style.padding = '0 4px';
-          foot.textContent = amount === null ? '결제 완료는 주문 조회 권한이 없거나 불러오지 못해 표시하지 않습니다.' : '결제 완료 금액 ' + count(amount) + '원' + (selected ? ' · 서비스를 고르면 결제 화면 단계는 뺍니다(결제 화면 주소에 서비스가 남지 않음).' : '');
+          foot.textContent = amount === null ? '결제 완료는 주문 조회 권한이 없거나 불러오지 못해 표시하지 않습니다.' : '결제 완료 금액 ' + count(amount) + '원';
           body.appendChild(foot);
           pick.addEventListener('change', function () { funnelState.service = pick.value; render(); });
         }
@@ -4468,9 +4533,7 @@
           else if (funnelState.view === 'purchase') appendPurchaseFunnel(payload.purchase);
           else if (funnelState.view === 'signup') appendSignupFunnel(payload);
           else if (funnelState.view === 'acquisition') appendAcquisition(payload);
-          else if (funnelState.view === 'performance') addLiveTable(body, '서비스 성과', ['서비스', '소개', '입력', '무료 결과', '결제', '매출', '소개 → 입력', '입력 → 무료 결과', '무료 결과 → 결제'], servicePerformance(payload), function (item) {
-            return [item.name, count(item.intro), count(item.input), count(item.teaser), item.orders === null ? '확인 불가' : count(item.orders) + '건', item.revenue === null ? '확인 불가' : count(item.revenue) + '원', rateText(item.input, item.intro), rateText(item.teaser, item.input), item.orders === null ? '—' : rateText(item.orders, item.teaser)];
-          }, '선택 기간에 서비스 이용 기록이 없습니다.');
+          else if (funnelState.view === 'performance') appendPerformance(payload);
           else if (funnelState.view === 'pages') {
             // 페이지 조회: 화면이 열린 횟수 중심. 단계 상세는 서비스별 칸으로 함께 보인다.
             appendKpis(payload.overview || { views: 0, sessions: 0, signedInUsers: 0 }, payload.sampled || 0);
