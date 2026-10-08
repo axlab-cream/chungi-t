@@ -113,6 +113,8 @@
     return path === '/' || path === '/index.html'
       || /^\/(about|faq)(\.html|\/|$)/.test(path)
       || /\/01-step-1-story(\/|$)/.test(path)
+      // 2026-10-08: 무료 테스트(솔로나라·금사빠)는 이름을 받지 않고 질문·결과가 모두에게 같다. 공유 주소(?type 등)는 위 규칙으로 아예 싣지 않는다.
+      || /^\/play\/(solo-nara|love-speed)\/?(index\.html)?$/.test(path)
       || /^\/(love|match|money|work|me|flow|day|place)\/[a-z-]+\/?(index\.html)?$/.test(path);
   }
   function loadClarity() {

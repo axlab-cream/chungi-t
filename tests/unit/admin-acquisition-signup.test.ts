@@ -102,7 +102,8 @@ test('new visit records one source marker; signup steps queued before the collec
 })
 
 test('cmdg reports in-page scenes and admin wires the new views, range and Clarity links', () => {
-  const cmdg = read('사주/cmdg/index.html')
+  // 운영 /cmdg/ 는 사주/사주/index.html 을 내보낸다(scripts/prepare-vercel-public.mjs).
+  const cmdg = read('사주/사주/index.html')
   const admin = read('admin-ui/index.html')
   const app = read('src/server/app.ts')
   assert.ok(cmdg.includes('const FUNNEL_SCENES = { birth: "02-input", result: "04-report" };'))

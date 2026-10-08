@@ -6503,9 +6503,23 @@
         });
       }
 
+      // 2026-10-08 퍼널: 천명사주는 한 화면 안에서 입력·결과가 바뀌어 주소로 단계를 알 수 없다. 장면이 바뀔 때 직접 남긴다.
+      // (운영 /cmdg/ 는 이 파일이다. 사주/cmdg/index.html 사본이 아니다.)
+      const FUNNEL_SCENES = { birth: "02-input", result: "04-report" };
+      const funnelScenesSent = {};
+      function trackFunnelScene(scene) {
+        const step = FUNNEL_SCENES[scene];
+        if (!step || funnelScenesSent[step]) return;
+        funnelScenesSent[step] = true;
+        try {
+          window.UMSHTrack?.push?.("step_view", { step });
+          window.UMSHAnalytics?.funnelStep?.({ service: "cmdg", step });
+        } catch (_) { /* 측정 실패가 화면을 막지 않는다. */ }
+      }
       function go(scene, remember = true) {
         if (remember && state.scene !== scene) historyStack.push(state.scene);
         state.scene = scene;
+        trackFunnelScene(scene);
         syncSceneUrl(scene);
         const phoneScene =
           scene === "landing"

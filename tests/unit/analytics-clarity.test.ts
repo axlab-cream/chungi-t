@@ -40,7 +40,7 @@ test('empty project id keeps Clarity off', () => {
 })
 
 test('shared pages load Clarity with text visible', () => {
-  for (const href of ['https://umsh.kr/', 'https://umsh.kr/love/signal/', 'https://umsh.kr/love/signal/01-step-1-story/index.html', 'https://umsh.kr/faq', 'https://umsh.kr/?utm_source=instagram&src=share']) {
+  for (const href of ['https://umsh.kr/', 'https://umsh.kr/play/solo-nara/', 'https://umsh.kr/play/love-speed/', 'https://umsh.kr/love/signal/', 'https://umsh.kr/love/signal/01-step-1-story/index.html', 'https://umsh.kr/faq', 'https://umsh.kr/?utm_source=instagram&src=share']) {
     const { clarity, attrs } = load(href)
     assert.deepEqual(clarity, ['https://www.clarity.ms/tag/ytxpdvt9bu'], href)
     assert.equal(attrs['data-clarity-unmask'], 'true', href)
@@ -49,7 +49,7 @@ test('shared pages load Clarity with text visible', () => {
 })
 
 test('input, report, payment and account pages are fully masked', () => {
-  for (const href of ['https://umsh.kr/love/signal/02-step-2-saju-input/index.html', 'https://umsh.kr/love/signal/04-step-4-report/index.html', 'https://umsh.kr/today/free/', 'https://umsh.kr/vault.html', 'https://umsh.kr/my.html', 'https://umsh.kr/play/solo-nara/']) {
+  for (const href of ['https://umsh.kr/love/signal/02-step-2-saju-input/index.html', 'https://umsh.kr/love/signal/04-step-4-report/index.html', 'https://umsh.kr/today/free/', 'https://umsh.kr/vault.html', 'https://umsh.kr/my.html']) {
     const { clarity, attrs } = load(href)
     assert.equal(clarity.length, 1, href)
     assert.equal(attrs['data-clarity-mask'], 'true', href)
