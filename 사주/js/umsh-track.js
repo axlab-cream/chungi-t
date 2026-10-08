@@ -21,6 +21,7 @@
   var flushTimer = null;
   var authPromise = null;
   var cachedAuthHeaders = null;
+  var startedNewSession = false;
 
   /** 로그인 런타임이 있는 고객 화면에서만 현재 세션을 읽는다. 실패하면 익명 집계를 유지한다. */
   function authHeaders() {
@@ -54,6 +55,7 @@
       var made = (global.crypto && global.crypto.randomUUID)
         ? global.crypto.randomUUID()
         : String(now) + '-' + Math.random().toString(36).slice(2);
+      startedNewSession = true;
       global.localStorage.setItem(SESSION_KEY, JSON.stringify({ id: made, lastSeenAt: now }));
       return made;
     } catch (_) {
@@ -61,6 +63,31 @@
       if (!global.__umshTrackSession) global.__umshTrackSession = String(Date.now()) + '-' + Math.random().toString(36).slice(2);
       return global.__umshTrackSession;
     }
+  }
+
+  /*
+   * 2026-10-08 유입 채널. 새 방문이 시작될 때 한 번만 "어디서 왔는지"를 남긴다.
+   * utm_source 가 있으면 그것을, 없으면 이전 사이트의 주소(도메인)로 나눈다. 주소 전체는 남기지 않는다.
+   * 메신저(카카오톡 등)로 연 링크는 이전 주소가 전달되지 않아 직접 방문으로 잡힌다 — 홍보 링크에 utm 을 붙이는 이유다.
+   */
+  var UTM_ALIASES = { ig: 'instagram', insta: 'instagram', fb: 'facebook', kakaotalk: 'kakao', 'kakao-channel': 'kakao', kakao_channel: 'kakao' };
+  var REFERRER_CHANNELS = [
+    [/(^|\.)google\.[a-z.]+$/, 'google'], [/(^|\.)naver\.com$/, 'naver'], [/(^|\.)daum\.net$/, 'daum'], [/(^|\.)bing\.com$/, 'bing'],
+    [/(^|\.)instagram\.com$/, 'instagram'], [/(^|\.)(facebook\.com|fb\.com)$/, 'facebook'], [/(^|\.)kakao\.com$/, 'kakao'],
+    [/(^|\.)(youtube\.com|youtu\.be)$/, 'youtube'], [/(^|\.)(t\.co|x\.com|twitter\.com)$/, 'x'], [/(^|\.)threads\.(net|com)$/, 'threads'],
+  ];
+  function channelOf(href, referrer, origin) {
+    try {
+      var url = new URL(href);
+      var utm = String(url.searchParams.get('utm_source') || '').trim().toLowerCase();
+      if (utm) { utm = UTM_ALIASES[utm] || utm; return /^[a-z0-9_-]{1,30}$/.test(utm) ? utm : 'other'; }
+      if (url.searchParams.get('gclid') || url.searchParams.get('gbraid') || url.searchParams.get('wbraid')) return 'google_ads';
+      if (!referrer) return 'direct';
+      var ref = new URL(referrer);
+      if (ref.origin === origin) return null;
+      for (var i = 0; i < REFERRER_CHANNELS.length; i += 1) if (REFERRER_CHANNELS[i][0].test(ref.hostname)) return REFERRER_CHANNELS[i][1];
+      return 'other';
+    } catch (_) { return 'direct'; }
   }
 
   /** 경로에서 서비스와 단계를 읽는다. 화면마다 따로 적어 두면 새 서비스에서 빠진다. */
@@ -120,7 +147,8 @@
     queue.push({
       event: event,
       serviceKey: place.service,
-      step: place.step,
+      // 한 화면 안에서 단계가 바뀌는 서비스(천명사주)는 단계를 직접 넘긴다. 정해진 단계 이름만 받는다.
+      step: (extra && /^0[1-6]-[a-z0-9_-]{2,30}$/.test(extra.step || '')) ? extra.step : place.step,
       target: (extra && extra.target) || null,
       route: location.pathname,
     });
@@ -151,6 +179,16 @@
     if (play && (/preview\.html$/.test(location.pathname) || global.navigator.doNotTrack === '1' || global.navigator.globalPrivacyControl === true)) return;
     var source = service === 'solo_nara' ? global.UMSHSoloNaraSource : global.UMSHLoveSpeedSource;
     push('step_view', play ? { target: service + ':source:' + (['home','share','admin','internal','search','social','external','direct'].includes(source) ? source : 'direct') } : undefined);
+    // 새 방문의 첫 화면에서만 유입 채널을 남긴다. 버튼 클릭 표에는 섞이지 않게 서버가 따로 센다.
+    sessionId();
+    if (startedNewSession) {
+      var channel = channelOf(location.href, document.referrer, location.origin);
+      if (channel) push('cta_click', { target: 'source:' + channel });
+    }
+    // 측정 태그가 이 수집기보다 먼저 남긴 가입 단계(로그인 복귀 직후 등)를 이어 보낸다.
+    var pending = global.__umshTrackQueue;
+    global.__umshTrackQueue = null;
+    if (Array.isArray(pending)) pending.slice(0, 10).forEach(function (target) { if (typeof target === 'string') push('cta_click', { target: target }); });
     // 같은 단계 판정을 GA4 퍼널에도 쓴다. 측정 태그가 꺼진 환경(로컬·DNT)에는 UMSHAnalytics 가 없다.
     if (global.UMSHAnalytics && typeof global.UMSHAnalytics.funnelStep === 'function') global.UMSHAnalytics.funnelStep(placeOf(location.pathname));
     document.addEventListener('click', function (event) {
@@ -169,5 +207,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 
-  global.UMSHTrack = { push: push, flush: function () { return send(true); }, sessionTimeoutMs: SESSION_TTL_MS };
+  global.UMSHTrack = { push: push, flush: function () { return send(true); }, sessionTimeoutMs: SESSION_TTL_MS, channelOf: channelOf };
 })(typeof window !== 'undefined' ? window : globalThis);

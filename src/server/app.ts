@@ -2516,8 +2516,17 @@ app.get('/api/admin/v1/funnel', async (req, res) => {
   if (!staff) return
   const asked = String(req.query.period ?? 'day')
   const period: FunnelPeriod = asked === 'week' || asked === 'month' ? asked : 'day'
+  // 2026-10-08: 날짜·시간을 직접 고른 기간(from·to, ISO). 최대 92일. 이때는 조회 상한을 넉넉히 둔다.
+  const fromMs = Date.parse(trimmedString(req.query?.from) ?? '')
+  const toMs = Date.parse(trimmedString(req.query?.to) ?? '')
+  const custom = Number.isFinite(fromMs) || Number.isFinite(toMs)
+  if (custom && (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs || toMs - fromMs > 92 * 86_400_000)) {
+    res.status(422).json({ code: 'INVALID_FUNNEL_WINDOW', error: '조회 기간을 확인해 주세요(시작이 끝보다 앞, 최대 92일).' })
+    return
+  }
+  const range = custom ? { since: new Date(fromMs).toISOString(), until: new Date(toMs).toISOString() } : undefined
   try {
-    const summary = await summarizeFunnel(period)
+    const summary = await summarizeFunnel(custom ? 'custom' : period, custom ? 20000 : 5000, range)
     // 구매 퍼널의 마지막 단계(결제 완료)는 주문 저장소에서 센다. 주문을 볼 권한이 없으면 붙이지 않는다.
     // 2026-10-08: 첫 구매자를 가리려면 기간 이전 주문도 필요해 기간 제한 없이 받는다(상한 100쪽).
     if (summary.available && staff.scopes.includes('orders:read')) {
@@ -2530,12 +2539,12 @@ app.get('/api/admin/v1/funnel', async (req, res) => {
           if (!result.nextCursor) break
           cursor = result.nextCursor
         }
-        summary.purchase.paid = summarizePaidOrders(orders, summary.since)
-        summary.buyers = summarizeBuyers(orders, summary.since)
+        summary.purchase.paid = summarizePaidOrders(orders, summary.since, summary.until)
+        summary.buyers = summarizeBuyers(orders, summary.since, summary.until)
       } catch { /* 주문 조회 실패는 화면에서 '확인 불가'로 보인다. 0건으로 꾸미지 않는다. */ }
     }
     if (summary.available && staff.scopes.includes('members:read')) {
-      try { summary.signups = await signupStats(summary.since) } catch { /* 가입 수 조회 실패도 '확인 불가'. */ }
+      try { summary.signups = await signupStats(summary.since, 20, summary.until) } catch { /* 가입 수 조회 실패도 '확인 불가'. */ }
     }
     res.json(summary)
   } catch {

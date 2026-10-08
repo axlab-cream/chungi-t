@@ -17,7 +17,7 @@
   var SIGNUP_BENEFIT_POPUP_CSS = '/css/umsh-signup-benefit-popup.css?v=20260922-love-fortune';
   var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup';
   var FLAG_JS = '/js/ai-report-flag.js';
-  var TRACK_JS = '/js/umsh-track.js?v=20261007-funnel';
+  var TRACK_JS = '/js/umsh-track.js?v=20261008-acquisition';
 
   /**
    * 퍼널 수집기. 공용 크롬이 모든 화면에 실리므로 여기서 한 번만 올린다 — 화면마다
