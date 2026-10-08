@@ -34,13 +34,18 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
-    <link rel="stylesheet" href="/css/myhub.css?v=20261008-hub-full" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20261008-hub-skeleton" />
   </head>
   <body>
     <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
       <header class="appbar topbar"></header>
       <section class="payment-shell myhub" aria-labelledby="my-title">
         <h1 id="my-title">마이페이지</h1>
+
+        <!-- 로그인 상태를 확인하는 동안의 자리. 로그인한 사람에게 "로그인 · 회원가입"이 잠깐 비치지 않게 한다. -->
+        <div class="myhub-card myhub-skeleton" data-my-pending aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
 
         <div class="myhub-card" data-my-user hidden>
           <div class="myhub-who">
@@ -58,7 +63,7 @@
           </div>
         </div>
 
-        <div class="myhub-guest" data-my-guest>
+        <div class="myhub-guest" data-my-guest hidden>
           <strong>로그인하면 내 풀이와 쿠폰을 여기서 봅니다</strong>
           <span>생년월일은 한 번만 적어 두면 모든 풀이에 그대로 쓰입니다.</span>
           <a class="payment-submit" data-my-login href="/signup?entry=my&amp;returnTo=%2Fmy#login">로그인 · 회원가입</a>
@@ -115,6 +120,6 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-account-pages.js?v=20261008-hub-a"></script>
-    <script src="/js/my.js?v=20261008-hub-full"></script>
+    <script src="/js/my.js?v=20261008-hub-skeleton"></script>
   </body>
 </html>
