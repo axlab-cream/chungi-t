@@ -12,7 +12,8 @@ import { removeWalletsForDeletedMember } from '../coupons/store.js'
  *   - 1:1 문의 글과 답변(support_cases·support_notes, 결제 관련 문의 제외)
  *   - 쿠폰함(coupon_state 의 wallets, 결제에 쓴 할인 쿠폰 제외)
  *   - 푸시 기기 연결(push_devices), 알림 설정(umsh_notification_prefs), 무료 미리보기 사용 기록
- *   - 상담 이용권 행 안의 대화 내용(sessions)·생년월일·이메일 — 이용권 사용 숫자만 남긴다
+ *   - 상담 이용권 행 안의 대화 내용(sessions)·생년월일·이메일 — 이용권 사용 숫자만 남긴다.
+ *     결제가 한 건도 없는 회원은 상담 이용권 행을 통째로 지운다
  *   - 로그인 계정의 식별 정보
  * 회원 연결만 끊는 것(통계 행은 남고 누구 것인지는 사라진다)
  *   - 이용 흐름 통계(umsh_funnel_events.user_id), 푸시 발송 결과(push_delivery_logs.user_id)
@@ -96,7 +97,10 @@ export async function deleteOwnAccount(userId: string, store: AccountDeletionSto
   await store.deleteStoredFiles(userId)
   for (const owned of OWNED_ROWS) await store.deleteRows(owned.table, owned.filters(userId))
   for (const table of UNLINKED_ROWS) await store.updateRows(table, { user_id: `eq.${userId}` }, { user_id: null })
-  await store.scrubConsultationLedger(userId)
+  // 상담 이용권 행: 결제 기록이 있으면 이용권 숫자만 남기고 나머지를 지운다. 결제가 한 건도 없으면 보관할
+  // 이유가 없으므로 행을 통째로 지운다(2026-10-12 사용자 결정). 남겨 두면 계정 삭제 뒤 주인 없는 행이 된다.
+  if (paymentRecordsRetained) await store.scrubConsultationLedger(userId)
+  else await store.deleteRows('cheongi_reports', { user_id: `eq.${userId}`, report_id: 'like.consultation-*' })
   await store.deleteCouponWallets(userId)
 
   await store.deleteAuthUser(userId, paymentRecordsRetained)

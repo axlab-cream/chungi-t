@@ -32,7 +32,10 @@ describe('deleteOwnAccount', () => {
     for (const table of ['cheongi_reports', 'cheongi_user_profiles', 'push_devices', 'job_choice_free_preview_claims', 'umsh_notification_prefs']) {
       assert.ok(calls.some((call) => call.startsWith(`rows:${table}:`)), table)
     }
-    for (const step of [`scrub:${USER}`, `coupons:${USER}`, `files:${USER}`]) assert.ok(calls.includes(step), step)
+    for (const step of [`coupons:${USER}`, `files:${USER}`]) assert.ok(calls.includes(step), step)
+    // 결제가 없으면 상담 이용권 행은 정리하지 않고 통째로 지운다.
+    assert.ok(!calls.includes(`scrub:${USER}`), 'scrub 대신 삭제해야 함')
+    assert.ok(calls.includes(`rows:cheongi_reports:${JSON.stringify({ user_id: `eq.${USER}`, report_id: 'like.consultation-*' })}`), '상담 이용권 행 삭제')
     for (const table of ['umsh_funnel_events', 'push_delivery_logs']) {
       assert.ok(calls.includes(`unlink:${table}:{"user_id":"eq.${USER}"}:{"user_id":null}`), table)
     }
@@ -57,6 +60,9 @@ describe('deleteOwnAccount', () => {
     const result = await deleteOwnAccount(USER, store)
     assert.equal(result.paymentRecordsRetained, true)
     assert.equal(calls.at(-1), `auth:${USER}:soft`)
+    // 결제가 있으면 상담 이용권 행은 지우지 않고 이용권 숫자만 남게 정리한다.
+    assert.ok(calls.includes(`scrub:${USER}`))
+    assert.ok(!calls.some((call) => call.startsWith('rows:cheongi_reports:') && call.includes('"like.consultation-*"')), '결제 회원의 상담 이용권 행을 지움')
   })
 
   it('never touches payment, financial, refund tables or the consultation ledger', async () => {

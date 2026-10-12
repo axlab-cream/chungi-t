@@ -200,8 +200,10 @@ describe('탈퇴 후 결제 기록 보관', () => {
     assert.equal(result.paymentRecordsRetained, false)
     assert.equal(users.some((u) => u.id === FREE), false)
     for (const table of ['cheongi_user_profiles', 'cheongi_reports', 'push_devices', 'umsh_notification_prefs']) {
-      assert.equal(db[table].some((r) => r.user_id === FREE && !String(r.report_id ?? '').startsWith('consultation-')), false, `${table} 이 남음`)
+      assert.equal(db[table].some((r) => r.user_id === FREE), false, `${table} 이 남음`)
     }
+    // 결제가 없으니 상담 이용권 행도 남기지 않는다.
+    assert.equal(db.cheongi_reports.some((r) => r.report_id === `consultation-${FREE.slice(0, 4)}`), false, '상담 이용권 행이 남음')
   })
 
   it('다른 회원의 데이터와 결제 기록은 건드리지 않는다', async () => {
