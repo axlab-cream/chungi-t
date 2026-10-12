@@ -24,6 +24,51 @@ export type AdminMemberSummary = {
   purchaseCount: number
   totalPurchaseAmount: number
   updatedAt: string
+  /** 2026-10-12: 마이페이지 알림 설정. 조회에 실패하면 null(화면은 "—"). 설정한 적 없으면 기본값. */
+  notifications: AdminMemberNotifications | null
+}
+
+/** 마이페이지 › 알림 스위치 두 개와 광고성 동의·철회 시각(umsh_notification_prefs). */
+export type AdminMemberNotifications = {
+  servicePush: boolean
+  marketingPush: boolean
+  marketingConsentedAt: string | null
+  marketingWithdrawnAt: string | null
+}
+
+const DEFAULT_MEMBER_NOTIFICATIONS: AdminMemberNotifications = { servicePush: true, marketingPush: false, marketingConsentedAt: null, marketingWithdrawnAt: null }
+
+/**
+ * 한 페이지 회원의 알림 설정을 한 번에 읽는다. 행이 없는 회원은 한 번도 바꾸지 않은 것이라 기본값이다.
+ * 표가 없거나(마이그레이션 전) 조회가 실패하면 null — 목록은 그대로 보이고 알림 칸만 비운다.
+ */
+async function memberNotifications(userIds: string[]): Promise<Map<string, AdminMemberNotifications> | null> {
+  const ids = userIds.filter((id) => UUID_PATTERN.test(id))
+  const result = new Map<string, AdminMemberNotifications>()
+  if (!ids.length) return result
+  try {
+    const url = new URL(tableUrl('umsh_notification_prefs'))
+    url.searchParams.set('select', 'user_id,service_push,marketing_push,marketing_consented_at,marketing_withdrawn_at')
+    url.searchParams.set('user_id', `in.(${ids.join(',')})`)
+    const response = await fetch(url, { headers: serviceHeaders() })
+    if (!response.ok) return null
+    for (const row of await response.json() as RestRow[]) {
+      result.set(String(row.user_id).toLowerCase(), {
+        servicePush: row.service_push !== false,
+        marketingPush: row.marketing_push === true,
+        marketingConsentedAt: typeof row.marketing_consented_at === 'string' ? row.marketing_consented_at : null,
+        marketingWithdrawnAt: typeof row.marketing_withdrawn_at === 'string' ? row.marketing_withdrawn_at : null,
+      })
+    }
+    return result
+  } catch {
+    return null
+  }
+}
+
+function notificationsFor(map: Map<string, AdminMemberNotifications> | null, userId: string): AdminMemberNotifications | null {
+  if (!map) return null
+  return map.get(userId.toLowerCase()) ?? { ...DEFAULT_MEMBER_NOTIFICATIONS }
 }
 
 export type AdminMemberPurchase = {
@@ -190,10 +235,12 @@ export async function listLiveMembers(limit = 20, offset = 0): Promise<AdminMemb
   const response = await fetch(url, { headers: serviceHeaders() })
   if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
   const rows = await response.json() as RestRow[]
+  const prefs = await memberNotifications(rows.map((row) => clipped(row.user_id, '')))
   return Promise.all(rows.map(async (row, index) => {
     const userId = clipped(row.user_id, '')
     const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
     return {
+      notifications: notificationsFor(prefs, userId),
       no: safeOffset + index + 1,
       id: userId,
       name: clipped(row.name, '이름 미등록'),
@@ -274,10 +321,12 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
   const rows = await response.json() as RestRow[]
   const range = response.headers.get('content-range')?.split('/')[1]
   const total = range && /^\d+$/.test(range) ? Number(range) : safeOffset + rows.length
+  const prefs = await memberNotifications(rows.map((row) => clipped(row.user_id, '')))
   const members = await Promise.all(rows.map(async (row, index) => {
     const userId = clipped(row.user_id, '')
     const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
     return {
+      notifications: notificationsFor(prefs, userId),
       no: safeOffset + index + 1,
       id: userId,
       name: clipped(row.name, '이름 미등록'),
@@ -330,8 +379,9 @@ export async function findLiveMember(memberId: string): Promise<AdminMemberSumma
   const row = (await response.json() as RestRow[])[0]
   if (!row) return null
   const userId = clipped(row.user_id, '')
-  const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
+  const [auth, purchases, prefs] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId), memberNotifications([userId])])
   return {
+    notifications: notificationsFor(prefs, userId),
     id: userId,
     name: clipped(row.name, '이름 미등록'),
     email: auth.email,
@@ -736,6 +786,7 @@ export type AdminMemberProfile = {
   bannedUntil: string | null
   lastSignInAt: string | null
   signupProvider: string | null
+  notifications: AdminMemberNotifications | null
 }
 
 export type AdminMemberProfileInput = {
@@ -771,7 +822,7 @@ function memberIsBanned(bannedUntil: string | null | undefined): boolean {
   return Number.isFinite(until) && until > Date.now()
 }
 
-function memberProfileFromRow(userId: string, row: RestRow | null, authUser: AuthAdminUser | null): AdminMemberProfile {
+function memberProfileFromRow(userId: string, row: RestRow | null, authUser: AuthAdminUser | null, notifications: AdminMemberNotifications | null = null): AdminMemberProfile {
   return {
     userId,
     email: typeof authUser?.email === 'string' ? authUser.email : null,
@@ -790,14 +841,15 @@ function memberProfileFromRow(userId: string, row: RestRow | null, authUser: Aut
     bannedUntil: authUser?.banned_until ?? null,
     lastSignInAt: typeof authUser?.last_sign_in_at === 'string' ? authUser.last_sign_in_at : null,
     signupProvider: typeof authUser?.app_metadata?.provider === 'string' ? authUser.app_metadata.provider : null,
+    notifications,
   }
 }
 
 /** 프로필 행도 인증 계정도 없으면 null — 있는 쪽만으로 임의 값을 지어내지 않는다. */
 export async function getAdminMemberDetail(userId: string): Promise<AdminMemberProfile | null> {
-  const [row, authUser] = await Promise.all([fetchMemberProfileRow(userId), fetchAuthAdminUser(userId)])
+  const [row, authUser, prefs] = await Promise.all([fetchMemberProfileRow(userId), fetchAuthAdminUser(userId), memberNotifications([userId])])
   if (!row && !authUser) return null
-  return memberProfileFromRow(userId, row, authUser)
+  return memberProfileFromRow(userId, row, authUser, notificationsFor(prefs, userId))
 }
 
 export async function updateAdminMemberProfile(input: AdminMemberProfileInput): Promise<AdminMemberProfile> {

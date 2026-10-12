@@ -74,6 +74,10 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   if (url.pathname === '/auth/v1/admin/users/unknown-user' && method === 'GET') {
     return new Response(JSON.stringify({ message: 'not found' }), { status: 404 })
   }
+  // 알림 설정을 바꾼 적 없는 회원(행 없음) → 기본값으로 보여야 한다.
+  if (url.pathname === '/rest/v1/umsh_notification_prefs' && method === 'GET') {
+    return new Response('[]', { headers: { 'content-type': 'application/json' } })
+  }
   if (url.pathname === '/rest/v1/cheongi_user_profiles' && method !== 'GET' && method !== 'POST') {
     throw new Error(`unexpected method ${method}`)
   }
@@ -105,6 +109,7 @@ describe('회원 프로필 상세·수정·계정 정지', { concurrency: false 
       bannedUntil: null,
       lastSignInAt: null,
       signupProvider: null,
+      notifications: { servicePush: true, marketingPush: false, marketingConsentedAt: null, marketingWithdrawnAt: null },
     })
   })
 

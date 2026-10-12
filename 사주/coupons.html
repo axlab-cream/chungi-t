@@ -1,8 +1,65 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="same-origin"><title>내 쿠폰 · 운명상회</title><link rel="stylesheet" href="/css/coupons.css?v=20261002"><script src="/js/umsh-analytics.js?v=20261001-signup" defer></script></head>
-<body><a class="skip" href="#coupon-code">쿠폰 등록으로 이동</a><header><a href="/">運命商會 <span>운명상회</span></a><a href="/my">MY로 돌아가기</a></header>
-<main id="coupons-app"><div class="eyebrow">MY · 나에게 온 혜택</div><h1>내 쿠폰</h1><p class="intro">받은 쿠폰을 등록하고,<br>궁금했던 운의 흐름을 살펴보세요.</p>
-<section class="claim" aria-labelledby="claim-title"><h2 id="claim-title">쿠폰 등록</h2><form id="coupon-form"><label for="coupon-code">쿠폰 코드</label><div class="claim-row"><input id="coupon-code" name="code" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" required placeholder="받으신 코드를 입력하세요" disabled><button id="coupon-submit" type="submit" disabled>등록하기</button></div></form><p id="coupon-message" role="status" aria-live="polite"></p><a id="coupon-login" hidden>로그인하기</a></section>
-<section class="wallet" aria-labelledby="wallet-title"><div class="wallet-heading"><h2 id="wallet-title">보유 쿠폰</h2><button id="coupon-refresh" type="button" class="secondary">새로고침</button></div><p id="coupon-state" role="status">쿠폰을 확인하고 있어요.</p><div id="coupon-list" class="coupon-list"></div></section>
-<aside><h2>사용 전에 확인해 주세요</h2><ul><li>무료 이용권은 해당 서비스의 풀이를 만든 뒤 결제 화면에서 적용해요.</li><li>상담 질문권은 등록 후 천명상담에서 사용할 수 있어요. 무료 질문, 쿠폰 질문, 구매한 질문 순서로 사용해요.</li><li>할인 쿠폰은 주문당 한 장만 적용할 수 있어요. 주문에 적용하면 해당 주문에 예약되며, 결제가 실패해도 다른 주문으로 옮길 수 없어요. 재발급은 고객 지원에 문의해 주세요.</li><li>비활성화되거나 만료된 미사용 쿠폰은 사용할 수 없어요. 이미 연 무료 풀이는 계속 읽을 수 있어요.</li></ul><a href="/support">고객 지원</a></aside></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="/js/common-auth-return.js"></script><script src="/js/umsh-auth-session.js"></script><script src="/js/coupons.js?v=20261002" defer></script></body></html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="same-origin" />
+    <title>내 쿠폰 · 운명상회</title>
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260917-icon" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20261012-coupons" />
+    <!-- 화면 스타일(display:flex 등)이 hidden 을 덮지 않게 한다. 다른 마이페이지 화면과 같은 규칙. -->
+    <style>[hidden] { display: none !important; }</style>
+  </head>
+  <body>
+    <!-- 2026-10-12: 다른 마이페이지 화면과 같은 틀(공통 헤더·하단 탭·본문 뒤로 가기). 쿠폰 스크립트가 쓰는 id 는 그대로다. -->
+    <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
+      <header class="appbar topbar"></header>
+      <section class="payment-shell myhub" id="coupons-app" aria-labelledby="page-title">
+        <p class="payment-eyebrow">MY</p>
+        <h1 id="page-title">내 쿠폰</h1>
+        <p class="payment-intro">받은 쿠폰을 등록하고, 궁금했던 운의 흐름을 살펴보세요.</p>
+
+        <form class="payment-form myhub-coupon-claim" id="coupon-form" aria-labelledby="claim-title">
+          <h2 class="myhub-coupon-title" id="claim-title">쿠폰 등록</h2>
+          <label class="payment-label" for="coupon-code">쿠폰 코드</label>
+          <div class="myhub-coupon-row">
+            <input id="coupon-code" name="code" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" required placeholder="받으신 코드를 입력하세요" disabled />
+            <button id="coupon-submit" class="payment-submit" type="submit" disabled>등록</button>
+          </div>
+          <p class="payment-status" id="coupon-message" role="status" aria-live="polite"></p>
+          <a class="payment-submit myhub-coupon-login" id="coupon-login" hidden>로그인하기</a>
+        </form>
+
+        <div class="myhub-coupon-heading">
+          <h2 class="myhub-group-title" id="wallet-title">보유 쿠폰</h2>
+          <button class="myhub-text-button" id="coupon-refresh" type="button">새로고침</button>
+        </div>
+        <p class="myhub-coupon-state" id="coupon-state" role="status">쿠폰을 확인하고 있어요.</p>
+        <div class="myhub-coupons" id="coupon-list" aria-labelledby="wallet-title"></div>
+
+        <h2 class="myhub-group-title">사용 전에 확인해 주세요</h2>
+        <ul class="myhub-notes">
+          <li>무료 이용권은 해당 서비스의 풀이를 만든 뒤 결제 화면에서 적용해요.</li>
+          <li>상담 질문권은 등록 후 천명상담에서 사용할 수 있어요. 무료 질문, 쿠폰 질문, 구매한 질문 순서로 사용해요.</li>
+          <li>할인 쿠폰은 주문당 한 장만 적용할 수 있어요. 주문에 적용하면 해당 주문에 예약되며, 결제가 실패해도 다른 주문으로 옮길 수 없어요. 재발급은 고객 지원에 문의해 주세요.</li>
+          <li>비활성화되거나 만료된 미사용 쿠폰은 사용할 수 없어요. 이미 연 무료 풀이는 계속 읽을 수 있어요.</li>
+        </ul>
+        <p class="myhub-links"><a href="/inquiries">1:1 문의</a><a href="/support">고객 지원</a></p>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js?v=20260922c"></script>
+    <script src="/js/coupons.js?v=20261012-my" defer></script>
+  </body>
+</html>
