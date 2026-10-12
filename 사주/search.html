@@ -209,7 +209,7 @@
       </section>
 
       <div class="search-field">
-        <input id="q" type="search" autocomplete="off" placeholder="예: 궁합, 연애, 직장, 고양이" aria-label="운세 검색" />
+        <input id="q" type="search" autocomplete="off" placeholder="예: 궁합, 연애, 직장, 재물" aria-label="운세 검색" />
       </div>
 
       <div class="chip-row" id="chips" role="tablist" aria-label="분류"></div>
@@ -292,7 +292,15 @@
         fetch('/api/services')
           .then((response) => response.json())
           .then((payload) => {
-            services = Array.isArray(payload.services) ? payload.services : [];
+            // 검색 노출만 숨김: 고양이 궁합의 직접 링크와 저장된 풀이는 유지한다.
+            // { key: 'cat_compatibility', href: '/match/cat' } — 재노출 시 아래 필터 제거.
+            const searchImages = {
+              cmdg: 'https://lcdlszuyicytaexy.public.blob.vercel-storage.com/home/cmdg-hero-20261012.webp',
+              money_save: '/assets/umsh-money-mask-card-20261012.webp',
+            };
+            services = (Array.isArray(payload.services) ? payload.services : [])
+              .filter((service) => service.key !== 'cat_compatibility')
+              .map((service) => ({ ...service, image: searchImages[service.key] || service.image }));
             renderChips();
             render();
           })

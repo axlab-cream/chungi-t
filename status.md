@@ -3015,3 +3015,8 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - Public Blob: cmdg/entry-sequence-20261012.mp4. Range206 and 1-year cache confirmed; old object retained for rollback.
 - Canonical and mirror changed only video URL. Full media decode, boundary/end frames, 8 focused tests, typecheck/build PASS. Local browser duration40.128/readyState4 and mobile CTA visible confirmed.
 - Reviewer and production verification pending. KMS target: personal/carrotcap/notes/cmdg-video-continuation-20261012.md.
+- Production verification complete: 6898214c / dpl_CafmNKFAdyTTKKKBiq5ciA53uofE Ready, umsh.kr alias. Browser reached continuation at18.89s readyState4 and CTA entered existing saved-profile concern form (no submission). Grok approved, no major/critical findings. KMS saved/read/searched.
+
+## 2026-10-12 SEARCH-BANNERS
+- PRD/plan: search-only presentation; CMDG uses current home hero poster, money uses approved mask artwork, cat excluded from all search/category results while routes/API/admin/saved readings stay available. Remove cat search hint. Existing dark/gold grid, price, title and links preserved.
+- Acceptance: production search images loaded, cat absent for all/category/query, money matches portal, original service links valid. Build and browser verification pending.
