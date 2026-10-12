@@ -143,14 +143,24 @@ test('7. 생성된 FAQ 가 템플릿과 어긋나지 않는다', () => {
  * **가드 없이** 부르기 때문에, 없애면 그 한 줄에서 스크립트가 통째로 죽는다.
  * 같은 이유로 자체 상단바도 지우지 않고 CSS 로 감춘다.
  */
-test('8. 대화 화면의 PDF 는 본문 하단 공통 자리에 있다', () => {
+/**
+ * 2026-10-12: PDF 저장은 보관함(/vault) 카드 한 곳에서만 받는다.
+ * 대화 화면에서 버튼을 뺐으므로, 예전에 "#btn-pdf 가 DOM 에 남아 있어야 한다"로
+ * 지키던 사고(가드 없는 getElementById 가 죽는 것)는 가드 쪽에서 지킨다.
+ */
+test('8. 대화 화면에는 PDF 버튼을 두지 않고, 사라진 id 를 가드 없이 찾지 않는다', () => {
   const chat = read('chat.html')
-  assert.ok(chat.includes('class="umsh-pdf-dock"'), 'PDF 공통 자리가 없다')
-  assert.ok(/<div class="umsh-pdf-dock">[\s\S]{0,200}id="btn-pdf"/.test(chat), 'PDF 버튼이 공통 자리 밖에 있다')
-  assert.ok(!/<header[\s\S]{0,400}id="btn-pdf"/.test(chat), 'PDF 버튼이 아직 상단바에 있다')
+  assert.ok(!chat.includes('class="umsh-pdf-dock"'), '대화 화면에 PDF 공통 자리가 남아 있다')
+  assert.ok(!chat.includes('id="btn-pdf"'), '대화 화면에 PDF 버튼이 남아 있다')
 
-  // chat.js 가 가드 없이 찾는 두 id 는 DOM 에 남아 있어야 한다.
-  for (const id of ['btn-pdf', 'btn-back']) {
+  const chatJs = read(join('js', 'chat.js'))
+  assert.ok(
+    /getElementById\('btn-pdf'\)[\s\S]{0,60}if \(legacyPdfButton\)/.test(chatJs),
+    'chat.js 가 #btn-pdf 를 가드 없이 찾는다 — 그 줄에서 멈추면 아래 코드가 전부 죽는다',
+  )
+
+  // chat.js 가 가드 없이 찾는 id 는 DOM 에 남아 있어야 한다.
+  for (const id of ['btn-back']) {
     assert.ok(chat.includes(`id="${id}"`), `#${id} 가 사라졌다 — chat.js 가 그 줄에서 죽는다`)
   }
   assert.ok(chat.includes('<header class="topbar">'), '자체 상단바를 지웠다 — 감추기만 해야 한다')

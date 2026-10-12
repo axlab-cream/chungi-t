@@ -37,7 +37,8 @@ test('천명사주 영상 랜딩은 기존 사주 등록 진입과 별도 서비
   assert.match(landing, /isLoveThisYearService\(\)/)
   assert.match(landing, /renderLoveThisYearLanding\(\)/)
   assert.match(landing, /<video[^>]+autoplay muted loop playsinline/)
-  assert.match(landing, /data-action="enter">내 사주 확인하기/)
+  // CTA 글자는 광택을 글자에만 입히려고 span 으로 감싼다.
+  assert.match(landing, /data-action="enter"><span class="cta-label">내 사주 확인하기/)
   assert.doesNotMatch(landing, /sampleSourceSections\(/)
   const actions = sliceBetween('if (action === "enter")', 'if (action === "look")')
   assert.match(actions, /startStandardReading\(\)/)

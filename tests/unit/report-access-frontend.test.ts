@@ -850,13 +850,13 @@ test('detail pages get a print stylesheet and a PDF button once the saved report
   assert.match(printCss.href, /^\/css\/umsh-report-print\.css\?v=/)
 
   const dock = h.context.document.body.children.find((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === '')
-  assert.ok(dock, '상세 화면에는 PDF 버튼이 있어야 한다')
-  assert.equal(dock.children[0].getAttribute('data-umsh-pdf'), '')
-  assert.equal(dock.children[0].textContent, 'PDF 저장')
+  // 2026-10-12: PDF 저장은 보관함(/vault) 카드 한 곳에서만 받는다.
+  // 인쇄 규칙은 그대로 둔다 — 브라우저 인쇄로 저장할 때 상단바까지 찍히면 안 된다.
+  assert.equal(dock, undefined, '상세 화면에는 PDF 버튼을 두지 않는다')
 })
 
-/** 06-1 화면이 없는 서비스는 보관함에서 이 주소로 열린다. 여기에도 PDF 가 있어야 한다. */
-test('the shared permalink reader also gets a PDF button', () => {
+/** 06-1 화면이 없는 서비스는 보관함에서 이 주소로 열린다. 여기에도 PDF 버튼은 두지 않는다. */
+test('the shared permalink reader does not offer its own PDF button', () => {
   const h = harness('/r/967d0551', [])
   h.api.consume({
     reportId: '967d0551',
@@ -864,7 +864,7 @@ test('the shared permalink reader also gets a PDF button', () => {
     report: { serviceKey: 'love_mind', title: '속마음', subtitle: '', sections: [{ id: 'love-mind-1', status: 'complete', interpretation: '본문입니다.' }] },
   }, {})
   const dock = h.context.document.body.children.find((node: any) => node.getAttribute?.('data-umsh-pdf-auto') === '')
-  assert.ok(dock, '고유 주소 리더에도 PDF 버튼이 있어야 한다')
+  assert.equal(dock, undefined, '고유 주소 리더에도 PDF 버튼을 두지 않는다 — 보관함 한 곳에서만 받는다')
 })
 
 test('the teaser step never offers a PDF of a report the reader has not unlocked', () => {

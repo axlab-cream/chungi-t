@@ -1450,26 +1450,16 @@
   }
 
   function ensurePdfDock(host) {
-    // 2026-10-12: PDF 저장은 보관함(`/vault`) 카드 한 곳에서만 받는다.
-    // 결과 화면마다 따로 두면 같은 기능이 서비스별로 다른 자리에 생기고,
-    // 보관함 카드가 이미 "전부 생성됐을 때만" 이라는 조건을 쥐고 있다.
-    return;
-    /* eslint-disable no-unreachable */
+    /*
+     * 2026-10-12: PDF 저장 버튼은 보관함(`/vault`) 카드 한 곳에서만 둔다.
+     * 결과 화면마다 따로 두면 같은 기능이 서비스별로 다른 자리에 생기고,
+     * 보관함 카드가 이미 "전부 생성됐을 때만 연다"는 조건을 쥐고 있다.
+     *
+     * 다만 인쇄 규칙은 그대로 깐다. 사용자가 브라우저 인쇄로 저장할 때
+     * 상단바와 버튼까지 종이에 찍히면 안 되기 때문이다.
+     */
     if (!isDetailPage() && !isPermalink()) return;
     ensurePrintStyles();
-    if (document.querySelector('[data-umsh-pdf], #btn-pdf')) return;
-    var anchor = host && host.closest ? (host.closest('section, article, main, body') || host) : document.body;
-    if (!anchor) return;
-    var dock = document.createElement('div');
-    dock.className = 'umsh-pdf-dock';
-    dock.setAttribute('data-umsh-pdf-auto', '');
-    var button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'pdf-button';
-    button.setAttribute('data-umsh-pdf', '');
-    button.textContent = 'PDF 저장';
-    dock.appendChild(button);
-    anchor.appendChild(dock);
   }
   /**
    * 등록 디자인 안에서 실제 저장 리포트를 여는 06 상세 화면도 공용 리더와 같은 끝맺음을 쓴다.
