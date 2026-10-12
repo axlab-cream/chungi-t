@@ -63,7 +63,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, memberNamesByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { searchAdminAuditEvents } from '../admin/audit-store.js'
@@ -2939,8 +2939,11 @@ app.get('/api/admin/v1/orders', async (req, res) => {
       status: (status || undefined) as PaymentOrder['status'] | undefined,
       ...window,
     })
+    // 2026-10-12: 목록에서 누가 결제했는지 바로 보이게 회원 이름과 회원 이메일을 붙인다(회원 관리와 같은 공개 범위).
+    // 이름 조회가 실패해도 결제 목록은 그대로 보여 준다.
+    const names = await memberNamesByIds(page.orders.map((order) => order.ownerId)).catch(() => new Map<string, string>())
     res.json({
-      orders: page.orders.map(toAdminPaymentOrderDto),
+      orders: page.orders.map((order) => ({ ...toAdminPaymentOrderDto(order), ownerName: names.get(String(order.ownerId).toLowerCase()) ?? null, ownerEmail: order.ownerEmail ?? null })),
       ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
       storage: getPaymentStorageMode(),
     })
