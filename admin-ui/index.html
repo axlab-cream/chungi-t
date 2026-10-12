@@ -451,6 +451,7 @@
     .admin-inline input { flex: 1; }
     .admin-label { margin-top: 4px; font-size: 13px; font-weight: 600; }
     .admin-hint, .admin-counter { color: var(--admin-text-muted); font-size: 12px; }
+    .admin-hint-warn { display: block; margin-top: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid #d9a441; background: rgba(217, 164, 65, .12); color: var(--admin-text); }
     .admin-counter[data-over='true'] { color: var(--admin-state-warn); font-weight: 600; }
     .admin-audience { margin: 4px 0 0; padding: 9px 12px; border-radius: 6px; background: #eef3ff; color: var(--admin-text); font-size: 13px; }
     .admin-compose-preview { position: sticky; top: 0; align-self: start; display: grid; gap: 8px; }
@@ -2864,6 +2865,7 @@
             + '<label class="admin-label" for="msg-body">메시지</label><textarea id="msg-body" name="message" maxlength="500" placeholder="오늘 당신에게 들어오는 운은 무엇일까요?"></textarea><span class="admin-counter" data-count="message"></span>'
             + '<label class="admin-label" for="msg-link">누르면 열 페이지</label><input id="msg-link" name="deepLink" maxlength="500" value="/" placeholder="/me/lucky"><span class="admin-hint">운명상회 안의 주소만 됩니다. 비워 두면 첫 화면이 열립니다.</span></section>'
             + '<section><h4><span class="admin-step">4</span>광고 여부</h4><label class="admin-check"><input type="checkbox" name="marketing"> 광고성 알림입니다 (이벤트·할인·쿠폰 소식)</label>'
+            + '<div class="admin-hint admin-hint-warn" data-ad-words hidden><b data-ad-words-text></b><br>광고성이면 위 "광고성 알림입니다"에 체크해 주세요. 체크하지 않으면 수신을 거부한 회원에게도 갑니다.<br><label class="admin-check"><input type="checkbox" name="notMarketing"> 광고가 아닙니다 (풀이·결제·서비스 안내입니다)</label></div>'
             + '<div class="admin-hint" data-marketing-rules hidden><b>광고성 알림 발송 규칙 (정보통신망법)</b><br>'
             + '· 마이페이지에서 <b>이벤트·혜택 알림에 동의한 회원</b>에게만 보냅니다. 로그인하지 않은 기기와 동의하지 않은 회원은 빠집니다.<br>'
             + '· 제목 앞에 <b>(광고)</b>, 본문 끝에 <b>수신 거부 방법</b>이 자동으로 붙습니다.<br>'
@@ -2888,6 +2890,11 @@
             // 광고성이면 고객 기기에 실제로 보이는 문구(제목 앞 (광고), 본문 끝 수신 거부 안내)로 미리 보여 준다.
             var marketing = form.elements.marketing.checked;
             form.querySelector('[data-marketing-rules]').hidden = !marketing;
+            // 일반 알림에 광고 낱말이 있으면 "광고가 아닙니다"를 따로 확인받는다. 서버(parseDraft)도 같은 확인을 한다.
+            var words = marketing ? [] : MARKETING_WORDS.filter(function (word) { return (form.elements.title.value + ' ' + form.elements.message.value).indexOf(word) >= 0; });
+            var adBox = form.querySelector('[data-ad-words]'); adBox.hidden = !words.length;
+            if (words.length) adBox.querySelector('[data-ad-words-text]').textContent = '광고로 보이는 낱말이 있습니다: ' + words.join(', ');
+            else form.elements.notMarketing.checked = false;
             renderPushPhone(phone, (marketing ? '(광고) ' : '') + form.elements.title.value.trim(), form.elements.message.value.trim() + (marketing ? '\n\n수신 거부: 운명상회 앱 › 마이페이지 › 알림' : ''));
             counter('title', form.elements.title.value.trim(), 40, 100); counter('message', form.elements.message.value.trim(), 60, 500);
           }
@@ -2905,10 +2912,10 @@
             node.textContent = '예상 발송 대상을 세는 중입니다.';
             clearTimeout(countTimer);
             countTimer = setTimeout(function () {
-              pushRequest('/audience', { target: target }).then(function (data) {
+              pushRequest('/audience', { target: target, marketing: form.elements.marketing.checked }).then(function (data) {
                 audience = { count: data.count, label: data.label };
                 node.innerHTML = ''; var strong = document.createElement('b'); strong.textContent = '예상 발송 대상 ' + fmtNumber(data.count) + '대';
-                node.append(strong, document.createTextNode(' · ' + data.label + (form.elements.marketing.checked ? ' · 이 중 이벤트·혜택 알림에 동의한 회원에게만 갑니다' : ''))); node.appendChild(adminTip('지금 알림을 받을 수 있는 앱 설치 기기 수입니다. 한 사람이 기기 두 대를 쓰면 두 대로 셉니다.'));
+                node.append(strong, document.createTextNode(' · ' + data.label + (form.elements.marketing.checked ? ' · 이벤트·혜택 알림에 동의한 회원의 기기만 셌습니다' : ' · 알림을 끈 회원은 뺐습니다'))); node.appendChild(adminTip('지금 알림을 받을 수 있는 앱 설치 기기 수입니다. 한 사람이 기기 두 대를 쓰면 두 대로 셉니다.'));
               }).catch(function (error) { audience = { count: null, label: '' }; node.textContent = error.message; });
             }, 250);
           }
@@ -2945,6 +2952,8 @@
             if (!title || !message) { adminToast('제목과 메시지를 입력해 주세요.'); return; }
             var target = selectedTarget();
             if (target.type === 'users' && !target.userIds.length) { adminToast('보낼 회원을 검색해서 골라 주세요.'); return; }
+            var needsAdCheck = !form.querySelector('[data-ad-words]').hidden;
+            if (needsAdCheck && !form.elements.notMarketing.checked) { adminToast('광고로 보이는 낱말이 있습니다. "광고성 알림입니다"에 체크하거나 "광고가 아닙니다"를 확인해 주세요.'); form.querySelector('[data-ad-words]').scrollIntoView({ block: 'center' }); return; }
             var schedule = { mode: 'now' };
             if (form.elements.when.value === 'scheduled') {
               var at = new Date(form.elements.scheduledAt.value);
@@ -2966,7 +2975,7 @@
               { label: schedule.mode === 'now' ? '지금 발송' : '예약하기', primary: true, danger: schedule.mode === 'now', onClick: async function (d) {
                 var buttons = d.querySelectorAll('button'); buttons.forEach(function (b) { b.disabled = true; });
                 try {
-                  var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule, marketing: marketing });
+                  var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule, marketing: marketing, notMarketingConfirmed: !marketing && form.elements.notMarketing.checked });
                   d.close(); composer.close();
                   await load(); openDetail(data.item);
                 } catch (error) { adminToast(error.message); buttons.forEach(function (b) { b.disabled = false; }); }
@@ -3886,6 +3895,8 @@
           statusForm.appendChild(statusButton); section.appendChild(statusForm);
         } catch (_error) { var note2 = section.querySelector('.admin-note'); if (note2) note2.textContent = '회원 프로필을 불러오지 못했습니다.'; }
       }
+      // src/push/contracts.ts 의 MARKETING_WORDS 와 같은 목록(테스트가 맞춰 본다).
+      var MARKETING_WORDS = ['이벤트', '할인', '쿠폰', '혜택', '특가', '세일', '프로모션', '증정', '적립', '선착순', '한정', '기념', '무료', '오픈', '%'];
       /*
        * 회원 › 고객 지원 (2026-10 개편 7단계). 목록 먼저(답변 대기·처리 중·완료), 행 → 문의 상세 팝업.
        * 상세에서 회원·결제·리포트로 바로 넘어가고, 상태·담당 저장과 처리 기록을 한 화면에서 한다.
@@ -3980,7 +3991,14 @@
         var h3 = document.createElement('h4'); h3.textContent = '처리 기록';
         var timeline = document.createElement('div'); timeline.className = 'admin-timeline'; timeline.appendChild(memberEmpty('불러오는 중입니다.'));
         var noteForm = document.createElement('form'); noteForm.className = 'admin-note-form';
-        noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="internal">내부 메모</option><option value="customer_reply_draft">고객 답변 초안</option><option value="customer_reply">고객에게 답변 (회원 화면에 보임)</option></select><textarea name="text" maxlength="4000" rows="3" placeholder="처리한 내용을 남겨 주세요. 내부 메모와 초안은 고객에게 보이지 않습니다."></textarea><button class="admin-button" type="submit">기록 추가</button>';
+        // 답변을 내부 메모로 잘못 남겨 회원이 못 보는 일이 없게, 기본값은 "고객에게 답변"이다.
+        noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="customer_reply" selected>고객에게 답변 (회원 화면에 보임)</option><option value="internal">내부 메모 (회원에게 안 보임)</option><option value="customer_reply_draft">고객 답변 초안 (회원에게 안 보임)</option></select><textarea name="text" maxlength="4000" rows="3"></textarea><button class="admin-button" type="submit"></button>';
+        function syncNoteKind() {
+          var reply = noteForm.elements.kind.value === 'customer_reply';
+          noteForm.elements.text.placeholder = reply ? '회원이 마이페이지 › 1:1 문의에서 이 답변을 봅니다. 보내면 문의 상태가 "해결"로 바뀝니다.' : '처리한 내용을 남겨 주세요. 회원에게는 보이지 않습니다.';
+          noteForm.querySelector('button[type="submit"]').textContent = reply ? '회원에게 답변 보내기' : '기록 추가';
+        }
+        noteForm.elements.kind.addEventListener('change', syncNoteKind); syncNoteKind();
         right.append(h3, timeline, noteForm);
         wrap.append(left, right);
         async function loadNotes() {
@@ -4000,8 +4018,12 @@
         noteForm.addEventListener('submit', async function (event) {
           event.preventDefault(); var text = noteForm.elements.text.value.trim(); if (!text) { adminToast('기록할 내용을 적어 주세요.', 'error'); return; }
           try {
-            await adminJson('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ kind: noteForm.elements.kind.value, text: text }) });
-            noteForm.elements.text.value = ''; adminToast('기록을 남겼습니다.'); loadNotes();
+            var saved = await adminJson('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ kind: noteForm.elements.kind.value, text: text }) });
+            noteForm.elements.text.value = '';
+            // 답변하면 서버가 상태를 "해결"로 바꾼다. 바뀐 상태와 revision 을 받아 "상태 저장"이 충돌하지 않게 한다.
+            if (saved && saved.supportCase) { item.status = saved.supportCase.status; item.revision = saved.supportCase.revision; form.elements.status.value = item.status; }
+            adminToast(saved && saved.statusChanged ? '답변을 보냈습니다. 문의 상태를 "해결"로 바꿨습니다.' : '기록을 남겼습니다.'); loadNotes();
+            if (saved && saved.statusChanged && reload) reload();
           } catch (error) { adminToast(error.message, 'error'); }
         });
         openAdminModal({ title: (MEMBER_SUPPORT_CATEGORY[item.category] || '문의') + ' 문의', subtitle: '접수 ' + memberWhen(item.createdAt) + ' · 최근 변경 ' + memberWhen(item.updatedAt), size: 'wide', body: wrap, actions: [

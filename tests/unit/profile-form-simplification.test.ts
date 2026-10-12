@@ -8,6 +8,13 @@ const styles = readFileSync(new URL('../../사주/css/myhub.css', import.meta.ur
 const reportScript = readFileSync(new URL('../../사주/js/umsh-report-access.js', import.meta.url), 'utf8')
 
 describe('프로필 입력 간소화', () => {
+  it('윤달을 고를 수 있고, 저장할 때 윤달 표시를 지우지 않는다', () => {
+    assert.match(page, /<option value="lunar-leap">음력 \(윤달\)<\/option>/)
+    assert.doesNotMatch(script, /isLeapMonth:\s*false/)
+    assert.match(script, /isLeapMonth:\s*form\.calendar\.value === 'lunar-leap'/)
+    assert.match(script, /birth\.isLeapMonth \? 'lunar-leap' : 'lunar'/)
+  })
+
   it('사주 기본정보만 요구하고 현실 기준 다섯 칸을 프로필에 표시하지 않는다', () => {
     assert.match(page, /name="birth"/)
     assert.match(page, /name="time"/)

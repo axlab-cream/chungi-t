@@ -75,11 +75,30 @@ export function adminPushRouter(deps: Deps): Router {
     catch (error) { pushFailure(res, error) }
   })
 
+  /** 발송기와 같은 기준으로 센다: 알림을 끈 회원은 빼고, 광고성이면 동의한 회원의 기기만. */
+  async function audienceCount(target: ReturnType<typeof parseTarget>, marketing: boolean): Promise<number> {
+    const recipients = deps.recipients
+    if (!recipients?.optedOut && !(marketing && recipients?.marketingConsented)) return store().countTargetDevices(target)
+    let devices = await store().selectTargetDevices(target, 20_000)
+    const userIds = devices.map((device) => device.userId).filter((id): id is string => !!id)
+    if (recipients.optedOut && userIds.length) {
+      const off = await recipients.optedOut(userIds)
+      devices = devices.filter((device) => !device.userId || !off.has(device.userId))
+    }
+    if (marketing) {
+      const ids = devices.map((device) => device.userId).filter((id): id is string => !!id)
+      const consented = recipients.marketingConsented && ids.length ? await recipients.marketingConsented(ids) : new Set<string>()
+      devices = devices.filter((device) => !!device.userId && consented.has(device.userId))
+    }
+    return devices.length
+  }
+
   router.post('/audience', async (req, res) => {
     if (!await deps.staff(req, res, 'content:read')) return
     try {
-      const target = parseTarget((req.body as { target?: unknown })?.target)
-      res.json({ count: await store().countTargetDevices(target), label: targetLabel(target) })
+      const body = (req.body ?? {}) as { target?: unknown; marketing?: unknown }
+      const target = parseTarget(body.target)
+      res.json({ count: await audienceCount(target, body.marketing === true), label: targetLabel(target) })
     } catch (error) { pushFailure(res, error) }
   })
 

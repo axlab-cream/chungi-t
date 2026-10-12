@@ -78,7 +78,7 @@ import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, de
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeBuyers, summarizeFunnel, summarizePaidOrders, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
-import { STAFF_NOTE_KINDS, SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { STAFF_NOTE_KINDS, SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, markSupportCaseAnswered, updateSupportCase } from '../admin/support-store.js'
 import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentUpdate, listIncidentUpdates, listIncidents, updateIncident } from '../admin/incident-store.js'
 import {
   NEW_SERVICE_DRAFT_REVISION,
@@ -3623,7 +3623,9 @@ app.post('/api/admin/v1/support/:id/notes', async (req, res) => {
   if (!id || !(STAFF_NOTE_KINDS as readonly string[]).includes(kind) || text.length < 1 || text.length > 4000 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_SUPPORT_NOTE_INPUT', error: '메모 종류, 내용, 멱등 키를 확인해 주세요.' }); return }
   try {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'support.note.create', idempotencyKey, body: { id, kind, textLength: text.length }, target: { type: 'support_case', id } }, async () => createSupportNote({ caseId: id, kind: kind as typeof SUPPORT_NOTE_KINDS[number], text, actorEmail: membership.email }))
-    res.status(command.replayed ? 200 : 201).json({ note: command.result, replayed: command.replayed })
+    // 회원에게 보이는 답변이면 문의를 "해결"로 옮긴다. 상태 변경이 실패해도 답변은 이미 저장됐으므로 답변 성공으로 응답한다.
+    const answered = kind === 'customer_reply' ? await markSupportCaseAnswered(id).catch(() => null) : null
+    res.status(command.replayed ? 200 : 201).json({ note: command.result, replayed: command.replayed, supportCase: answered?.supportCase ?? null, statusChanged: answered?.statusChanged === true })
   } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'SUPPORT_NOTE_CREATE_FAILED', error: '케이스 메모를 저장하지 못했습니다.' }) }
 })
 
