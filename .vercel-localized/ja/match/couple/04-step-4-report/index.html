@@ -1,0 +1,1475 @@
+<!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <link id="umsh-inplace-css" rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260929-couple-teaser-v1">
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>私たち二人、本当に合う？ 無料のまとめ</title>
+  <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+       og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="運命商会">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:title" content="運命商会 - 運命を売ります。">
+  <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+  <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+  <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="600">
+  <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="運命商会 - 運命を売ります。">
+  <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+  <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+  <meta name="description" content="二人の相性の無料の要約と、支払い後に開く全体の目次の案内">
+  <style>
+    @font-face {
+      font-family: "Pretendard";
+      src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: dark;
+      --bg: #061114;
+      --panel: rgba(9, 24, 29, 0.78);
+      --panel-strong: rgba(12, 34, 40, 0.92);
+      --line: rgba(186, 243, 241, 0.22);
+      --text: #f5fffd;
+      --muted: #a7c7c7;
+      --teal: #20c7c9;
+      --teal-soft: #83f3ed;
+      --coral: #ff7b67;
+      --gold: #e7bf69;
+      --ink: #041014;
+      --danger: #ff9a8f;
+      --ok: #80f0b9;
+      --shadow: 0 24px 90px rgba(0, 0, 0, 0.38);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(32, 199, 201, 0.22), transparent 34rem),
+        radial-gradient(circle at 88% 8%, rgba(255, 123, 103, 0.12), transparent 28rem),
+        linear-gradient(135deg, #071114 0%, #0b1b21 48%, #12100e 100%);
+      letter-spacing: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.58;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      content: "";
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 78%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    a.button,
+    a.ghost {
+      min-height: 48px;
+      border-radius: 8px;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(131, 243, 237, 0.46);
+      border-radius: 50%;
+      color: var(--teal-soft);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 24px rgba(32, 199, 201, 0.2);
+    }
+
+    .brand-title {
+      display: block;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-sub {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #dffafa;
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .stage-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid rgba(231, 191, 105, 0.36);
+      border-radius: 999px;
+      color: #ffe8a9;
+      background: rgba(231, 191, 105, 0.09);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.94fr) minmax(360px, 1.06fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .visual-panel,
+    .result-panel,
+    .scope-section,
+    .payment-section,
+    .empty-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .visual-panel {
+      position: sticky;
+      top: 18px;
+    }
+
+    .hero-asset {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero-asset img {
+      width: 100%;
+      height: 100%;
+      min-height: 620px;
+      display: block;
+      object-fit: cover;
+      object-position: 50% 42%;
+      filter: saturate(1.02) contrast(1.02);
+    }
+
+    .hero-asset::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background:
+        linear-gradient(to bottom, rgba(3, 10, 13, 0.04) 0%, rgba(3, 10, 13, 0.32) 48%, rgba(3, 10, 13, 0.9) 100%),
+        linear-gradient(135deg, rgba(32, 199, 201, 0.16), transparent 42%, rgba(255, 123, 103, 0.14));
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      z-index: 2;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(3, 13, 16, 0.66);
+      backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 10px;
+      color: var(--teal-soft);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.03;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 24px;
+      line-height: 1.24;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    .hero-copy p {
+      margin-bottom: 0;
+      color: #d8f7f4;
+      font-size: 15px;
+    }
+
+    .result-panel {
+      padding: 22px;
+    }
+
+    .answer-line {
+      margin-bottom: 12px;
+      color: #fffef8;
+      font-size: clamp(24px, 3.6vw, 38px);
+      font-weight: 900;
+      line-height: 1.14;
+      letter-spacing: 0;
+    }
+
+    .summary-copy {
+      margin-bottom: 18px;
+      color: #c9e7e5;
+      font-size: 16px;
+    }
+
+    .pair-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .pair-cell {
+      min-height: 82px;
+      padding: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .pair-cell span {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .pair-cell strong {
+      display: block;
+      overflow-wrap: anywhere;
+      color: #ffffff;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .signal-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.7fr) minmax(240px, 0.3fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .signal-item {
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(2, 14, 18, 0.54);
+    }
+
+    .signal-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .signal-item p {
+      margin-bottom: 10px;
+      color: #bfe0de;
+      font-size: 14px;
+    }
+
+    .signal-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border: 1px solid rgba(131, 243, 237, 0.22);
+      border-radius: 999px;
+      color: #dffdfa;
+      background: rgba(32, 199, 201, 0.1);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .chip.coral {
+      border-color: rgba(255, 123, 103, 0.28);
+      color: #ffd5cd;
+      background: rgba(255, 123, 103, 0.1);
+    }
+
+    .chip.gold {
+      border-color: rgba(231, 191, 105, 0.34);
+      color: #ffe8b0;
+      background: rgba(231, 191, 105, 0.1);
+    }
+
+    .signal-image {
+      min-height: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      background: #0a181d;
+      overflow: hidden;
+    }
+
+    .signal-image img {
+      width: 100%;
+      height: 100%;
+      min-height: 350px;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .scope-section,
+    .payment-section,
+    .empty-panel {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-head p {
+      max-width: 680px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .scope-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .scope-item {
+      min-height: 128px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .scope-item .scope-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 10px;
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--teal-soft);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .scope-item h3 {
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .scope-item p {
+      margin-bottom: 0;
+      color: #bddddb;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .payment-section {
+      display: grid;
+      grid-template-columns: minmax(0, 0.62fr) minmax(280px, 0.38fr);
+      gap: 16px;
+      align-items: stretch;
+      background: var(--panel-strong);
+    }
+
+    .pay-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .price-row strong {
+      color: #ffffff;
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .price-row span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .agreement-box {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0 16px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.055);
+      color: #dff5f3;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--teal);
+    }
+
+    .check-row.check-all {
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      font-weight: 800;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 18px;
+      border: 0;
+      color: #031014;
+      background: linear-gradient(135deg, var(--teal-soft), #ffffff 58%, var(--gold));
+      box-shadow: 0 18px 40px rgba(32, 199, 201, 0.22);
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .button[aria-busy="true"] {
+      cursor: wait;
+      opacity: 0.78;
+    }
+
+    .text-link {
+      color: #d6f6f3;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    .pay-note {
+      min-height: 22px;
+      margin: 0;
+      color: #ffd5cd;
+      font-size: 13px;
+    }
+
+    .pay-asset {
+      position: relative;
+      min-height: 360px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #09171b;
+    }
+
+    .pay-asset img {
+      width: 100%;
+      height: 100%;
+      min-height: 360px;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .pay-asset::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background: linear-gradient(to top, rgba(4, 12, 14, 0.74), transparent 58%);
+      pointer-events: none;
+    }
+
+    .state-box {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .state-item {
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .state-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .state-item strong {
+      display: block;
+      margin-top: 4px;
+      color: #ffffff;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .empty-panel {
+      display: none;
+      text-align: center;
+    }
+
+    .empty-panel.is-visible {
+      display: block;
+    }
+
+    .empty-panel p {
+      max-width: 560px;
+      margin: 0 auto 18px;
+      color: var(--muted);
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      width: min(380px, calc(100% - 36px));
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      color: #f8fffd;
+      background: rgba(5, 17, 20, 0.94);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.38);
+      opacity: 0;
+      transform: translateY(14px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 960px) {
+      .grid,
+      .signal-layout,
+      .payment-section {
+        grid-template-columns: 1fr;
+      }
+
+      .visual-panel {
+        position: static;
+      }
+
+      .hero-asset,
+      .hero-asset img {
+        min-height: 520px;
+      }
+
+      .scope-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .signal-image img,
+      .pay-asset,
+      .pay-asset img {
+        min-height: 300px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100% - 22px, 480px);
+        padding-top: 14px;
+      }
+
+      .topbar,
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .top-actions,
+      .cta-row {
+        width: 100%;
+      }
+
+      .top-actions > *,
+      .cta-row > * {
+        flex: 1 1 auto;
+      }
+
+      .pair-strip,
+      .scope-grid,
+      .state-box {
+        grid-template-columns: 1fr;
+      }
+
+      .result-panel,
+      .scope-section,
+      .payment-section,
+      .hero-copy {
+        padding: 16px;
+      }
+
+      .hero-asset,
+      .hero-asset img {
+        min-height: 520px;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+
+      .answer-line {
+        font-size: 26px;
+      }
+
+      .button,
+      .ghost {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .couple-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .couple-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .couple-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .couple-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css">
+  </head>
+<body data-umsh-chrome="" data-service="カップル相性" data-price="19,900 KRW" data-active="home">
+  <main class="page" id="step-4-report">
+    <div data-umsh-service-top="" data-umsh-service-category="궁합"></div>
+    <section id="umsh-preview-host" class="umsh-preview-panel" data-umsh-slot="preview" aria-label="自分の入力でまず見るカップル相性の解釈"></section>
+    <header class="appbar topbar">
+      <a class="brand" href="/" aria-label="私たち、本当に合う？ 最初に戻る">
+        <span class="brand-mark" aria-hidden="true">相</span>
+        <span>
+          <span class="brand-title">二人、本当に合う？</span>
+          <span class="brand-sub">二人の相性の無料要約</span>
+        </span>
+      </a>
+      <div class="top-actions">
+
+        <span class="stage-pill">04無料の要約</span>
+      </div>
+    </header>
+
+    <section class="empty-panel" id="emptyPanel" aria-live="polite">
+      <p class="eyebrow">相性を見るには</p>
+      <h1>相性を見るには、二人の誕生日が必要</h1>
+      <p>自分と相手を分けて書くと、無料のまとめへすぐ続く。前の画面で二人の情報を最後まで書いて。</p>
+      <div class="cta-row" style="justify-content: center;">
+
+
+      </div>
+    </section>
+
+    <div id="reportContent">
+      <section class="grid" aria-label="無料の相性要約">
+        <article class="visual-panel" data-asset-key="couple-match-04-hero">
+          <div class="hero-asset">
+            <img src="../assets/couple/04-hero.webp" alt="抽象的な相性チャートの前で見つめ合う二人">
+            <div class="hero-copy">
+              <p class="eyebrow">無料要約10~15%</p>
+              <h1>好きな気持ちだけでなく、合う方法まで</h1>
+              <p>ここでは結論を全部開かず、強いサイン、確認する条件、妨げ、今日の行動だけ先に見せる。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="result-panel">
+          <p class="eyebrow" id="userLabel">自分と相手の最初の要約</p>
+          <h2 class="answer-line" id="answerLine">二人は合う点と確認したい引き金が一緒に見える関係として読みます。</h2>
+          <p class="summary-copy" id="summaryCopy">入力値をもとに、関係段階、生年月日を分けるか、先に確認したい点を分けて見ます。全体結果では、干支、五行、コミュニケーション、葛藤のループを項目別に開きます。</p>
+
+          <div class="pair-strip" aria-label="入力の要約">
+            <div class="pair-cell">
+              <span>自分</span>
+              <strong id="selfName">自分</strong>
+            </div>
+            <div class="pair-cell">
+              <span>相手</span>
+              <strong id="partnerName">相手</strong>
+            </div>
+            <div class="pair-cell">
+              <span>先に見るポイント</span>
+              <strong id="focusLabel">相性の総評</strong>
+            </div>
+          </div>
+
+          <div class="signal-layout">
+            <div class="signal-list" id="signalList"></div>
+            <figure class="signal-image" data-asset-key="couple-match-04-signal-card">
+              <img src="../assets/couple/04-signal-card.webp" alt="二人の好意と注意のサインを、抽象的につなげたカード">
+            </figure>
+          </div>
+        </article>
+      </section>
+
+      <section class="scope-section" aria-labelledby="scopeTitle">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">決済後に開く全体の目次</p>
+            <h2 id="scopeTitle">実際に何を見られるか、先に確認してみて</h2>
+          </div>
+          <p>説明が長くなるだけではありません。下の大分類と中分類で関係を分けて読めます。</p>
+        </div>
+        <div class="scope-grid" id="scopeGrid"></div>
+      </section>
+
+      <section class="payment-section" aria-labelledby="paymentTitle">
+        <div class="pay-copy">
+          <div>
+            <p class="eyebrow" id="accessState">ログインして全体を見る</p>
+            <h2 id="paymentTitle">全体のレポートと項目ごとの解説を開く？</h2>
+            <p class="summary-copy" id="accessDescription">ログインすると、この結果を続けて見られます。決済前の無料要約はそのまま残ります。</p>
+            <div class="price-row">
+              <strong>19,900ウォン</strong>
+              <span>カップル相性の全文レポート</span>
+            </div>
+            <div class="agreement-box" aria-label="支払い前の確認">
+              <label class="check-row check-all">
+                <input type="checkbox" id="agreeAll">
+                <span>すべて選択</span>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" id="privacyAgree">
+                <span>入力した二人の情報が、レポートの作成と保管に使われることを確認します。</span>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" id="paymentAgree">
+                <span>支払額、全提供項目、取り消しの案内を確認した。</span>
+              </label>
+            </div>
+            <div class="cta-row">
+              <button class="button" type="button" id="mainCta">ログインして全体を見る (19,900 KRW)</button>
+              <a class="ghost" id="entitledLink" href="../05-step-5-chat/chat.html#step-5-chat" hidden="">全体の目次を開く</a>
+              <a class="text-link" href="/terms/payment-refund" aria-label="支払いと取り消しの案内を見る">支払い・キャンセルの案内</a>
+            </div>
+            <p class="pay-note" id="payNote" aria-live="polite"></p>
+          </div></div>
+
+        <figure class="pay-asset" data-asset-key="couple-match-04-paid-cta">
+          <img src="../assets/couple/04-paid-cta.webp" alt="広げた関係レポートカードを見る二人">
+        </figure>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="application/json" id="PROMPT_INPUT">
+{
+  "SERVICE_TITLE": "二人、本当に合う？",
+  "SERVICE_DESCRIPTION": "二人の関係の総評、干支・地支の相性、五行の相性、日支による生活感、会話のリズム、対立の輪、今日の関係の行動を、無料の要約と有料の全目次へつなぐ、二人の相性のサービス",
+  "SERVICE_CATEGORY": "二人の相性",
+  "SERVICE_PRICE_KRW": 19900,
+  "SERVICE_URL_HINT": "https://match.umsh.kr/couple",
+  "TARGET_AUDIENCE": "恋愛、片思い、長期の恋愛、結婚前の関係の流れを、MZの言葉ですばやく確認したい人",
+  "ANALYSIS_BASIS": ["命理の相性", "五行", "日支", "干支と地支の関係"],
+  "INTERPRETATION_INDEX_SOURCE": "user_seed",
+  "MVP_GROUPS": ["関係の総評", "干支の相性", "五行の相性", "コミュニケーションの相性", "衝突レポート", "今日の関係の行動"]
+}
+  </script>
+
+
+
+  <script type="application/json" id="IMAGE_MANIFEST">
+[
+  {
+    "asset_key": "couple-match-04-hero",
+    "filename": "assets/generated/couple-match/04/04-hero.webp",
+    "role": "hero",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "青緑・白・黒の色調", "黒のジャケット", "シルバーヘアのポイント", "冷たいハイファッションの照明"],
+    "prompt": "抽象的な相性レポートと五行のサインの前で見つめ合うカップル、画像内の文字は禁止",
+    "alt": "抽象的な相性チャートの前で見つめ合う二人",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-04-hero'] img"
+  },
+  {
+    "asset_key": "couple-match-04-signal-card",
+    "filename": "assets/generated/couple-match/04/04-signal-card.webp",
+    "role": "card",
+    "aspect_ratio": "1:1",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "青緑・白・黒の色調", "黒のジャケット", "シルバーヘアのポイント", "冷たいハイファッションの照明"],
+    "prompt": "二人の好意と注意のサインがつながる抽象的なカード、画像内の文字は禁止",
+    "alt": "二人の好意と注意のサインを、抽象的につなげたカード",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-04-signal-card'] img"
+  },
+  {
+    "asset_key": "couple-match-04-paid-cta",
+    "filename": "assets/generated/couple-match/04/04-paid-cta.webp",
+    "role": "cta",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "青緑・白・黒の色調", "黒のジャケット", "シルバーヘアのポイント", "冷たいハイファッションの照明"],
+    "prompt": "広がる関係レポートカードと柔らかい解除の光を見るカップル。画像内テキスト禁止",
+    "alt": "二人が広げた関係のレポートカードを見る場面",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-04-paid-cta'] img"
+  }
+]
+  </script>
+
+  <script>
+    (function () {
+      const SERVICE = {
+        service_key: "couple_match",
+        service_slug: "couple-match",
+        service_title: "私たち二人、本当に合う？",
+        category: "カップル相性",
+        subcategory: "四柱推命の相性",
+        price_krw: 19900,
+        service_url_hint: "https://match.umsh.kr/couple",
+        analysis_period: "今の関係の流れと今日の行動",
+        target_question: "二人はどこで合い、どこに注意する？",
+        analysis_basis: ["四柱推命の相性", "五行", "日支", "干支・地支の関係"],
+        interpretation_index_source: "user_seed",
+        report_version: "couple-match-r1",
+        copy_version: "step04-copy-v1"
+      };
+
+      const PREV_ROUTE = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      const NEXT_ROUTE = "../05-step-5-chat/chat.html#step-5-chat";
+      const STORAGE = {
+        input: "umsh:couple-match:input",
+        teaser: "umsh:couple-match:free-teaser",
+        reportContext: "umsh:couple-match:report-context",
+        pendingService: "umsh:pending-service",
+        authPending: "cheongi_pending_analysis_after_auth",
+        paymentIntent: "umsh:couple-match:payment-intent",
+        pendingPaymentReportId: "cheongi_pending_couple_match_payment_report_id"
+      };
+
+      const relationLabels = {
+        crush: "心に決めた人",
+        situationship: "曖昧な前の段階",
+        dating: "交際中",
+        long_term: "長期の交際",
+        before_marriage: "結婚前の確認",
+        married: "夫婦",
+        reconnect: "再び連絡するか迷う",
+        partnership: "共同事業・現実のパートナーシップ"
+      };
+
+      const focusLabels = {
+        overall: "相性の総評",
+        communication: "連絡と話し方のリズム",
+        conflict: "繰り返す葛藤のループ",
+        five_elements: "五行の相性と気",
+        marriage: "結婚前のチェックポイント",
+        today_action: "今日の連絡アクション"
+      };
+
+      const temperatureLabels = {
+        warm: "好意はあるが慎重な温度",
+        hot: "強く惹かれる温度",
+        cool: "少し離れた温度",
+        unstable: "良かったのに崩れた温度",
+        unknown: "まだ探っている温度"
+      };
+
+      const interpretationIndex = [
+        { id: "relationship_overview", large: "関係の総評", middle: ["相性の一行。", "グリーンライトの点", "注意点", "関係を保つ難度。", "今確かめる質問"] },
+        { id: "zodiac_branch_match", large: "干支・地支の相性", middle: ["ぴったりの組み合わせ", "無理の少ない組み合わせ", "距離が必要な組み合わせ", "衝突の引き金", "結婚・共同事業の相性"] },
+        { id: "five_element_chemistry", large: "五行の相性", middle: ["相生の空気", "相克の相性", "エネルギーを充電するタイプ", "力を消耗する型", "少ない五行を補う点"] },
+        { id: "daymaster_sync", large: "日干の傾向の一致", middle: ["表現の速さ", "気持ちを整理する方法", "愛情表現のスタイル", "自立性・依存度", "関係で楽になる条件"] },
+        { id: "ten_star_code", large: "十神の関係コード。", middle: ["友達のような恋愛", "ときめきと、近づく合図。", "現実のケアの型", "責任・正式な関係のコード", "頼りたくなる心のコード"] },
+        { id: "communication_match", large: "コミュニケーションの相性。", middle: ["言葉の温度", "返事・連絡のリズム", "物足りなさの扱い方", "けんかのときの防御パターン", "仲直りの言葉の提案"] },
+        { id: "attraction_points", large: "惹かれる・好意の点", middle: ["ひと目のテンション", "長く見るほど馴染む魅力", "桃花・紅艶に見る魅力", "心地よさのポイント", "ときめきを保つボタン"] },
+        { id: "conflict_report", large: "対立のレポート", middle: ["繰り返す葛藤のループ", "競争心のポイント", "意思疎通の障害", "信頼の揺れ", "境界を越える瞬間"] },
+        { id: "dating_stage_reading", large: "恋愛の段階別の読み解き", middle: ["曖昧な関係の可能性", "告白のタイミング", "恋愛初期の注意点", "長く付き合う体力", "結婚前のチェックポイント"] },
+        { id: "real_life_match", large: "現実の相性", middle: ["お金を使う温度", "約束の守り方", "仕事・事業のパートナーシップ", "家族の期待", "生活の習慣を合わせる"] },
+        { id: "luck_flow_match", large: "運の流れの相性", middle: ["今年の関係の温度", "今月の関係のリズム", "今日、連絡してよい日", "冲のある日の話し方", "関係が変わるタイミング"] },
+        { id: "mind_care", large: "心のケア", middle: ["確信と不安を分ける", "感情に名前を付ける", "一拍置く", "距離を置くミッション", "自分を守る境界の言葉"] },
+        { id: "result_packaging", large: "結果のまとめ方", middle: ["二人の相性カード", "互いを補うための取り組み", "会話の課題", "デート／連絡の案内", "「別れて・結婚して」と断定しない案内"] },
+        { id: "today_relationship_action", large: "今日の関係の行動", middle: ["今日の連絡の言葉", "一文の確認の質問", "距離を置くミッション", "仲直りの言葉の提案", "今日避けたい話し方"] }
+      ];
+
+      const mvpIds = new Set([
+        "relationship_overview",
+        "zodiac_branch_match",
+        "five_element_chemistry",
+        "communication_match",
+        "conflict_report",
+        "today_relationship_action"
+      ]);
+
+      const els = {
+        emptyPanel: document.querySelector("#emptyPanel"),
+        reportContent: document.querySelector("#reportContent"),
+        userLabel: document.querySelector("#userLabel"),
+        answerLine: document.querySelector("#answerLine"),
+        summaryCopy: document.querySelector("#summaryCopy"),
+        selfName: document.querySelector("#selfName"),
+        partnerName: document.querySelector("#partnerName"),
+        focusLabel: document.querySelector("#focusLabel"),
+        signalList: document.querySelector("#signalList"),
+        scopeGrid: document.querySelector("#scopeGrid"),
+        accessState: document.querySelector("#accessState"),
+        accessDescription: document.querySelector("#accessDescription"),
+        mainCta: document.querySelector("#mainCta"),
+        entitledLink: document.querySelector("#entitledLink"),
+        privacyAgree: document.querySelector("#privacyAgree"),
+        paymentAgree: document.querySelector("#paymentAgree"),
+        agreeAll: document.querySelector("#agreeAll"),
+        payNote: document.querySelector("#payNote"),
+        toast: document.querySelector("#toast")
+      };
+
+      function parseJson(value) {
+        try {
+          return value ? JSON.parse(value) : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function safeText(value, fallback) {
+        const text = String(value || "").trim();
+        return text || fallback;
+      }
+
+      function hasDate(subject) {
+        const birth = subject && subject.birth ? subject.birth : {};
+        return Number.isFinite(Number(birth.year)) && Number.isFinite(Number(birth.month)) && Number.isFinite(Number(birth.day));
+      }
+
+      function hasKnownTime(subject) {
+        const birth = subject && subject.birth ? subject.birth : {};
+        return birth.birthTimeKnown === true && Number.isFinite(Number(birth.hour));
+      }
+
+      function validPayload(payload) {
+        return Boolean(
+          payload &&
+          payload.subject_mode === "pair" &&
+          payload.subjects &&
+          payload.subjects.self &&
+          payload.subjects.partner &&
+          payload.subjects.partner.birth
+        );
+      }
+
+      function readInputPayload() {
+        return parseJson(sessionStorage.getItem(STORAGE.input));
+      }
+
+      function reportIdFor(payload) {
+        const existing = parseJson(sessionStorage.getItem(STORAGE.reportContext));
+        if (existing && existing.service_key === SERVICE.service_key && existing.report_id) {
+          return existing.report_id;
+        }
+        const suffix = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID().slice(0, 8)
+          : Math.random().toString(36).slice(2, 10);
+        return "local-preview-" + Date.now().toString(36) + "-" + suffix;
+      }
+
+      function profileIdFor(payload) {
+        const self = payload.subjects.self || {};
+        return self.profile_ref || "session-profile";
+      }
+
+      function buildReportContext(payload, teaser) {
+        const context = {
+          service_key: SERVICE.service_key,
+          service_slug: SERVICE.service_slug,
+          service_title: SERVICE.service_title,
+          report_id: reportIdFor(payload),
+          profile_id: profileIdFor(payload),
+          analysis_period: SERVICE.analysis_period,
+          report_version: SERVICE.report_version,
+          copy_version: SERVICE.copy_version,
+          input_created_at: payload.created_at || "",
+          next_route: NEXT_ROUTE,
+          paid_scope_group_ids: interpretationIndex.map((item) => item.id),
+          free_teaser: teaser
+        };
+        sessionStorage.setItem(STORAGE.reportContext, JSON.stringify(context));
+        sessionStorage.setItem(STORAGE.teaser, JSON.stringify(teaser));
+        sessionStorage.setItem(STORAGE.pendingService, JSON.stringify({
+          service_key: SERVICE.service_key,
+          service_slug: SERVICE.service_slug,
+          service_title: SERVICE.service_title,
+          report_id: context.report_id,
+          entry_stage: "04-step-4-report",
+          return_route: location.pathname + location.hash
+        }));
+        return context;
+      }
+
+      function buildSignals(payload) {
+        const self = payload.subjects.self || {};
+        const partner = payload.subjects.partner || {};
+        const ctx = payload.context || {};
+        const selfLabel = safeText(self.display_name, "自分");
+        const partnerLabel = safeText(partner.display_name, "相手");
+        const focus = focusLabels[ctx.focus] || "相性の総評";
+        const relation = relationLabels[partner.relationship_to_user] || "関係を確認中";
+        const temp = temperatureLabels[ctx.relationship_temperature] || "今の温度を確認中";
+        const datesReady = hasDate(self) && hasDate(partner);
+        const timeNote = hasKnownTime(self) && hasKnownTime(partner)
+          ? "二人の時刻情報も入り、細かなリズムをより詳しく見られます。"
+          : "生まれた時刻が空でも、生年月日を基準にした大きな軸から見られます。";
+
+        return {
+          headline: selfLabel + "님과 " + partnerLabel + "님은 잘 맞는 포인트와 확인해야 할 버튼이 함께 보이는 관계로 봅니다.",
+          summary: relation + " 관계로 들어왔고, 지금 먼저 볼 포인트는 " + focus + "입니다. " + temp + "라면 오늘은 감정을 결론으로 밀기보다 확인할 사실을 분리해 보는 쪽이 좋아요.",
+          signals: [
+            {
+              label: "強い信号",
+              title: "相性は一行の結論より、パターンで見る",
+              text: "두 사람의 관계는 호감, 소통, 현실 선택이 같이 움직입니다. 그래서 첫 요약은 끌림만 보지 않고 " + focus + "부터 잡습니다.",
+              period: "今の関係の流れ",
+              confidence: "medium",
+              evidence_ids: ["zip-궁합-qa-000228", "zip-궁합-qa-000230"],
+              calculated_fact: { focus: ctx.focus || "overall", relationship_stage: partner.relationship_to_user || "unknown" }
+            },
+            {
+              label: "確認する条件",
+              title: datesReady ? "二人の生年月日は分かれています" : "生年月日の確認がさらに必要です",
+              text: datesReady
+                ? "본인과 상대 정보가 따로 들어왔기 때문에 띠/지지, 일지, 오행 축을 같은 사람으로 섞지 않고 비교할 수 있습니다. " + timeNote
+                : "詳しい解釈の前に、自分と相手の生年月日を別に確かめる。欠けた値があれば、詳細結果の確信度は下がる。",
+              period: "分析を始める条件",
+              confidence: datesReady ? "medium" : "limited",
+              evidence_ids: ["zip-색체명리학-qa-000147", "item-10-p1-0071"],
+              calculated_fact: { self_birth_present: hasDate(self), partner_birth_present: hasDate(partner), both_times_known: hasKnownTime(self) && hasKnownTime(partner) }
+            },
+            {
+              label: "妨げの要因",
+              title: "寂しさは、話し方と返信のリズムから先に増えることがある",
+              text: "相性の資料は、協力や会話が合う組み合わせも、同じ点で誤解が繰り返す組み合わせも見る。今は「どうしてそうした？」より、「こう感じ、この部分を確認したい」のほうが揺れにくい。",
+              period: "会話がすれ違う瞬間",
+              confidence: "medium",
+              evidence_ids: ["zip-궁합-qa-000153", "item-41-qa-0003"],
+              calculated_fact: { relationship_temperature: ctx.relationship_temperature || "unknown" }
+            },
+            {
+              label: "今日の行動",
+              title: "今日は一文だけ明確に",
+              text: "すぐ結論を聞くより、「今日の連絡は少し遠く感じた。誤解した部分がないか確認したい」のように、感情と確認する事実を分けて話そう。",
+              period: "今日の関係アクション",
+              confidence: "medium",
+              evidence_ids: ["item-01-p1-0096", "item-41-qa-0003"],
+              calculated_fact: { user_question_present: Boolean(ctx.current_question) }
+            }
+          ],
+          paid_preview: ["関係の総評とよいサイン", "干支・地支と五行の相生・相克の流れ", "会話のリズム、争いの繰り返し、今日の関係の行動"]
+        };
+      }
+
+      function renderSignals(signals) {
+        els.signalList.innerHTML = signals.map((signal, index) => {
+          const tone = index === 1 ? "gold" : index === 2 ? "coral" : "";
+          return [
+            '<article class="signal-item" data-evidence="' + signal.evidence_ids.join(",") + '">',
+            '<span class="chip ' + tone + '">' + signal.label + '</span>',
+            '<strong>' + signal.title + '</strong>',
+            '<p>' + signal.text + '</p>',
+            '<div class="signal-meta">',
+            '<span class="chip">' + signal.period + '</span>',
+            '<span class="chip ' + tone + '">確信度 ' + confidenceLabel(signal.confidence) + '</span>',
+            '</div>',
+            '</article>'
+          ].join("");
+        }).join("");
+      }
+
+      function confidenceLabel(value) {
+        if (value === "medium") return "普通";
+        if (value === "limited") return "保留";
+        return "高い";
+      }
+
+      function renderScope() {
+        els.scopeGrid.innerHTML = interpretationIndex.map((group, index) => {
+          const middle = group.middle.slice(0, 5).join(" · ");
+          const chip = mvpIds.has(group.id) ? '\x3cspan class="chip gold">最初に提供\x3c/span>' : '\x3cspan class="chip">全体のリポート\x3c/span>';
+          return [
+            '<article class="scope-item">',
+            '<span class="scope-index">' + String(index + 1).padStart(2, "0") + '</span>',
+            chip,
+            '<h3>' + group.large + '</h3>',
+            '<p>' + middle + '</p>',
+            '</article>'
+          ].join("");
+        }).join("");
+      }
+
+      function readServerEntitlement(reportContext) {
+        const injected = window.__UMSH_SERVER_ENTITLEMENT__;
+        if (!injected || typeof injected !== "object") return null;
+        const matchesService = injected.service_key === SERVICE.service_key;
+        const matchesReport = injected.report_id === reportContext.report_id;
+        const verified = injected.verified === true && injected.signature_status === "valid";
+        return matchesService && matchesReport && verified ? injected : null;
+      }
+
+      function hasAuthSession() {
+        const sessionKeys = ["umsh:auth:session", "cheongi_auth_session", "supabase.auth.token"];
+        return sessionKeys.some((key) => {
+          const fromSession = parseJson(sessionStorage.getItem(key));
+          const fromLocal = parseJson(localStorage.getItem(key));
+          return Boolean((fromSession && (fromSession.access_token || fromSession.user || fromSession.user_id)) || (fromLocal && (fromLocal.access_token || fromLocal.user || fromLocal.user_id)));
+        });
+      }
+
+      function accessState(reportContext) {
+        const params = new URLSearchParams(location.search);
+        if (readServerEntitlement(reportContext)) return "entitled";
+        if (params.get("payment") === "processing" || params.get("payment") === "pending") return "processing";
+        if (params.get("payment") === "cancel" || params.get("payment") === "canceled" || params.get("payment") === "failed") return "failed";
+        return hasAuthSession() ? "unpaid" : "guest";
+      }
+
+      function renderAccess(state) {
+        const copy = {
+          guest: {
+            title: "로그인하고 전체 보기",
+            desc: "로그인 후 이 결과를 이어서 볼 수 있어요. 원래 보던 無料の要約으로 돌아오도록 준비해둘게요.",
+            cta: "로그인하고 전체 보기 (19,900 KRW)",
+            note: ""
+          },
+          unpaid: {
+            title: "결제 필요",
+            desc: "無料の要約은 유지됩니다. 全体レポート에서는 관계 총평부터 오늘의 관계 액션까지 항목별 풀이가 열립니다.",
+            cta: "전체 보기 (19,900 KRW)",
+            note: ""
+          },
+          processing: {
+            title: "결제 상태 확인 중",
+            desc: "중복 결제를 막기 위해 잠시 상태를 확인합니다. 완료되면 전체 목차로 이어집니다.",
+            cta: "결제 상태 다시 확인",
+            note: "새로고침해도 無料の要約은 유지됩니다."
+          },
+          failed: {
+            title: "결제 취소 또는 실패",
+            desc: "無料の要約은 그대로 남아 있습니다. 결제를 다시 시도하거나 입력 화면으로 돌아갈 수 있어요.",
+            cta: "無料の要約 유지하고 다시 시도",
+            note: "취소된 결제는 전체 목차 권한으로 처리하지 않습니다."
+          },
+          entitled: {
+            title: "권한 확인 완료",
+            desc: "全体レポート를 볼 수 있는 상태입니다. 결제창 없이 결과 목차로 이동합니다.",
+            cta: "전체 목차 열기",
+            note: ""
+          }
+        }[state];
+
+        els.accessState.textContent = copy.title;
+        els.accessDescription.textContent = copy.desc;
+        els.mainCta.textContent = copy.cta;
+        els.payNote.textContent = copy.note;
+        els.entitledLink.hidden = state !== "entitled";
+        els.mainCta.setAttribute("aria-busy", state === "processing" ? "true" : "false");
+      }
+
+      function prepareAuthContinuation(reportContext) {
+        sessionStorage.setItem(STORAGE.authPending, JSON.stringify({
+          service_key: SERVICE.service_key,
+          service_slug: SERVICE.service_slug,
+          service_title: SERVICE.service_title,
+          report_id: reportContext.report_id,
+          profile_id: reportContext.profile_id,
+          analysis_period: reportContext.analysis_period,
+          report_version: reportContext.report_version,
+          return_route: location.href
+        }));
+      }
+
+      function preparePaymentIntent(reportContext) {
+        const intent = {
+          product_key: SERVICE.service_key,
+          service_slug: SERVICE.service_slug,
+          report_id: reportContext.report_id,
+          profile_id: reportContext.profile_id,
+          analysis_period: reportContext.analysis_period,
+          report_version: reportContext.report_version,
+          requested_price_krw: SERVICE.price_krw,
+          return_to: new URL(NEXT_ROUTE, location.href).href,
+          created_at: new Date().toISOString(),
+          server_catalog_required: true
+        };
+        sessionStorage.setItem(STORAGE.paymentIntent, JSON.stringify(intent));
+        sessionStorage.setItem(STORAGE.pendingPaymentReportId, reportContext.report_id);
+        return intent;
+      }
+
+      function showToast(message) {
+        els.toast.textContent = message;
+        els.toast.classList.add("is-visible");
+        window.clearTimeout(showToast.timer);
+        showToast.timer = window.setTimeout(() => {
+          els.toast.classList.remove("is-visible");
+        }, 3200);
+      }
+
+      function handleCta(reportContext) {
+        const state = accessState(reportContext);
+        if (state === "entitled") {
+          location.href = NEXT_ROUTE;
+          return;
+        }
+        if (state === "processing") {
+          showToast("決済状態を再確認しています。少し後で更新してください。");
+          return;
+        }
+        if (state === "guest") {
+          prepareAuthContinuation(reportContext);
+          showToast("ログイン後この結果へ戻るよう保存しました。");
+          if (location.protocol !== "file:") {
+            location.href = "/signup?returnTo=" + encodeURIComponent(location.href);
+          }
+          return;
+        }
+        if (!els.privacyAgree.checked || !els.paymentAgree.checked) {
+          els.payNote.textContent = "必須確認に印を付けると、決済の段階へ続く。";
+          showToast("必要な確認から先にチェックしよう。");
+          return;
+        }
+        preparePaymentIntent(reportContext);
+        showToast("支払い依頼の情報を保存した。支払い完了後、全体の目次に戻る。");
+        if (location.protocol !== "file:") {
+          const paymentUrl = "/payment?product=" + encodeURIComponent(SERVICE.service_key) + "&reportId=" + encodeURIComponent(reportContext.report_id) + "&returnTo=" + encodeURIComponent(location.href);
+          location.href = paymentUrl;
+        }
+      }
+
+      function renderPayload(payload) {
+        const self = payload.subjects.self || {};
+        const partner = payload.subjects.partner || {};
+        const ctx = payload.context || {};
+        const selfLabel = safeText(self.display_name, "自分");
+        const partnerLabel = safeText(partner.display_name, "相手");
+        const focus = focusLabels[ctx.focus] || "相性の総評";
+        const teaser = buildSignals(payload);
+        const reportContext = buildReportContext(payload, teaser);
+
+        els.userLabel.textContent = selfLabel + " × " + partnerLabel + " 無料の要約";
+        els.answerLine.textContent = teaser.headline;
+        els.summaryCopy.textContent = teaser.summary;
+        els.selfName.textContent = selfLabel;
+        els.partnerName.textContent = partnerLabel;
+        els.focusLabel.textContent = focus;
+
+        renderSignals(teaser.signals);
+        renderScope();
+        renderAccess(accessState(reportContext));
+        els.mainCta.addEventListener("click", () => handleCta(reportContext));
+      }
+
+      function renderMissingInput() {
+        els.reportContent.hidden = true;
+        els.emptyPanel.classList.add("is-visible");
+        renderScope();
+      }
+
+      function boot() {
+        const payload = readInputPayload();
+        if (!validPayload(payload)) {
+          renderMissingInput();
+          return;
+        }
+        renderPayload(payload);
+      }
+
+      function bindAgreeAll() {
+        const boxes = [els.privacyAgree, els.paymentAgree].filter(Boolean);
+        function syncMaster() {
+          if (!els.agreeAll) return;
+          els.agreeAll.checked = boxes.every((box) => box.checked);
+          els.agreeAll.indeterminate = !els.agreeAll.checked && boxes.some((box) => box.checked);
+        }
+        els.agreeAll?.addEventListener("change", () => {
+          const on = els.agreeAll.checked;
+          boxes.forEach((box) => {
+            box.checked = on;
+          });
+        });
+        boxes.forEach((box) => box.addEventListener("change", syncMaster));
+      }
+
+      bindAgreeAll();
+      boot();
+    })();
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/couple-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

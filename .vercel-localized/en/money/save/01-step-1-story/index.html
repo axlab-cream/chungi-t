@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Why can’t I save money? | Fortune Shop spending tendencies</title>
+    <meta
+      name="description"
+      content="A Four Pillars spending-tendency reading separating income methods, leakage patterns, and savings structure through resource and peer-star flow."
+    />
+    <meta name="application-name" content="Fortune Shop" />
+    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta
+      property="og:description"
+      content="A spending-tendency saju reading that separates incoming money from money slipping away."
+    />
+    <meta property="og:url" content="https://money.umsh.kr/save" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101411;
+        --bg-soft: #17201b;
+        --ink: #fff8ed;
+        --muted: rgba(255, 248, 237, 0.72);
+        --dim: rgba(255, 248, 237, 0.52);
+        --line: rgba(220, 184, 104, 0.24);
+        --gold: #d9a845;
+        --gold-soft: #f5dc9b;
+        --green: #66b889;
+        --green-deep: #214c3a;
+        --coral: #d7704c;
+        --blue: #6da8b5;
+        --panel: rgba(255, 248, 237, 0.07);
+        --paper: #fff4df;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+        --font-ui: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100svh;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(102, 184, 137, 0.22), transparent 18rem),
+          radial-gradient(circle at 86% 16%, rgba(217, 168, 69, 0.16), transparent 20rem),
+          linear-gradient(180deg, #070a08 0%, var(--bg) 42%, #14110e 100%);
+        color: var(--ink);
+        font-family: var(--font-ui);
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .app {
+        position: relative;
+        width: min(100%, 440px);
+        min-height: 100svh;
+        margin: 0 auto;
+        overflow: clip;
+        background:
+          linear-gradient(180deg, rgba(16, 20, 17, 0.88), rgba(16, 20, 17, 0.98)),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(12, 17, 14, 0.9);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.1;
+      }
+
+      .brand span {
+        color: var(--gold-soft);
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+      }
+
+      .scene-count {
+        min-width: 44px;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .progress {
+        position: absolute;
+        inset: auto 0 -1px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .progress span {
+        display: block;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--green), var(--gold), var(--coral));
+      }
+
+      main {
+        padding-bottom: 104px;
+      }
+
+      .story-scene {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+        min-height: auto;
+        padding: 16px 18px 22px;
+        border-bottom: 1px solid rgba(220, 184, 104, 0.14);
+      }
+
+      .story-scene:first-child {
+        min-height: auto;
+        padding-top: 14px;
+      }
+
+      .visual {
+        position: relative;
+        width: min(76vw, 300px);
+        max-width: 100%;
+        aspect-ratio: 4 / 5;
+        justify-self: center;
+        overflow: hidden;
+        border: 1px solid rgba(217, 168, 69, 0.28);
+        border-radius: 8px;
+        background: var(--paper);
+        box-shadow: 0 22px 50px rgba(0, 0, 0, 0.3);
+      }
+
+      .visual.wide {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+      }
+
+      .visual img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 28%;
+      }
+
+      .copy {
+        display: grid;
+        gap: 9px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 7px;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .kicker::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 18px rgba(102, 184, 137, 0.72);
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-family: var(--font-title);
+        font-weight: 900;
+        line-height: 1.18;
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        font-size: clamp(34px, 12vw, 48px);
+      }
+
+      h2 {
+        font-size: clamp(28px, 8.6vw, 38px);
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.66;
+        word-break: keep-all;
+      }
+
+      .accent {
+        color: var(--gold-soft);
+      }
+
+      .hot {
+        color: #ffad86;
+      }
+
+      .pill-row,
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .pill,
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.08);
+        color: rgba(255, 248, 237, 0.86);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.2;
+      }
+
+      .pill {
+        padding: 8px 11px;
+      }
+
+      .chip {
+        padding: 7px 9px;
+      }
+
+      .lane-grid,
+      .signal-grid,
+      .group-grid,
+      .promise-grid {
+        display: grid;
+        gap: 9px;
+      }
+
+      .lane-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .lane,
+      .signal,
+      .group-card,
+      .promise {
+        border: 1px solid rgba(220, 184, 104, 0.2);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 248, 237, 0.085), rgba(255, 248, 237, 0.045)),
+          var(--panel);
+      }
+
+      .lane {
+        min-height: 96px;
+        padding: 12px 10px;
+      }
+
+      .lane strong,
+      .signal strong,
+      .promise strong {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .lane span,
+      .signal span,
+      .promise span {
+        display: block;
+        margin-top: 7px;
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .signal {
+        min-height: 80px;
+        padding: 13px;
+      }
+
+      .signal-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .group-card {
+        display: grid;
+        gap: 9px;
+        padding: 13px;
+      }
+
+      .group-card header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .group-card h3 {
+        margin: 0;
+        color: var(--ink);
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.32;
+        letter-spacing: 0;
+      }
+
+      .group-card small {
+        flex: 0 0 auto;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .group-card p {
+        font-size: 13px;
+        line-height: 1.58;
+      }
+
+      .group-card .chip-row {
+        gap: 6px;
+      }
+
+      .group-card .chip {
+        min-height: 28px;
+        padding: 6px 8px;
+        font-size: 11px;
+        color: rgba(255, 248, 237, 0.78);
+      }
+
+      .promise {
+        padding: 14px;
+      }
+
+      .notice {
+        padding: 13px 14px;
+        border-left: 3px solid var(--green);
+        border-radius: 8px;
+        background: rgba(102, 184, 137, 0.12);
+        color: rgba(255, 248, 237, 0.78);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.58;
+        word-break: keep-all;
+      }
+
+      .cta-dock {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 30;
+        display: grid;
+        justify-items: center;
+        padding: 14px 14px max(14px, env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(16, 20, 17, 0), rgba(16, 20, 17, 0.98) 32%);
+        pointer-events: none;
+      }
+
+      .cta-inner {
+        display: grid;
+        width: min(100%, 412px);
+        gap: 8px;
+        pointer-events: auto;
+      }
+
+      .primary-cta {
+        display: flex;
+        min-height: 54px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid rgba(255, 244, 223, 0.22);
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6ed29b, #d9a845 62%, #df7350);
+        color: #12110d;
+        font-size: 15px;
+        font-weight: 950;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+      }
+
+      .primary-cta::after {
+        content: "›";
+        font-size: 24px;
+        line-height: 0.8;
+      }
+
+      .dock-note {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      @media (min-width: 760px) {
+        .app {
+          border-right: 1px solid rgba(220, 184, 104, 0.18);
+          border-left: 1px solid rgba(220, 184, 104, 0.18);
+        }
+      }
+
+      @media (max-width: 360px) {
+        .story-scene {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+
+        .lane-grid,
+        .signal-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .visual {
+          width: min(76vw, 260px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own docks.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .submit-dock,
+      body.umsh-has-chrome .cta-dock,
+      body.umsh-has-chrome nav.bottom-nav[aria-label="상세 리포트 이동"] { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .save-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(112, 194, 146, 0.45); border-radius: 10px; background: rgba(112, 194, 146, 0.08); padding: 14px; margin-bottom: 14px; }
+      .save-saved-profile b { color: #70c292; font-size: 14px; }
+      .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
+      .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <div class="app" data-umsh-chrome data-service="Spending style" data-price="9,900 KRW" data-active="home">
+      <header class="appbar topbar" aria-label="Service information">
+        <a class="brand" href="#intro" aria-label="Fortune Shop: Why can’t I save money?">
+          <strong>Why does money not accumulate for me?</strong>
+          <span>CONSUMPTION SAJU</span>
+        </a>
+        <div class="scene-count" aria-live="polite">1 / 6</div>
+        <div class="progress" aria-hidden="true"><span></span></div>
+      </header>
+
+      <main id="intro">
+        <section class="story-scene" aria-labelledby="scene-1-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-hook"
+              src="../assets/save/01-scene-01-hook.webp" data-source-file="assets/generated/save/01-scene-01-hook.webp"
+              alt="A suited character with cat ears, looking stuck in front of a phone and scattering coins"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">Spending-tendency birth-chart reading</span>
+            <h1 id="scene-1-title">Payday came, but<br />Why is there no money left?</h1>
+            <p>
+              If your balance stays the same without a memory of one big purchase, the problem is not willpower
+              but <span class="accent">Recurring spending situations</span> may be where the problem lies.
+              Start by finding where money goes out, rather than what comes in.
+            </p>
+            <div class="pill-row" aria-label="Main concern">
+              <span class="pill">The balance vanishing after payday</span>
+              <span class="pill">Repeated small payments</span>
+              <span class="pill">Spending that grows in front of people</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-2-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-empathy"
+              src="../assets/save/01-scene-02-empathy.webp" data-source-file="assets/generated/save/01-scene-02-empathy.webp"
+              alt="A startled cat-eared suited character before an empty wallet and receipts"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">Recurring scenes in my bank account</span>
+            <h2 id="scene-2-title">Start with when your wallet opened, not the days you saved</h2>
+            <p>
+              It may not just be a lack of planning. Money may leave in the same way at particular moments. Of the four scenes below, let’s narrow it down to when your wallet opens most easily.
+            </p>
+            <div class="signal-grid" aria-label="Recurring spending flow">
+              <div class="signal"><strong>In front of people</strong><span>When refusing is hard and I pay more</span></div>
+              <div class="signal"><strong>When your mood wavers</strong><span>When wanting a reward speeds up payment</span></div>
+              <div class="signal"><strong>Before starting</strong><span>The moment study, equipment, and preparation costs start to grow</span></div>
+              <div class="signal"><strong>The day the salary came in</strong><span>The moment relief makes you stop checking</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-3-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-separate-flow"
+              src="../assets/save/01-scene-03-separate-flow.webp" data-source-file="assets/generated/save/01-scene-03-separate-flow.webp"
+              alt="A cat-eared character in a suit sorting coins, receipts, and a blank contract into three sections"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">How to find why money disappeared</span>
+            <h2 id="scene-3-title">Let’s divide mixed money into three columns</h2>
+            <p>
+              Treating salary, promised settlements, and recurring payments as one bundle makes leaks easy to miss. Let’s compare your situation with saju and find which of the three areas to address first.
+            </p>
+            <div class="lane-grid" aria-label="Three views of your money flow">
+              <div class="lane"><strong>Money to receive</strong><span>Income, deposits, fixed contracts</span></div>
+              <div class="lane"><strong>Money to pay</strong><span>Settlement, promises, and recurring spending</span></div>
+              <div class="lane"><strong>Conditions to decide</strong><span>Amount, deadline, and scope of responsibility</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-4-title">
+          <div class="visual wide">
+            <img
+              data-asset-key="save-01-wealth-peer-balance"
+              src="../assets/save/01-scene-04-wealth-peer-balance.webp" data-source-file="assets/generated/save/01-scene-04-wealth-peer-balance.webp"
+              alt="A cat-eared suited character balancing a coin tree with shared spending"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">Money habits reflected in when you were born</span>
+            <h2 id="scene-4-title">Do not look only at the power to earn. Start with the way you hold on to it</h2>
+            <p>
+              In the four pillars, the tendency to gain money and the tendency to share it with people are read separately. I will point, through daily scenes, to whether a relationship shakes the budget and whether spending grows when opportunities grow.
+            </p>
+            <div class="notice">
+              I won&#39;t start by saying you&#39;ll become rich. I&#39;ll first look at recurring account habits and money boundaries.
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-5-title">
+          <div class="visual wide">
+            <img
+              data-asset-key="save-01-index-preview"
+              src="../assets/save/01-scene-05-index-preview.webp" data-source-file="assets/generated/save/01-scene-05-index-preview.webp"
+              alt="A character in a suit with cat ears presenting the result list in front of eight symbolic cards"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">Questions continuing after the free result</span>
+            <h2 id="scene-5-title">Don’t reduce why money leaks to one sentence</h2>
+            <p>
+              Explore eight areas, from how money comes in to amounts that become unclear in relationships and exceptions that interrupt saving. Start with the two strongest areas in the free result.
+            </p>
+            <div class="group-grid" data-group-grid aria-label="Reading category list"></div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-6-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-cta-start"
+              src="../assets/save/01-scene-06-cta-start.webp" data-source-file="assets/generated/save/01-scene-06-cta-start.webp"
+              alt="A cat-eared character in a suit guides you with a blank checklist and coin jar"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">The first two readings are free.</span>
+            <h2 id="scene-6-title">Which leak in my account should I plug first?</h2>
+            <p>
+              Write the birth date and time, and the money problem that feels most stuck. From the saved chart and the inputs, I will start with the repeating spending scene and the item to organize today.
+            </p>
+            <div class="promise-grid" aria-label="Check before continuing">
+              <div class="promise"><strong>Where my money comes in</strong><span>How income stabilizes and when it wavers</span></div>
+              <div class="promise"><strong>Biggest drain</strong><span>Where to prevent problems first: relationships, feelings, or preparation costs</span></div>
+              <div class="promise"><strong>One space to clear today</strong><span>Priorities among money owed to you, money you owe, and recurring payments</span></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="cta-dock" aria-label="Next step">
+        <div class="cta-inner">
+          <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input">
+            View my money flow free
+          </a>
+          <div class="dock-note">Without payment, you can start with 2 readings fitted to my input.</div>
+        </div>
+      </nav>
+    </div>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_key": "save",
+        "service_slug": "save",
+        "service_title": "Why does money not accumulate for me?",
+        "service_description": "A saju reading on spending habits that uses Wealth Star and Peer Star patterns to examine income, spending, saving, and settling shared expenses separately.",
+        "category": "Spending tendencies",
+        "subcategory": "Saving / Money management",
+        "price_krw": 9900,
+        "service_url_hint": "money.umsh.kr/save",
+        "target_audience": "People in their 20s~30s who earn money but feel nothing remains in their account",
+        "target_question": "Why does money not accumulate for me?",
+        "analysis_basis": ["Wealth star", "Peer and Rob Wealth stars", "Ten-God money patterns", "Day Master strength", "Five elements", "Major cycle · Annual cycle · Monthly cycle"],
+        "interpretation_index_source": "user_seed",
+        "report_version": "save-v1.0",
+        "copy_version": "mz-save-v1",
+        "representative_character": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+        "next_route": "../02-step-2-saju-input/index.html#step-2-saju-input"
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX">
+      {
+        "source": "user_seed",
+        "groups": [
+          {
+            "group_id": "income-flow",
+            "title": "How money comes in",
+            "summary": "First separate whether my money comes through a salary, opportunities, or production.",
+            "sections": [
+              { "section_id": "income-salary-stable", "title": "Steady-paycheck type", "preview": "Direct Wealth / Direct Officer type: strong in fixed income and contracts, but may expand opportunities slowly" },
+              { "section_id": "income-side-hustle", "title": "Multi-job opportunity seeker", "preview": "An Indirect Wealth style: more avenues for income, but also more ways for money to go out" },
+              { "section_id": "income-steady-maker", "title": "Steady producer", "preview": "Eating God type: earns through routines, content, and output rather than one big win" },
+              { "section_id": "income-idea-runner", "title": "Someone whose ideas run too fast", "preview": "Challenging Expression type: quick planning, but prone to opening a new project before the deadline" },
+              { "section_id": "income-pressure-breaker", "title": "Responsibility-driven breakthrough type", "preview": "Seven Killings type: acts boldly under pressure, but a heavy burden may remain" },
+              { "section_id": "income-learning-investor", "title": "Learning investor", "preview": "Direct / Indirect Resource type: strong in study, qualifications, and ideas, but the action space can remain empty" },
+              { "section_id": "income-peer-share", "title": "Earn-and-spend-together type", "preview": "Peer / Rob Wealth type: cooperation, competition, and sharing affect money flow" }
+            ]
+          },
+          {
+            "group_id": "money-leak",
+            "title": "Patterns of money leaking",
+            "summary": "Break down why money does not remain into feelings, relationships, appearances, and preparation costs.",
+            "sections": [
+              { "section_id": "leak-account-logout", "title": "The type where the account logs out", "preview": "Disperses into spending, settlement, and promises as soon as it comes in" },
+              { "section_id": "leak-flex-overheat", "title": "Conspicuous-spending overheat type", "preview": "Fire energy and indirect-wealth / rob-wealth patterns: mood and speed increase spending" },
+              { "section_id": "leak-comparison", "title": "Comparison-spending type", "preview": "Xin Metal / Ding Fire type: emotion, taste, and comparison lead to spending" },
+              { "section_id": "leak-face-payment", "title": "Face-saving payment type", "preview": "Gyeong-metal and Direct Officer type: money leaves because of pride, role, and face" },
+              { "section_id": "leak-learning-cost", "title": "Learning-cost surge type", "preview": "Resource-star pattern: teaching, equipment, qualifications, and preparation costs grow" },
+              { "section_id": "leak-relationship-blur", "title": "Blurred relationship settlements", "preview": "Peer / Rob Wealth type: money boundaries blur with friends, partners, and colleagues" }
+            ]
+          },
+          {
+            "group_id": "saving-blocker",
+            "title": "Why savings don't stick",
+            "summary": "Look for why no money remains in structure and exception rules rather than willpower.",
+            "sections": [
+              { "section_id": "saving-no-structure", "title": "No saving structure", "preview": "How much to keep is not fixed numerically" },
+              { "section_id": "saving-income-outgoing-mixed", "title": "Money to receive and pay not separated", "preview": "View income, spending, and contracts together" },
+              { "section_id": "saving-exception-budget", "title": "A budget full of exceptions", "preview": "This time only opens more often than the possible range" },
+              { "section_id": "saving-plan-over-action", "title": "Too much planning, too little action", "preview": "Plenty of ideas, but less follow-through on automation, deadlines, and routines" },
+              { "section_id": "saving-stability-illusion", "title": "Illusion of stability", "preview": "Even a Direct Resources type can lose money by stopping checks because things seem safe" }
+            ]
+          },
+          {
+            "group_id": "saju-strength",
+            "title": "Chart balance and management style",
+            "summary": "See whether I am the type who pushes money management, or the type who needs support and an order.",
+            "sections": [
+              { "section_id": "strength-strong", "title": "Higher-strength Day Master money management", "preview": "A pattern of trying to do everything alone, with losses caused by rushing, stubbornness, or insufficient delegation" },
+              { "section_id": "strength-weak", "title": "Lower-strength Day Master money management", "preview": "A structure that needs support, rhythm, and order before a large board" },
+              { "section_id": "strength-balanced", "title": "Balanced money management", "preview": "A structure that catches only the one axis leaning now, rather than an excessive prescription" }
+            ]
+          },
+          {
+            "group_id": "ohaeng-os",
+            "title": "Five Elements-based money-management OS",
+            "summary": "Translate imbalances of Wood, Fire, Earth, Metal, and Water into everyday money-management approaches.",
+            "sections": [
+              { "section_id": "ohaeng-wood", "title": "Wood", "preview": "Starting and expanding type; excess brings too many ventures, shortage delays beginnings" },
+              { "section_id": "ohaeng-fire", "title": "Fire", "preview": "Expression and visibility type: excess may lead to impulse or overheating; a shortage may weaken promotion and expression" },
+              { "section_id": "ohaeng-earth", "title": "Earth", "preview": "Stable and organizing type; excess brings worry or stagnation, shortage weakens grounding and routine" },
+              { "section_id": "ohaeng-metal", "title": "Metal", "preview": "A boundaries-and-deadlines style: too much can mean cutting back excessively; too little can leave deadlines and budget limits unclear." },
+              { "section_id": "ohaeng-water", "title": "Water", "preview": "Flow and rest type: too much makes thinking long, too little leaves too little time to recover and sort things" }
+            ]
+          },
+          {
+            "group_id": "timing",
+            "title": "Fortune timing",
+            "summary": "Read this year, this month, and today’s money issues in order, not mixed together.",
+            "sections": [
+              { "section_id": "timing-daeun-start", "title": "Start of the major fortune cycle", "preview": "A reset phase when familiar ways of earning shift" },
+              { "section_id": "timing-daeun-middle", "title": "Middle of the major fortune cycle", "preview": "A period to reduce open tasks to three or fewer rather than start more" },
+              { "section_id": "timing-daeun-end", "title": "Late major luck cycle", "preview": "A period when organizing, handing over, collecting, and closing matter" },
+              { "section_id": "timing-year", "title": "Annual cycle", "preview": "This year’s money theme should be read alongside the major cycle" },
+              { "section_id": "timing-month", "title": "Monthly fortune", "preview": "A period to organize money due this month, tasks, and promise conditions" },
+              { "section_id": "timing-today", "title": "Today's fortune", "preview": "A stretch for looking at just one of income, spending, or contract today" }
+            ]
+          },
+          {
+            "group_id": "relationship-contract",
+            "title": "Money issues in relationships / contracts",
+            "summary": "Organizes moments when money becomes unclear between people through records, refusals, and the limits of sharing.",
+            "sections": [
+              { "section_id": "relation-friend-lover-mix", "title": "Mixing money with friends or partners", "preview": "Blurred money boundaries with close people" },
+              { "section_id": "relation-shared-cost", "title": "Shared expenses and split-cost settlement", "preview": "The issue of mismatched standards and timing for money spent together" },
+              { "section_id": "relation-unwritten-condition", "title": "Amount, deadline, and scope of responsibility not recorded", "preview": "An issue where a condition that passed pleasantly remains as a burden later" },
+              { "section_id": "relation-no-refusal-line", "title": "No refusal sentence", "preview": "Payments delayed because no words were prepared" },
+              { "section_id": "relation-short-share", "title": "An issue to share briefly only with someone you trust", "preview": "An issue to check safely without spreading money concerns too broadly" }
+            ]
+          },
+          {
+            "group_id": "expanded-reading",
+            "title": "Extended reading",
+            "summary": "Add Zi Wei Dou Shu and spatial hints only as supporting layers when needed.",
+            "sections": [
+              { "section_id": "expand-ziwei-wealth", "title": "Zi Wei Dou Shu wealth palace", "preview": "Income pattern, spending habits, and money sense" },
+              { "section_id": "expand-ziwei-career", "title": "Zi Wei Dou Shu career palace", "preview": "The link between occupation, role, responsibility, and income" },
+              { "section_id": "expand-ziwei-property", "title": "Zi Wei Dou Shu Property Palace", "preview": "Accumulated assets, housing, and family assets" },
+              { "section_id": "expand-fengshui", "title": "Feng shui and space support", "preview": "Use entrance, desk, routes, and workplace flow as hints for organizing life, not guarantees of money" }
+            ]
+          }
+        ]
+      }
+    </script>
+
+
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {
+          "asset_key": "save-01-hook",
+          "filename": "assets/generated/save/01-scene-01-hook.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["Green hair", "Cat ears", "Suit", "Watercolor texture", "Shy expression"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "Bank-logout hook. A green cat-eared character in a suit looking at a phone banking screen, with coins scattering. No text.",
+          "alt": "A suited character with cat ears, looking stuck in front of a phone and scattering coins",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-hook\"]"
+        },
+        {
+          "asset_key": "save-01-empathy",
+          "filename": "assets/generated/save/01-scene-02-empathy.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["Green hair", "Cat ears", "Suit", "Watercolor texture", "Shy expression"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "A green cat-eared character in a suit, thrown off in front of an empty wallet, receipts, and shopping bags. No text.",
+          "alt": "A startled cat-eared suited character before an empty wallet and receipts",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-empathy\"]"
+        },
+        {
+          "asset_key": "save-01-separate-flow",
+          "filename": "assets/generated/save/01-scene-03-separate-flow.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["Green hair", "Cat ears", "Suit", "Watercolor texture", "Calm expression"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "A green cat-eared character in a suit sorting coins, a receipt, and a blank contract into three columns. No text.",
+          "alt": "A cat-eared character in a suit sorting coins, receipts, and a blank contract into three sections",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-separate-flow\"]"
+        },
+        {
+          "asset_key": "save-01-wealth-peer-balance",
+          "filename": "assets/generated/save/01-scene-04-wealth-peer-balance.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["Green hair", "Cat ears", "Suit", "Watercolor texture", "Cautious expression"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "A green cat-eared character in a suit, holding scales between a coin tree and money in use. No text.",
+          "alt": "A cat-eared suited character balancing a coin tree with shared spending",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-wealth-peer-balance\"]"
+        },
+        {
+          "asset_key": "save-01-index-preview",
+          "filename": "assets/generated/save/01-scene-05-index-preview.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["Green hair", "Cat ears", "Suit", "Watercolor texture", "Guiding expression"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "A green cat-eared suited character guiding the results list before eight symbolic cards; no text.",
+          "alt": "A character in a suit with cat ears presenting the result list in front of eight symbolic cards",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-index-preview\"]"
+        },
+        {
+          "asset_key": "save-01-cta-start",
+          "filename": "assets/generated/save/01-scene-06-cta-start.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["Green hair", "Cat ears", "Suit", "Watercolor texture", "Soft smile"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "A green, cat-eared character in a suit holds a blank checklist and a coin jar to guide the next step; no text.",
+          "alt": "A cat-eared character in a suit guides you with a blank checklist and coin jar",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-cta-start\"]"
+        }
+      ]
+    </script>
+
+    <script>
+      const parseJsonBlock = (id) => JSON.parse(document.getElementById(id).textContent);
+      const indexData = parseJsonBlock("INTERPRETATION_INDEX");
+      const groupGrid = document.querySelector("[data-group-grid]");
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        })[char]);
+      }
+
+      groupGrid.innerHTML = indexData.groups.map((group, index) => {
+        const sectionCount = Array.isArray(group.sections) ? group.sections.length : 0;
+        return `
+          \x3carticle class="group-card" data-group-id="${escapeHtml(group.group_id)}">
+            \x3cheader>
+              \x3ch3>${escapeHtml(group.title)}\x3c/h3>
+              \x3csmall>${String(index + 1).padStart(2, "0")}\x3c/small>
+            \x3c/header>
+            \x3cp>${escapeHtml(group.summary)}\x3c/p>
+            \x3cdiv class="chip-row">\x3cspan class="chip">${sectionCount} detailed readings\x3c/span>\x3c/div>
+          \x3c/article>
+        `;
+      }).join("");
+
+      const progressBar = document.querySelector(".progress span");
+      const count = document.querySelector(".scene-count");
+      const scenes = [...document.querySelectorAll(".story-scene")];
+
+      function syncProgress() {
+        const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const progress = Math.min(100, Math.max(0, (window.scrollY / max) * 100));
+        progressBar.style.width = `${progress}%`;
+
+        const middle = window.scrollY + window.innerHeight * 0.42;
+        const activeIndex = scenes.reduce((closest, scene, index) => {
+          const distance = Math.abs(scene.offsetTop - middle);
+          return distance < closest.distance ? { index, distance } : closest;
+        }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
+        count.textContent = `${activeIndex + 1} / ${scenes.length}`;
+      }
+
+      syncProgress();
+      window.addEventListener("scroll", syncProgress, { passive: true });
+      window.addEventListener("resize", syncProgress);
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/save-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

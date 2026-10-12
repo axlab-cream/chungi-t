@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Can I date this year? | Fortune Shop</title>
+    <meta
+      name="description"
+      content="First check through your Four Pillars and current situation whether this is another passing connection or someone who may become a real relationship this year."
+    />
+    <meta name="application-name" content="Fortune Shop" />
+    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta
+      property="og:description"
+      content="First use the free reading to check how romance starts for you this year and why it keeps ending ambiguously."
+    />
+    <meta property="og:site_name" content="Fortune Shop" />
+    <meta property="og:url" content="https://love.umsh.kr/thisyear" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta name="theme-color" content="#0d1020" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080915;
+        --bg-soft: #111524;
+        --ink: #fff8f9;
+        --muted: rgba(255, 248, 249, 0.72);
+        --dim: rgba(255, 248, 249, 0.54);
+        --line: rgba(255, 220, 232, 0.22);
+        --pink: #ff96bb;
+        --peach: #ffc6b3;
+        --blue: #9bdcff;
+        --gold: #f5d38c;
+        --deep: rgba(8, 9, 21, 0.88);
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+        font-family:
+          Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at 48% 0%, rgba(255, 150, 187, 0.18), transparent 34rem),
+          radial-gradient(circle at 10% 18%, rgba(155, 220, 255, 0.18), transparent 24rem),
+          linear-gradient(180deg, #090a16 0%, #151019 50%, #080915 100%);
+        color: var(--ink);
+      }
+
+      body {
+        display: grid;
+        place-items: start center;
+        width: 100%;
+        min-width: 0;
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, 440px);
+        min-height: 100svh;
+        overflow: hidden;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        background:
+          linear-gradient(180deg, rgba(7, 8, 20, 0.72), rgba(7, 8, 20, 0.98)),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(9, 10, 22, 0.84);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 3px;
+      }
+
+      .brand strong {
+        font-size: 16px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .price-chip {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      .price-chip {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border: 1px solid rgba(245, 211, 140, 0.3);
+        border-radius: 999px;
+        background: rgba(245, 211, 140, 0.09);
+        color: #ffe6a8;
+      }
+
+      .story {
+        display: grid;
+        gap: 0;
+      }
+
+      .scene {
+        position: relative;
+        min-height: min(92svh, 780px);
+        display: grid;
+        align-content: end;
+        overflow: hidden;
+        background: var(--bg);
+        isolation: isolate;
+      }
+
+      .scene.compact {
+        min-height: min(72svh, 640px);
+      }
+
+      .scene-image {
+        position: absolute;
+        inset: 0;
+        z-index: -3;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        background: #12131f;
+        transform: scale(1.01);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%);
+      }
+
+      [data-scene-id="scene-01"] .scene-image,
+      [data-scene-id="scene-02"] .scene-image {
+        object-position: center 34%;
+      }
+
+      [data-scene-id="scene-01"] .content {
+        padding-bottom: calc(102px + env(safe-area-inset-bottom));
+      }
+
+      .scene::before,
+      .scene::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .scene::before {
+        z-index: -2;
+        background:
+          linear-gradient(180deg, rgba(8, 9, 21, 0.05) 0%, rgba(8, 9, 21, 0.16) 38%, rgba(8, 9, 21, 0.78) 74%, rgba(8, 9, 21, 0.98) 100%),
+          linear-gradient(90deg, rgba(8, 9, 21, 0.24), transparent 26% 74%, rgba(8, 9, 21, 0.24));
+      }
+
+      .scene::after {
+        z-index: -1;
+        background: radial-gradient(circle at 50% 84%, rgba(255, 150, 187, 0.18), transparent 16rem);
+      }
+
+      .scene.is-broken {
+        background:
+          radial-gradient(circle at 38% 24%, rgba(155, 220, 255, 0.2), transparent 16rem),
+          radial-gradient(circle at 70% 70%, rgba(255, 150, 187, 0.2), transparent 16rem),
+          #0f1120;
+      }
+
+      .content {
+        display: grid;
+        gap: 16px;
+        width: 100%;
+        padding: 92px 20px max(28px, env(safe-area-inset-bottom));
+      }
+
+      .content.center {
+        text-align: center;
+      }
+
+      .eyebrow {
+        width: fit-content;
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 198, 179, 0.3);
+        border-radius: 999px;
+        background: rgba(8, 9, 21, 0.42);
+        color: #ffe0db;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        backdrop-filter: blur(12px);
+      }
+
+      .center .eyebrow {
+        margin-inline: auto;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        max-width: 11.2em;
+        font-size: clamp(32px, 9.3vw, 44px);
+        line-height: 1.08;
+        letter-spacing: 0;
+        text-wrap: balance;
+      }
+
+      h2 {
+        font-size: clamp(28px, 7.6vw, 36px);
+      }
+
+      p {
+        max-width: 31em;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.72;
+        word-break: keep-all;
+        text-wrap: pretty;
+      }
+
+      .accent {
+        color: var(--pink);
+      }
+
+      .soft {
+        color: var(--blue);
+      }
+
+      .panel {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 220, 232, 0.18);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 90% 0%, rgba(255, 150, 187, 0.18), transparent 10rem),
+          rgba(9, 10, 22, 0.62);
+        backdrop-filter: blur(18px);
+      }
+
+      .signal-row,
+      .preview-grid,
+      .basis-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .signal,
+      .basis,
+      .preview-card {
+        min-height: 86px;
+        padding: 12px;
+        border: 1px solid rgba(255, 220, 232, 0.16);
+        border-radius: 8px;
+        background: rgba(255, 248, 249, 0.07);
+      }
+
+      .signal strong,
+      .basis strong,
+      .preview-card strong {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+        line-height: 1.28;
+      }
+
+      .signal span,
+      .basis span,
+      .preview-card span {
+        display: block;
+        margin-top: 6px;
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.38;
+        word-break: keep-all;
+        text-wrap: pretty;
+      }
+
+      .basis-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-stack {
+        display: grid;
+        gap: 10px;
+        margin-top: 2px;
+      }
+
+      .primary-cta,
+      .ghost-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        width: 100%;
+        padding: 0 18px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        font-size: 15px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .primary-cta {
+        background: linear-gradient(135deg, #ff8ab5, #ffd2b5 62%, #9bdcff);
+        color: #17101b;
+        box-shadow: 0 18px 34px rgba(255, 150, 187, 0.22);
+      }
+
+      .ghost-cta {
+        border-color: rgba(255, 220, 232, 0.2);
+        background: rgba(9, 10, 22, 0.4);
+        color: rgba(255, 248, 249, 0.82);
+      }
+
+      .footer-note {
+        padding: 22px 20px 96px;
+        color: rgba(255, 248, 249, 0.48);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.55;
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 28px 0;
+        }
+
+        .phone {
+          min-height: calc(100svh - 56px);
+          border: 1px solid rgba(255, 220, 232, 0.18);
+          border-radius: 28px;
+        }
+
+        .scene { min-height: min(calc(100svh - 56px), 780px); }
+
+        .scene.compact { min-height: min(72svh, 640px); }
+      }
+
+      @media (max-width: 430px) {
+        h1,
+        h2 {
+          font-size: clamp(29px, 8vw, 34px);
+        }
+      }
+
+      @media (max-width: 360px) {
+        .content {
+          padding-inline: 16px;
+        }
+
+        h1,
+        h2 {
+          font-size: 30px;
+        }
+
+        .signal-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .scene-image {
+          animation: imageBreath 12s ease-in-out infinite alternate;
+        }
+
+        .primary-cta {
+          transition:
+            transform 180ms ease,
+            filter 180ms ease;
+        }
+
+        .primary-cta:hover,
+        .primary-cta:focus-visible {
+          filter: brightness(1.04);
+          transform: translateY(-1px);
+        }
+
+        @keyframes imageBreath {
+          from {
+            transform: scale(1.01);
+          }
+          to {
+            transform: scale(1.055);
+          }
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* .phone is overflow:hidden, which makes it a scroll container the page never
+         scrolls, so the design's own sticky CTA never pinned. overflow:clip keeps the
+         same clipping without the scrollport, and the CTA sticks to the viewport again. */
+      body.umsh-has-chrome .phone { overflow: clip; }
+      body.umsh-has-chrome .sticky-actions { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .toast { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px) + 12px); }
+      /* 05 목차의 검색·필터 줄은 sticky로 목록 위에 겹쳐 떠 있었다. 상단 GNB가 이미
+         고정이라 두 겹이 되고 뒤 카드가 가려져서, 목록과 같이 흐르게 둔다. */
+      body.umsh-has-chrome .toolbar { position: static; backdrop-filter: none; }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .thisyear-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 168, 200, 0.4); border-radius: 10px; background: rgba(255, 168, 200, 0.08); padding: 14px; margin-bottom: 14px; }
+      .thisyear-saved-profile b { color: #ffd7e6; font-size: 14px; }
+      .thisyear-saved-profile span { color: rgba(255, 240, 246, 0.78); font-size: 13px; line-height: 1.55; }
+      .thisyear-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="This year's love" data-price="12,900 KRW" data-active="home" id="step-1-story">
+      <header class="appbar topbar" aria-label="Service header information">
+        <a class="brand" href="https://love.umsh.kr/thisyear" aria-label="Fortune Shop: this year&#39;s romance outlook">
+          <strong>Fortune Shop</strong>
+          <span>Love fortune · This year&#39;s flow</span>
+        </a>
+      </header>
+
+      <article class="story" aria-label="Can I date this year? Intro">
+        <section class="scene" data-scene-id="scene-01">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/campaign-2026/year-love-story-hero-v1.webp"
+            alt="A woman entering a bright café, looking forward to meeting someone new"
+            fetchpriority="high"
+            decoding="async"
+          >
+          <div class="content">
+            <span class="eyebrow">This year&#39;s love: wait or act</span>
+            <h1>Will this just pass me by again,<br /><span class="accent">Will this become love this time?</span></h1>
+            <p>
+              One ambiguous person can keep your heart unsettled longer than no one at all.
+              Where does it start, and why does it stop? Let&#39;s look at your chart alongside your current situation.
+            </p>
+            <div class="cta-stack">
+              <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story#step-2-saju-input">
+                See when my love life moves
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-02">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/campaign-2026/year-love-story-scene-02-v1.webp"
+            alt="A woman putting down her phone by a café window and reflecting on an unclear relationship"
+            loading="lazy"
+            decoding="async"
+          >
+          <div class="content">
+            <span class="eyebrow">If this sounds like you now</span>
+            <h2>I do find people I like, but<br /><span class="accent">Why is the ending always vague?</span></h2>
+            <p>
+              Contact comes at different times, and feelings grow at different speeds. Closeness can also reveal things you want to avoid.
+              This year, let’s start with where that repetition can be broken.
+            </p>
+            <div class="panel">
+              <div class="signal-row" aria-label="Main concern">
+                <div class="signal"><strong>New connection</strong><span>Where and how it begins</span></div>
+                <div class="signal"><strong>Flirting / interest</strong><span>Approach now or observe a little longer</span></div>
+                <div class="signal"><strong>A past connection</strong><span>Feelings to restart with, or a repetition to end?</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-03">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/campaign-2026/year-love-story-scene-03-v1.webp"
+            alt="A woman recalling missed contact signals outside a cafe on a winter evening"
+            loading="lazy"
+            decoding="async"
+          >
+          <div class="content">
+            <span class="eyebrow">First twist</span>
+            <h2>The problem isn&#39;t a lack of connections,<br /><span class="soft">Signals missed at the beginning</span>could be</h2>
+            <p>
+              Attraction comes quickly, but checking comes late? Do you pull away when the other person approaches? Does anxiety grow before affection? To avoid overlooking this year’s connections, start by looking at recurring situations.
+            </p>
+          </div>
+        </section>
+
+        <section class="scene compact" data-scene-id="scene-04">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/campaign-2026/year-love-story-scene-04-v1.webp"
+            alt="A woman in a café uses a calendar and notebook to organize meeting timing and relationship patterns"
+            loading="lazy"
+            decoding="async"
+          >
+          <div class="content">
+            <span class="eyebrow">Three things to look at in my chart</span>
+            <h2>When you stand out, and who you are drawn to,<br /><span class="accent">Where the relationship stalls</span></h2>
+            <p>
+              I will not end with the single line &quot;there is love luck.&quot; Let us read the time when your appeal shows, and the conditions that lead to an actual meeting, together with the current state of the relationship.
+            </p>
+            <div class="panel basis-grid" aria-label="Personalized reading scope">
+              <div class="basis"><strong>When people recognize me</strong><span>A period when charm and presence become clearer than usual</span></div>
+              <div class="basis"><strong>Months when the relationship moves</strong><span>Periods when meeting and staying in touch may be easier</span></div>
+              <div class="basis"><strong>Conditions for flirting to become dating</strong><span>Actions that keep attraction from ending as passing interest</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-scene-id="scene-05">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/campaign-2026/year-love-story-scene-05-v1.webp"
+            alt="A woman explores several result cards to understand this year’s love story"
+            loading="lazy"
+            decoding="async"
+          >
+          <div class="content">
+            <span class="eyebrow">The story continues after the free result</span>
+            <h2>Rather than just &#39;Dating possible,&#39;<br /><span class="accent">When to act, who to approach, and how</span>because I’m curious about it</h2>
+            <div class="panel preview-grid" aria-label="Representative paid report contents">
+              <div class="preview-card">
+                <strong>The first scene to change this year</strong>
+                <span>Ways connections enter daily life and signs to notice</span>
+              </div>
+              <div class="preview-card">
+                <strong>The difference between someone you are drawn to and someone who lasts</strong>
+                <span>Conditions for initial excitement to become a real relationship</span>
+              </div>
+              <div class="preview-card">
+                <strong>When communication and meetings begin to move</strong>
+                <span>A stretch that is good for approaching first, and a time not to rush</span>
+              </div>
+              <div class="preview-card">
+                <strong>My recurring pattern when a budding relationship stalls</strong>
+                <span>The moment it slips into read-and-ignore, watching for cues, and over-immersion</span>
+              </div>
+              <div class="preview-card">
+                <strong>One thing to use immediately this month</strong>
+                <span>Contact, meetings, and distance adjustments for my situation</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-scene-id="scene-06">
+          <img
+            class="scene-image"
+            src="../assets/thisyear/campaign-2026/year-love-story-scene-06-v1.webp"
+            alt="A woman opening a bright café door and stepping toward a new encounter"
+            loading="lazy"
+            decoding="async"
+          >
+          <div class="content center">
+            <span class="eyebrow">Check free first</span>
+            <h2>When love opens up this year<br /><span class="accent">Let’s open the first scene</span></h2>
+            <p>
+              With saved Four Pillars and your current relationship state, I’ll show the first 2 readings in detail. Start with scenes connected to your story now, not vague possibilities.
+            </p>
+            <div class="cta-stack">
+              <a class="primary-cta" href="../02-step-2-saju-input/index.html?service_key=love_thisyear&amp;service_slug=thisyear&amp;from=story-end#step-2-saju-input">Open my free love reading</a>
+            </div>
+          </div>
+        </section>
+
+        <p class="footer-note">
+          This service provides reference content based on traditional Four Pillars interpretation.
+          It does not determine anyone’s future or relationship outcomes, and offers conditions to check alongside actions you can choose.
+        </p>
+      </article>
+
+    </main>
+
+    <script>
+      const scenes = [...document.querySelectorAll(".scene")];
+
+      const markReady = (scene) => scene.classList.add("is-ready");
+      const markBroken = (scene) => scene.classList.add("is-broken");
+
+      scenes.forEach((scene) => {
+        const media = scene.querySelector(".scene-image");
+        if (!media) return;
+
+        const ready = () => markReady(scene);
+        media.complete && media.naturalWidth > 0 ? ready() : media.addEventListener("load", ready, { once: true });
+        media.addEventListener("error", () => markBroken(scene), { once: true });
+      });
+    </script>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "SERVICE_TITLE": "Can I date this year?",
+        "SERVICE_DESCRIPTION": "A love-fortune service using attraction symbolism, annual flow, and spouse stars to explore this year’s possibilities, meeting timing, recurring relationship patterns, and relationship actions",
+        "SERVICE_CATEGORY": "Love luck",
+        "SERVICE_PRICE_KRW": 24900,
+        "SERVICE_URL_HINT": "love.umsh.kr/thisyear",
+        "TARGET_AUDIENCE": "MZ users curious about new connections, a spark, reunion, and transitions to a serious relationship this year",
+        "ANALYSIS_BASIS": ["Attraction star", "Annual cycle", "Spouse star"],
+        "INTERPRETATION_INDEX_SOURCE": "user_seed"
+      }
+    </script>
+
+
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {
+          "asset_key": "thisyear-01-scene-01-hook",
+          "filename": "assets/thisyear/campaign-2026/year-love-story-hero-v1.webp",
+          "role": "hero",
+          "aspect_ratio": "4:5",
+          "reference_image": "11-dohwa-highlight-cafe-v1.png",
+          "reference_status": "selected",
+          "character_style_lock": ["A realistic Korean woman", "Bright winter cafe", "Ivory, pale pink, muted rose", "Natural light", "Soft film texture"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-01'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-02-empathy",
+          "filename": "assets/thisyear/campaign-2026/year-love-story-scene-02-v1.webp",
+          "role": "scene",
+          "aspect_ratio": "4:5",
+          "reference_image": "11-dohwa-highlight-cafe-v1.png",
+          "reference_status": "selected",
+          "character_style_lock": ["A realistic Korean woman", "Bright winter cafe", "Ivory, pale pink, muted rose", "Natural light", "Soft film texture"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-02'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-03-pattern",
+          "filename": "assets/thisyear/campaign-2026/year-love-story-scene-03-v1.webp",
+          "role": "scene",
+          "aspect_ratio": "4:5",
+          "reference_image": "11-dohwa-highlight-cafe-v1.png",
+          "reference_status": "selected",
+          "character_style_lock": ["A realistic Korean woman", "Bright winter cafe", "Ivory, pale pink, muted rose", "Natural light", "Soft film texture"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-03'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-04-basis",
+          "filename": "assets/thisyear/campaign-2026/year-love-story-scene-04-v1.webp",
+          "role": "scene",
+          "aspect_ratio": "4:5",
+          "reference_image": "11-dohwa-highlight-cafe-v1.png",
+          "reference_status": "selected",
+          "character_style_lock": ["A realistic Korean woman", "Bright winter cafe", "Ivory, pale pink, muted rose", "Natural light", "Soft film texture"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-04'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-05-preview",
+          "filename": "assets/thisyear/campaign-2026/year-love-story-scene-05-v1.webp",
+          "role": "scene",
+          "aspect_ratio": "4:5",
+          "reference_image": "11-dohwa-highlight-cafe-v1.png",
+          "reference_status": "selected",
+          "character_style_lock": ["A realistic Korean woman", "Bright winter cafe", "Ivory, pale pink, muted rose", "Natural light", "Soft film texture"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-05'] .scene-image"
+        },
+        {
+          "asset_key": "thisyear-01-scene-06-cta",
+          "filename": "assets/thisyear/campaign-2026/year-love-story-scene-06-v1.webp",
+          "role": "scene",
+          "aspect_ratio": "4:5",
+          "reference_image": "11-dohwa-highlight-cafe-v1.png",
+          "reference_status": "selected",
+          "character_style_lock": ["A realistic Korean woman", "Bright winter cafe", "Ivory, pale pink, muted rose", "Natural light", "Soft film texture"],
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-scene-id='scene-06'] .scene-image"
+        }
+      ]
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/thisyear-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

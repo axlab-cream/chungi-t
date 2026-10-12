@@ -1,3 +1,4 @@
+import { birthLocationKey } from '../saju/birth-location.js'
 /**
  * 내 2027년, 풀릴 각이야? — 신년운세 흐름.
  *
@@ -311,7 +312,7 @@ export function createNewYearReportId(analysis: SajuAnalysis, birth: BirthInput,
     version: 'newyear-reading-v2', targetYear: NEWYEAR_TARGET_YEAR, ownerId,
     birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour,
       minute: birth.minute ?? 0, gender: birth.gender, calendar: birth.calendar,
-      isLeapMonth: birth.isLeapMonth ?? false, dayBoundaryRule: birth.dayBoundaryRule },
+      isLeapMonth: birth.isLeapMonth ?? false, dayBoundaryRule: birth.dayBoundaryRule, ...birthLocationKey(birth) },
     name: context.name ?? '', birthTimeKnown: context.birthTimeKnown !== false,
     pillars: analysis.fourPillars,
   }

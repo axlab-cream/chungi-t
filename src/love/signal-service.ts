@@ -1,3 +1,4 @@
+import { parseBirthLocation, birthLocationKey, birthForIdentity } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
@@ -154,7 +155,10 @@ function validDateParts(year: number, month: number, day: number): boolean {
 
 function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
   const source = asObject(body.partnerBirth)
-  const text = trimmed(body.partnerBirthText ?? source.text, 20).replace(/[^0-9]/g, '')
+  const textInput = trimmed(body.partnerBirthText ?? source.text, 20).replace(/[^0-9]/g, '')
+  const numericDate = ['year', 'month', 'day'].every(key => Number.isInteger(Number(source[key])))
+    ? `${Number(source.year)}${String(Number(source.month)).padStart(2, '0')}${String(Number(source.day)).padStart(2, '0')}` : ''
+  const text = textInput || numericDate
   if (!text) throw new Error('상대 생년월일을 입력해 주세요.')
   if (text.length !== 8) throw new Error('상대 생년월일은 숫자 8자리 YYYYMMDD로 입력해 주세요.')
   const year = Number(text.slice(0, 4))
@@ -173,6 +177,7 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
     minute: Number.isFinite(Number(source.minute)) ? Number(source.minute) : 0,
     gender: source.gender === 'female' ? 'female' : 'male',
     calendar: source.calendar === 'lunar' ? 'lunar' : 'solar',
+    ...parseBirthLocation(source),
   }
 }
 
@@ -191,7 +196,7 @@ export function parseLoveSignalRequest(body: Record<string, unknown>): LoveSigna
     if (selfBirthBody.gender !== 'male' && selfBirthBody.gender !== 'female') throw new InputError('내 성별을 선택해 주세요.')
     if (selfBirthBody.calendar !== 'solar' && selfBirthBody.calendar !== 'lunar') throw new InputError('내 생년월일의 양력 또는 음력을 선택해 주세요.')
     if (known && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) throw new InputError('내 태어난 시간을 다시 확인해 주세요.')
-    selfBirth = { year, month, day, hour: known ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth) }
+    selfBirth = { year, month, day, hour: known ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth), ...parseBirthLocation(selfBirthBody) }
     selfBirthTimeKnown = known
   }
   const relationshipStage = trimmed(body.relationshipStage, 50)
@@ -207,7 +212,7 @@ export function parseLoveSignalRequest(body: Record<string, unknown>): LoveSigna
     signalFocus,
     partnerName: trimmed(body.partnerName, 20),
     partnerBirth: parsePartnerBirth(body),
-    partnerBirthTimeKnown: body.partnerBirthTimeKnown === true,
+    partnerBirthTimeKnown: body.partnerBirthTimeKnown === true || asObject(body.partnerBirth).birthTimeKnown === true,
     concern: trimmed(body.concern, 160),
   }
 }
@@ -438,8 +443,8 @@ export function loveSignalTeaserSection(
 export function createLoveSignalReportId(ownerId: string | undefined, birth: BirthInput, input: LoveSignalRequest): string {
   const fingerprint = JSON.stringify({
     ownerId: ownerId ?? '',
-    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar },
-    partnerBirth: input.partnerBirth,
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar, ...birthLocationKey(birth) },
+    partnerBirth: birthForIdentity(input.partnerBirth),
     relationshipStage: input.relationshipStage,
     signalFocus: input.signalFocus,
     concern: input.concern,

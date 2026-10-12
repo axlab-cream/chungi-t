@@ -1,0 +1,1327 @@
+<!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
+    <script src="/js/umsh-analytics.js?v=ga-20261007-cat-display-v1"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/cat-display-locale.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>猫と自分、本当に相性がいい？ | 無料ティーザー | 運命商会</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="運命商会">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="運命商会 - 運命を売ります。">
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。">
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="飼い主の四柱推命と猫の行動プロフィールを基に、猫との生活相性の無料ティザーと全文レポートの範囲を確認する画面">
+    <link rel="stylesheet" href="/css/umsh-chrome.css">
+    <link rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260929-cat-toc-open-v1">
+    <style>
+      @font-face {
+        font-family: "MaruBuri";
+        src: url("/assets/fonts/MaruBuri-SemiBold.woff2") format("woff2");
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Pretendard";
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+        font-display: swap;
+      }
+
+      :root {
+        --bg: #050604;
+        --ink: #fffaf0;
+        --muted: #d9ceb6;
+        --dim: #9b917d;
+        --line: rgba(247, 207, 109, 0.24);
+        --line-bright: rgba(247, 207, 109, 0.46);
+        --gold: #f4ca6a;
+        --green: #a8ff1f;
+        --green-soft: rgba(168, 255, 31, 0.14);
+        --teal: #6debd3;
+        --danger: #ff8f73;
+        --panel: rgba(8, 11, 7, 0.78);
+        --panel-strong: rgba(13, 17, 10, 0.93);
+        --shadow: rgba(0, 0, 0, 0.66);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 12% 0%, rgba(168, 255, 31, 0.12), transparent 25rem),
+          radial-gradient(circle at 84% 9%, rgba(109, 235, 211, 0.1), transparent 22rem),
+          linear-gradient(135deg, #030401 0%, #10120d 50%, #020302 100%);
+        font-family:
+          "Pretendard",
+          "Apple SD Gothic Neo",
+          "Noto Sans KR",
+          sans-serif;
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      img {
+        display: block;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .page-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, 430px);
+        height: min(900px, 100dvh);
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid rgba(255, 244, 210, 0.18);
+        border-radius: 28px;
+        background: #050604;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.58);
+        scroll-behavior: smooth;
+      }
+
+      .phone::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 18px 10px;
+        background:
+          linear-gradient(180deg, rgba(3, 4, 2, 0.98), rgba(3, 4, 2, 0.78) 72%, transparent),
+          rgba(3, 4, 2, 0.6);
+        backdrop-filter: blur(14px);
+      }
+
+      .back-link,
+      .icon-button {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        border: 1px solid rgba(255, 250, 240, 0.17);
+        border-radius: 50%;
+        color: var(--ink);
+        text-decoration: none;
+        background: rgba(255, 250, 240, 0.06);
+      }
+
+      .back-link:focus-visible,
+      .icon-button:focus-visible,
+      .primary-cta:focus-visible,
+      .secondary-button:focus-visible,
+      .policy-link:focus-visible,
+      .state-button:focus-visible {
+        outline: 2px solid rgba(168, 255, 31, 0.72);
+        outline-offset: 2px;
+      }
+
+      .brand {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .brand span,
+      .price-chip,
+      .kicker,
+      .chapter,
+      .metric span,
+      .state-pill {
+        letter-spacing: 0;
+      }
+
+      .brand span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: rgba(255, 250, 240, 0.74);
+        font-size: 11px;
+      }
+
+      .brand b {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-top: 2px;
+        color: var(--ink);
+        font-size: 14px;
+      }
+
+      .price-chip {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border: 1px solid rgba(168, 255, 31, 0.34);
+        border-radius: 999px;
+        color: #e9ffd0;
+        background: rgba(168, 255, 31, 0.1);
+        font-size: 12px;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 520px;
+        display: flex;
+        align-items: flex-end;
+        padding: 86px 22px 26px;
+        isolation: isolate;
+      }
+
+      .hero-media,
+      .hero-media img,
+      .hero-shade {
+        position: absolute;
+        inset: 0;
+      }
+
+      .hero-media {
+        z-index: -2;
+        overflow: hidden;
+      }
+
+      .hero-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+
+      .hero-shade {
+        z-index: -1;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(3, 4, 2, 0.18) 35%, rgba(3, 4, 2, 0.94) 96%),
+          radial-gradient(circle at 50% 72%, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.76));
+      }
+
+      .hero.image-failed,
+      .cta-visual.image-failed,
+      .signal-media.image-failed {
+        background:
+          radial-gradient(circle at 48% 24%, rgba(168, 255, 31, 0.16), transparent 14rem),
+          linear-gradient(180deg, #15170d, #050604);
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        text-shadow: 0 2px 20px var(--shadow);
+      }
+
+      .kicker,
+      .chapter,
+      .state-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border: 1px solid rgba(244, 202, 106, 0.3);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.34);
+      }
+
+      .kicker {
+        margin-bottom: 13px;
+        padding: 7px 10px;
+        color: #f6e0a4;
+        font-size: 12px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 360px;
+        font-family:
+          "MaruBuri",
+          "Noto Serif KR",
+          serif;
+        font-size: clamp(31px, 8vw, 42px);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .hero-copy p {
+        max-width: 350px;
+        margin-top: 13px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .metric {
+        min-height: 66px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        padding: 10px;
+        border: 1px solid rgba(255, 250, 240, 0.13);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      .metric span {
+        color: rgba(255, 250, 240, 0.62);
+        font-size: 11px;
+      }
+
+      .metric strong {
+        color: #f8ffe8;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .content {
+        padding: 18px 18px 116px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 26px 0 12px;
+      }
+
+      .section-title:first-child {
+        margin-top: 0;
+      }
+
+      .section-title h2 {
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      .section-title p {
+        margin-top: 5px;
+        color: var(--dim);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .chapter {
+        flex: 0 0 auto;
+        padding: 6px 9px;
+        color: #e9ffd0;
+        border-color: rgba(168, 255, 31, 0.32);
+        background: rgba(168, 255, 31, 0.08);
+        font-size: 11px;
+      }
+
+      .panel,
+      .signal-card,
+      .scope-card,
+      .state-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 250, 240, 0.046), transparent),
+          var(--panel);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+      }
+
+      .issue-panel {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border-color: rgba(255, 143, 115, 0.4);
+        background:
+          linear-gradient(180deg, rgba(255, 143, 115, 0.08), transparent),
+          var(--panel);
+      }
+
+      .issue-panel h2 {
+        color: #ffe2d9;
+        font-size: 17px;
+      }
+
+      .issue-panel p {
+        color: rgba(255, 231, 224, 0.85);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .signal-card.featured {
+        overflow: hidden;
+      }
+
+      .signal-media {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(244, 202, 106, 0.16);
+      }
+
+      .signal-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 25%;
+      }
+
+      .signal-copy {
+        padding: 16px;
+      }
+
+      .signal-copy h3 {
+        font-size: 18px;
+        line-height: 1.35;
+      }
+
+      .signal-copy p,
+      .mini-signal p,
+      .scope-card p,
+      .state-card p,
+      .policy-box p {
+        margin-top: 8px;
+        color: rgba(217, 206, 182, 0.86);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .signal-meta,
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .signal-meta span,
+      .tag-row span {
+        padding: 6px 8px;
+        border: 1px solid rgba(255, 250, 240, 0.14);
+        border-radius: 999px;
+        color: rgba(255, 250, 240, 0.78);
+        background: rgba(255, 250, 240, 0.045);
+        font-size: 12px;
+        line-height: 1.2;
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .mini-signal {
+        min-height: 148px;
+        padding: 14px;
+        border: 1px solid rgba(255, 250, 240, 0.13);
+        border-radius: 8px;
+        background: rgba(255, 250, 240, 0.045);
+      }
+
+      .mini-signal strong {
+        display: block;
+        color: #f8ffe8;
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .scope-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .scope-card {
+        padding: 14px;
+      }
+
+      .scope-card h3 {
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      .scope-card ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 10px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .scope-card li {
+        padding: 6px 8px;
+        border: 1px solid rgba(244, 202, 106, 0.18);
+        border-radius: 999px;
+        color: rgba(255, 250, 240, 0.8);
+        background: rgba(244, 202, 106, 0.06);
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .state-card {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        background:
+          linear-gradient(180deg, rgba(168, 255, 31, 0.08), transparent),
+          var(--panel-strong);
+      }
+
+      .state-pill {
+        width: max-content;
+        padding: 7px 10px;
+        color: #e9ffd0;
+        border-color: rgba(168, 255, 31, 0.32);
+        background: rgba(168, 255, 31, 0.08);
+        font-size: 12px;
+      }
+
+      .price-slate {
+        display: grid;
+        gap: 9px;
+        margin-top: 2px;
+      }
+
+      .price-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 34px;
+        padding-bottom: 9px;
+        border-bottom: 1px solid rgba(255, 250, 240, 0.1);
+        font-size: 13px;
+      }
+
+      .price-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .price-row span {
+        color: var(--dim);
+      }
+
+      .price-row strong {
+        color: rgba(255, 250, 240, 0.94);
+        text-align: right;
+      }
+
+      .cta-visual {
+        position: relative;
+        min-height: 430px;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        margin-top: 12px;
+        padding: 22px 16px;
+        border: 1px solid rgba(244, 202, 106, 0.22);
+        border-radius: 8px;
+        isolation: isolate;
+      }
+
+      .cta-visual img,
+      .cta-visual::after {
+        position: absolute;
+        inset: 0;
+      }
+
+      .cta-visual img {
+        z-index: -2;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+
+      .cta-visual::after {
+        content: "";
+        z-index: -1;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(3, 4, 2, 0.34) 45%, rgba(3, 4, 2, 0.94) 96%),
+          radial-gradient(circle at 50% 80%, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.66));
+      }
+
+      .cta-copy h2 {
+        max-width: 330px;
+        font-family:
+          "MaruBuri",
+          "Noto Serif KR",
+          serif;
+        font-size: 25px;
+        line-height: 1.24;
+      }
+
+      .cta-copy p {
+        max-width: 330px;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .policy-link {
+        display: inline-flex;
+        width: max-content;
+        margin-top: 10px;
+        color: #e9ffd0;
+        font-size: 13px;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      .policy-box {
+        padding: 14px;
+      }
+
+      .policy-box h3 {
+        font-size: 15px;
+      }
+
+      .bottom-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 24;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        margin: 20px -18px -116px;
+        padding: 14px 18px 18px;
+        background:
+          linear-gradient(180deg, transparent 0%, rgba(5, 6, 4, 0.82) 18%, rgba(5, 6, 4, 0.98) 100%);
+        backdrop-filter: blur(12px);
+      }
+
+      .primary-cta,
+      .secondary-button,
+      .state-button {
+        width: 100%;
+        min-height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .primary-cta {
+        color: #162005;
+        background: linear-gradient(135deg, #a8ff1f, #f4ca6a);
+        box-shadow: 0 14px 30px rgba(168, 255, 31, 0.16);
+      }
+
+      .secondary-button,
+      .state-button {
+        color: rgba(255, 250, 240, 0.86);
+        background: rgba(255, 250, 240, 0.06);
+        border-color: rgba(255, 250, 240, 0.15);
+      }
+
+      .state-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+      }
+
+      .live-message {
+        min-height: 18px;
+        color: #e9ffd0;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 520px) {
+        .page-shell {
+          display: block;
+          min-height: 100dvh;
+          padding: 0;
+        }
+
+        .phone {
+          width: 100%;
+          height: 100dvh;
+          border: 0;
+          border-radius: 0;
+        }
+      }
+
+      @media (max-width: 390px) {
+        .metric-grid,
+        .mini-grid,
+        .state-actions {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 31px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+          animation-duration: 0.001ms !important;
+        }
+      }
+
+      /* Shared UMSH chrome. The design frames the whole page as a fixed 430x900 phone
+         that scrolls inside itself; on the real site the document scrolls and the bottom
+         nav is fixed to the viewport, so the frame is unwrapped here. */
+      body.umsh-has-chrome .page-shell { min-height: 0; display: block; padding: 0; }
+      body.umsh-has-chrome .phone {
+        /* 세로로 갇힌 카드만 풀면 된다. 가로 폭까지 풀면 넓은 화면에서 화면 전체로
+           퍼져 다른 서비스의 모바일 프레임과 어긋난다. */
+        width: min(100%, 430px);
+        margin-inline: auto;
+        height: auto;
+        min-height: 100svh;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      /* Keep the fixed bottom nav clear of the page's last section. The shell publishes
+         its measured height, but that can land before layout settles, so the floor keeps
+         the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .bottom-actions {
+        bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+        margin-bottom: 0;
+      }
+      body.umsh-has-chrome .nav-footer { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* UMSHChrome renders the shared bar as header.umsh-chrome-appbar inside its own
+         shell, and that header still carries the page's .topbar class. Hand the box back
+         so the design's own positioning cannot drag the shared bar around. */
+      body.umsh-has-chrome .umsh-chrome-appbar {
+        left: auto;
+        right: auto;
+        width: auto;
+        transform: none;
+        pointer-events: auto;
+      }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .cat-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 224, 150, 0.42); border-radius: 10px; background: rgba(255, 224, 150, 0.1); padding: 14px; margin-bottom: 14px; }
+      .cat-saved-profile b { color: #ffe9b5; font-size: 14px; }
+      .cat-saved-profile span { color: rgba(255, 248, 232, 0.78); font-size: 13px; line-height: 1.55; }
+      .cat-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <main class="phone" data-umsh-chrome="" data-service="猫との相性" data-price="9,900 KRW" data-active="home" id="step-4-report" aria-label="猫と自分、本当に合う？ 無料の試し読み">
+        <div data-umsh-service-top></div>
+        <section id="umsh-preview-host" data-umsh-slot="preview" aria-label="自分の入力で先に見る猫相性の解釈"></section>
+        <header class="appbar topbar">
+
+          <div class="brand">
+            <span data-cat-shell="teaser">運命商会・無料ティーザー</span>
+            <b>猫と私、本当に相性が合う</b>
+          </div>
+          <span class="price-chip">9,900 KRW</span>
+        </header>
+
+        <section class="hero" aria-labelledby="hero-title">
+          <picture class="hero-media">
+            <img src="../assets/cat-compatibility/04-free-hero.webp" alt="猫と保護者の基準表、足跡の傾向の地図が金色の光でつながる、無料の相性プレビューの場面" loading="eager" onerror="this.closest('.hero').classList.add('image-failed'); this.remove();">
+          </picture>
+          <div class="hero-shade" aria-hidden="true"></div>
+          <div class="hero-copy">
+            <span class="kicker">STEP 04・無料結果</span>
+            <h1 id="hero-title">一緒に楽になる点。距離とルーティンから見ましょう</h1>
+            <p id="hero-summary">
+              ティーザーでは、猫が楽になる距離、飼い主の反応速度、繰り返す習慣のずれから見ます。
+            </p>
+            <div class="metric-grid" aria-label="無料の試し読みの範囲">
+              <div class="metric"><span>無料公開</span><strong>主なサイン3つ</strong></div>
+              <div class="metric"><span>全体の範囲</span><strong>10の大分類</strong></div>
+              <div class="metric"><span>分析期間</span><strong>現在から12か月</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="content">
+          <section class="panel issue-panel" id="issue-panel" hidden="">
+            <h2 id="issue-title">入力基準が見つかりませんでした</h2>
+            <p id="issue-copy">
+              下はプレビューの例だ。自分のリポートは、02段階で保護者の四柱推命の情報と、猫の行動プロフィールを入力してから進める。
+            </p>
+            <div class="state-actions">
+
+              <button class="state-button" type="button" data-action="retry-analysis">再試行</button>
+            </div>
+          </section>
+
+          <div class="section-title">
+            <div>
+              <h2>無料でまず見えるサイン</h2>
+              <p>まずは全体リポートの入口を開こう。決定を代わりに下すのではなく、確認する方向をつかもう。</p>
+            </div>
+            <span class="chapter">10~15%</span>
+          </div>
+
+          <section class="signal-card featured">
+            <picture class="signal-media">
+              <img src="../assets/cat-compatibility/04-signal-card.webp" alt="猫の足と飼い主の手の間の距離ゲージが光る主なサインのカード" loading="lazy" onerror="this.closest('.signal-media').classList.add('image-failed'); this.remove();">
+            </picture>
+            <div class="signal-copy">
+              <h3 id="signal-main-title">最初の手がかりは、近さより心地よい距離だよ</h3>
+              <p id="signal-main-copy">
+                愛情を確認したい速さと、猫が落ち着く距離には違いがあるかもしれない。
+              </p>
+              <div class="signal-meta" id="signal-tags" aria-label="入力に基づくサイン">
+                <span>距離感</span>
+                <span>撫でるときの心地よさ</span>
+                <span>回復の速さ</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="mini-grid" aria-label="無料のサインの要約">
+            <article class="mini-signal">
+              <strong>条件のサイン</strong>
+              <p id="condition-signal">
+                夜の習慣、食事と間食、外出と在宅。一つだけずれても、一緒にいる感じは大きく変わり得ます。
+              </p>
+            </article>
+            <article class="mini-signal">
+              <strong>妨げの合図</strong>
+              <p id="blocker-signal">
+                もっと世話したい日でも、猫は下がるかもしれない。その行動だけで内心を決めない。
+              </p>
+            </article>
+          </div>
+
+          <div class="section-title">
+            <div>
+              <h2>決済後に開く全体の目次</h2>
+              <p>9,900ウォンのレポートでは、以下の大分類と細かな項目を順に開ける。</p>
+            </div>
+            <span class="chapter">20項目</span>
+          </div>
+
+          <section class="scope-grid" id="scope-grid" aria-label="決済後に提供する目次"></section>
+
+          <section class="state-card" id="state-card">
+            <span class="state-pill" id="state-pill">未ログイン</span>
+            <h2 id="state-title">ログインするとこの結果を続けて見られる</h2>
+            <p id="state-copy">
+              ログインすると全体の読みを確認できる。
+            </p>
+            <div class="price-slate" aria-label="決済の要約">
+              <div class="price-row"><span>商品</span><strong>猫と私、本当に相性が合う</strong></div>
+              <div class="price-row"><span>構成</span><strong>無料の試し読み＋全体の生活の相性レポート</strong></div>
+              <div class="price-row"><span>決済金額</span><strong>9,900 KRW</strong></div>
+            </div>
+            <p class="live-message" id="live-message" aria-live="polite"></p>
+          </section>
+
+          <section class="cta-visual" id="cta-visual">
+            <img src="../assets/cat-compatibility/04-paid-cta.webp" alt="猫が金色のリポートの本を見つめ、全体の目次を開く決済への案内場面" loading="lazy" onerror="this.closest('.cta-visual').classList.add('image-failed'); this.remove();">
+            <div class="cta-copy">
+              <h2>無料の試し読みの次は、一緒に暮らす細部を見よう</h2>
+              <p>
+                猫のお世話の仕方から、なでてもよい場面、ごはん・睡眠の習慣、隠れ場所と窓辺の運、トラブル後の立て直しまで整理してみよう。
+              </p>
+              <a class="policy-link" href="#policy" data-action="toggle-policy">返金・取消の案内</a>
+            </div>
+          </section>
+
+          <section class="panel policy-box" id="policy" hidden="">
+            <h3>返金・キャンセルの基準</h3>
+            <p>
+              決済前は入力画面に戻れます。決済後の返金・取消は、利用規約と決済会社の基準に沿って案内されます。
+            </p>
+          </section>
+
+          <div class="bottom-actions">
+
+            <button class="primary-cta" type="button" id="primary-cta" data-action="primary">ログインして全体を見る (9,900ウォン)</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/cat-report-store.js"></script>
+    <script>
+      (() => {
+        const SERVICE = {
+          service_key: "cat_compatibility",
+          service_slug: "cat-compatibility",
+          service_title: "猫と私は本当に相性が合う",
+          category: "猫との相性",
+          subcategory: "生活の相性",
+          domain: "pet_compatibility",
+          price_krw: 9900,
+          analysis_period: "今の生活習慣と、今後12か月の管理の流れ",
+          report_version: "cat-compatibility-v1"
+        };
+
+        const PAYLOAD_KEY = "cat_compatibility_step2_payload";
+        const RETURN_STATE_KEY = "cat_compatibility_return_state";
+        const INDEX_KEY = "cat_compatibility_interpretation_index";
+        const REPORT_CONTEXT_KEY = "cat_compatibility_report_context";
+        const PAYMENT_PENDING_KEY = "cat_compatibility_payment_pending";
+        const sessionStore = safeStorage("sessionStorage");
+
+        const interpretationIndex = [
+          { group: "自分の猫のお世話の基本", items: ["飼い主としての傾向", "世話するエネルギーのレベル", "愛情表現の温度。", "一人でいたい時間", "執着と放置のバランス"] },
+          { group: "私と猫の相性の温度", items: ["初対面のテンション", "撫でるときの心地よさ", "一緒に休む相性", "遊んであげるコード", "すねた気持ちが戻る速さ"] },
+          { group: "距離感の相性", items: ["一線を越える場面", "近づくタイミング", "無関心に見える愛情", "世話する人の言葉・行動の速さ", "猫が落ち着く距離"] },
+          { group: "生活習慣の一致", items: ["朝の習慣の相性", "食事・おやつのリズム", "睡眠パターンの衝突", "外出・在宅の相性", "繰り返す世話の習慣"] },
+          { group: "空間の相性", items: ["隠れ家の場所", "キャットタワー・窓辺の運", "トイレの位置への敏感さ。", "安定ゾーン対活動ゾーン", "うちの色と照明のムード。"] },
+          { group: "トラブルのパターンを読む", items: ["噛む・引っかく日の手がかり", "夜のウダウダと、飼い主の体力", "人見知り・警戒心", "多頭飼いの嫉妬", "繰り返す対立の立て直し方"] },
+          { group: "五行のバランスを整える", items: ["木の気：成長・遊び", "火の気：表現・興奮", "土の気: 安定・習慣", "金の気：ルール・整理", "水の気: 休息・一人の時間"] },
+          { group: "迎え入れ・猫同士の対面のタイミング", items: ["迎えるのに向いた流れ", "猫同士を初めて会わせる日の注意", "動物病院・お手入れの予約のタイミング", "引っ越し・部屋の配置変更日", "適応期間の確認"] },
+          { group: "世話をする人の燃え尽き防止", items: ["自分が過剰に世話する地点。", "後回しにする世話のポイント", "休むべき日", "感情の消耗を減らす方法", "長期同居の持続力"] },
+          { group: "今日の猫ライフの行動", items: ["今日する一つ。", "今週のルーティン課題", "話し方・触れ方の調整", "遊び方の提案", "静かに見守る時期"] }
+        ];
+
+        const labelMap = {
+          shy: "人見知り",
+          touch_friendly: "触れ合いが好き",
+          independent: "独立的",
+          active: "活発さ",
+          sensitive: "敏感さ",
+          food_motivated: "おやつへの反応が早い",
+          night_runner: "夜の駆け回り",
+          jealous: "嫉妬／多頭飼いに敏感",
+          sleep_conflict: "睡眠のパターン",
+          food_rhythm: "食事・おやつのリズム",
+          work_from_home: "外出・在宅の温度感",
+          space_litter: "トイレ・空間",
+          multi_cat_tension: "多頭飼いの嫉妬",
+          clinic_grooming: "病院・トリミングの予約",
+          none: "特にない",
+          distance: "距離感の相性",
+          routine: "生活習慣の一致",
+          space: "空間の相性",
+          trouble: "トラブルの型",
+          adoption: "迎え入れ・猫同士の対面のタイミング",
+          burnout: "世話をする人の燃え尽き防止",
+          today_action: "今日の猫ライフの行動"
+        };
+
+        const stateCopy = {
+          guest: {
+            pill: "未ログイン",
+            title: "ログインするとこの結果を続けて見られる",
+            copy: "戻る情報には入力したサービスと段階だけを残し、名前と生年月日はアドレス欄に載せない。",
+            label: "ログインして全体を見る（9,900ウォン）"
+          },
+          unpaid: {
+            pill: "ログイン完了",
+            title: "無料ティーザーは残り、全レポートは決済後に開きます",
+            copy: "支払い前は主な合図3個だけを示し、支払い後に全目次と生活の行動を続けて確認する。",
+            label: "全体を見る（9,900ウォン）"
+          },
+          pending: {
+            pill: "決済中",
+            title: "二重決済を防ぐため、進行状態を確認している。",
+            copy: "支払い画面を閉じたり、通信が遅かったりしても、無料の結果は残る。少ししてから状態を再確認して。",
+            label: "決済の進み具合を再確認"
+          },
+          failed: {
+            pill: "支払い失敗",
+            title: "決済が完了していない",
+            copy: "無料のティーザーはそのまま残る。支払い手段を確認したあと、やり直せる。",
+            label: "決済をもう一度試す。"
+          },
+          canceled: {
+            pill: "支払いを取り消す",
+            title: "支払いは取り消され、無料の結果は残る",
+            copy: "今はここで止めてもよい。続きを見たいときに全体レポートの決済を続けられる。",
+            label: "再び支払って全体を見る (9,900 KRW)"
+          },
+          entitled: {
+            pill: "閲覧できる",
+            title: "すでに全体のレポートを開ける",
+            copy: "決済画面なしで全目次へ移動します。結果の閲覧権限は注文確認に通った場合だけ適用されます。",
+            label: "全体の目次をすぐ見る"
+          },
+          no_report: {
+            pill: "入力が必要",
+            title: "分析の基準が足りないため、無料の結果だけを示す",
+            copy: "入力画面に戻り、保護者の命式と猫の行動プロフィールを再確認してください。",
+            label: "入力をやり直してレポートを作る"
+          },
+          failed_analysis: {
+            pill: "分析を再試行",
+            title: "分析を最後まで作れなかった",
+            copy: "無限ローディングにはせず、この画面で止めた。入力を残したまま、もう一度試せる。",
+            label: "分析をやり直す"
+          }
+        };
+
+        const params = new URLSearchParams(location.search);
+        const payload = readJson(PAYLOAD_KEY);
+        const context = deriveContext(payload);
+
+        const els = {
+          heroTitle: document.querySelector("#hero-title"),
+          heroSummary: document.querySelector("#hero-summary"),
+          issuePanel: document.querySelector("#issue-panel"),
+          issueTitle: document.querySelector("#issue-title"),
+          issueCopy: document.querySelector("#issue-copy"),
+          signalTitle: document.querySelector("#signal-main-title"),
+          signalCopy: document.querySelector("#signal-main-copy"),
+          signalTags: document.querySelector("#signal-tags"),
+          conditionSignal: document.querySelector("#condition-signal"),
+          blockerSignal: document.querySelector("#blocker-signal"),
+          scopeGrid: document.querySelector("#scope-grid"),
+          statePill: document.querySelector("#state-pill"),
+          stateTitle: document.querySelector("#state-title"),
+          stateCopy: document.querySelector("#state-copy"),
+          primaryCta: document.querySelector("#primary-cta"),
+          policy: document.querySelector("#policy"),
+          liveMessage: document.querySelector("#live-message")
+        };
+
+        function safeStorage(name) {
+          try {
+            return window[name] || null;
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        function readJson(key) {
+          if (!sessionStore) return null;
+          try {
+            return JSON.parse(sessionStore.getItem(key) || "null");
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        function writeJson(key, value) {
+          if (!sessionStore) return;
+          try {
+            sessionStore.setItem(key, JSON.stringify(value));
+          } catch (_error) {
+            // Session storage can be blocked in restricted browser modes.
+          }
+        }
+
+        function removeKey(key) {
+          if (!sessionStore) return;
+          try {
+            sessionStore.removeItem(key);
+          } catch (_error) {
+            // Ignore cleanup failures.
+          }
+        }
+
+        function asList(values) {
+          return Array.isArray(values) ? values : [];
+        }
+
+        function deriveContext(raw) {
+          const cat = raw?.cat || {};
+          const guardian = raw?.guardian || {};
+          const catName = cat.nickname || "猫";
+          const guardianName = guardian.nickname ? `${guardian.nickname}さん` : "猫の世話をする人";
+          const behaviorTags = asList(cat.behavior_tags);
+          const routineFlags = asList(cat.routine_flags);
+          const focusArea = cat.focus_area || "distance";
+          const birthBasis = cat.birth_known ? "誕生日の参考" : "行動タグ中心";
+          const reportId = raw?.report_id || params.get("report_id") || "report_pending";
+          const profileId = guardian.profile_id || params.get("profile_id") || "profile_pending";
+          const hasReportReference = reportId !== "report_pending" || profileId !== "profile_pending";
+          return {
+            hasPayload: Boolean(raw) || hasReportReference,
+            catName,
+            guardianName,
+            behaviorTags,
+            routineFlags,
+            focusArea,
+            focusLabel: labelMap[focusArea] || "距離感の相性",
+            birthBasis,
+            timeKnown: guardian.birth?.time_known !== false,
+            profileId,
+            reportId
+          };
+        }
+
+        function tagLabels(items, fallback) {
+          const labels = asList(items).map((item) => labelMap[item] || item).filter(Boolean);
+          return labels.length ? labels : fallback;
+        }
+
+        function renderHero() {
+          els.heroTitle.textContent = `${context.catName}と${context.guardianName}が一緒に楽になる点は、距離と習慣から見える`;
+          els.heroSummary.textContent = context.hasPayload
+            ? `${context.birthBasis}で受け取った入力をもとに、まずは${context.focusLabel}に関する主な手がかりだけを開く。`
+            : "入力の基準がないため例のティーザーです。正確なレポートは02段階の入力後に続きます。";
+        }
+
+        function renderSignals() {
+          const behavior = tagLabels(context.behaviorTags, ["距離感", "撫でるときの心地よさ", "回復の速さ"]);
+          const routines = tagLabels(context.routineFlags, ["睡眠のパターン", "食事・おやつのリズム"]);
+          const hasNight = context.behaviorTags.includes("night_runner") || context.routineFlags.includes("sleep_conflict");
+          const hasSpace = context.focusArea === "space" || context.routineFlags.includes("space_litter");
+
+          els.signalTitle.textContent = hasSpace
+            ? "最初のサインは空間で楽になる場所です"
+            : "最初の手がかりは、近さより心地よい距離だよ";
+          els.signalCopy.textContent = hasSpace
+            ? `${context.catName}は隠れる場所と活動場所が分かれるほど楽に反応できることがあります。飼い主の愛情表現も空間のリズムと見ます。`
+            : `${context.guardianName}が早く愛情を確かめたいとき、${context.catName}は少し距離を置くほうが落ち着く形で反応することがある。`;
+
+          els.signalTags.innerHTML = behavior
+            .slice(0, 4)
+            .map((label) => `<span>${escapeHtml(label)}</span>`)
+            .join("");
+          els.conditionSignal.textContent = hasNight
+            ? "夜の突進が見えたら、体力の問題ではなく、遊びと休息が集中する時間割から確認する方がいいよ。"
+            : `${routines.slice(0, 2).join(", ")}のうち一つだけずれても、相性の温度が大きく感じられることがある。`;
+          els.blockerSignal.textContent = context.timeKnown
+            ? "保護者の出生時刻があるので時間の流れまで見られるが、猫は行動のタグを優先し、無理な結論を減らす。"
+            : "保護者の出生時刻がなければ、時刻に依存する解釈は保留にし、今日調整できる話し方、触れ方、習慣から見る。";
+        }
+
+        function renderScope() {
+          els.scopeGrid.innerHTML = interpretationIndex
+            .map((group) => `
+              <article class="scope-card">
+                <h3>${escapeHtml(group.group)}</h3>
+                <ul>
+                  ${group.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+              </article>
+            `)
+            .join("");
+          writeJson(INDEX_KEY, { source: "user_seed", groups: interpretationIndex });
+        }
+
+        function currentStateKey() {
+          const status = params.get("status");
+          const payment = params.get("payment");
+          if (status === "expired" || status === "no_report") return "no_report";
+          if (status === "failed_analysis") return "failed_analysis";
+          if (!context.hasPayload && !params.get("service_key")) return "no_report";
+          if (payment === "pending" || readJson(PAYMENT_PENDING_KEY)) return "pending";
+          if (payment === "failed") return "failed";
+          if (payment === "canceled" || payment === "cancel") return "canceled";
+          if (params.get("entitlement") === "verified") return "entitled";
+          if (params.get("authReturn") === "1") return "unpaid";
+          return "guest";
+        }
+
+        function renderIssue(stateKey) {
+          if (context.hasPayload && stateKey !== "no_report" && stateKey !== "failed_analysis") {
+            els.issuePanel.hidden = true;
+            return;
+          }
+          els.issuePanel.hidden = false;
+          if (stateKey === "failed_analysis") {
+            els.issueTitle.textContent = "分析を最後まで作れなかった";
+            els.issueCopy.textContent = "無料の結果を保ったまま止まった。入力画面に戻るか、同じ基準でもう一度試せる。";
+            return;
+          }
+          els.issueTitle.textContent = "入力の基準が見つからなかった";
+          els.issueCopy.textContent = "これは例のティーザーだ。自分のリポートは02段階で保護者の四柱推命情報と猫の行動プロフィールを入力してから続けよう。";
+        }
+
+        function renderState(stateKey) {
+          const item = stateCopy[stateKey] || stateCopy.guest;
+          els.statePill.textContent = item.pill;
+          els.stateTitle.textContent = item.title;
+          els.stateCopy.textContent = item.copy;
+          els.primaryCta.textContent = item.label;
+          document.querySelector("#step-4-report").dataset.state = stateKey;
+          renderIssue(stateKey);
+        }
+
+        function setMessage(text) {
+          els.liveMessage.textContent = text;
+        }
+
+        function makeReturnState() {
+          return {
+            service_key: SERVICE.service_key,
+            service_slug: SERVICE.service_slug,
+            report_version: SERVICE.report_version,
+            analysis_period: SERVICE.analysis_period,
+            return_step: "step-4-report",
+            next_route: "../05-step-5-chat/chat.html#step-5-chat",
+            personal_data_policy: "not_in_url_or_local_storage"
+          };
+        }
+
+        function makeReportUrl() {
+          const url = new URL("../05-step-5-chat/chat.html", location.href);
+          url.searchParams.set("service_key", SERVICE.service_key);
+          url.searchParams.set("report_id", context.reportId);
+          url.searchParams.set("profile_id", context.profileId);
+          url.searchParams.set("analysis_period", "current-12m");
+          url.searchParams.set("report_version", SERVICE.report_version);
+          url.hash = "step-5-chat";
+          return window.CatDisplayLocale?.withPilotUrl(url.toString()) || url.toString();
+        }
+
+        function handlePrimary() {
+          const key = currentStateKey();
+          writeJson(RETURN_STATE_KEY, makeReturnState());
+
+          if (key === "entitled") {
+            writeJson(REPORT_CONTEXT_KEY, {
+              service_key: SERVICE.service_key,
+              report_id: context.reportId,
+              profile_id: context.profileId,
+              analysis_period: "current-12m",
+              report_version: SERVICE.report_version,
+              entitlement_checked: true
+            });
+            location.assign(makeReportUrl());
+            return;
+          }
+
+          if (key === "no_report" || key === "failed_analysis") {
+            location.assign(window.CatDisplayLocale?.withPilotUrl("../02-step-2-saju-input/index.html#step-2-saju-input") || "../02-step-2-saju-input/index.html#step-2-saju-input");
+            return;
+          }
+
+          if (key === "guest") {
+            const url = new URL(location.href);
+            url.searchParams.set("authEntry", SERVICE.service_key);
+            url.hash = "login";
+            history.replaceState(null, "", url.toString());
+            renderState("unpaid");
+            setMessage("ログインから戻った後、決済の段階へ続く状態を準備した。");
+            return;
+          }
+
+          writeJson(PAYMENT_PENDING_KEY, {
+            service_key: SERVICE.service_key,
+            report_version: SERVICE.report_version,
+            started_at: new Date().toISOString()
+          });
+          renderState("pending");
+          setMessage("決済画面を進行中の状態に切り替えました。実際の閲覧権限は、注文の確認後に適用されます。");
+        }
+
+        function escapeHtml(value) {
+          return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+        }
+
+        document.addEventListener("click", (event) => {
+          const action = event.target.closest("[data-action]")?.dataset.action;
+          if (!action) return;
+          if (action === "primary") {
+            handlePrimary();
+          }
+          if (action === "toggle-policy") {
+            event.preventDefault();
+            els.policy.hidden = !els.policy.hidden;
+            if (!els.policy.hidden) els.policy.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+          if (action === "simulate-auth-return") {
+            removeKey(PAYMENT_PENDING_KEY);
+            const url = new URL(location.href);
+            url.searchParams.set("authReturn", "1");
+            url.searchParams.delete("payment");
+            url.hash = "step-4-report";
+            history.replaceState(null, "", url.toString());
+            renderState("unpaid");
+            setMessage("ログイン完了の状態文言に切り替えた。");
+          }
+          if (action === "simulate-payment-failed") {
+            removeKey(PAYMENT_PENDING_KEY);
+            const url = new URL(location.href);
+            url.searchParams.set("payment", "failed");
+            url.hash = "step-4-report";
+            history.replaceState(null, "", url.toString());
+            renderState("failed");
+            setMessage("決済の失敗を確認した。無料ティザーはそのまま維持する。");
+          }
+          if (action === "retry-analysis") {
+            removeKey(PAYMENT_PENDING_KEY);
+            setMessage("同じサービスを基準に再確認します。入力がなければ02でやり直します。");
+            window.setTimeout(() => {
+              if (context.hasPayload) location.reload();
+              else location.assign(window.CatDisplayLocale?.withPilotUrl("../02-step-2-saju-input/index.html#step-2-saju-input") || "../02-step-2-saju-input/index.html#step-2-saju-input");
+            }, 420);
+          }
+        });
+
+        renderHero();
+        renderSignals();
+        renderScope();
+        renderState(currentStateKey());
+      })();
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/cat-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

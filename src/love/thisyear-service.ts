@@ -1,3 +1,4 @@
+import { parseBirthLocation, birthLocationKey } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
@@ -174,7 +175,7 @@ export function parseLoveThisYearRequest(body: Record<string, unknown>): LoveThi
     if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) throw new InputError('태어난 시간을 다시 확인해 주세요.')
     if (selfBirthBody.gender !== 'male' && selfBirthBody.gender !== 'female') throw new InputError('성별을 선택해 주세요.')
     if (selfBirthBody.calendar !== 'solar' && selfBirthBody.calendar !== 'lunar') throw new InputError('양력 또는 음력을 선택해 주세요.')
-    selfBirth = { year, month, day, hour, minute, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth) }
+    selfBirth = { year, month, day, hour, minute, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth), ...parseBirthLocation(selfBirthBody) }
     selfBirthTimeKnown = true
   }
   const statusRaw = trimmed(body.relationshipStatus ?? body.relationship_status, 20)
@@ -232,7 +233,7 @@ export function createLoveThisYearReportId(
 ): string {
   const fingerprint = JSON.stringify({
     ownerId: ownerId ?? '',
-    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar },
+    birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar, ...birthLocationKey(birth) },
     relationshipStatus: input.relationshipStatus,
     partnerStarBasis: input.partnerStarBasis,
     genderBasis: input.genderBasis ?? '',

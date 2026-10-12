@@ -1,3 +1,4 @@
+import { parseBirthLocation, birthLocationKey, requestBirthsForIdentity } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
@@ -129,6 +130,7 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput | undefine
     gender,
     calendar,
     isLeapMonth: Boolean(source.isLeapMonth),
+    ...parseBirthLocation(source),
   }
 }
 
@@ -143,7 +145,7 @@ export function parseLoveMindRequest(body: Record<string, unknown>): LoveMindReq
   return {
     partnerName: trimmed(body.partnerName, 20),
     partnerBirth: parsePartnerBirth(body),
-    partnerBirthTimeKnown: body.partnerBirthTimeKnown === true,
+    partnerBirthTimeKnown: body.partnerBirthTimeKnown === true || asObject(body.partnerBirth).birthTimeKnown === true,
     relationshipStage,
     contactPattern,
     recentSignal,
@@ -214,8 +216,9 @@ export function createLoveMindReportId(ownerId: string | undefined, birth: Birth
       ...(birth.minute ? { minute: birth.minute } : {}),
       gender: birth.gender,
       calendar: birth.calendar,
+      ...birthLocationKey(birth),
     },
-    input,
+    input: requestBirthsForIdentity(input),
     serviceKey: LOVE_MIND_SERVICE_KEY,
   })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)

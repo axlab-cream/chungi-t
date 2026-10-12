@@ -1,3 +1,5 @@
+import { civilUtcMs } from './civil-time.js'
+export { civilUtcMs } from './civil-time.js'
 import KoreanLunarCalendar from 'korean-lunar-calendar'
 import { Solar } from 'lunar-typescript'
 import type { BirthInput, DayBoundaryRule, EarthlyBranch, HeavenlyStem, Pillar, ResolvedBirthDate, SolarTermName } from '../types/index.js'
@@ -35,8 +37,9 @@ function mod(n: number, m: number): number {
   return ((n % m) + m) % m
 }
 
-function kstDateUtcMs(year: number, month: number, day: number, hour = 0, minute = 0): number {
-  return Date.UTC(year, month - 1, day, hour - 9, minute, 0, 0)
+
+function birthInstantMs(resolved: ResolvedBirthDate): number {
+  return civilUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute, resolved.birthTimeZone, resolved.birthTimeDisambiguation)
 }
 
 export function getSolarTermUtcMs(year: number, name: SolarTermName): number {
@@ -75,6 +78,8 @@ export function resolveBirthDate(birth: BirthInput): ResolvedBirthDate {
       hour,
       minute,
       isLeapMonth: false,
+      birthTimeZone: birth.birthTimeZone,
+      birthTimeDisambiguation: birth.birthTimeDisambiguation,
     }
   }
 
@@ -96,12 +101,13 @@ export function resolveBirthDate(birth: BirthInput): ResolvedBirthDate {
     lunarYear: birth.year,
     lunarMonth: birth.month,
     lunarDay: birth.day,
+    birthTimeZone: birth.birthTimeZone,
+      birthTimeDisambiguation: birth.birthTimeDisambiguation,
   }
 }
 
 export function birthUtcMs(birth: BirthInput): number {
-  const resolved = resolveBirthDate(birth)
-  return kstDateUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute)
+  return birthInstantMs(resolveBirthDate(birth))
 }
 
 /** Julian Day Number — O(1), calendar date only */
@@ -172,7 +178,7 @@ export function buildPillar(stemIdx: number, branchIdx: number): { stem: Heavenl
 }
 
 function getYearIndicesByIpchun(resolved: ResolvedBirthDate): { stemIdx: number; branchIdx: number; pillarYear: number } {
-  const birthMs = kstDateUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute)
+  const birthMs = birthInstantMs(resolved)
   const ipchunMs = getSolarTermUtcMs(resolved.solarYear, '입춘')
   const pillarYear = birthMs < ipchunMs ? resolved.solarYear - 1 : resolved.solarYear
   return {
@@ -188,7 +194,7 @@ export function getMonthBoundary(resolved: ResolvedBirthDate): {
   branch: EarthlyBranch
   utcMs: number
 } {
-  const birthMs = kstDateUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute)
+  const birthMs = birthInstantMs(resolved)
   const boundaries = [
     {
       name: '대설' as SolarTermName,
@@ -265,7 +271,7 @@ export function getDaewoonStartInfo(birth: BirthInput, isForward: boolean): {
   text: string
 } {
   const resolved = resolveBirthDate(birth)
-  const birthMs = kstDateUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute)
+  const birthMs = birthInstantMs(resolved)
   const terms = [
     ...MONTH_BOUNDARIES.map((term) => getSolarTermUtcMs(resolved.solarYear - 1, term.name)),
     ...MONTH_BOUNDARIES.map((term) => getSolarTermUtcMs(resolved.solarYear, term.name)),

@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>運勢の検索 | 運命商会</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="運命商会" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="運命商会 - 運命を売ります。" />
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta name="description" content="運命商店のすべての運勢サービスを、一つの画面で探します。ログインなしで見て回れます。" />
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260917-icon" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+      :root {
+        --bg: #050504;
+        --ink: #f7f2e9;
+        --muted: rgba(247, 242, 233, 0.62);
+        --line: rgba(216, 186, 114, 0.22);
+        --gold: #e8d49a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+      }
+
+      .phone {
+        width: min(100%, 430px);
+        margin: 0 auto;
+        min-height: 100svh;
+        padding: 0 18px 24px;
+      }
+
+      .page-head {
+        padding: 18px 0 12px;
+      }
+
+      .page-head h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: -0.4px;
+      }
+
+      .page-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .search-field {
+        position: relative;
+        margin: 14px 0 12px;
+      }
+
+      .search-field input {
+        width: 100%;
+        min-height: 46px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--ink);
+        font: inherit;
+        font-size: 14px;
+      }
+
+      .search-field input::placeholder {
+        color: rgba(247, 242, 233, 0.4);
+      }
+
+      .chip-row {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        scrollbar-width: none;
+      }
+
+      .chip-row::-webkit-scrollbar {
+        display: none;
+      }
+
+      .chip {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .chip.is-active {
+        border-color: var(--gold);
+        background: rgba(232, 212, 154, 0.14);
+        color: var(--gold);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 6px;
+      }
+
+      .card {
+        position: relative;
+        display: grid;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #0a0a08;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .card img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        opacity: 0.82;
+      }
+
+      /* 집 풍수 아트워크는 인물이 프레임 위쪽(세로 5.5% 지점)에 서 있어, 1:1 center
+         크롭이 y 366 부터 잡으면서 머리가 통째로 잘려 나갔다. 위를 기준으로 잡는다. */
+      .card img[src*="umsh-place-card-bg"] {
+        object-position: center top;
+      }
+
+      .card .body {
+        display: grid;
+        gap: 4px;
+        padding: 10px 12px 12px;
+      }
+
+      .card .body b {
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      .card .body span {
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.5;
+      }
+
+      .card .body em {
+        color: var(--gold);
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 800;
+      }
+
+      .empty {
+        margin-top: 20px;
+        padding: 22px 16px;
+        border: 1px dashed var(--line);
+        border-radius: 12px;
+        color: var(--muted);
+        font-size: 13px;
+        text-align: center;
+      }
+
+      body.umsh-has-chrome {
+        padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="鑑定を探す" data-active="search">
+      <header class="appbar topbar"></header>
+
+      <section class="page-head">
+        <h1>どの運が気になりますか？</h1>
+        <p>運命商店のすべての鑑定を、一つの画面に集めた。ログインせずに見て回っても大丈夫。</p>
+      </section>
+
+      <div class="search-field">
+        <input id="q" type="search" autocomplete="off" placeholder="例：相性、恋愛、職場、猫" aria-label="運勢を検索" />
+      </div>
+
+      <div class="chip-row" id="chips" role="tablist" aria-label="分類"></div>
+
+      <section class="grid" id="grid" aria-label="運勢一覧"></section>
+      <p class="empty" id="empty" hidden>探す運勢が見つからない。別の言葉で検索して。</p>
+    </main>
+
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script>
+      (() => {
+        const grid = document.querySelector('#grid');
+        const chips = document.querySelector('#chips');
+        const search = document.querySelector('#q');
+        const empty = document.querySelector('#empty');
+        let services = [];
+        let category = 'all';
+
+        function escapeHtml(value) {
+          return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+        }
+
+        function price(amount) {
+          return `${Number(amount || 0).toLocaleString('ko-KR')}ウォン`;
+        }
+
+        function matches(service) {
+          const query = search.value.trim().toLowerCase();
+          if (category !== 'all' && service.category !== category) return false;
+          if (!query) return true;
+          return [service.title, service.tagline, service.category].join(' ').toLowerCase().includes(query);
+        }
+
+        function render() {
+          const visible = services.filter(matches);
+          empty.hidden = visible.length > 0;
+          grid.innerHTML = visible
+            .map(
+              (service) => `
+                <a class="card" href="${escapeHtml(service.href)}">
+                  <img src="${escapeHtml(service.image)}" alt="" loading="lazy" />
+                  <span class="body">
+                    <b>${escapeHtml(service.title)}</b>
+                    <span>${escapeHtml(service.tagline)}</span>
+                    <em>${escapeHtml(price(service.amount))}</em>
+                  </span>
+                </a>
+              `,
+            )
+            .join('');
+        }
+
+        function renderChips() {
+          const all = ['all', ...new Set(services.map((service) => service.category))];
+          chips.innerHTML = all
+            .map(
+              (value) => `
+                \x3cbutton class="chip${value === category ? ' is-active' : ''}" type="button" data-category="${escapeHtml(value)}">
+                  ${escapeHtml(value === 'all' ? '全体' : value)}
+                \x3c/button>
+              `,
+            )
+            .join('');
+        }
+
+        chips.addEventListener('click', (event) => {
+          const chip = event.target.closest('[data-category]');
+          if (!chip) return;
+          category = chip.dataset.category;
+          renderChips();
+          render();
+        });
+
+        search.addEventListener('input', render);
+
+        fetch('/api/services')
+          .then((response) => response.json())
+          .then((payload) => {
+            services = Array.isArray(payload.services) ? payload.services : [];
+            renderChips();
+            render();
+          })
+          .catch(() => {
+            empty.hidden = false;
+            empty.textContent = '一覧を読み込めませんでした。しばらくして、もう一度試してください。';
+          });
+      })();
+    </script>
+  </body>
+</html>

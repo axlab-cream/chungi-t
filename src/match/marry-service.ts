@@ -1,3 +1,4 @@
+import { parseBirthLocation, birthLocationKey, birthForIdentity } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from '../love/reading-content.js'
@@ -229,6 +230,7 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
     gender,
     calendar,
     isLeapMonth: Boolean(source.isLeapMonth),
+    ...parseBirthLocation(source),
   }
 }
 
@@ -250,7 +252,7 @@ export function parseMarryMatchRequest(body: Record<string, unknown>): MarryMatc
     if (selfBirthBody.gender !== 'male' && selfBirthBody.gender !== 'female') throw new InputError('내 성별을 선택해 주세요.')
     if (selfBirthBody.calendar !== 'solar' && selfBirthBody.calendar !== 'lunar') throw new InputError('내 생년월일의 양력 또는 음력을 선택해 주세요.')
     if (known && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) throw new InputError('내 태어난 시간을 다시 확인해 주세요.')
-    selfBirth = { year, month, day, hour: known ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth) }
+    selfBirth = { year, month, day, hour: known ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth), ...parseBirthLocation(selfBirthBody) }
     selfBirthTimeKnown = known
   }
   return {
@@ -535,8 +537,9 @@ export function createMarryMatchReportId(ownerId: string | undefined, birth: Bir
       ...(birth.minute ? { minute: birth.minute } : {}),
       gender: birth.gender,
       calendar: birth.calendar,
+      ...birthLocationKey(birth),
     },
-    partnerBirth: input.partnerBirth,
+    partnerBirth: birthForIdentity(input.partnerBirth),
     partnerName: input.partnerName,
     relationshipStage: input.relationshipStage,
     marriagePlan: input.marriagePlan,

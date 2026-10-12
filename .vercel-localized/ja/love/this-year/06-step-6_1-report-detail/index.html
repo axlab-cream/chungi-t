@@ -1,0 +1,5892 @@
+<!doctype html>
+<html lang="ko" data-umsh-verified-inplace>
+<head><link id="umsh-inplace-css" rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260923-markdown-view-v1">
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>今年、恋愛できる？ | 詳しい鑑定</title>
+  <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+       og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="運命商会" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="運命商会 - 運命を売ります。" />
+  <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+  <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta name="description" content="今年の恋愛運の詳細を可能性・注意点・小さな行動の順で確認します。" />
+  <meta name="application-name" content="運命商会" />
+  <meta property="og:title" content="今年、恋愛できる？ | 詳しい鑑定" />
+  <meta property="og:description" content="桃花、年運、配偶者星を基準にした、今年の恋愛運の詳しい結果です。" />
+  <meta property="og:site_name" content="運命商会" />
+  <meta property="og:url" content="https://love.umsh.kr/thisyear" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+  <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <style>
+    :root {
+      color-scheme: dark;
+      --bg: #09090d;
+      --panel: #11131a;
+      --panel-2: #171923;
+      --panel-3: #202433;
+      --ink: #fff7f2;
+      --soft: #e3d9ea;
+      --muted: #aca6b8;
+      --line: rgba(255, 255, 255, 0.14);
+      --pink: #ff8fb7;
+      --cyan: #8eddf0;
+      --gold: #f4c96b;
+      --mint: #a7dec2;
+      --coral: #ff7d68;
+      --violet: #b9a2ff;
+      --shadow: rgba(0, 0, 0, 0.34);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(255, 143, 183, 0.18), transparent 28%),
+        radial-gradient(circle at 80% 0%, rgba(142, 221, 240, 0.16), transparent 30%),
+        linear-gradient(180deg, #09090d 0%, #11131a 44%, #07080c 100%);
+      font-family: Pretendard, "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: start center;
+      min-height: 100svh;
+      color: var(--ink);
+      overflow: hidden;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .phone {
+      width: min(100%, 460px);
+      height: 100svh;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      background: rgba(9, 9, 13, 0.98);
+      color: var(--ink);
+      box-shadow: 0 24px 80px var(--shadow);
+    }
+
+    .topbar {
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 66px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9, 9, 13, 0.94);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .brand span {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .brand strong {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 17px;
+      font-weight: 950;
+      line-height: 1.22;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .icon-button,
+    .nav-button,
+    .quick-link,
+    .send-btn,
+    .pdf-button {
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+    }
+
+    .icon-button:focus-visible,
+    .nav-button:focus-visible,
+    .quick-link:focus-visible,
+    .send-btn:focus-visible,
+    .pdf-button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    .contextbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(17, 19, 26, 0.96);
+    }
+
+    /* 공용 크롬이 상단과 하단을 맡는다. 저장 해석의 도구는 본문 끝 공통 영역에서만 제공한다. */
+    #step-6_1-report [data-umsh-legacy-reading-ui] { display: none !important; }
+
+    .context-chip {
+      min-width: 0;
+      align-self: center;
+      margin: 0;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pdf-button {
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .scroll-area {
+      min-height: 0;
+      overflow: auto;
+      scroll-behavior: smooth;
+      padding: 14px 14px 24px;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 520px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: #10131b;
+    }
+
+    .hero img {
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      display: block;
+      object-fit: cover;
+      object-position: center 42%;
+      transform: scale(1.01);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(5, 6, 10, 0.04) 0%, rgba(5, 6, 10, 0.38) 42%, rgba(5, 6, 10, 0.9) 100%),
+        radial-gradient(circle at 22% 78%, rgba(255, 143, 183, 0.2), transparent 34%);
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      display: grid;
+      gap: 12px;
+      padding: 22px 18px 18px;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      max-width: 100%;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      background: rgba(9, 9, 13, 0.54);
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.13;
+      letter-spacing: 0;
+      word-break: keep-all;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--soft);
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 1.58;
+      word-break: keep-all;
+    }
+
+    .flow-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .flow-item {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      padding: 10px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .flow-item span {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .flow-item strong {
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .nav-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .nav-button {
+      min-width: 0;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .state-panel,
+    .detail-card,
+    .source-panel,
+    .related-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 19, 26, 0.92);
+    }
+
+    .state-panel {
+      display: none;
+      gap: 12px;
+      padding: 22px;
+      min-height: 260px;
+      align-content: center;
+      text-align: center;
+    }
+
+    .state-panel.is-visible {
+      display: grid;
+    }
+
+    .state-panel h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .state-panel p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .detail-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    /* 2026-09-18: 결제 흐름에서는 이 그리드가 채워지지 않아 내부 라벨만 62px 떠 있었다.
+       비어 있으면 패널째 감춘다. 옛 경로가 채우면 그때만 보인다. */
+    .source-panel:has(#source-grid:empty) {
+      display: none;
+    }
+
+    .source-panel {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .source-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .source-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .source-row span {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .source-row p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .detail-card {
+      display: grid;
+      gap: 10px;
+      padding: 15px;
+    }
+
+    .detail-card h2,
+    .source-panel h2,
+    .related-panel h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .detail-card p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.62;
+      word-break: keep-all;
+    }
+
+    .tagline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 2px;
+    }
+
+    .tagline span {
+      padding: 6px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 11px;
+      font-weight: 850;
+    }
+
+    .action-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .action-list li {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(142, 221, 240, 0.08);
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .action-list b {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(142, 221, 240, 0.18);
+      color: var(--cyan);
+      font-size: 12px;
+    }
+
+    .talk-guide {
+      display: grid;
+      gap: 8px;
+    }
+
+    .talk-row {
+      display: grid;
+      gap: 5px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .talk-row strong {
+      color: var(--gold);
+      font-size: 12px;
+    }
+
+    .talk-row p {
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .related-panel {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      margin-top: 10px;
+    }
+
+    .related-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quick-link {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 46px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+
+    .quick-link span {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .quick-link strong {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.3;
+      word-break: keep-all;
+    }
+
+    .quick-link i {
+      color: var(--cyan);
+      font-style: normal;
+      font-weight: 950;
+    }
+
+    .chat-input {
+      z-index: 4;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--line);
+      background: rgba(9, 9, 13, 0.96);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 44px;
+      max-height: 112px;
+      resize: none;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      background: #11131a;
+      color: var(--ink);
+      outline: 0;
+      line-height: 1.35;
+    }
+
+    textarea::placeholder {
+      color: #8e8998;
+    }
+
+    .send-btn {
+      width: 58px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(255, 143, 183, 0.94), rgba(142, 221, 240, 0.88));
+      color: #11131a;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 78px;
+      z-index: 20;
+      width: min(calc(100% - 32px), 420px);
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 19, 26, 0.96);
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.45;
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.34);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (min-width: 900px) {
+      body {
+        place-items: center;
+        padding: 24px;
+      }
+
+      .phone {
+        height: min(920px, calc(100svh - 48px));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 22px;
+        overflow: hidden;
+      }
+    }
+
+    @media (max-width: 380px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .hero,
+      .hero img {
+        min-height: 470px;
+      }
+
+      .flow-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero img {
+        animation: slow-drift 14s ease-in-out infinite alternate;
+      }
+
+      @keyframes slow-drift {
+        from { transform: scale(1.01) translateY(0); }
+        to { transform: scale(1.045) translateY(-10px); }
+      }
+    }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* .phone is overflow:hidden, which makes it a scroll container the page never
+         scrolls, so the design's own sticky CTA never pinned. overflow:clip keeps the
+         same clipping without the scrollport, and the CTA sticks to the viewport again. */
+      body.umsh-has-chrome .phone { overflow: clip; }
+      body.umsh-has-chrome .sticky-actions { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .toast { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px) + 12px); }
+      /* 05 목차의 검색·필터 줄은 sticky로 목록 위에 겹쳐 떠 있었다. 상단 GNB가 이미
+         고정이라 두 겹이 되고 뒤 카드가 가려져서, 목록과 같이 흐르게 둔다. */
+      body.umsh-has-chrome .toolbar { position: static; backdrop-filter: none; }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .thisyear-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 168, 200, 0.4); border-radius: 10px; background: rgba(255, 168, 200, 0.08); padding: 14px; margin-bottom: 14px; }
+      .thisyear-saved-profile b { color: #ffd7e6; font-size: 14px; }
+      .thisyear-saved-profile span { color: rgba(255, 240, 246, 0.78); font-size: 13px; line-height: 1.55; }
+      .thisyear-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+</head>
+<body>
+  <main class="phone" data-umsh-chrome data-service="今年の恋愛運" data-price="12,900 KRW" data-active="home" id="step-6_1-report" aria-label="「今年、恋愛できる？」の詳しい鑑定">
+    <header class="appbar topbar"><link id="umsh-inplace-css" rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260923-markdown-view-v1">
+      <div class="brand">
+        <span>運命商店 · 今年の恋愛運</span>
+        <strong>今年、恋愛できる？</strong>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-button" type="button" id="btn-back" aria-label="結果一覧に戻る" title="結果一覧へ">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button class="icon-button" type="button" id="btn-vault" aria-label="保管庫を開く" title="保管庫">
+          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="contextbar" data-umsh-legacy-reading-ui>
+      <p class="context-chip" id="context-chip">詳細解説を準備中</p>
+    </div>
+
+    <section class="scroll-area" id="scroll-area" aria-live="polite">
+      <section class="umsh-progress-panel" data-umsh-slot="progress" aria-label="鑑定の準備の進み具合" hidden></section>
+      <section class="state-panel" id="state-panel" data-umsh-slot="state" aria-live="polite"></section>
+      <section id="detail-content" hidden>
+        <article class="hero">
+          <img src="../assets/thisyear/report-sections/00-year-love-report-hero-v1.png" alt="窓辺で携帯を見ながら、今年の出会いを考える女性" data-image-role="thisyear-06-overall-love-mode-on-hero" id="hero-image" />
+          <div class="hero-copy">
+            <span class="eyebrow" id="group-title">今年の恋愛の可能性の総評</span>
+            <h1 id="detail-title" data-umsh-slot="title">恋愛モードをONにするタイミング</h1>
+            <p class="lead" id="detail-conclusion" data-umsh-slot="subtitle">詳しい鑑定を読み込んでいる。</p>
+            <div class="flow-strip" aria-label="読みの流れ">
+              <div class="flow-item"><span>01</span><strong>可能性</strong></div>
+              <div class="flow-item"><span>02</span><strong>注意点</strong></div>
+              <div class="flow-item"><span>03</span><strong>小さな行動</strong></div>
+            </div>
+          </div>
+        </article>
+
+        <section class="source-panel" aria-labelledby="source-title">
+          <h2 id="source-title">この鑑定の参考資料</h2>
+          <div class="source-grid" id="source-grid"></div>
+        </section>
+
+        <section class="detail-stack" id="detail-stack" data-umsh-slot="sections" aria-label="詳しい解釈"></section>
+
+      </section>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="application/json" id="REPORT_INDEX_DATA">{
+ "report_id": "local-preview-report-thisyear",
+ "source": "user_seed",
+ "groups": [
+  {
+   "id": "overall",
+   "title": "今年の恋愛の可能性の総評",
+   "subtitle": "今年恋愛が開く方向と、休むべき期間から見ます。",
+   "asset_key": "thisyear-05-overall",
+   "image": "../assets/thisyear/05-overall.webp",
+   "evidence_ids": [
+    "item-22-qa-0014",
+    "item-22-qa-0015",
+    "zip-연예-qa-000108"
+   ],
+   "items": [
+    {
+     "section_id": "overall-love-mode-on",
+     "title": "恋愛モードをONにするタイミング",
+     "preview": "気持ちがまた外へ向くか、今年の関係の温度が上がる条件を見る。",
+     "why": "恋愛への意欲と生活のリズムが両立していると、関係は揺らぎにくい。",
+     "evidence_ids": [
+      "item-22-qa-0014",
+      "item-23-qa-0008"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=overall-love-mode-on#step-6_1-report"
+    },
+    {
+     "section_id": "overall-serious-shift",
+     "title": "真剣な関係への転換角",
+     "preview": "曖昧な関係が交際になる時に必要な信頼・約束・現実の条件を分けて見ます。",
+     "why": "名目と実際の利点が合うと長く続く関係へ進みます。",
+     "evidence_ids": [
+      "item-22-qa-0014",
+      "zip-연예-qa-000108"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=overall-serious-shift#step-6_1-report"
+    }
+   ]
+  },
+  {
+   "id": "ten-gods",
+   "title": "年運の十星別恋愛ムード",
+   "subtitle": "今年入る十神から、関係の言葉、速さ、惹かれ方を見ます。",
+   "asset_key": "thisyear-05-ten-gods",
+   "image": "../assets/thisyear/05-ten-gods.webp",
+   "evidence_ids": [
+    "zip-만세력-qa-000551",
+    "zip-만세력-qa-000552",
+    "item-22-qa-0014"
+   ],
+   "items": [
+    {
+     "section_id": "ten-gods-bi-geon",
+     "title": "比肩: 友達のような恋愛。線を越えると曖昧になる雰囲気",
+     "preview": "気楽な関係が長所ですが、関係の名前が曖昧になる所も見ます。",
+     "why": "比肩は自分と同じ性質の力で、楽さと境界の問題が一緒に出ます。",
+     "evidence_ids": [
+      "zip-만세력-qa-000551",
+      "item-22-qa-0014"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-bi-geon#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-geop-jae",
+     "title": "劫財: 直進する力はあるが、張り合いに注意",
+     "preview": "惹かれると素早く動きますが、意地のぶつかり合いに流れないよう見ます。",
+     "why": "同じ気の競争性が、関係の中で主導権の問題として見えることがある。",
+     "evidence_ids": [
+      "zip-만세력-qa-000552",
+      "item-22-qa-0003"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-geop-jae#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-sik-sin",
+     "title": "食神：安心感・ケア・日常のデートの強み",
+     "preview": "気を配り、楽にする魅力が、恋愛未満につながる方法を見る。",
+     "why": "食傷の流れは表現と生活感覚で関係を柔らかくする方です。",
+     "evidence_ids": [
+      "zip-만세력-qa-000552",
+      "item-23-qa-0009"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-sik-sin#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-sang-gwan",
+     "title": "傷官：話と誘いは得意でも言葉が強くなることがある",
+     "preview": "魅力的な表現力が、かえって相手を防御させる瞬間を確認します。",
+     "why": "表現が強い流れでは、言葉の強さを調整することが、関係を続けるうえで大切になる。",
+     "evidence_ids": [
+      "zip-만세력-qa-000552",
+      "item-22-qa-0003"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-sang-gwan#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-pyeon-jae",
+     "title": "偏財：ときめきの機会は多いが、約束が散らばることがある",
+     "preview": "複数の機会が開くとき、本当に続く縁を見分ける。",
+     "why": "財星は恋人星の判断に使うが、偏財の流れでは選択肢が増えることがある。",
+     "evidence_ids": [
+      "zip-연예-qa-000035",
+      "item-22-qa-0014"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-pyeon-jae#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-jeong-jae",
+     "title": "正財: 安定型の恋愛、信頼を積みやすい",
+     "preview": "好意がゆっくり育つ流れか、約束と習慣で確かめる。",
+     "why": "正財は安定した関係のコードとして読みつつ、個人の命式全体と合わせて見ます。",
+     "evidence_ids": [
+      "zip-연예-qa-000035",
+      "zip-연예-qa-000108"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-jeong-jae#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-pyeon-gwan",
+     "title": "偏官：強い惹かれ方、圧力と速さの調整が必要",
+     "preview": "惹かれるほど、負担と速度の問題も一緒に確認します。",
+     "why": "官星の流れは、関係の重さと責任感にも現れることがある。",
+     "evidence_ids": [
+      "zip-연예-qa-000035",
+      "item-22-qa-0015"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-pyeon-gwan#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-jeong-gwan",
+     "title": "正官：正式な交際・真剣な出会いの可能性",
+     "preview": "関係の名前を決めたくなる流れがあるか、現実の条件と合わせて見ます。",
+     "why": "正官は正式さと責任の型として読みますが、断定より条件を確かめます。",
+     "evidence_ids": [
+      "zip-연예-qa-000035",
+      "zip-만세력-qa-000553"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-jeong-gwan#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-pyeon-in",
+     "title": "偏印：深い話はしやすくても、現実的な話が遅れることがある",
+     "preview": "深い会話と想像は開いても、実際の約束へ移す力を見ます。",
+     "why": "印星の流れは、思考と解釈が増える長所と、遅れとを一緒に見る必要があります。",
+     "evidence_ids": [
+      "zip-만세력-qa-000552",
+      "item-23-qa-0009"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-pyeon-in#step-6_1-report"
+    },
+    {
+     "section_id": "ten-gods-jeong-in",
+     "title": "正印: 優しさは良いが、依存・期待しすぎに注意",
+     "preview": "受け取りたい気持ちと期待が大きくなる瞬間を、やさしく調整します。",
+     "why": "優しさが長所になるには、相手に預ける感情の分担を減らす必要があります。",
+     "evidence_ids": [
+      "zip-만세력-qa-000553",
+      "item-22-qa-0015"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=ten-gods-jeong-in#step-6_1-report"
+    }
+   ]
+  },
+  {
+   "id": "timing",
+   "title": "出会う時機",
+   "subtitle": "立春の前後、月運、連絡と告白のリズムを、生活の日程に変えてみる。",
+   "asset_key": "thisyear-05-timing",
+   "image": "../assets/thisyear/05-timing.webp",
+   "evidence_ids": [
+    "item-23-qa-0008",
+    "item-23-qa-0009",
+    "item-23-qa-0011"
+   ],
+   "items": [
+    {
+     "section_id": "timing-monthly-some",
+     "title": "月運をもとに、気になる関係が動く月",
+     "preview": "連絡、約束、会うことが活発になる月と、余白を残す月を月別に分ける。",
+     "why": "月運は、方向を生活の順番に変えると、実際の行動につながる。",
+     "evidence_ids": [
+      "item-23-qa-0009",
+      "item-23-qa-0011"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=timing-monthly-some#step-6_1-report"
+    },
+    {
+     "section_id": "timing-some-to-dating",
+     "title": "ときめきから交際へ移るタイミング",
+     "preview": "気持ちの確認、約束の頻度、関係の名前を出す時期を分ける。",
+     "why": "近づく流れと守る線を一緒に見て、はじめて安定して越えられます。",
+     "evidence_ids": [
+      "item-22-qa-0014",
+      "item-23-qa-0009"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=timing-some-to-dating#step-6_1-report"
+    }
+   ]
+  },
+  {
+   "id": "self-pattern",
+   "title": "自分の恋愛傾向",
+   "subtitle": "恋人のパターン、表現する力、惹かれることと疲れ、繰り返す習慣を分けて見る。",
+   "asset_key": "thisyear-05-self-pattern",
+   "image": "../assets/thisyear/05-self-pattern.webp",
+   "evidence_ids": [
+    "zip-만세력-qa-000553",
+    "zip-연예-qa-000030",
+    "zip-연예-qa-000035"
+   ],
+   "items": [
+    {
+     "section_id": "self-partner-code",
+     "title": "財星・官星で見る恋人の型",
+     "preview": "惹かれる相手と、関係の中で重みを感じるところを見る。",
+     "why": "伝統的な四柱推命では、性別や恋人星の基準に応じて、財星・官星を関係のコードとして読む。",
+     "evidence_ids": [
+      "zip-만세력-qa-000553",
+      "zip-연예-qa-000035"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=self-partner-code#step-6_1-report"
+    },
+    {
+     "section_id": "self-repeating-habit",
+     "title": "恋愛で繰り返す習慣",
+     "preview": "似た人に惹かれたり、似た時期に疲れたりするパターンを見ます。",
+     "why": "相談型の解釈は、パターンの理由を見て次の行動につなげると意味があります。",
+     "evidence_ids": [
+      "item-22-qa-0015",
+      "item-23-qa-0011"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=self-repeating-habit#step-6_1-report"
+    }
+   ]
+  },
+  {
+   "id": "compatibility",
+   "title": "相手・相性の読み解き",
+   "subtitle": "相手がいるときは、合う点とぶつかる点を分けて見る。",
+   "asset_key": "thisyear-05-compatibility",
+   "image": "../assets/thisyear/05-compatibility.webp",
+   "evidence_ids": [
+    "zip-궁합-qa-000305",
+    "item-22-qa-0014"
+   ],
+   "items": [
+    {
+     "section_id": "match-five-elements",
+     "title": "五行の相性",
+     "preview": "互いに楽な気か、一緒だと過熱するか見ます。",
+     "why": "五行の関係は惹かれる気持ちと疲れを分ける補助の基準です。",
+     "evidence_ids": [
+      "zip-만세력-qa-000552",
+      "zip-궁합-qa-000305"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=match-five-elements#step-6_1-report"
+    },
+    {
+     "section_id": "match-conflict-point",
+     "title": "性格がぶつかる点",
+     "preview": "好きでも繰り返しぶつかる点を先に知ると、言い間違いを減らせる。",
+     "why": "相性の可否より衝突の条件と調整方法を見る方が安全です。",
+     "evidence_ids": [
+      "zip-궁합-qa-000305",
+      "item-22-qa-0014"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=match-conflict-point#step-6_1-report"
+    }
+   ]
+  },
+  {
+   "id": "relationship-guide",
+   "title": "関係を続けるためのガイド",
+   "subtitle": "連絡・告白・感情表現・返事のテンションを今日の行動に変えます。",
+   "asset_key": "thisyear-05-relationship-guide",
+   "image": "../assets/thisyear/05-relationship-guide.webp",
+   "evidence_ids": [
+    "item-22-qa-0003",
+    "item-23-qa-0008",
+    "item-22-qa-0014"
+   ],
+   "items": [
+    {
+     "section_id": "guide-confession-or-check",
+     "title": "告白するときか、様子を見るときか",
+     "preview": "すぐ結論を出すか、確認の質問から進むかを分ける。",
+     "why": "相手が身構えないように、感情と確認したい内容を分けるとよい。",
+     "evidence_ids": [
+      "item-22-qa-0003",
+      "item-22-qa-0014"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=guide-confession-or-check#step-6_1-report"
+    },
+    {
+     "section_id": "guide-boundary-distance",
+     "title": "境界を守り、距離を調整",
+     "preview": "近づきたい気持ちと、自分では引き受けられない負担を分ける。",
+     "why": "関係ごとに渡せるものと、これ以上背負えないものを分ける必要があります。",
+     "evidence_ids": [
+      "item-22-qa-0014",
+      "item-22-qa-0015"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=guide-boundary-distance#step-6_1-report"
+    }
+   ]
+  },
+  {
+   "id": "warning-signals",
+   "title": "注意のサイン",
+   "subtitle": "関係を壊す話し方、曖昧な約束、生活の圧を先に確認します。",
+   "asset_key": "thisyear-05-warning-signals",
+   "image": "../assets/thisyear/05-warning-signals.webp",
+   "evidence_ids": [
+    "item-22-qa-0003",
+    "item-22-qa-0015",
+    "item-23-qa-0011"
+   ],
+   "items": [
+    {
+     "section_id": "warning-vague-promises",
+     "title": "曖昧な約束で寂しさが積もるパターン",
+     "preview": "言葉は甘いのに日程と責任が曖昧になる点を見ます。",
+     "why": "新しく会う人ほど、責任と約束の方法を先に見る必要があります。",
+     "evidence_ids": [
+      "item-22-qa-0014"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=warning-vague-promises#step-6_1-report"
+    },
+    {
+     "section_id": "warning-lonely-attachment",
+     "title": "寂しさから誰でも引き止めてしまうパターン",
+     "preview": "恋愛したい気持ちと、回復が必要な気持ちを分ける。",
+     "why": "心身が元に戻る時間を先に必要とする時があります。",
+     "evidence_ids": [
+      "item-22-qa-0015",
+      "item-23-qa-0008"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=warning-lonely-attachment#step-6_1-report"
+    }
+   ]
+  },
+  {
+   "id": "mz-cards",
+   "title": "MZ型の結果カード",
+   "subtitle": "長い鑑定を、温度、片思いの見込み、警告灯、一行のアクションに圧縮します。",
+   "asset_key": "thisyear-05-mz-cards",
+   "image": "../assets/thisyear/05-mz-cards.webp",
+   "evidence_ids": [
+    "item-22-qa-0014",
+    "item-23-qa-0008",
+    "item-22-qa-0003"
+   ],
+   "items": [
+    {
+     "section_id": "mz-love-temperature",
+     "title": "今年の恋愛の温度",
+     "preview": "今年の関係が冷たく閉じたのか、ゆっくり温まるのかをカードで見ます。",
+     "why": "関係の温度は、一年のあいだにゆっくり現れる流れです。",
+     "evidence_ids": [
+      "item-22-qa-0014"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=mz-love-temperature#step-6_1-report"
+    },
+    {
+     "section_id": "mz-monthly-action",
+     "title": "今月のアクション一行",
+     "preview": "連絡一つ、停止一つ、休む日一つから、今の行動を選ぶ。",
+     "why": "今日は人生全体より、後回しにしていた小さな用事を一つ出す流れです。",
+     "evidence_ids": [
+      "item-23-qa-0008",
+      "item-23-qa-0011"
+     ],
+     "asset_key": "",
+     "route": "../06-step-6_1-report-detail/index.html?section=mz-monthly-action#step-6_1-report"
+    }
+   ]
+  }
+ ]
+}</script>
+  <script type="application/json" id="DETAIL_DATA">[
+ {
+  "section_id": "overall-love-mode-on",
+  "report_index_source": "user_seed",
+  "group_id": "overall",
+  "group_title": "今年の恋愛の可能性の総評",
+  "title": "恋愛モードをONにするタイミング",
+  "preview": "気持ちがまた外へ向くか、今年の関係の温度が上がる条件を見る。",
+  "conclusion": "恋愛モードを入れる見込みは、今年また気持ちが外へ向き、会話に反応する力が戻る流れとして見られます。今は近づくほど、約束の方法、返信のリズム、自分が守る線を一緒に確認すると安定感が生まれます。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   },
+   {
+    "id": "item-23-qa-0008",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "오늘의 작은 행동을 고르는 방식으로 연락, 멈춤, 쉼 중 하나를 현실 액션으로 전환하게 한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "恋愛モードを入れる見込みは、今年また気持ちが外へ向き、会話に反応する力が戻る流れとして見られます。今は近づくほど、約束の方法、返信のリズム、自分が守る線を一緒に確認すると安定感が生まれます。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認された基準は桃花、歳運、配偶者星で、この項目は今年の関係の流れ資料と月別の行動リズム資料を参照します。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付けます。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料",
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "気持ちが再び外へ向くか、今年、関係の温度が上がる条件を見る。なんとなく身なりを整えたくなったり、返事を先延ばしにせず、人に会いたくなったりするサインが、先に見えることがある。",
+    "data": {
+     "list_preview": "気持ちがまた外へ向かうか、今年の関係の温度が上がる条件を見ます。",
+     "list_why": "恋愛への意欲と生活のリズムが両立していると、関係は揺らぎにくい。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年間の流れは、一度に結論が出る信号ではなく、季節と月運によって温度が変わる信号として見ます。雰囲気が上がったからといってすぐ関係の名前を決めようとすると、相手が負担を感じることがあります。個人の月運がつながると、連絡、出会い、告白、整理のうちどの行動が先かを月単位で分けます。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "今週の約束を一つだけ開けておく",
+      "気になる人に軽い近況の質問を送る",
+      "恋愛の力と休む時間を同じ予定表に書く"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "雰囲気が上がってすぐ関係に名前をつけようとすると、相手が負担を感じることがあります。",
+    "data": {
+     "safe_phrase": "最近どう？ 今週、気軽にコーヒーでも行ける？",
+     "avoid_phrase": "今、二人がどんな関係か決めて。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "今週の約束を一つだけ開けておく",
+   "気になる人に軽い近況の質問を送る",
+   "恋愛の力と休む時間を同じ予定表に書く"
+  ],
+  "cautions": [
+   "雰囲気が上がってすぐ関係に名前をつけようとすると、相手が負担を感じることがあります。"
+  ],
+  "talk_guide": {
+   "say": "最近どう？ 今週、気軽にコーヒーでも行ける？",
+   "avoid": "今、二人がどんな関係か決めて。"
+  },
+  "related_sections": [
+   {
+    "section_id": "mz-monthly-action",
+    "title": "今月のアクション一行",
+    "group_title": "MZ型の結果カード",
+    "route": "index.html?section=mz-monthly-action#step-6_1-report"
+   },
+   {
+    "section_id": "overall-serious-shift",
+    "title": "真剣な関係への転換角",
+    "group_title": "今年の恋愛の可能性の総評",
+    "route": "index.html?section=overall-serious-shift#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-overall.webp"
+  }
+ },
+ {
+  "section_id": "overall-serious-shift",
+  "report_index_source": "user_seed",
+  "group_id": "overall",
+  "group_title": "今年の恋愛の可能性の総評",
+  "title": "真剣な関係への転換角",
+  "preview": "曖昧な関係が交際になる時に必要な信頼・約束・現実の条件を分けて見ます。",
+  "conclusion": "真剣な関係への移行は、今年、曖昧な関係が、関係の名前や責任を考える段階へ進むかもしれない流れとして読める。今は関係が近づくほど、約束の仕方、返信のリズム、自分が守りたい線をあわせて確認することが、安心感につながる。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   },
+   {
+    "id": "zip-연예-qa-000108",
+    "kind": "rag",
+    "label": "配偶者星·연애 시기 자료",
+    "value": "配偶者星이 힘을 얻는 시기와 천간·지지·지장간의 드러남 차이를 만남 タイミング 근거로 참고한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "真剣な関係への移行は、今年、曖昧な関係が、関係の名前や責任を考える段階へ進むかもしれない流れとして読める。今は関係が近づくほど、約束の仕方、返信のリズム、自分が守りたい線をあわせて確認することが、安心感につながる。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今、確認している基準は桃花、歳運、配偶者を表す星で、この項目では、今年の関係の流れと、配偶者を表す星・恋愛の時期の資料を参考にします。個人の計算値が入ると、桃花、配偶者を表す星、月運の実際の位置を別に加えます。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料",
+      "配偶者星・恋愛時期の資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "ときめきが関係として固まるときに必要な信頼、約束、現実の条件を分けて見る。真剣さは感情より、約束の頻度、周囲に紹介する態度、実際の予定の調整に表れる。",
+    "data": {
+     "list_preview": "曖昧な関係が交際になる時に必要な信頼・約束・現実の条件を分けて見ます。",
+     "list_why": "名目と実際の利点が合うと長く続く関係へ進みます。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年間の流れは、一度に結論が出るシグナルではなく、季節と月運によって温度が変わるシグナルとして見ます。真剣さを圧のように伝えると、良い流れも防御的に変わり得ます。個人の月運がつながると、連絡、出会い、告白、整理のうちどの行動が先かを月単位で分けます。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "会う頻度と連絡の期待を、言葉で合わせる",
+      "相手の生活のリズムを確認する",
+      "関係の名前は質問形で出す"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "真剣さを圧力のように伝えると、良い流れも防御的に変わることがあります。",
+    "data": {
+     "safe_phrase": "最近、二人の関係をもう少しはっきり見たい。どう思う？",
+     "avoid_phrase": "答えられなければ終わり。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "会う頻度と連絡の期待を、言葉で合わせる",
+   "相手の生活のリズムを確認する",
+   "関係の名前は質問形で出す"
+  ],
+  "cautions": [
+   "真剣さを圧迫のように伝えると、よい流れも防御的に変わりえます。"
+  ],
+  "talk_guide": {
+   "say": "最近、二人の関係をもう少しはっきり見たい。どう思う？",
+   "avoid": "答えられなければ終わりだ。"
+  },
+  "related_sections": [
+   {
+    "section_id": "overall-love-mode-on",
+    "title": "恋愛モードをONにするタイミング",
+    "group_title": "今年の恋愛の可能性の総評",
+    "route": "index.html?section=overall-love-mode-on#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-bi-geon",
+    "title": "比肩: 友達のような恋愛。線を越えると曖昧になる雰囲気",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-bi-geon#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-overall.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-bi-geon",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "比肩: 友達のような恋愛。線を越えると曖昧になる雰囲気",
+  "preview": "気楽な関係が長所ですが、関係の名前が曖昧になる所も見ます。",
+  "conclusion": "比肩：友達のような恋愛で、線を越えると曖昧になる雰囲気は、今年は友達のように気楽に近づく一方、関係の名前が曖昧になりやすい流れとして読める。今は十神一つだけで関係を断定せず、命式、大運、今の関係状態を合わせてこそ個別化できる。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000551",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "천간과 지지 기준 육친 조견표를 통해 십성별 관계 역할을 확인하는 자료다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "比肩：友達のような恋愛で、線を越えると曖昧になる雰囲気は、今年は友達のように気楽に近づく一方、関係の名前が曖昧になりやすい流れとして読める。今は十神一つだけで関係を断定せず、命式、大運、今の関係状態を合わせてこそ個別化できる。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000551",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認した基準は桃花、年運、配偶者星。この項目は五行・十神の基準資料と、今年の関係の流れの資料を参照する。個人の計算値が入れば、桃花、配偶者星、月運の実際の位置を別に加える。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000551",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "気楽な関係が長所ですが、関係の名前が曖昧になる所も見ます。冗談と安心感はよさでも、ある時に曖昧な恋か友達か迷うことがあります。",
+    "data": {
+     "list_preview": "気楽な関係が長所ですが、関係の名前が曖昧になる所も見ます。",
+     "list_why": "比肩は自分と同じ性質の力で、楽さと境界の問題が一緒に出ます。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000551",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "歳運は今年の基本の雰囲気、月運は実際の動きが活発になる時期として分けて読む。気楽なふりをしすぎると、好意のサインが埋もれることがある。個人の月運がつながれば、連絡、会うこと、告白、整理のどれが先かを月単位で分ける。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000551",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "冗談と好意を一度分けて言葉にします",
+      "二人だけの約束を一度決める",
+      "相手が境界をどう受け取るか確かめる"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000551",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "楽すぎるふりをすると、好意の合図が隠れることがある。",
+    "data": {
+     "safe_phrase": "一緒にいると楽だけど、最近は少し違う感じがする。",
+     "avoid_phrase": "私たちはただの友達でしょ。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000551",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "冗談と好意を一度分けて言葉にします",
+   "二人だけの約束を一度決める",
+   "相手が境界をどう受け取るか確かめる"
+  ],
+  "cautions": [
+   "楽すぎるふりをすると、好意の合図が隠れることがある。"
+  ],
+  "talk_guide": {
+   "say": "一緒にいると楽だけど、最近は少し違う感じがする。",
+   "avoid": "私たちはただの友達でしょ。"
+  },
+  "related_sections": [
+   {
+    "section_id": "overall-serious-shift",
+    "title": "真剣な関係への転換角",
+    "group_title": "今年の恋愛の可能性の総評",
+    "route": "index.html?section=overall-serious-shift#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-geop-jae",
+    "title": "劫財: 直進する力はあるが、張り合いに注意",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-geop-jae#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-geop-jae",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "劫財: 直進する力はあるが、張り合いに注意",
+  "preview": "惹かれると素早く動きますが、意地のぶつかり合いに流れないよう見ます。",
+  "conclusion": "劫財。直進力はあるが、気の張り合いに注意。今年は直進力が生きる一方、自尊心と主導権の問題も一緒に上がる流れと見られます。今は十神一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て個別化します。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000552",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "육친별 간지와 십성의 상생·상극 작용을 관계 피로감과 표현 방식 해석에 연결한다."
+   },
+   {
+    "id": "item-22-qa-0003",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "관계 대화에서는 마음을 숨기기보다 느낀 것과 확인할 것을 나누어 작게 말하는 기준을 제시한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "劫財。直進力はあるが、気の張り合いに注意。今年は直進力が生きる一方、自尊心と主導権の問題も一緒に上がる流れと見られます。今は十神一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て個別化します。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認した基準は桃花、年運、配偶者星。この項目は五行・十神の基準資料と、今年の関係の流れの資料を参照する。個人の計算値が入れば、桃花、配偶者星、月運の実際の位置を別に加える。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "惹かれると素早く動きますが、プライドのぶつかり合いにならないよう見ます。惹かれると素早く動きますが、相手の反応が遅いと、主導権の争いのように感じることがあります。",
+    "data": {
+     "list_preview": "惹かれると素早く動きますが、意地のぶつかり合いに流れないよう見ます。",
+     "list_why": "同じ気の競争性が、関係の中で主導権の問題として見えることがある。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年運は今年の基本的な雰囲気、月運は実際に動くタイミングとして分けて読む。勝ち負けの枠で考えると、好意が競争のようになってしまう。個人の月運がつながったら、連絡・会うこと・告白・区切りをつけることのうち、何を先にするかを月ごとに分ける。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "速度より、相手の反応を一拍見る",
+      "比較や探りを減らす",
+      "望むことを短く話す"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "勝ち負けの枠に入ると好意が競争へ変わります。",
+    "data": {
+     "safe_phrase": "もう少し頻繁に会いたいです。あなたのリズムはどうですか？",
+     "avoid_phrase": "私に興味があるならこれくらいはするべき。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "速度より、相手の反応を一拍見る",
+   "比較や探りを減らす",
+   "望むことを短く話す"
+  ],
+  "cautions": [
+   "勝ち負けの枠に入ると好意が競争へ変わります。"
+  ],
+  "talk_guide": {
+   "say": "もう少し頻繁に会いたいです。あなたのリズムはどうですか？",
+   "avoid": "私に興味があるならこれくらいはするべき。"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-bi-geon",
+    "title": "比肩: 友達のような恋愛。線を越えると曖昧になる雰囲気",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-bi-geon#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-sik-sin",
+    "title": "食神：安心感・ケア・日常のデートの強み",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-sik-sin#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-sik-sin",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "食神：安心感・ケア・日常のデートの強み",
+  "preview": "気を配り、楽にする魅力が、恋愛未満につながる方法を見る。",
+  "conclusion": "食神：安心感・ケア・日常のデートの強みは、今年それらの場面で魅力が自然に生きる流れとして読めます。十神一つで関係を決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000552",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "육친별 간지와 십성의 상생·상극 작용을 관계 피로감과 표현 방식 해석에 연결한다."
+   },
+   {
+    "id": "item-23-qa-0009",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "월운은 방향만이 아니라 일정, 약속, 해야 할 일의 순서로 바꿔야 살아난다는 기준을 제공한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "食神：安心感・ケア・日常のデートの強みは、今年それらの場面で魅力が自然に生きる流れとして読めます。十神一つで関係を決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認されている基準は桃花、年運、配偶者星で、この項目は五行・十神の基準資料と月別行動リズムの資料を参照する。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "気を配り、楽にする魅力が、恋愛未満につながる方法を見る。飲食店、散歩、小さな気遣いなど、過度でない行動で好意が積もりやすい。",
+    "data": {
+     "list_preview": "気を配り、楽にする魅力が、恋愛未満につながる方法を見る。",
+     "list_why": "食傷の流れは表現と生活感覚で関係を柔らかくする方です。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年運は今年の基本の雰囲気、月運は実際の動きが生きる時期として分けて読む。気遣いが過ぎると相手が申し訳なく感じることがある。個人の月運がつながると、連絡、出会い、告白、整理のどの行動が先か、月単位で分ける。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "負担の少ない日常のデートを提案する",
+      "相手の好みを一つ覚えておく",
+      "長い説明より温かい行動で示す"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "気遣いが過ぎると、相手が申し訳なく感じることがある。",
+    "data": {
+     "safe_phrase": "前に好きだと言っていたことを思い出した。今回一緒に行ってみる？",
+     "avoid_phrase": "ここまで世話をしたのに、どうして分かってくれないのですか？"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "負担の少ない日常のデートを提案する",
+   "相手の好みを一つ覚えておく",
+   "長い説明より温かい行動で示す"
+  ],
+  "cautions": [
+   "気遣いが過ぎると、相手が申し訳なく感じることがある。"
+  ],
+  "talk_guide": {
+   "say": "前に好きだと言っていたことを思い出した。今回一緒に行ってみる？",
+   "avoid": "ここまで世話をしたのに、どうして分かってくれないのですか？"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-geop-jae",
+    "title": "劫財: 直進する力はあるが、張り合いに注意",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-geop-jae#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-sang-gwan",
+    "title": "傷官：話と誘いは得意でも言葉が強くなることがある",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-sang-gwan#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-sang-gwan",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "傷官：話と誘いは得意でも言葉が強くなることがある",
+  "preview": "魅力的な表現力が、かえって相手を防御させる瞬間を確認します。",
+  "conclusion": "傷官: 話や好意の表現は得意でも、言葉が強くなり得るという項目は、今年、話や好意の表現が活発になり、言葉の強さが関係の温度を左右する流れとして読める。今は十神一つで関係を決めず、命式、大運、今の関係の状態を合わせて見ることで個別化される。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000552",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "육친별 간지와 십성의 상생·상극 작용을 관계 피로감과 표현 방식 해석에 연결한다."
+   },
+   {
+    "id": "item-22-qa-0003",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "관계 대화에서는 마음을 숨기기보다 느낀 것과 확인할 것을 나누어 작게 말하는 기준을 제시한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "傷官: 話や好意の表現は得意でも、言葉が強くなり得るという項目は、今年、話や好意の表現が活発になり、言葉の強さが関係の温度を左右する流れとして読める。今は十神一つで関係を決めず、命式、大運、今の関係の状態を合わせて見ることで個別化される。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認した基準は桃花、年運、配偶者星。この項目は五行・十神の基準資料と、今年の関係の流れの資料を参照する。個人の計算値が入れば、桃花、配偶者星、月運の実際の位置を別に加える。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "魅力的な表現が、逆に相手を守りの姿勢にする瞬間を確認する。気の利いた言葉が魅力になっても、一言が鋭く聞こえることがある。",
+    "data": {
+     "list_preview": "魅力的な表現力が、かえって相手を防御させる瞬間を確認します。",
+     "list_why": "表現が強い流れでは、言葉の強さを調整することが、関係を続けるうえで大切になる。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "歳運は今年の基本の雰囲気、月運は実際の行動が動き出す時期として分けて読む。厳しく本音を突きつけるような言葉は、好意より先に防御的な反応を生むことがある。個人の月運がつながると、連絡、会うこと、告白、整理のどの行動を先にするかを、月ごとに分ける。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "冗談の後に本音を一行添える",
+      "相手の弱点を話の材料にしない",
+      "送る前に、文の温度を一度下げる"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "核心を突くような言葉は好意より先に防御を生むことがあります。",
+    "data": {
+     "safe_phrase": "からかうつもりではなく、話すのが楽しくてそうしたんだ。",
+     "avoid_phrase": "どうしてそんなに敏感なの？"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-22-qa-0003"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "冗談の後に本音を一行添える",
+   "相手の弱点を話の材料にしない",
+   "送る前に、文の温度を一度下げる"
+  ],
+  "cautions": [
+   "核心を突くような言葉は好意より先に防御を生むことがあります。"
+  ],
+  "talk_guide": {
+   "say": "からかうつもりではなく、話すのが楽しくてそうしたんだ。",
+   "avoid": "どうしてそんなに敏感なの？"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-sik-sin",
+    "title": "食神：安心感・ケア・日常のデートの強み",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-sik-sin#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-pyeon-jae",
+    "title": "偏財：ときめきの機会は多いが、約束が散らばることがある",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-pyeon-jae#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-pyeon-jae",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "偏財：ときめきの機会は多いが、約束が散らばることがある",
+  "preview": "複数の機会が開くとき、本当に続く縁を見分ける。",
+  "conclusion": "偏財：曖昧な恋の機会は多くても約束が散ることがあります。今年の機会が複数に開く一方、約束が散る流れとして読めます。十神一つで関係を決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-연예-qa-000035",
+    "kind": "rag",
+    "label": "配偶者星·연애 시기 자료",
+    "value": "남성은 재성, 여성은 관성을 애인성으로 참고하고 운에서 활성화되는 시기를 해석 축으로 삼는 자료다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "偏財：曖昧な恋の機会は多くても約束が散ることがあります。今年の機会が複数に開く一方、約束が散る流れとして読めます。十神一つで関係を決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認された基準は桃花、歳運、配偶者星で、この項目は配偶者星・恋愛時期の資料と今年の関係の流れ資料を参照します。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付けます。",
+    "data": {
+     "visible_sources": [
+      "配偶者星・恋愛時期の資料",
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "機会が複数に開くとき、実際に続く縁を見分ける。連絡先や出会いが増えても、一人と着実に積み重ねる力は別に確認する必要がある。",
+    "data": {
+     "list_preview": "複数の機会が開くとき、本当に続く縁を見分ける。",
+     "list_why": "財星は恋人星の判断に使うが、偏財の流れでは選択肢が増えることがある。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年運は今年の基本のムード、月運は実際の動きが生きるタイミングとして分けて読みます。選択肢が多いという理由で、曖昧な態度が長くなりえます。個人の月運がつながると、連絡、出会い、告白、整理のどの行動が先かを月単位で分けます。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "同時に会話を広げすぎないです",
+      "次の約束を具体的に決める",
+      "本当に会いたい人を一人だけ選ぶ"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "選択肢の多さで曖昧な態度が長引くことがあります。",
+    "data": {
+     "safe_phrase": "次は言葉だけでなく日を決めよう。自分は金曜なら大丈夫。",
+     "avoid_phrase": "全部大丈夫、全部いい。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "同時に会話を広げすぎないです",
+   "次の約束を具体的に決める",
+   "本当に会いたい人を一人だけ選ぶ"
+  ],
+  "cautions": [
+   "選択肢の多さで曖昧な態度が長引くことがあります。"
+  ],
+  "talk_guide": {
+   "say": "次は言葉だけでなく日を決めよう。自分は金曜なら大丈夫。",
+   "avoid": "全部大丈夫、全部いい。"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-sang-gwan",
+    "title": "傷官：話と誘いは得意でも言葉が強くなることがある",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-sang-gwan#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-jeong-jae",
+    "title": "正財: 安定型の恋愛、信頼を積みやすい",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-jeong-jae#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-jeong-jae",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "正財: 安定型の恋愛、信頼を積みやすい",
+  "preview": "好意がゆっくり育つ流れか、約束と習慣で確かめる。",
+  "conclusion": "正財の安定した恋愛・信頼を積み重ねやすいという見立ては、今年、信頼と習慣を通して少しずつ安心感が育つ流れとして読める。個人に合わせるには、十神一つだけで関係を決めつけず、命式、大運、今の関係の状態をあわせて見る必要がある。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-연예-qa-000035",
+    "kind": "rag",
+    "label": "配偶者星·연애 시기 자료",
+    "value": "남성은 재성, 여성은 관성을 애인성으로 참고하고 운에서 활성화되는 시기를 해석 축으로 삼는 자료다."
+   },
+   {
+    "id": "zip-연예-qa-000108",
+    "kind": "rag",
+    "label": "配偶者星·연애 시기 자료",
+    "value": "配偶者星이 힘을 얻는 시기와 천간·지지·지장간의 드러남 차이를 만남 タイミング 근거로 참고한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "正財の安定した恋愛・信頼を積み重ねやすいという見立ては、今年、信頼と習慣を通して少しずつ安心感が育つ流れとして読める。個人に合わせるには、十神一つだけで関係を決めつけず、命式、大運、今の関係の状態をあわせて見る必要がある。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "確認済みの基準は桃花・歳運・配偶者星で、この項目は配偶者星と恋愛時期の資料を参考にします。個人の計算値が入れば桃花・配偶者星・月運の実際の位置を別に加えます。",
+    "data": {
+     "visible_sources": [
+      "配偶者星・恋愛時期の資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "好意がゆっくり積もる流れか、約束と習慣で確認する。華やかなときめきより、続く連絡、守る約束、日常の共有で関係が強くなる。",
+    "data": {
+     "list_preview": "好意がゆっくり育つ流れか、約束と習慣で確かめる。",
+     "list_why": "正財は安定した関係のコードとして読みつつ、個人の命式全体と合わせて見ます。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "歳運は今年の基本の雰囲気、月運は実際の動きが生まれる時機として読みます。安定だけを見てときめきの表現を控えすぎると、温度が低く見えることがあります。個人の月運がつながれば、連絡・出会い・告白・整理のどれを先にするか月ごとに分けます。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "小さな約束をきちんと守る",
+      "連絡のペースを安定させる",
+      "関係への期待を現実的に話す"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "安定だけを見て、ときめきの表現を控えすぎると、温度が低く見えることがある。",
+    "data": {
+     "safe_phrase": "ゆっくり知っていくのが好きだ。その代わり、約束はきちんと守りたい。",
+     "avoid_phrase": "よければこのまま続けよう。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-연예-qa-000108"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "小さな約束をきちんと守る",
+   "連絡のペースを安定させる",
+   "関係への期待を現実的に話す"
+  ],
+  "cautions": [
+   "安定だけを見て、ときめきの表現を控えすぎると、温度が低く見えることがある。"
+  ],
+  "talk_guide": {
+   "say": "ゆっくり知っていくのが好きだ。その代わり、約束はきちんと守りたい。",
+   "avoid": "よければこのまま続けよう。"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-pyeon-jae",
+    "title": "偏財：ときめきの機会は多いが、約束が散らばることがある",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-pyeon-jae#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-pyeon-gwan",
+    "title": "偏官：強い惹かれ方、圧力と速さの調整が必要",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-pyeon-gwan#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-pyeon-gwan",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "偏官：強い惹かれ方、圧力と速さの調整が必要",
+  "preview": "惹かれるほど、負担と速度の問題も一緒に確認します。",
+  "conclusion": "偏官: 強いときめき、重圧、速さの調整が必要という項目は、今年、強いときめきと重圧が同時に増し、速さを調整する流れとして読める。今は十神一つで関係を決めず、命式、大運、今の関係の状態を合わせて見ることで個別化される。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-연예-qa-000035",
+    "kind": "rag",
+    "label": "配偶者星·연애 시기 자료",
+    "value": "남성은 재성, 여성은 관성을 애인성으로 참고하고 운에서 활성화되는 시기를 해석 축으로 삼는 자료다."
+   },
+   {
+    "id": "item-22-qa-0015",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "한 해의 강한 구간뿐 아니라 지치는 구간과 회복 리듬을 함께 잡아야 한다는 운영 기준을 제공한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "偏官: 強いときめき、重圧、速さの調整が必要という項目は、今年、強いときめきと重圧が同時に増し、速さを調整する流れとして読める。今は十神一つで関係を決めず、命式、大運、今の関係の状態を合わせて見ることで個別化される。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認された基準は桃花、歳運、配偶者星で、この項目は配偶者星・恋愛時期の資料と今年の関係の流れ資料を参照します。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付けます。",
+    "data": {
+     "visible_sources": [
+      "配偶者星・恋愛時期の資料",
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "惹かれる力が強いほど、負担と速さも一緒に確認する。相手が強く感じられたり、関係が早く進んだりするほど、気持ちが急ぐことがある。",
+    "data": {
+     "list_preview": "惹かれるほど、負担と速度の問題も一緒に確認します。",
+     "list_why": "官星の流れは、関係の重さと責任感にも現れることがある。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "歳運は今年の基本の雰囲気、月運は実際の動きが生まれる時機として分けて読みます。強い惹かれ方を運命として押し進めると、自分のリズムを失いやすくなります。個人の月運がつながれば、連絡・出会い・告白・整理のどれを先にするかを月ごとに分けます。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "会うペースを一段階落とす",
+      "相手の要求と自分の基準を分ける",
+      "負担になる約束はすぐ調整する"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "強い惹かれ合いを運命として押し進めると、自分のリズムを失いやすい。",
+    "data": {
+     "safe_phrase": "いいね。でも少しゆっくり確かめながら進みたい。",
+     "avoid_phrase": "このくらい惹かれるなら全部当たってる。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "会うペースを一段階落とす",
+   "相手の要求と自分の基準を分ける",
+   "負担になる約束はすぐ調整する"
+  ],
+  "cautions": [
+   "強い惹かれ合いを運命として押し進めると、自分のリズムを失いやすい。"
+  ],
+  "talk_guide": {
+   "say": "いいね。でも少しゆっくり確かめながら進みたい。",
+   "avoid": "このくらい惹かれるなら全部当たってる。"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-jeong-jae",
+    "title": "正財: 安定型の恋愛、信頼を積みやすい",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-jeong-jae#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-jeong-gwan",
+    "title": "正官：正式な交際・真剣な出会いの可能性",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-jeong-gwan#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-jeong-gwan",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "正官：正式な交際・真剣な出会いの可能性",
+  "preview": "関係の名前を決めたくなる流れがあるか、現実の条件と合わせて見ます。",
+  "conclusion": "正官：正式な交際・真剣な出会いの可能性は、今年は正式な交際や真剣な出会いへ関係がまとまりやすい流れとして読めます。今は十神一つで決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-연예-qa-000035",
+    "kind": "rag",
+    "label": "配偶者星·연애 시기 자료",
+    "value": "남성은 재성, 여성은 관성을 애인성으로 참고하고 운에서 활성화되는 시기를 해석 축으로 삼는 자료다."
+   },
+   {
+    "id": "zip-만세력-qa-000553",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "성별 또는 애인성 기준에 따라 재성·관성·식상 등 육친 의미가 달라지는 점을 개인화 入力基準으로 삼는다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "正官：正式な交際・真剣な出会いの可能性は、今年は正式な交際や真剣な出会いへ関係がまとまりやすい流れとして読めます。今は十神一つで決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-만세력-qa-000553"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "確認済みの基準は桃花、年運、配偶者星。この項目は配偶者星・恋愛時期、五行・十星の基準資料を参照する。個人の計算値が入れば、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "配偶者星・恋愛時期の資料",
+      "五行・十神の基準資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-만세력-qa-000553"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "現実の条件とあわせて、関係の名前を決めたくなる流れがあるかを見る。相手が責任感を持って行動し、周囲に関係を自然に伝えているかを確認する。",
+    "data": {
+     "list_preview": "関係の名前を決めたくなる流れがあるか、現実の条件と合わせて見ます。",
+     "list_why": "正官は正式さと責任の型として読みますが、断定より条件を確かめます。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-만세력-qa-000553"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年運は今年の基本のムード、月運は実際の動きが生きるタイミングとして分けて読みます。良い人でも、自分の基準を全部合わせてくれる人だと期待すると負担が大きくなります。個人の月運がつながると、連絡、出会い、告白、整理のどの行動が先かを月単位で分けます。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-만세력-qa-000553"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "関係の名前を柔らかく確かめる",
+      "生活の基準を分け合う",
+      "公開範囲と約束の仕方を合わせる"
+     ]
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-만세력-qa-000553"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "良い人でも、自分の基準を全部満たすと期待すれば、負担が増える。",
+    "data": {
+     "safe_phrase": "私は私たちを少し真剣に見ています。あなたも近いか知りたいです。",
+     "avoid_phrase": "もう公式にして。そうじゃなきゃ意味ない。"
+    },
+    "evidence_ids": [
+     "zip-연예-qa-000035",
+     "zip-만세력-qa-000553"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "関係の名前を柔らかく確かめる",
+   "生活の基準を分け合う",
+   "公開範囲と約束の仕方を合わせる"
+  ],
+  "cautions": [
+   "良い人でも、自分の基準を全部満たすと期待すれば、負担が増える。"
+  ],
+  "talk_guide": {
+   "say": "私は私たちを少し真剣に見ています。あなたも近いか知りたいです。",
+   "avoid": "もう公式にして。そうじゃなきゃ意味ない。"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-pyeon-gwan",
+    "title": "偏官：強い惹かれ方、圧力と速さの調整が必要",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-pyeon-gwan#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-pyeon-in",
+    "title": "偏印：深い話はしやすくても、現実的な話が遅れることがある",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-pyeon-in#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-pyeon-in",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "偏印：深い話はしやすくても、現実的な話が遅れることがある",
+  "preview": "深い会話と想像は開いても、実際の約束へ移す力を見ます。",
+  "conclusion": "偏印：深い話はよくても現実の話が遅れることがあります。今年は深い会話と想像がよくなる一方、現実の約束へ移す速度が遅くなる流れとして読めます。十神一つで関係を決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000552",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "육친별 간지와 십성의 상생·상극 작용을 관계 피로감과 표현 방식 해석에 연결한다."
+   },
+   {
+    "id": "item-23-qa-0009",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "월운은 방향만이 아니라 일정, 약속, 해야 할 일의 순서로 바꿔야 살아난다는 기준을 제공한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "偏印：深い話はよくても現実の話が遅れることがあります。今年は深い会話と想像がよくなる一方、現実の約束へ移す速度が遅くなる流れとして読めます。十神一つで関係を決めつけず、原局・大運・現在の関係を一緒に見てこそ個別の読みになります。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認されている基準は桃花、年運、配偶者星で、この項目は五行・十神の基準資料と月別行動リズムの資料を参照する。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "深い会話や想像は開くが、実際の約束に移す力を見る。夜遅い深い話は続いても、いつ会うか決めるのに時間がかかることがある。",
+    "data": {
+     "list_preview": "深い会話と想像は開いても、実際の約束へ移す力を見ます。",
+     "list_why": "印星の流れは、思考と解釈が増える長所と、遅れとを一緒に見る必要があります。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年運は今年の基本ムード、月運は実際の動きが生きる時期として分ける。相手の沈黙を想像で埋めると感情の消耗が増す。個人の月運がつながれば、連絡、出会い、告白、整理のどれが先か月ごとに分ける。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "長い会話のあと、短い約束を一つ決める",
+      "想像する前に、日程を確認する",
+      "一人で解釈した結論をすぐ信じない"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "相手の沈黙を想像で埋めると、感情の消耗が増える。",
+    "data": {
+     "safe_phrase": "話せてよかった。次は直接会って続きを話したい。",
+     "avoid_phrase": "あなたがそう言ったのは、こういう意味だよね？"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "長い会話のあと、短い約束を一つ決める",
+   "想像する前に、日程を確認する",
+   "一人で解釈した結論をすぐ信じない"
+  ],
+  "cautions": [
+   "相手の沈黙を想像で埋めると、感情の消耗が増えます。"
+  ],
+  "talk_guide": {
+   "say": "話せてよかった。次は直接会って続きを話したい。",
+   "avoid": "あなたがそう言ったのは、こういう意味だよね？"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-jeong-gwan",
+    "title": "正官：正式な交際・真剣な出会いの可能性",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-jeong-gwan#step-6_1-report"
+   },
+   {
+    "section_id": "ten-gods-jeong-in",
+    "title": "正印: 優しさは良いが、依存・期待しすぎに注意",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-jeong-in#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "ten-gods-jeong-in",
+  "report_index_source": "user_seed",
+  "group_id": "ten-gods",
+  "group_title": "年運の十星別恋愛ムード",
+  "title": "正印: 優しさは良いが、依存・期待しすぎに注意",
+  "preview": "受け取りたい気持ちと期待が大きくなる瞬間を、やさしく調整します。",
+  "conclusion": "正印：優しさはよくても依存・期待過多に注意。今年は優しさと守られたい気持ちが増え、期待の調整が必要な流れとして読めます。十神一つで関係を決めず、原局・大運・現在の関係を一緒に見て個別化します。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000553",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "성별 또는 애인성 기준에 따라 재성·관성·식상 등 육친 의미가 달라지는 점을 개인화 入力基準으로 삼는다."
+   },
+   {
+    "id": "item-22-qa-0015",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "한 해의 강한 구간뿐 아니라 지치는 구간과 회복 리듬을 함께 잡아야 한다는 운영 기준을 제공한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "正印：優しさはよくても依存・期待過多に注意。今年は優しさと守られたい気持ちが増え、期待の調整が必要な流れとして読めます。十神一つで関係を決めず、原局・大運・現在の関係を一緒に見て個別化します。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認した基準は桃花、年運、配偶者星。この項目は五行・十神の基準資料と、今年の関係の流れの資料を参照する。個人の計算値が入れば、桃花、配偶者星、月運の実際の位置を別に加える。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "受け取りたい気持ちと期待が増す時を穏やかに調整します。小さな親切が大きく感じ、返信が遅いと物足りなさも早く上がることがあります。",
+    "data": {
+     "list_preview": "受け取りたい気持ちと期待が膨らむ瞬間を、穏やかに調整します。",
+     "list_why": "優しさを長所にするには、相手に委ねる感情の負担を減らす必要があります。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年運は今年の基本ムード、月運は実際の動きが生きる時期と分ける。期待を言わずに察してほしいと思うと物足りなさがたまる。個人の月運がつながれば、連絡、出会い、告白、整理のどれが先か月ごとに分ける。",
+    "data": {
+     "group_condition": "十星一つだけで関係を断定せず、原局、大運、現在の関係状態を一緒に見て、はじめて個別化されます。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "欲しい優しさを具体的に言う",
+      "期待とお願いを分けて書く",
+      "相手が与えられる範囲を見ます"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "期待を言わずにわかってほしいと願うと、物足りなさが積もります。",
+    "data": {
+     "safe_phrase": "自分はこんな優しさが好き。あなたはどんな表現が心地いい？",
+     "avoid_phrase": "自分で気を配るべきでしょ。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "欲しい優しさを具体的に言う",
+   "期待とお願いを分けて書く",
+   "相手が与えられる範囲を見ます"
+  ],
+  "cautions": [
+   "期待を言わずにわかってほしいと願うと、物足りなさが積もります。"
+  ],
+  "talk_guide": {
+   "say": "自分はこんな優しさが好き。あなたはどんな表現が心地いい？",
+   "avoid": "自分で気を配るべきでしょ。"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-pyeon-in",
+    "title": "偏印：深い話はしやすくても、現実的な話が遅れることがある",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-pyeon-in#step-6_1-report"
+   },
+   {
+    "section_id": "timing-monthly-some",
+    "title": "月運をもとに、気になる関係が動く月",
+    "group_title": "出会う時機",
+    "route": "index.html?section=timing-monthly-some#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-ten-gods.webp"
+  }
+ },
+ {
+  "section_id": "timing-monthly-some",
+  "report_index_source": "user_seed",
+  "group_id": "timing",
+  "group_title": "出会う時機",
+  "title": "月運をもとに、気になる関係が動く月",
+  "preview": "連絡、約束、会うことが活発になる月と、余白を残す月を月別に分ける。",
+  "conclusion": "月運で見る恋愛未満が動く月は、今年、月ごとに恋愛未満と約束の温度が違う流れとして読める。良い流れでも生活のリズムが崩れると実感が下がるため、空ける日も一緒に決める必要がある。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-23-qa-0009",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "월운은 방향만이 아니라 일정, 약속, 해야 할 일의 순서로 바꿔야 살아난다는 기준을 제공한다."
+   },
+   {
+    "id": "item-23-qa-0011",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "밀어붙일 날과 쉬어야 할 날을 구분하고 일부러 비워둘 시간을 잡는 회복 기준을 제시한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "月運で見る恋愛未満が動く月は、今年、月ごとに恋愛未満と約束の温度が違う流れとして読める。良い流れでも生活のリズムが崩れると実感が下がるため、空ける日も一緒に決める必要がある。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-23-qa-0009",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認された基準は桃花・歳運・配偶者星で、ここでは月別の行動リズムの資料を参考にします。個人の計算値が入れば、桃花・配偶者星・月運の実際の位置を別に加えます。",
+    "data": {
+     "visible_sources": [
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-23-qa-0009",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "月ごとに連絡・約束・出会いが活発な月と空ける月を分ける。連絡がつながりやすい月も、休むことで続くように感じる月もあります。",
+    "data": {
+     "list_preview": "連絡、約束、会うことが活発になる月と、余白を残す月を月別に分ける。",
+     "list_why": "月運は、方向を生活の順番に変えると、実際の行動につながる。"
+    },
+    "evidence_ids": [
+     "item-23-qa-0009",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "立春前後の変化、月運のリズム、今月の日程の余裕を一緒に見ます。月運を言い訳に何もしなければ、流れを実感しにくい。個人の月運がつながると、連絡、会うこと、告白、整理のどれが先かを月単位で分ける。",
+    "data": {
+     "group_condition": "良い流れも生活のリズムが崩れると体感が下がり得るので、空けておく日まで一緒に掴む必要がある。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-23-qa-0009",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "今月の約束の余裕を先に確認",
+      "連絡がうまくいく週を記録",
+      "疲れる週は返事の基準を下げる"
+     ]
+    },
+    "evidence_ids": [
+     "item-23-qa-0009",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "月運を口実に何もしなければ、流れを実感しにくい。",
+    "data": {
+     "safe_phrase": "今月は自分から日程を合わせてみる。",
+     "avoid_phrase": "今月は運が悪いと言われたから、何もしない。"
+    },
+    "evidence_ids": [
+     "item-23-qa-0009",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "今月の約束の余裕を先に確認",
+   "連絡がうまくいく週を記録",
+   "疲れる週は返事の基準を下げる"
+  ],
+  "cautions": [
+   "月運を口実に何もしなければ、流れを実感しにくい。"
+  ],
+  "talk_guide": {
+   "say": "今月は自分から日程を合わせてみる。",
+   "avoid": "今月は運が悪いと言われたから、何もしない。"
+  },
+  "related_sections": [
+   {
+    "section_id": "ten-gods-jeong-in",
+    "title": "正印: 優しさは良いが、依存・期待しすぎに注意",
+    "group_title": "年運の十星別恋愛ムード",
+    "route": "index.html?section=ten-gods-jeong-in#step-6_1-report"
+   },
+   {
+    "section_id": "timing-some-to-dating",
+    "title": "ときめきから交際へ移るタイミング",
+    "group_title": "出会う時機",
+    "route": "index.html?section=timing-some-to-dating#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-timing.webp"
+  }
+ },
+ {
+  "section_id": "timing-some-to-dating",
+  "report_index_source": "user_seed",
+  "group_id": "timing",
+  "group_title": "出会う時機",
+  "title": "ときめきから交際へ移るタイミング",
+  "preview": "気持ちの確認、約束の頻度、関係の名前を出す時期を分ける。",
+  "conclusion": "恋愛未満から恋愛へ進む時期は、今年、気持ちの確認、約束の頻度、関係の呼び名を分けて合わせる必要がある流れとして読める。良い流れでも生活のリズムが崩れると実感が下がることがあるため、空ける日も一緒に決める必要がある。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   },
+   {
+    "id": "item-23-qa-0009",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "월운은 방향만이 아니라 일정, 약속, 해야 할 일의 순서로 바꿔야 살아난다는 기준을 제공한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "恋愛未満から恋愛へ進む時期は、今年、気持ちの確認、約束の頻度、関係の呼び名を分けて合わせる必要がある流れとして読める。良い流れでも生活のリズムが崩れると実感が下がることがあるため、空ける日も一緒に決める必要がある。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認された基準は桃花、歳運、配偶者星で、この項目は今年の関係の流れ資料と月別の行動リズム資料を参照します。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付けます。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料",
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "気持ちの確認・約束の頻度・関係の名前を出す時を分けます。よく会うことと交際へ進む気持ちは違うことがあるので、言葉で合わせる過程が必要です。",
+    "data": {
+     "list_preview": "気持ちの確認、約束の頻度、関係の名前を出す時期を分ける。",
+     "list_why": "近づく流れと守る線を一緒に見て、はじめて安定して越えられます。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "立春前後の切り替わり・月のリズム・今月の日程の余裕を合わせて見ます。反応を試すとよい流れも曇ります。個人の月運がつながれば連絡・会うこと・告白・整理のどれが先か月ごとに分けます。",
+    "data": {
+     "group_condition": "良い流れも生活のリズムが崩れると体感が下がり得るので、空けておく日まで一緒に掴む必要がある。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "会う頻度が自然か見る",
+      "まず自分の気持ちを短く伝える",
+      "相手の関係の基準を聞く"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "相手の反応を試すように探ると、よい流れも曖昧になる。",
+    "data": {
+     "safe_phrase": "最近は二人を曖昧な恋より少し真剣に感じる。",
+     "avoid_phrase": "私が先に言ったから、あなたもすぐ決めて。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-23-qa-0009"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "会う頻度が自然か見る",
+   "まず自分の気持ちを短く伝える",
+   "相手の関係の基準を聞く"
+  ],
+  "cautions": [
+   "相手の反応を試すように探ると、よい流れも曖昧になる。"
+  ],
+  "talk_guide": {
+   "say": "最近は二人を曖昧な恋より少し真剣に感じる。",
+   "avoid": "私が先に言ったから、あなたもすぐ決めて。"
+  },
+  "related_sections": [
+   {
+    "section_id": "timing-monthly-some",
+    "title": "月運をもとに、気になる関係が動く月",
+    "group_title": "出会う時機",
+    "route": "index.html?section=timing-monthly-some#step-6_1-report"
+   },
+   {
+    "section_id": "self-partner-code",
+    "title": "財星・官星で見る恋人の型",
+    "group_title": "自分の恋愛傾向",
+    "route": "index.html?section=self-partner-code#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-timing.webp"
+  }
+ },
+ {
+  "section_id": "self-partner-code",
+  "report_index_source": "user_seed",
+  "group_id": "self-pattern",
+  "group_title": "自分の恋愛傾向",
+  "title": "財星・官星で見る恋人の型",
+  "preview": "惹かれる相手と、関係の中で重みを感じるところを見る。",
+  "conclusion": "財星・官星で見る恋人コードは、今年惹かれる恋人のコードと、関係で重さを感じる場所を見る流れとして読める。今は好きな気持ちと安定感を与える条件が違うこともあるので、混ぜて読まないことが大切。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000553",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "성별 또는 애인성 기준에 따라 재성·관성·식상 등 육친 의미가 달라지는 점을 개인화 入力基準으로 삼는다."
+   },
+   {
+    "id": "zip-연예-qa-000035",
+    "kind": "rag",
+    "label": "配偶者星·연애 시기 자료",
+    "value": "남성은 재성, 여성은 관성을 애인성으로 참고하고 운에서 활성화되는 시기를 해석 축으로 삼는 자료다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "財星・官星で見る恋人コードは、今年惹かれる恋人のコードと、関係で重さを感じる場所を見る流れとして読める。今は好きな気持ちと安定感を与える条件が違うこともあるので、混ぜて読まないことが大切。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "zip-연예-qa-000035"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認した基準は桃花、年運、配偶者星。この項目は五行・十神の基準資料と、配偶者星・恋愛時期の資料を参照します。個人の計算値が入れば、桃花、配偶者星、月運の実際の位置を別に加える。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "配偶者星・恋愛時期の資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "zip-연예-qa-000035"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "惹かれる人と関係の中で重さを感じる点を見ます。好きな人と安心をくれる人は違って感じることがあり、基準を分ける必要があります。",
+    "data": {
+     "list_preview": "惹かれる相手と、関係の中で重みを感じるところを見る。",
+     "list_why": "伝統的な四柱推命では、性別や恋人星の基準に応じて、財星・官星を関係のコードとして読む。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "zip-연예-qa-000035"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "傾向は特定の月より繰り返すパターンに表れ、月運はそのパターンを変えてみる実行期間になる。伝統の基準を性別の固定観念にせず、恋人星の基準として柔軟に見る必要がある。個人の月運がつながれば、連絡・出会い・告白・整理のどの行動が先か、月単位で分ける。",
+    "data": {
+     "group_condition": "好きな気持ちと安心をくれる条件は違うことがあり、混ぜずに読むことが大切です。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "zip-연예-qa-000035"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "惹かれるポイントを三つ書く",
+      "安心させる行動を三つ見る",
+      "配偶者星の基準を個人入力で確認する"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "zip-연예-qa-000035"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "伝統の基準を性別の固定観念のようには使わず、恋愛星を基準に柔軟に見る。",
+    "data": {
+     "safe_phrase": "どんな人に惹かれ、どんな人と安心できるのかを見てみたい。",
+     "avoid_phrase": "このタイプじゃなきゃ、私の縁じゃない。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000553",
+     "zip-연예-qa-000035"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "惹かれるポイントを三つ書く",
+   "安心させる行動を三つ見る",
+   "配偶者星の基準を個人入力で確認する"
+  ],
+  "cautions": [
+   "伝統の基準を性別の固定観念として使わず、恋人星の基準として柔軟に見る必要があります。"
+  ],
+  "talk_guide": {
+   "say": "どんな人に惹かれ、どんな人と安心できるのかを見てみたい。",
+   "avoid": "このタイプじゃなきゃ、私の縁じゃない。"
+  },
+  "related_sections": [
+   {
+    "section_id": "timing-some-to-dating",
+    "title": "ときめきから交際へ移るタイミング",
+    "group_title": "出会う時機",
+    "route": "index.html?section=timing-some-to-dating#step-6_1-report"
+   },
+   {
+    "section_id": "self-repeating-habit",
+    "title": "恋愛で繰り返す習慣",
+    "group_title": "自分の恋愛傾向",
+    "route": "index.html?section=self-repeating-habit#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-self-pattern.webp"
+  }
+ },
+ {
+  "section_id": "self-repeating-habit",
+  "report_index_source": "user_seed",
+  "group_id": "self-pattern",
+  "group_title": "自分の恋愛傾向",
+  "title": "恋愛で繰り返す習慣",
+  "preview": "似た人に惹かれたり、似た時期に疲れたりするパターンを見ます。",
+  "conclusion": "恋愛するときに繰り返される習慣は、今年、似た人と似た場面で揺れる型を見る流れとして見ることができます。今は、好きな気持ちと安定をくれる条件が違うことがあるので、二つを混ぜて読まないことが重要です。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0015",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "한 해의 강한 구간뿐 아니라 지치는 구간과 회복 리듬을 함께 잡아야 한다는 운영 기준을 제공한다."
+   },
+   {
+    "id": "item-23-qa-0011",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "밀어붙일 날과 쉬어야 할 날을 구분하고 일부러 비워둘 시간을 잡는 회복 기준을 제시한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "恋愛するときに繰り返される習慣は、今年、似た人と似た場面で揺れる型を見る流れとして見ることができます。今は、好きな気持ちと安定をくれる条件が違うことがあるので、二つを混ぜて読まないことが重要です。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認された基準は桃花、歳運、配偶者星で、この項目は今年の関係の流れ資料と月別の行動リズム資料を参照します。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付けます。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料",
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "似た人に惹かれる、似た時に疲れるパターンを見ます。返事が遅い時、約束がずれる時、相手が曖昧な時に自分の反応が繰り返すことがあります。",
+    "data": {
+     "list_preview": "似た人に惹かれたり似た時に疲れたりするパターンを見る。",
+     "list_why": "相談型の解釈は、パターンの理由を見て次の行動につなげると意味があります。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "傾向は特定の月より繰り返すパターンに現れ、月運はそれを変えてみる実行の期間になります。性格の問題にすると、変えられる行動まで固まります。個人の月運がつながれば、連絡・出会い・告白・整理のどれを先にするかを月ごとに分けます。",
+    "data": {
+     "group_condition": "好きな気持ちと安心をくれる条件は違うことがあり、混ぜずに読むことが大切です。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "繰り返す場面を一つだけ選ぶ",
+      "そのときの自分の話し方を書き留める",
+      "次に変える行動を一つ決める。"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "パターンを性格の問題にすると、直せる行動まで固まる。",
+    "data": {
+     "safe_phrase": "繰り返す反応を、少し変えてみたい。",
+     "avoid_phrase": "自分はこういう恋愛しかしない。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "繰り返す場面を一つだけ選ぶ",
+   "そのときの自分の話し方を書き留める",
+   "次に変える行動を一つ決める。"
+  ],
+  "cautions": [
+   "パターンを性格の問題にすると、直せる行動まで固まる。"
+  ],
+  "talk_guide": {
+   "say": "繰り返す反応を、少し変えてみたい。",
+   "avoid": "自分はこういう恋愛しかしない。"
+  },
+  "related_sections": [
+   {
+    "section_id": "self-partner-code",
+    "title": "財星・官星で見る恋人の型",
+    "group_title": "自分の恋愛傾向",
+    "route": "index.html?section=self-partner-code#step-6_1-report"
+   },
+   {
+    "section_id": "match-five-elements",
+    "title": "五行の相性",
+    "group_title": "相手・相性の読み解き",
+    "route": "index.html?section=match-five-elements#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-self-pattern.webp"
+  }
+ },
+ {
+  "section_id": "match-five-elements",
+  "report_index_source": "user_seed",
+  "group_id": "compatibility",
+  "group_title": "相手・相性の読み解き",
+  "title": "五行の相性",
+  "preview": "互いに楽な気か、一緒だと過熱するか見ます。",
+  "conclusion": "五行の相性は、今年二人の気の流れが楽か、熱くなりすぎるかを見る項目として捉えられる。今は干支、地支、五行を、会話の方法と争いの点を確かめる補助の基準としてだけ使う。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-만세력-qa-000552",
+    "kind": "rag",
+    "label": "오행·십성 기준 자료",
+    "value": "육친별 간지와 십성의 상생·상극 작용을 관계 피로감과 표현 방식 해석에 연결한다."
+   },
+   {
+    "id": "zip-궁합-qa-000305",
+    "kind": "rag",
+    "label": "관계 궁합 참고 자료",
+    "value": "띠와 지지 궁합에서 의사소통, 공통 관심사, 성격 충돌 가능성을 단정이 아닌 조율 포인트로 설명한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "五行の相性は、今年二人の気の流れが楽か、熱くなりすぎるかを見る項目として捉えられる。今は干支、地支、五行を、会話の方法と争いの点を確かめる補助の基準としてだけ使う。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "zip-궁합-qa-000305"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認した基準は桃花、年運、配偶者星。この項目は五行・十神の基準資料と、関係相性の参考資料を参照します。個人の計算値が入れば、桃花、配偶者星、月運の実際の位置を別に加える。",
+    "data": {
+     "visible_sources": [
+      "五行・十神の基準資料",
+      "関係相性の参考資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "zip-궁합-qa-000305"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "互いに心地よい気か、一緒にいると過熱するかを見ます。補い合える部分があっても、生活リズムが違えば疲れることがあります。",
+    "data": {
+     "list_preview": "互いに楽な気か、一緒だと過熱するか見ます。",
+     "list_why": "五行の関係は惹かれる気持ちと疲れを分ける補助の基準です。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "zip-궁합-qa-000305"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "相手がいれば今の段階、いなければよく惹かれる型を基準に見ます。相生をよい、相克を悪いだけと読むと現実の調整点を逃します。個人の月運がつながれば連絡・会うこと・告白・整理のどれが先か月ごとに分けます。",
+    "data": {
+     "group_condition": "干支・地支・五行は会話と衝突点を確認する補助の基準だけに使います。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "zip-궁합-qa-000305"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "相手と楽な活動、つらい活動を分ける",
+      "それぞれの回復方法を聞く",
+      "衝突後の回復時間を決める"
+     ]
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "zip-궁합-qa-000305"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "相生を良い、相剋を悪いとだけ読むと、現実で調整する点を見落とす。",
+    "data": {
+     "safe_phrase": "自分はこんな休み方が楽。あなたはどう？",
+     "avoid_phrase": "二人のエネルギーが合わない。"
+    },
+    "evidence_ids": [
+     "zip-만세력-qa-000552",
+     "zip-궁합-qa-000305"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "相手と楽な活動、つらい活動を分ける",
+   "それぞれの回復方法を聞く",
+   "衝突後の回復時間を決める"
+  ],
+  "cautions": [
+   "相生を良い、相剋を悪いとだけ読むと、現実で調整する点を見落とす。"
+  ],
+  "talk_guide": {
+   "say": "自分はこんな休み方が楽。あなたはどう？",
+   "avoid": "二人のエネルギーが合わない。"
+  },
+  "related_sections": [
+   {
+    "section_id": "self-repeating-habit",
+    "title": "恋愛で繰り返す習慣",
+    "group_title": "自分の恋愛傾向",
+    "route": "index.html?section=self-repeating-habit#step-6_1-report"
+   },
+   {
+    "section_id": "match-conflict-point",
+    "title": "性格がぶつかる点",
+    "group_title": "相手・相性の読み解き",
+    "route": "index.html?section=match-conflict-point#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-compatibility.webp"
+  }
+ },
+ {
+  "section_id": "match-conflict-point",
+  "report_index_source": "user_seed",
+  "group_id": "compatibility",
+  "group_title": "相手・相性の読み解き",
+  "title": "性格がぶつかる点",
+  "preview": "好きでも繰り返しぶつかる点を先に知ると、言い間違いを減らせる。",
+  "conclusion": "性格がぶつかるポイントは、今年の良し悪しより、ぶつかるボタンを先に知る流れとして見ることができます。今は、干支の動物、地支、五行は、会話の仕方と葛藤のポイントを確認する補助の基準としてだけ使います。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "zip-궁합-qa-000305",
+    "kind": "rag",
+    "label": "관계 궁합 참고 자료",
+    "value": "띠와 지지 궁합에서 의사소통, 공통 관심사, 성격 충돌 가능성을 단정이 아닌 조율 포인트로 설명한다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "性格がぶつかるポイントは、今年の良し悪しより、ぶつかるボタンを先に知る流れとして見ることができます。今は、干支の動物、地支、五行は、会話の仕方と葛藤のポイントを確認する補助の基準としてだけ使います。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "zip-궁합-qa-000305",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "確認された基準は桃花、年運、配偶者星で、この項目は関係の相性の参考資料と今年の関係の流れを参照します。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "関係相性の参考資料",
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "zip-궁합-qa-000305",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "好きでも繰り返しぶつかる点を先に知ると、言葉の失敗を減らせる。ささいな言葉、約束の変更、お金の使い方など、小さなところで衝突が繰り返すことがあります。",
+    "data": {
+     "list_preview": "好きでも繰り返しぶつかる点を先に知ると、言い間違いを減らせる。",
+     "list_why": "相性の可否より衝突の条件と調整方法を見る方が安全です。"
+    },
+    "evidence_ids": [
+     "zip-궁합-qa-000305",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "相手がいる場合は現在の関係段階、いない場合は自分がよく引かれる類型を基準に見ます。相手を直そうとする話し方で入ると、葛藤が大きくなります。個人の月運がつながると、連絡、出会い、告白、整理のうちどの行動が先かを月単位で分けます。",
+    "data": {
+     "group_condition": "干支・地支・五行は会話と衝突点を確認する補助の基準だけに使います。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "zip-궁합-qa-000305",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "敏感な話題を一つずつ共有",
+      "けんか前に止まる一言を決める",
+      "繰り返す衝突は時間を変えて話す。"
+     ]
+    },
+    "evidence_ids": [
+     "zip-궁합-qa-000305",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "相手を直そうとする口調では衝突が増えます。",
+    "data": {
+     "safe_phrase": "この話題は敏感になるので、ゆっくり話したい。",
+     "avoid_phrase": "どうしていつもそうなの？"
+    },
+    "evidence_ids": [
+     "zip-궁합-qa-000305",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "敏感な話題を一つずつ共有",
+   "けんか前に止まる一言を決める",
+   "繰り返す衝突は時間を変えて話す。"
+  ],
+  "cautions": [
+   "相手を直そうとする口調では衝突が増えます。"
+  ],
+  "talk_guide": {
+   "say": "この話題は敏感になるので、ゆっくり話したい。",
+   "avoid": "どうしていつもそうなの？"
+  },
+  "related_sections": [
+   {
+    "section_id": "match-five-elements",
+    "title": "五行の相性",
+    "group_title": "相手・相性の読み解き",
+    "route": "index.html?section=match-five-elements#step-6_1-report"
+   },
+   {
+    "section_id": "guide-confession-or-check",
+    "title": "告白するときか、様子を見るときか",
+    "group_title": "関係を続けるためのガイド",
+    "route": "index.html?section=guide-confession-or-check#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-compatibility.webp"
+  }
+ },
+ {
+  "section_id": "guide-confession-or-check",
+  "report_index_source": "user_seed",
+  "group_id": "relationship-guide",
+  "group_title": "関係を続けるためのガイド",
+  "title": "告白するときか、様子を見るときか",
+  "preview": "すぐ結論を出すか、確認の質問から進むかを分ける。",
+  "conclusion": "「告白するか、様子を見るか」は、今年の告白と探り合いの間で関係の準備度を確かめる流れとして読めます。今は距離が近づくほど、約束の仕方・返事のリズム・自分の境界を一緒に確かめることが安心感につながります。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0003",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "관계 대화에서는 마음을 숨기기보다 느낀 것과 확인할 것을 나누어 작게 말하는 기준을 제시한다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "「告白するか、様子を見るか」は、今年の告白と探り合いの間で関係の準備度を確かめる流れとして読めます。今は距離が近づくほど、約束の仕方・返事のリズム・自分の境界を一緒に確かめることが安心感につながります。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0003",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認されている基準は桃花、年運、配偶者星で、この項目は今年の関係の流れの資料を参照する。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0003",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "すぐ結論を出すか、確認質問から始めるか流れを分ける。感情だけが大きくなった状態か、実際の約束と配慮も積み重なったかを分ける必要があります。",
+    "data": {
+     "list_preview": "すぐ結論を出すか、確認の質問から進むかを分ける。",
+     "list_why": "相手が身構えないように、感情と確認したい内容を分けるとよい。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0003",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年間の流れは一度で結論が出るサインではなく、季節や月運で温度が変わるサインとして見ます。探りが長引くと相手も迷い、関係の温度が下がることがあります。個人の月運がつながれば、連絡・出会い・告白・整理のどの行動が先か、月単位で分ける。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0003",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "二人だけの出会いが繰り返すか見る",
+      "相手が時間を作るかを確認",
+      "告白する前に、軽く本音を伝える"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0003",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "探り合いが長くなると相手も迷い、関係の温度が下がることがあります。",
+    "data": {
+     "safe_phrase": "あなたを、少し特別に感じています。",
+     "avoid_phrase": "私に気持ちがあるなら今証明して。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0003",
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "二人だけの出会いが繰り返すか見る",
+   "相手が時間を作るかを確認",
+   "告白する前に、軽く本音を伝える"
+  ],
+  "cautions": [
+   "探り合いが長くなると相手も迷い、関係の温度が下がることがあります。"
+  ],
+  "talk_guide": {
+   "say": "あなたを、少し特別に感じています。",
+   "avoid": "私に気持ちがあるなら今証明して。"
+  },
+  "related_sections": [
+   {
+    "section_id": "match-conflict-point",
+    "title": "性格がぶつかる点",
+    "group_title": "相手・相性の読み解き",
+    "route": "index.html?section=match-conflict-point#step-6_1-report"
+   },
+   {
+    "section_id": "guide-boundary-distance",
+    "title": "境界を守り、距離を調整",
+    "group_title": "関係を続けるためのガイド",
+    "route": "index.html?section=guide-boundary-distance#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-relationship-guide.webp"
+  }
+ },
+ {
+  "section_id": "guide-boundary-distance",
+  "report_index_source": "user_seed",
+  "group_id": "relationship-guide",
+  "group_title": "関係を続けるためのガイド",
+  "title": "境界を守り、距離を調整",
+  "preview": "近づきたい気持ちと、自分では引き受けられない負担を分ける。",
+  "conclusion": "「境界を守り距離を調整する」は、今年近づきたいほど距離と基準を作る流れとして読めます。近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   },
+   {
+    "id": "item-22-qa-0015",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "한 해의 강한 구간뿐 아니라 지치는 구간과 회복 리듬을 함께 잡아야 한다는 운영 기준을 제공한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "「境界を守り距離を調整する」は、今年近づきたいほど距離と基準を作る流れとして読めます。近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認されている基準は桃花、年運、配偶者星で、この項目は今年の関係の流れの資料を参照する。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "近づきたい気持ちと、背負えない分を分けます。関係が良くなるほど、さらによく確認する境界が生まれます。",
+    "data": {
+     "list_preview": "近づきたい気持ちと、自分では引き受けられない負担を分ける。",
+     "list_why": "関係ごとに渡せるものと、これ以上背負えないものを分ける必要があります。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "一年の流れは、すぐ結論が出るサインではなく、季節や月運で温度が変わるサインとして見る。境界を作ることを冷たいと感じなくていい。個人の月運がつながれば、連絡、会うこと、告白、整理のどれが先かを月単位で分ける。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "自分が困る連絡の時間を決める",
+      "お金と時間のお願いには基準を作る",
+      "親密さと私生活を分ける"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "境界を作ることを、冷たいと感じなくていい。",
+    "data": {
+     "safe_phrase": "この時間の連絡は少し休みたい。代わりに昼はきちんと返す。",
+     "avoid_phrase": "我慢するから続けて。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014",
+     "item-22-qa-0015"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "自分が困る連絡の時間を決める",
+   "お金と時間のお願いには基準を作る",
+   "親密さと私生活を分ける"
+  ],
+  "cautions": [
+   "境界を作ることを、冷たいと感じなくていい。"
+  ],
+  "talk_guide": {
+   "say": "この時間の連絡は少し休みたい。代わりに昼はきちんと返す。",
+   "avoid": "我慢するから続けて。"
+  },
+  "related_sections": [
+   {
+    "section_id": "guide-confession-or-check",
+    "title": "告白するときか、様子を見るときか",
+    "group_title": "関係を続けるためのガイド",
+    "route": "index.html?section=guide-confession-or-check#step-6_1-report"
+   },
+   {
+    "section_id": "warning-vague-promises",
+    "title": "曖昧な約束で寂しさが積もるパターン",
+    "group_title": "注意のサイン",
+    "route": "index.html?section=warning-vague-promises#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-relationship-guide.webp"
+  }
+ },
+ {
+  "section_id": "warning-vague-promises",
+  "report_index_source": "user_seed",
+  "group_id": "warning-signals",
+  "group_title": "注意のサイン",
+  "title": "曖昧な約束で寂しさが積もるパターン",
+  "preview": "言葉は甘いのに日程と責任が曖昧になる点を見ます。",
+  "conclusion": "曖昧な約束で寂しさが積もるパターンは、今年、約束が曖昧になって寂しさが積もるかもしれない、という注意の流れとして読める。今は関係が近づくほど、約束の仕方、返信のリズム、自分が守りたい線をあわせて確認することが、安心感につながる。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "曖昧な約束で寂しさが積もるパターンは、今年、約束が曖昧になって寂しさが積もるかもしれない、という注意の流れとして読める。今は関係が近づくほど、約束の仕方、返信のリズム、自分が守りたい線をあわせて確認することが、安心感につながる。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認されている基準は桃花、年運、配偶者星で、この項目は今年の関係の流れの資料を参照する。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "言葉は甘いのに、予定と責任がぼける地点を見ます。いつ会おうという言葉はあっても日付がなければ、期待と失望が繰り返され得ます。",
+    "data": {
+     "list_preview": "言葉は甘いのに日程と責任が曖昧になる点を見ます。",
+     "list_why": "新しく会う人ほど、責任と約束の方法を先に見る必要があります。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年間の流れは、一度で結論が出る合図ではなく、季節と月運で温度が変わる合図として見る。曖昧な言葉を良く読み続けると、自分の心だけ先に消耗する。個人の月運がつながると、連絡、出会い、告白、整理のどの行動が先か、月単位で分ける。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "次の約束は、日付と時間で確認する",
+      "延期された約束の回数を数える",
+      "相手が別の案を出すかを見る"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "曖昧な言葉をよい方に読み続けると自分の気持ちが先に尽きます。",
+    "data": {
+     "safe_phrase": "いいね。じゃあ今週の土曜か来週の火曜は空いている？",
+     "avoid_phrase": "いつか会おうと言えばいいんだ。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "次の約束は、日付と時間で確認する",
+   "延期された約束の回数を数える",
+   "相手が別の案を出すかを見る"
+  ],
+  "cautions": [
+   "曖昧な言葉をよい方に読み続けると自分の気持ちが先に尽きます。"
+  ],
+  "talk_guide": {
+   "say": "いいね。じゃあ今週の土曜か来週の火曜は空いている？",
+   "avoid": "いつか会おうと言えばいいんだ。"
+  },
+  "related_sections": [
+   {
+    "section_id": "guide-boundary-distance",
+    "title": "境界を守り、距離を調整",
+    "group_title": "関係を続けるためのガイド",
+    "route": "index.html?section=guide-boundary-distance#step-6_1-report"
+   },
+   {
+    "section_id": "warning-lonely-attachment",
+    "title": "寂しさから誰でも引き止めてしまうパターン",
+    "group_title": "注意のサイン",
+    "route": "index.html?section=warning-lonely-attachment#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-warning-signals.webp"
+  }
+ },
+ {
+  "section_id": "warning-lonely-attachment",
+  "report_index_source": "user_seed",
+  "group_id": "warning-signals",
+  "group_title": "注意のサイン",
+  "title": "寂しさから誰でも引き止めてしまうパターン",
+  "preview": "恋愛したい気持ちと、回復が必要な気持ちを分ける。",
+  "conclusion": "寂しさから誰でもつかむパターンは、今年、寂しさが増し、どんな関係でもつかみやすい注意の流れとして読める。近づくほど、約束の方法、返信のリズム、自分の境界を一緒に確認すると安心感が生まれる。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0015",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "한 해의 강한 구간뿐 아니라 지치는 구간과 회복 리듬을 함께 잡아야 한다는 운영 기준을 제공한다."
+   },
+   {
+    "id": "item-23-qa-0008",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "오늘의 작은 행동을 고르는 방식으로 연락, 멈춤, 쉼 중 하나를 현실 액션으로 전환하게 한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "寂しさから誰でもつかむパターンは、今年、寂しさが増し、どんな関係でもつかみやすい注意の流れとして読める。近づくほど、約束の方法、返信のリズム、自分の境界を一緒に確認すると安心感が生まれる。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "現在確認された基準は桃花、歳運、配偶者星で、この項目は今年の関係の流れ資料と月別の行動リズム資料を参照します。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付けます。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料",
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "恋愛したい気持ちと回復が必要な気持ちを分けます。好意より空いた所を埋めたい気持ちが先なら、曖昧な相手へ深く入ることがあります。",
+    "data": {
+     "list_preview": "恋愛したい気持ちと、回復が必要な気持ちを分ける。",
+     "list_why": "心身が元に戻る時間を先に必要とする時があります。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "一年の流れは一度で結論が出るサインではなく、季節や月運で温度が変わるものとして見る。寂しい日の選択は翌日に確かめ直すほうがよい。個人の月運がつながれば、連絡、出会い、告白、整理のどれが先か、月ごとに分ける。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "寂しさと好意を分けて書く",
+      "最初の選択の基準を心地よさにする",
+      "返信の温度感だけで意味づけしない"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "孤独な日にした選択は翌日に確かめ直すとよいです。",
+    "data": {
+     "safe_phrase": "自分が寂しいのか、この人が好きなのか、ゆっくり見たい。",
+     "avoid_phrase": "誰でもそばにいてくれればいい。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0015",
+     "item-23-qa-0008"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "寂しさと好意を分けて書く",
+   "最初の選択の基準を心地よさにする",
+   "返信の温度感だけで意味づけしない"
+  ],
+  "cautions": [
+   "孤独な日にした選択は翌日に確かめ直すとよいです。"
+  ],
+  "talk_guide": {
+   "say": "自分が寂しいのか、この人が好きなのか、ゆっくり見たい。",
+   "avoid": "誰でもそばにいてくれればいい。"
+  },
+  "related_sections": [
+   {
+    "section_id": "warning-vague-promises",
+    "title": "曖昧な約束で寂しさが積もるパターン",
+    "group_title": "注意のサイン",
+    "route": "index.html?section=warning-vague-promises#step-6_1-report"
+   },
+   {
+    "section_id": "mz-love-temperature",
+    "title": "今年の恋愛の温度",
+    "group_title": "MZ型の結果カード",
+    "route": "index.html?section=mz-love-temperature#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-warning-signals.webp"
+  }
+ },
+ {
+  "section_id": "mz-love-temperature",
+  "report_index_source": "user_seed",
+  "group_id": "mz-cards",
+  "group_title": "MZ型の結果カード",
+  "title": "今年の恋愛の温度",
+  "preview": "今年の関係が冷たく閉じたのか、ゆっくり温まるのかをカードで見ます。",
+  "conclusion": "今年の恋愛の温度は、今年の関係の実感をひと目で見る要約の流れとして捉えられる。今は近づくほど、約束の方法、返信のリズム、自分が守る線を一緒に確かめることで安定感が生まれる。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-22-qa-0014",
+    "kind": "rag",
+    "label": "올해 관계 흐름 자료",
+    "value": "올해 관계는 가까워지는 흐름과 선을 지키는 흐름을 함께 보고, 책임과 약속 방식을 먼저 확인하도록 안내한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "今年の恋愛の温度は、今年の関係の実感をひと目で見る要約の流れとして捉えられる。今は近づくほど、約束の方法、返信のリズム、自分が守る線を一緒に確かめることで安定感が生まれる。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認されている基準は桃花、年運、配偶者星で、この項目は今年の関係の流れの資料を参照する。個人の計算値が入ると、桃花、配偶者星、月運の実際の位置を別に付ける。",
+    "data": {
+     "visible_sources": [
+      "今年の関係の流れの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "今年の関係が冷たく閉じているのか、ゆっくり温まるのかをカードで見ます。熱い・冷たいより、今の気持ち、出会いの機会、回復のリズムの均衡を見ます。",
+    "data": {
+     "list_preview": "今年の関係が冷たく閉じたのか、ゆっくり温まるのかをカードで見ます。",
+     "list_why": "関係の温度は、一年のあいだにゆっくり現れる流れです。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "年間の流れは一度で結論が出るサインではなく、季節や月運で温度が変わるサインとして見る。温度カードを点数のように信じるより、行動選びに使うのが合う。個人の月運がつながれば、連絡・出会い・告白・整理のどの行動が先か、月単位で分ける。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "今の温度を低い・普通・高いから感覚で選ぶ",
+      "温度を上げる行動を一つだけ決める。",
+      "回復が必要な理由を一緒に見る"
+     ]
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "温度カードは点数のように信じるより、行動を選ぶために使うのがよいです。",
+    "data": {
+     "safe_phrase": "今年は関係の温度をゆっくり上げてみたい。",
+     "avoid_phrase": "温度が低いなら、今年は終わりだ。"
+    },
+    "evidence_ids": [
+     "item-22-qa-0014"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "今の温度を低い・普通・高いから感覚で選ぶ",
+   "温度を上げる行動を一つだけ決める。",
+   "回復が必要な理由を一緒に見る"
+  ],
+  "cautions": [
+   "温度カードは点数のように信じるより、行動を選ぶために使うのがよいです。"
+  ],
+  "talk_guide": {
+   "say": "今年は関係の温度をゆっくり上げてみたい。",
+   "avoid": "温度が低いなら、今年は終わりだ。"
+  },
+  "related_sections": [
+   {
+    "section_id": "warning-lonely-attachment",
+    "title": "寂しさから誰でも引き止めてしまうパターン",
+    "group_title": "注意のサイン",
+    "route": "index.html?section=warning-lonely-attachment#step-6_1-report"
+   },
+   {
+    "section_id": "mz-monthly-action",
+    "title": "今月のアクション一行",
+    "group_title": "MZ型の結果カード",
+    "route": "index.html?section=mz-monthly-action#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-mz-cards.webp"
+  }
+ },
+ {
+  "section_id": "mz-monthly-action",
+  "report_index_source": "user_seed",
+  "group_id": "mz-cards",
+  "group_title": "MZ型の結果カード",
+  "title": "今月のアクション一行",
+  "preview": "連絡一つ、停止一つ、休む日一つから、今の行動を選ぶ。",
+  "conclusion": "今月の行動を一言で選ぶ項目は、今年の今月にすぐできる小さな一歩を見る流れです。近づくほど約束・返信のリズム・守る境界を一緒に確かめると安心につながります。",
+  "evidence": [
+   {
+    "id": "calc.personalization_status",
+    "kind": "calculated_fact",
+    "label": "개인 계산 상태",
+    "value": "生年月日시, 애인성 기준, 현재 상태, 세운 십성, 대운 십성, 입력된 사주와 関係の状態를 확인해 개인화합니다."
+   },
+   {
+    "id": "item-23-qa-0008",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "오늘의 작은 행동을 고르는 방식으로 연락, 멈춤, 쉼 중 하나를 현실 액션으로 전환하게 한다."
+   },
+   {
+    "id": "item-23-qa-0011",
+    "kind": "rag",
+    "label": "월별 행동 리듬 자료",
+    "value": "밀어붙일 날과 쉬어야 할 날을 구분하고 일부러 비워둘 시간을 잡는 회복 기준을 제시한다."
+   }
+  ],
+  "calculated_fact_keys": [
+   "service.question",
+   "service.analysis_basis",
+   "birth_datetime",
+   "partner_star_basis",
+   "annual_ten_god",
+   "major_luck_ten_god",
+   "monthly_luck"
+  ],
+  "interpretation_blocks": [
+   {
+    "type": "text",
+    "title": "一行の結論",
+    "content": "今月の行動を一言で選ぶ項目は、今年の今月にすぐできる小さな一歩を見る流れです。近づくほど約束・返信のリズム・守る境界を一緒に確かめると安心につながります。",
+    "data": {
+     "mode": "possibility-first"
+    },
+    "evidence_ids": [
+     "item-23-qa-0008",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "service.question",
+     "service.analysis_basis"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "確認された根拠",
+    "content": "今確認された基準は桃花・歳運・配偶者星で、ここでは月別の行動リズムの資料を参考にします。個人の計算値が入れば、桃花・配偶者星・月運の実際の位置を別に加えます。",
+    "data": {
+     "visible_sources": [
+      "月ごとの行動のペースの資料"
+     ],
+     "pending_personalization": [
+      "birth_datetime",
+      "partner_star_basis",
+      "relationship_status",
+      "annual_ten_god",
+      "major_luck_ten_god",
+      "monthly_luck"
+     ]
+    },
+    "evidence_ids": [
+     "item-23-qa-0008",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "service.analysis_basis",
+     "report.index_source"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "現実で見られる姿",
+    "content": "一つの連絡、一つの停止、一日の休みから、今する行動を選びます。大げさな告白より、連絡・約束・整理・回復の一つを選ぶほうが実行しやすいです。",
+    "data": {
+     "list_preview": "連絡一つ、停止一つ、休む日一つから、今の行動を選ぶ。",
+     "list_why": "今日は人生全体より、後回しにしていた小さな用事を一つ出す流れです。"
+    },
+    "evidence_ids": [
+     "item-23-qa-0008",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "時期・強弱・条件",
+    "content": "一年の流れはすぐ結論が出るサインではなく、季節や月運で温度が変わるサインとして見る。行動を増やしすぎると、実行より負担が先に来る。個人の月運がつながれば、連絡、会うこと、告白、整理のどれが先かを月単位で分ける。",
+    "data": {
+     "group_condition": "近づくほど約束の仕方・返事のリズム・守る境界を一緒に確かめると安心感につながります。",
+     "needs_monthly_luck": true,
+     "no_numeric_chart": true
+    },
+    "evidence_ids": [
+     "item-23-qa-0008",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "monthly_luck",
+     "annual_ten_god",
+     "major_luck_ten_god"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "action",
+    "title": "今する行動",
+    "content": "今日、または今週、広げすぎずに一つずつ行動する。",
+    "data": {
+     "actions": [
+      "今月の関係の目標を一つ決める",
+      "今週中にできる小さな行動を一つ予定に入れる",
+      "しない行動も決める"
+     ]
+    },
+    "evidence_ids": [
+     "item-23-qa-0008",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   },
+   {
+    "type": "text",
+    "title": "注意する選択",
+    "content": "行動を増やしすぎると、実行より負担が先に来る。",
+    "data": {
+     "safe_phrase": "今月は、もう一度会う方向で動いてみる。",
+     "avoid_phrase": "今月中にすぐ結果を出す必要がある。"
+    },
+    "evidence_ids": [
+     "item-23-qa-0008",
+     "item-23-qa-0011"
+    ],
+    "calculated_fact_keys": [
+     "relationship_status"
+    ],
+    "asset_key": ""
+   }
+  ],
+  "actions": [
+   "今月の関係の目標を一つ決める",
+   "今週中にできる小さな行動を一つ予定に入れる",
+   "しない行動も決める"
+  ],
+  "cautions": [
+   "行動を増やしすぎると、実行より負担が先に来る。"
+  ],
+  "talk_guide": {
+   "say": "今月は、もう一度会う方向で動いてみる。",
+   "avoid": "今月中にすぐ結果を出す必要がある。"
+  },
+  "related_sections": [
+   {
+    "section_id": "mz-love-temperature",
+    "title": "今年の恋愛の温度",
+    "group_title": "MZ型の結果カード",
+    "route": "index.html?section=mz-love-temperature#step-6_1-report"
+   },
+   {
+    "section_id": "overall-love-mode-on",
+    "title": "恋愛モードをONにするタイミング",
+    "group_title": "今年の恋愛の可能性の総評",
+    "route": "index.html?section=overall-love-mode-on#step-6_1-report"
+   }
+  ],
+  "render": {
+   "hero_asset_key": "thisyear-06-overall-love-mode-on-hero",
+   "fallback_group_image": "../assets/thisyear/05-mz-cards.webp"
+  }
+ }
+]</script>
+  <script type="application/json" id="CALCULATED_FACTS">
+{
+  "status": "pending_personalization",
+  "confirmed_facts": [
+    {
+      "key": "service.question",
+      "label": "利用者の質問",
+      "value": "나, 올해 연애 가능?",
+      "status": "confirmed"
+    },
+    {
+      "key": "service.analysis_basis",
+      "label": "分析の軸",
+      "value": "도화, 세운, 配偶者星",
+      "status": "confirmed"
+    },
+    {
+      "key": "report.index_source",
+      "label": "詳しい目次",
+      "value": "사용자가 제공한 8개 대分類, 24개 중分類",
+      "status": "confirmed"
+    }
+  ],
+  "required_personal_inputs": [
+    {
+      "key": "birth_datetime",
+      "label": "生年月日・時刻",
+      "status": "required",
+      "reason": "四柱の原局と今年の歳運基準を計算するために必要です。"
+    },
+    {
+      "key": "partner_star_basis",
+      "label": "性別または恋人星の基準",
+      "status": "required",
+      "reason": "財星・官星など配偶者星の解釈基準を合わせるために必要です。"
+    },
+    {
+      "key": "relationship_status",
+      "label": "現在の状態",
+      "status": "required",
+      "reason": "独身、ときめき、交際、復縁のどの行動ガイドが合うか分けるために必要です。"
+    },
+    {
+      "key": "annual_ten_god",
+      "label": "今年の年運の十星",
+      "status": "required",
+      "reason": "今年の関係の雰囲気と表現の仕方を個別化するために必要だ。"
+    },
+    {
+      "key": "major_luck_ten_god",
+      "label": "大運の十神",
+      "status": "required",
+      "reason": "今年の流れが、長期の流れと同じ方向かを確認するために必要だ。"
+    },
+    {
+      "key": "monthly_luck",
+      "label": "月運",
+      "status": "required",
+      "reason": "連絡、出会い、告白、整理のタイミングを月単位で見るために必要だ。"
+    }
+  ],
+  "unavailable_notes": [
+    "この静的プレビューには個人の生年月日・時刻とサーバーの計算結果がないため、月別の強弱・特定の日付・個人の点数は作りません。",
+    "桃花と配偶者星は、計算の結果が入ってから詳細の文につなぐ。"
+  ]
+}
+  </script>
+  <script type="application/json" id="PROMPT_INPUT">
+{
+  "SERVICE_TITLE": "今年、恋愛できる？",
+  "SERVICE_DESCRIPTION": "桃花、年運、配偶者星から、今年の恋愛の可能性、出会いの時期、繰り返す関係のパターン、関係を運営する行動を確認する恋愛運サービスの詳細解説画面",
+  "SERVICE_CATEGORY": "恋愛運",
+  "SECTION_ID": "URLクエリのsection値で選ぶ",
+  "REPORT_ID": "local-preview-report-thisyear",
+  "REPORT_INDEX_SOURCE": "05-step-5-chat/05-generation-result.json",
+  "CALCULATED_FACTS_STATUS": "pending_personalization",
+  "REPRESENTATIVE_CHARACTER": "IMAGE/Codex 이미지 2026년 9월 2일 오후 08_28_12.png"
+}
+  </script>
+
+  <script type="application/json" id="IMAGE_MANIFEST">
+[
+  {
+    "asset_key": "thisyear-06-overall-love-mode-on-hero",
+    "filename": "assets/thisyear/report-sections/00-year-love-report-hero-v1.png",
+    "role": "hero",
+    "aspect_ratio": "9:16",
+    "reference_image": "01-frontface-window-poster.webp",
+    "reference_status": "selected",
+    "character_style_lock": [
+      "自然な韓国人の人物",
+      "窓辺の暖かな自然光",
+      "アイボリーと淡いピンクの控えめな色",
+      "タイトル重ね用の下部の暗い余白"
+    ],
+    "generation_policy": "photorealistic-report-cover",
+    "prompt": "今年の恋愛運レポートの9:16表紙。窓辺で携帯と小さなメモを見る人物。暖かい自然光、アイボリーと淡いピンク、下部のタイトル重ね領域、画像内テキストなし。",
+    "alt": "窓辺で携帯を見ながら、今年の出会いを考える女性",
+    "mobile_crop": "center 48%",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-image-role='thisyear-06-overall-love-mode-on-hero']"
+  }
+]
+  </script>
+  <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/thisyear-report-store.js"></script>
+  <script>
+    const DETAIL_ROUTE = "index.html";
+    const LIST_ROUTE = "../05-step-5-chat/chat.html";
+    const DETAILS = JSON.parse(document.getElementById("DETAIL_DATA").textContent);
+    const CALCULATED_FACTS = JSON.parse(document.getElementById("CALCULATED_FACTS").textContent);
+    const params = new URLSearchParams(window.location.search);
+    const isLocalPreview = window.location.protocol === "file:";
+
+    const els = {
+      chip: document.getElementById("context-chip"),
+      state: document.getElementById("state-panel"),
+      content: document.getElementById("detail-content"),
+      groupTitle: document.getElementById("group-title"),
+      title: document.getElementById("detail-title"),
+      conclusion: document.getElementById("detail-conclusion"),
+      hero: document.getElementById("hero-image"),
+      sourceGrid: document.getElementById("source-grid"),
+      stack: document.getElementById("detail-stack"),
+      toast: document.getElementById("toast"),
+      scroll: document.getElementById("scroll-area"),
+    };
+
+    function currentSectionId() {
+      return params.get("section") || DETAILS[0].section_id;
+    }
+
+    function getAccessMode() {
+      if (params.get("payment") === "processing") return "processing";
+      if (params.get("entitlement") === "denied" || params.get("access") === "locked") return "locked";
+      if (params.get("report") === "missing") return "missing";
+      if (!isLocalPreview && !params.get("report_id")) return "missing";
+      return "ready";
+    }
+
+    function withRoute(sectionId) {
+      const nextParams = new URLSearchParams(params);
+      nextParams.set("section", sectionId);
+      return DETAIL_ROUTE + "?" + nextParams.toString() + "#step-6_1-report";
+    }
+
+    function listRoute() {
+      const nextParams = new URLSearchParams(params);
+      nextParams.delete("section");
+      const query = nextParams.toString();
+      return LIST_ROUTE + (query ? "?" + query : "") + "#step-5-chat";
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("is-visible");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => els.toast.classList.remove("is-visible"), 2200);
+    }
+
+    function showState(title, message, actionLabel, action) {
+      els.content.hidden = true;
+      els.state.classList.add("is-visible");
+      els.state.innerHTML = "";
+      const h = document.createElement("h2");
+      h.textContent = title;
+      const p = document.createElement("p");
+      p.textContent = message;
+      const button = document.createElement("button");
+      button.className = "nav-button";
+      button.type = "button";
+      button.textContent = actionLabel;
+      button.addEventListener("click", action);
+      els.state.append(h, p, button);
+    }
+
+    function renderSources(detail) {
+      const rows = [
+        ...CALCULATED_FACTS.confirmed_facts.map((fact) => ({
+          label: fact.label,
+          text: fact.value,
+        })),
+        {
+          label: CALCULATED_FACTS.personalization_note ? "個人計算の基準" : "個別化を待機中",
+          text: CALCULATED_FACTS.personalization_note || "生年月日と出生時刻、恋人を表す星の基準、今の状態、今年の歳運の十神、大運の十神、月運がつながると、細かな条件がそろう。",
+        },
+        ...detail.evidence
+          .filter((entry) => entry.kind === "rag")
+          .slice(0, 3)
+          .map((entry) => ({
+            label: entry.label,
+            text: entry.value,
+          })),
+      ];
+      els.sourceGrid.innerHTML = "";
+      rows.forEach((row) => {
+        const item = document.createElement("div");
+        item.className = "source-row";
+        const label = document.createElement("span");
+        label.textContent = row.label;
+        const text = document.createElement("p");
+        text.textContent = row.text;
+        item.append(label, text);
+        els.sourceGrid.append(item);
+      });
+    }
+
+    function renderBlock(block) {
+      const card = document.createElement("article");
+      card.className = "detail-card";
+      const title = document.createElement("h2");
+      title.textContent = block.title;
+      card.append(title);
+
+      if (block.type === "action") {
+        const p = document.createElement("p");
+        p.textContent = block.content;
+        const list = document.createElement("ol");
+        list.className = "action-list";
+        (block.data.actions || []).forEach((action, index) => {
+          const li = document.createElement("li");
+          const b = document.createElement("b");
+          b.textContent = String(index + 1);
+          const span = document.createElement("span");
+          span.textContent = action;
+          li.append(b, span);
+          list.append(li);
+        });
+        card.append(p, list);
+      } else {
+        const p = document.createElement("p");
+        p.textContent = block.content;
+        card.append(p);
+      }
+      return card;
+    }
+
+    function renderDetail() {
+      const mode = getAccessMode();
+      if (mode === "processing") {
+        showState("レポートを生成中", "決済は引き継がれ、詳細結果を整理している。少し後に再確認できる。", "一覧へ", () => (window.location.href = listRoute()));
+        return;
+      }
+      if (mode === "locked") {
+        showState("詳細の閲覧が必要", "購入したレポート内だけで開きます。前の画面で閲覧状態を確認してください。", "前の画面へ", () => (window.location.href = "../04-step-4-report/index.html#step-4-report"));
+        return;
+      }
+      if (mode === "missing") {
+        showState("リポートが見つからない", "結果の識別値がないか、期限が切れているよ。一覧から入り直すと状態を戻せる。", "一覧へ", () => (window.location.href = listRoute()));
+        return;
+      }
+
+      let detail = DETAILS.find((entry) => entry.section_id === currentSectionId());
+      if (!detail) {
+        detail = DETAILS[0];
+        showToast("項目がないため、最初の詳細へ移動した。");
+        window.history.replaceState(null, "", withRoute(detail.section_id));
+      }
+
+      const currentIndex = DETAILS.findIndex((entry) => entry.section_id === detail.section_id);
+      els.state.classList.remove("is-visible");
+      els.content.hidden = false;
+      els.chip.textContent = detail.group_title + " · " + (currentIndex + 1) + "/" + DETAILS.length;
+      els.groupTitle.textContent = detail.group_title;
+      els.title.textContent = detail.title;
+      els.conclusion.textContent = detail.conclusion;
+      els.hero.src = "../assets/thisyear/report-sections/00-year-love-report-hero-v1.png";
+      els.hero.alt = "窓辺でスマートフォンを見ながら、今年の出会いを考える女性";
+      renderSources(detail);
+      els.stack.innerHTML = "";
+      detail.interpretation_blocks.forEach((block) => els.stack.append(renderBlock(block)));
+      els.scroll.scrollTop = 0;
+    }
+
+    document.getElementById("btn-back").addEventListener("click", () => {
+      if (window.history.length > 1 && document.referrer) {
+        window.history.back();
+        return;
+      }
+      window.location.href = listRoute();
+    });
+
+    document.getElementById("btn-vault").addEventListener("click", () => {
+      showToast("保管庫の接続は運用環境で開く。");
+    });
+
+    window.addEventListener("popstate", renderDetail);
+    renderDetail();
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/thisyear-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

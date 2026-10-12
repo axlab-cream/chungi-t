@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Four Pillars input | Can I quit now?</title>
+    <!-- umsh-share-card -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Fortune Shop">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="Fortune Shop - We sell fate.">
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility.">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Fortune Shop - We sell fate.">
+    <meta name="twitter:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility.">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #030405;
+        --surface: #08100f;
+        --ink: #fff8ee;
+        --muted: rgba(255, 248, 238, .72);
+        --red: #ff365c;
+        --teal: #30f0df;
+        --gold: #e6b95f;
+        --line: rgba(255, 54, 92, .25);
+        --umsh-accent: #30f0df;
+        --umsh-accent-ink: #050707;
+        font-family: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #000; color: var(--ink); }
+      .app { width: min(100%, 440px); min-height: 100svh; margin: 0 auto; background: var(--bg); overflow: hidden; }
+      .topbar {
+        position: sticky; top: 0; z-index: 10;
+        display: flex; justify-content: space-between; align-items: center;
+        min-height: 64px; padding: 12px 18px;
+        background: rgba(3, 4, 5, .88); backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255, 255, 255, .08);
+      }
+      .brand { text-decoration: none; color: inherit; }
+      .brand strong { display: block; font-size: 15px; font-weight: 950; }
+      .brand span { font-size: 10px; color: rgba(255, 248, 238, .52); font-weight: 900; letter-spacing: .12em; }
+      .chip { border: 1px solid rgba(230, 185, 95, .46); border-radius: 999px; padding: 9px 12px; color: var(--gold); font-size: 12px; font-weight: 950; }
+      .hero { position: relative; min-height: 220px; display: flex; align-items: flex-end; overflow: hidden; }
+      .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  object-position: 50% 25%; }
+      .hero:after {
+        content: "";
+        position: absolute; inset: 0;
+        background: linear-gradient(to bottom, rgba(3, 4, 5, .08), rgba(3, 4, 5, .18) 42%, var(--surface) 96%),
+          linear-gradient(to right, rgba(0, 0, 0, .54), transparent);
+      }
+      .copy { position: relative; z-index: 1; padding: 22px 20px 26px; }
+      .eyebrow {
+        display: inline-flex; gap: 8px; align-items: center;
+        margin-bottom: 10px; color: var(--teal); font-size: 11px; font-weight: 950; letter-spacing: .12em;
+      }
+      .eyebrow:before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 18px var(--teal); }
+      h1, p { margin-top: 0; word-break: keep-all; }
+      h1 { font-size: 32px; line-height: 1.12; margin-bottom: 10px; font-weight: 950; }
+      p { color: var(--muted); font-size: 15px; line-height: 1.65; }
+      .section { position: relative; padding: 24px 20px; background: var(--surface); }
+      .section:before {
+        content: "";
+        position: absolute; left: 0; right: 0; top: -80px; height: 80px;
+        background: linear-gradient(to bottom, rgba(8, 16, 15, 0), var(--surface));
+      }
+      form { display: grid; gap: 14px; }
+      .field { display: grid; gap: 8px; }
+      label { font-size: 13px; font-weight: 900; }
+      input, select {
+        width: 100%; min-height: 52px;
+        border: 1px solid var(--line); border-radius: 8px;
+        background: rgba(255, 255, 255, .055); color: var(--ink);
+        padding: 0 14px; font: inherit;
+      }
+      .button {
+        min-height: 52px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        text-decoration: none; font-weight: 950; width: 100%;
+        border: 1px solid rgba(48, 240, 223, .7);
+        background: linear-gradient(135deg, var(--teal), var(--red));
+        color: #050707;
+      }
+      .error { font-size: 13px; color: #ff9c8b; min-height: 0; }
+      [hidden] { display: none !important; }
+      .time-unknown {
+        min-height: 52px; display: inline-flex; align-items: center; gap: 8px;
+        padding: 0 12px; border: 1px solid rgba(255, 255, 255, .16); border-radius: 8px;
+        background: rgba(255, 255, 255, .05); color: var(--muted); font-size: 13px; font-weight: 800; white-space: nowrap;
+      }
+      .radio-panel {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, .055);
+        color: var(--ink);
+      }
+      .radio-panel small { color: var(--muted); font-size: 12px; font-weight: 600; }
+      body.umsh-has-chrome .app { overflow: clip; padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .quit-saved-profile {
+        display: grid; gap: 6px;
+        border: 1px solid rgba(226, 183, 106, 0.45); border-radius: 10px;
+        background: rgba(226, 183, 106, 0.08); padding: 14px; margin-bottom: 4px;
+      }
+      .quit-saved-profile b { color: #e2b76a; font-size: 14px; }
+      .quit-saved-profile span { color: rgba(255, 247, 232, 0.74); font-size: 13px; line-height: 1.55; }
+      .quit-saved-profile button {
+        justify-self: start; margin-top: 4px; min-height: 38px;
+        border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06); color: inherit;
+        padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer;
+      }
+    </style>
+    <link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
+    <link rel="stylesheet" href="/css/umsh-chrome.css">
+  </head>
+  <body class="umsh-fields">
+    <main class="app" data-umsh-chrome="" data-service="Should I quit?" data-price="14,900 KRW" data-active="home" id="step-2-saju-input">
+      <header class="appbar topbar">
+        <a class="brand" href="/"><strong>Fortune Shop</strong><span>Resignation reading</span></a>
+        <span class="chip">Input</span>
+      </header>
+      <section class="hero">
+        <img src="../assets/quit/02-input.png" alt="A Four Pillars strategist checking basic information for resignation analysis">
+        <div class="copy">
+          <span class="eyebrow">Resignation patterns</span>
+          <h1>Start by distinguishing whether this is a time to consider leaving.</h1>
+          <p>If your chart is saved, I won’t ask for your birth date again. Just choose why you feel stuck now. I’ll distinguish impulse from resolve.</p>
+        </div>
+      </section>
+      <section class="section">
+        <form id="quitInputForm" action="../04-step-4-report/index.html#step-4-report" method="get">
+          <div id="profileFields" aria-label="Saju profile">
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" autocomplete="name" placeholder="Example: Riwon" maxlength="20">
+            </div>
+            <div class="field">
+              <label for="birth">Birth date</label>
+              <input id="birth" name="birth" type="date">
+            </div>
+            <div class="field">
+              <span>Birth hour</span>
+              <div class="field-row">
+                <input id="time" name="time" type="time">
+                <label class="time-unknown" for="birthTimeUnknown">
+                  <input id="birthTimeUnknown" name="birthTimeUnknown" type="checkbox" value="1">Unknown
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <span>Gender</span>
+              <div class="radio-row" role="radiogroup" aria-label="Gender">
+                <label class="radio-panel">
+                  <input type="radio" name="gender" value="female">
+                  <span class="label">Female</span>
+                </label>
+                <label class="radio-panel">
+                  <input type="radio" name="gender" value="male">
+                  <span class="label">Male</span>
+                </label>
+              </div>
+            </div>
+            <input id="calendar" name="calendar" type="hidden" value="solar">
+          </div>
+          <div class="field">
+            <span>Why you want to leave now</span>
+            <div class="radio-row" role="radiogroup" aria-label="Reasons for considering leaving">
+              <label class="radio-panel">
+                <input type="radio" name="reason" value="사람" checked>
+                <span class="label">People</span>
+                <small>Relationships, team, and boss</small>
+              </label>
+              <label class="radio-panel">
+                <input type="radio" name="reason" value="업무">
+                <span class="label">Work</span>
+                <small>The work itself and intensity</small>
+              </label>
+              <label class="radio-panel">
+                <input type="radio" name="reason" value="보상">
+                <span class="label">Compensation</span>
+                <small>Money and recognition</small>
+              </label>
+              <label class="radio-panel">
+                <input type="radio" name="reason" value="건강">
+                <span class="label">Health</span>
+                <small>Body · recovery</small>
+              </label>
+              <label class="radio-panel">
+                <input type="radio" name="reason" value="비전">
+                <span class="label">Vision</span>
+                <small>The next road</small>
+              </label>
+              <label class="radio-panel">
+                <input type="radio" name="reason" value="복합">
+                <span class="label">Mixed</span>
+                <small>Several reasons overlap</small>
+              </label>
+            </div>
+          </div>
+          <p class="error" id="quit-input-error" role="alert"></p>
+          <button class="button" type="submit">See whether you can leave</button>
+        </form>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-ymd.js?v=20260916-ymd3"></script>
+    <script src="/js/quit-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

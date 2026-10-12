@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>なぜお金が貯まらない？｜運命商会の消費傾向</title>
+    <meta
+      name="description"
+      content="財星と比劫の流れで、収入の方法・漏れるパターン・貯蓄の仕組みを分ける消費傾向の鑑定。"
+    />
+    <meta name="application-name" content="運命商会" />
+    <meta property="og:title" content="運命商会 - 運命を売ります。" />
+    <meta
+      property="og:description"
+      content="入るお金と出ていくお金を分けて見る、消費傾向の四柱推命の読み。"
+    />
+    <meta property="og:url" content="https://money.umsh.kr/save" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101411;
+        --bg-soft: #17201b;
+        --ink: #fff8ed;
+        --muted: rgba(255, 248, 237, 0.72);
+        --dim: rgba(255, 248, 237, 0.52);
+        --line: rgba(220, 184, 104, 0.24);
+        --gold: #d9a845;
+        --gold-soft: #f5dc9b;
+        --green: #66b889;
+        --green-deep: #214c3a;
+        --coral: #d7704c;
+        --blue: #6da8b5;
+        --panel: rgba(255, 248, 237, 0.07);
+        --paper: #fff4df;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+        --font-ui: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100svh;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(102, 184, 137, 0.22), transparent 18rem),
+          radial-gradient(circle at 86% 16%, rgba(217, 168, 69, 0.16), transparent 20rem),
+          linear-gradient(180deg, #070a08 0%, var(--bg) 42%, #14110e 100%);
+        color: var(--ink);
+        font-family: var(--font-ui);
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .app {
+        position: relative;
+        width: min(100%, 440px);
+        min-height: 100svh;
+        margin: 0 auto;
+        overflow: clip;
+        background:
+          linear-gradient(180deg, rgba(16, 20, 17, 0.88), rgba(16, 20, 17, 0.98)),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(12, 17, 14, 0.9);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.1;
+      }
+
+      .brand span {
+        color: var(--gold-soft);
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+      }
+
+      .scene-count {
+        min-width: 44px;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .progress {
+        position: absolute;
+        inset: auto 0 -1px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .progress span {
+        display: block;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--green), var(--gold), var(--coral));
+      }
+
+      main {
+        padding-bottom: 104px;
+      }
+
+      .story-scene {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+        min-height: auto;
+        padding: 16px 18px 22px;
+        border-bottom: 1px solid rgba(220, 184, 104, 0.14);
+      }
+
+      .story-scene:first-child {
+        min-height: auto;
+        padding-top: 14px;
+      }
+
+      .visual {
+        position: relative;
+        width: min(76vw, 300px);
+        max-width: 100%;
+        aspect-ratio: 4 / 5;
+        justify-self: center;
+        overflow: hidden;
+        border: 1px solid rgba(217, 168, 69, 0.28);
+        border-radius: 8px;
+        background: var(--paper);
+        box-shadow: 0 22px 50px rgba(0, 0, 0, 0.3);
+      }
+
+      .visual.wide {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+      }
+
+      .visual img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 28%;
+      }
+
+      .copy {
+        display: grid;
+        gap: 9px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 7px;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .kicker::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 18px rgba(102, 184, 137, 0.72);
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-family: var(--font-title);
+        font-weight: 900;
+        line-height: 1.18;
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        font-size: clamp(34px, 12vw, 48px);
+      }
+
+      h2 {
+        font-size: clamp(28px, 8.6vw, 38px);
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.66;
+        word-break: keep-all;
+      }
+
+      .accent {
+        color: var(--gold-soft);
+      }
+
+      .hot {
+        color: #ffad86;
+      }
+
+      .pill-row,
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .pill,
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.08);
+        color: rgba(255, 248, 237, 0.86);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.2;
+      }
+
+      .pill {
+        padding: 8px 11px;
+      }
+
+      .chip {
+        padding: 7px 9px;
+      }
+
+      .lane-grid,
+      .signal-grid,
+      .group-grid,
+      .promise-grid {
+        display: grid;
+        gap: 9px;
+      }
+
+      .lane-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .lane,
+      .signal,
+      .group-card,
+      .promise {
+        border: 1px solid rgba(220, 184, 104, 0.2);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 248, 237, 0.085), rgba(255, 248, 237, 0.045)),
+          var(--panel);
+      }
+
+      .lane {
+        min-height: 96px;
+        padding: 12px 10px;
+      }
+
+      .lane strong,
+      .signal strong,
+      .promise strong {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .lane span,
+      .signal span,
+      .promise span {
+        display: block;
+        margin-top: 7px;
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .signal {
+        min-height: 80px;
+        padding: 13px;
+      }
+
+      .signal-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .group-card {
+        display: grid;
+        gap: 9px;
+        padding: 13px;
+      }
+
+      .group-card header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .group-card h3 {
+        margin: 0;
+        color: var(--ink);
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.32;
+        letter-spacing: 0;
+      }
+
+      .group-card small {
+        flex: 0 0 auto;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .group-card p {
+        font-size: 13px;
+        line-height: 1.58;
+      }
+
+      .group-card .chip-row {
+        gap: 6px;
+      }
+
+      .group-card .chip {
+        min-height: 28px;
+        padding: 6px 8px;
+        font-size: 11px;
+        color: rgba(255, 248, 237, 0.78);
+      }
+
+      .promise {
+        padding: 14px;
+      }
+
+      .notice {
+        padding: 13px 14px;
+        border-left: 3px solid var(--green);
+        border-radius: 8px;
+        background: rgba(102, 184, 137, 0.12);
+        color: rgba(255, 248, 237, 0.78);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.58;
+        word-break: keep-all;
+      }
+
+      .cta-dock {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 30;
+        display: grid;
+        justify-items: center;
+        padding: 14px 14px max(14px, env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(16, 20, 17, 0), rgba(16, 20, 17, 0.98) 32%);
+        pointer-events: none;
+      }
+
+      .cta-inner {
+        display: grid;
+        width: min(100%, 412px);
+        gap: 8px;
+        pointer-events: auto;
+      }
+
+      .primary-cta {
+        display: flex;
+        min-height: 54px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid rgba(255, 244, 223, 0.22);
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6ed29b, #d9a845 62%, #df7350);
+        color: #12110d;
+        font-size: 15px;
+        font-weight: 950;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+      }
+
+      .primary-cta::after {
+        content: "›";
+        font-size: 24px;
+        line-height: 0.8;
+      }
+
+      .dock-note {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      @media (min-width: 760px) {
+        .app {
+          border-right: 1px solid rgba(220, 184, 104, 0.18);
+          border-left: 1px solid rgba(220, 184, 104, 0.18);
+        }
+      }
+
+      @media (max-width: 360px) {
+        .story-scene {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+
+        .lane-grid,
+        .signal-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .visual {
+          width: min(76vw, 260px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own docks.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .submit-dock,
+      body.umsh-has-chrome .cta-dock,
+      body.umsh-has-chrome nav.bottom-nav[aria-label="상세 리포트 이동"] { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .save-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(112, 194, 146, 0.45); border-radius: 10px; background: rgba(112, 194, 146, 0.08); padding: 14px; margin-bottom: 14px; }
+      .save-saved-profile b { color: #70c292; font-size: 14px; }
+      .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
+      .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <div class="app" data-umsh-chrome data-service="消費の傾向" data-price="9,900 KRW" data-active="home">
+      <header class="appbar topbar" aria-label="サービス情報">
+        <a class="brand" href="#intro" aria-label="運命商店「なぜお金が貯まらない？」">
+          <strong>自分はなぜお金がたまらない？</strong>
+          <span>CONSUMPTION SAJU</span>
+        </a>
+        <div class="scene-count" aria-live="polite">1 / 6</div>
+        <div class="progress" aria-hidden="true"><span></span></div>
+      </header>
+
+      <main id="intro">
+        <section class="story-scene" aria-labelledby="scene-1-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-hook"
+              src="../assets/save/01-scene-01-hook.webp" data-source-file="assets/generated/save/01-scene-01-hook.webp"
+              alt="携帯と散らばる硬貨の前で困っている、猫耳のスーツ姿のキャラクター"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">消費の傾向の命式解説</span>
+            <h1 id="scene-1-title">給料日は来たけれど、<br />なぜ残ったお金がない？</h1>
+            <p>
+              大きな買い物の記憶がないのに残高がいつも同じなら、問題は意志
+              ではなく <span class="accent">繰り返し開く支出の場面</span>にあるのかもしれない。
+              入ってくるお金よりも、先に消えていくお金を探してみよう。
+            </p>
+            <div class="pill-row" aria-label="中心の悩み">
+              <span class="pill">給料日のあとに残高が消える</span>
+              <span class="pill">少額決済の繰り返し</span>
+              <span class="pill">人の前で大きくなる支出</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-2-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-empathy"
+              src="../assets/save/01-scene-02-empathy.webp" data-source-file="assets/generated/save/01-scene-02-empathy.webp"
+              alt="空の財布と領収書の前で戸惑う猫耳スーツのキャラクター"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">口座で繰り返す場面</span>
+            <h2 id="scene-2-title">節約できた日より、財布が開いた瞬間から見よう</h2>
+            <p>
+              計画がないからだけではないかもしれない。特定の瞬間に同じ形でお金が出ていく。下の四場面から、財布がいちばん開きやすい瞬間を絞ろう。
+            </p>
+            <div class="signal-grid" aria-label="よく見える消費の流れ">
+              <div class="signal"><strong>人の前で</strong><span>断りにくく、自分が多く払う瞬間</span></div>
+              <div class="signal"><strong>気分が揺れるとき</strong><span>ご褒美が欲しくて支払いが早まる瞬間</span></div>
+              <div class="signal"><strong>始める前に</strong><span>勉強・機材・準備費から大きくなる瞬間</span></div>
+              <div class="signal"><strong>給料が入った日</strong><span>安心して確認を止める瞬間</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-3-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-separate-flow"
+              src="../assets/save/01-scene-03-separate-flow.webp" data-source-file="assets/generated/save/01-scene-03-separate-flow.webp"
+              alt="猫耳のスーツ姿が、硬貨、領収書、白紙の契約書を三つに整理する"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">お金が消えた理由を探す方法</span>
+            <h2 id="scene-3-title">混ざったお金を三つの欄に分けよう</h2>
+            <p>
+              給料・約束した精算・繰り返す決済を一つにすると、漏れる場所を見落としやすい。入力した状況と四柱推命を並べ、三つの枠から先に手をつけるところを探そう。
+            </p>
+            <div class="lane-grid" aria-label="お金の流れを三つに分ける">
+              <div class="lane"><strong>受け取るお金</strong><span>収入、入金、固定契約</span></div>
+              <div class="lane"><strong>払うお金</strong><span>精算、約束、繰り返しの支出</span></div>
+              <div class="lane"><strong>決める条件</strong><span>金額、期限、責任の範囲</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-4-title">
+          <div class="visual wide">
+            <img
+              data-asset-key="save-01-wealth-peer-balance"
+              src="../assets/save/01-scene-04-wealth-peer-balance.webp" data-source-file="assets/generated/save/01-scene-04-wealth-peer-balance.webp"
+              alt="コインの木と共有するお金の間で均衡を取る猫耳スーツのキャラクター"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">生まれた時に込められたお金の習慣</span>
+            <h2 id="scene-4-title">稼ぐ力だけを見ない。とどめる方法から見る</h2>
+            <p>
+              四柱では、お金を得る傾向と人とのあいだで分ける傾向を別に見ます。関係が挟まると予算が揺れるか、機会が増えると支出も大きくなるかを、生活の場面で拾います。
+            </p>
+            <div class="notice">
+              お金持ちになるという話からは始めないです。口座の繰り返す習慣と、お金の境界から見よう。
+            </div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-5-title">
+          <div class="visual wide">
+            <img
+              data-asset-key="save-01-index-preview"
+              src="../assets/save/01-scene-05-index-preview.webp" data-source-file="assets/generated/save/01-scene-05-index-preview.webp"
+              alt="八枚の象徴的なカードの前で、結果一覧を案内する、猫耳のスーツ姿のキャラクター"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">無料結果の次に続く質問</span>
+            <h2 id="scene-5-title">お金が漏れる理由を一言で片づけないで</h2>
+            <p>
+              お金が入る形から、関係の中で曖昧になる金額、貯蓄が止まる例外まで、八つの分野に分けて見る。無料の結果では、最も強い二つの分野から確認しよう。
+            </p>
+            <div class="group-grid" data-group-grid aria-label="鑑定の大分類一覧"></div>
+          </div>
+        </section>
+
+        <section class="story-scene" aria-labelledby="scene-6-title">
+          <div class="visual">
+            <img
+              data-asset-key="save-01-cta-start"
+              src="../assets/save/01-scene-06-cta-start.webp" data-source-file="assets/generated/save/01-scene-06-cta-start.webp"
+              alt="空の確認リストと硬貨の瓶を持ち、案内する猫耳のスーツ姿のキャラクター"
+            />
+          </div>
+          <div class="copy">
+            <span class="kicker">最初の二つの解釈は無料。</span>
+            <h2 id="scene-6-title">口座のどの穴から塞ごう？</h2>
+            <p>
+              生年月日時と、いちばん詰まるお金の問題を書いてみてください。保存した四柱と入力値から、繰り返す消費の場面と、今日整理する項目から取り出します。
+            </p>
+            <div class="promise-grid" aria-label="進める前に確認">
+              <div class="promise"><strong>自分のお金の入口</strong><span>収入が安定する方法と、揺れる瞬間</span></div>
+              <div class="promise"><strong>一番大きな漏れ</strong><span>関係・感情・準備費のうち、先に防ぐ点</span></div>
+              <div class="promise"><strong>今日片づける一か所</strong><span>受け取るお金・払うお金・繰り返す支払いの優先順位</span></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="cta-dock" aria-label="次の段階">
+        <div class="cta-inner">
+          <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input">
+            自分のお金の流れを無料で見る
+          </a>
+          <div class="dock-note">決済なしで、自分の入力に合わせた解釈を2つから見られます。</div>
+        </div>
+      </nav>
+    </div>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_key": "save",
+        "service_slug": "save",
+        "service_title": "自分はなぜお金がたまらない？",
+        "service_description": "財星と比劫の流れをもとに、収入・消費・貯蓄・人との精算を分けて見る、消費傾向の四柱推命サービス。",
+        "category": "消費傾向",
+        "subcategory": "貯蓄／お金管理",
+        "price_krw": 9900,
+        "service_url_hint": "money.umsh.kr/save",
+        "target_audience": "稼いでも口座にお金が残らないと感じる20~30代",
+        "target_question": "自分はなぜお金がたまらない？",
+        "analysis_basis": ["財星", "比肩・劫財", "十神の金銭的な質感", "日干の強弱", "五行", "大運・歳運・月運"],
+        "interpretation_index_source": "user_seed",
+        "report_version": "save-v1.0",
+        "copy_version": "mz-save-v1",
+        "representative_character": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+        "next_route": "../02-step-2-saju-input/index.html#step-2-saju-input"
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX">
+      {
+        "source": "user_seed",
+        "groups": [
+          {
+            "group_id": "income-flow",
+            "title": "お金が入る方式",
+            "summary": "お金の入口が給与型・機会型・生産型のどれかから分けます。",
+            "sections": [
+              { "section_id": "income-salary-stable", "title": "安定した給料のタイプ", "preview": "正財・正官型で、固定収入と契約には強いが、機会を広げるのは遅いことがある" },
+              { "section_id": "income-side-hustle", "title": "複数の仕事の機会を探す人", "preview": "偏財型。収入につながる道が多い一方、支出につながる道も広がる" },
+              { "section_id": "income-steady-maker", "title": "着実な生産タイプ", "preview": "食神型で、一発より習慣・コンテンツ・成果物でお金を作る" },
+              { "section_id": "income-idea-runner", "title": "アイデアが速すぎる人", "preview": "傷官型、企画は早いが締切前に新しい案を始めがち" },
+              { "section_id": "income-pressure-breaker", "title": "責任で突破するタイプ", "preview": "偏官型で、重圧の中で大きく動くが、負担も大きく残ることがあります" },
+              { "section_id": "income-learning-investor", "title": "学びに投資する人", "preview": "正印・偏印型で、勉強・資格・アイデアには強いが、実行の欄が空きやすい" },
+              { "section_id": "income-peer-share", "title": "一緒に稼ぎ使う型", "preview": "比肩・劫財型、協力・競争・分配の課題がお金の流れに影響" }
+            ]
+          },
+          {
+            "group_id": "money-leak",
+            "title": "お金が漏れるパターン",
+            "summary": "口座に残らない点を感情・関係・体裁・準備費に分けます。",
+            "sections": [
+              { "section_id": "leak-account-logout", "title": "口座がログアウトする型", "preview": "入るとすぐ支出、精算、約束に散る" },
+              { "section_id": "leak-flex-overheat", "title": "見栄消費の過熱型", "preview": "火の気・偏財／劫財の流れで、気分と速さから消費が増える" },
+              { "section_id": "leak-comparison", "title": "比較して使う型", "preview": "辛金・丁火系で、感情・好み・比較が支出につながる" },
+              { "section_id": "leak-face-payment", "title": "体面支払い型", "preview": "庚金・正官の系統。自尊心、役割、体面のために金が出る" },
+              { "section_id": "leak-learning-cost", "title": "学び費用の暴走型", "preview": "印星系。講義・機材・資格・準備費用が大きくなる" },
+              { "section_id": "leak-relationship-blur", "title": "関係での精算が曖昧なタイプ", "preview": "比肩・劫財系で、友人・恋人・同僚とのお金の境界が曖昧になります" }
+            ]
+          },
+          {
+            "group_id": "saving-blocker",
+            "title": "貯蓄ができない理由",
+            "summary": "お金が残らない理由を、意志より構造と例外ルールから探す。",
+            "sections": [
+              { "section_id": "saving-no-structure", "title": "貯める仕組みがないです", "preview": "残す額が数字で固定されていない" },
+              { "section_id": "saving-income-outgoing-mixed", "title": "受け取るお金と払うお金が未分離", "preview": "収入・支出・契約を一つに見ます" },
+              { "section_id": "saving-exception-budget", "title": "例外が多い予算", "preview": "可能な範囲より、今回だけがよく開く" },
+              { "section_id": "saving-plan-over-action", "title": "実行より計画過多", "preview": "アイデアは多いけれど、自動化・締切・習慣づくりが弱い" },
+              { "section_id": "saving-stability-illusion", "title": "安定の錯覚", "preview": "正財型でも安全に見えて確認を止めるとお金が漏れる" }
+            ]
+          },
+          {
+            "group_id": "saju-strength",
+            "title": "命式のバランスと管理方法",
+            "summary": "自分がお金の管理を押し進めるタイプか、支援と順番が必要なタイプかを見ます。",
+            "sections": [
+              { "section_id": "strength-strong", "title": "身強型のお金管理", "preview": "一人で全部しようとして、速さ・頑固さ・任せることの不足から、お金が漏れる仕組み" },
+              { "section_id": "strength-weak", "title": "身弱型のお金管理", "preview": "大きな盤面より支援・リズム・順番が先に必要な構造" },
+              { "section_id": "strength-balanced", "title": "バランス型のお金管理", "preview": "過剰な処方より、今偏っている一つの軸だけを掴む構造" }
+            ]
+          },
+          {
+            "group_id": "ohaeng-os",
+            "title": "五行に基づくお金管理OS",
+            "summary": "木・火・土・金・水の偏りを生活のお金管理の方法に置き換えます。",
+            "sections": [
+              { "section_id": "ohaeng-wood", "title": "木", "preview": "開始・拡張型。過剰なら広げすぎ、不足なら始まりが遅い" },
+              { "section_id": "ohaeng-fire", "title": "火", "preview": "表現・目立ちやすさのタイプ。多すぎると衝動的・過熱気味になり、少ないと宣伝・表現が弱くなる" },
+              { "section_id": "ohaeng-earth", "title": "土", "preview": "安定・整理型。過剰なら心配や停滞、不足なら中心と習慣が弱い" },
+              { "section_id": "ohaeng-metal", "title": "金", "preview": "基準・締切を重視するタイプ。強すぎると削りすぎ、弱すぎると締切や予算の線が曖昧になる。" },
+              { "section_id": "ohaeng-water", "title": "水", "preview": "流れ・休息型。過ぎると考えが長く、足りないと回復と整理の時間が不足します" }
+            ]
+          },
+          {
+            "group_id": "timing",
+            "title": "運のタイミング",
+            "summary": "今年・今月・今日のお金の問題は混ぜず順に見ます。",
+            "sections": [
+              { "section_id": "timing-daeun-start", "title": "大運の始まり", "preview": "慣れた稼ぎ方の場が揺れる仕切り直しの時期" },
+              { "section_id": "timing-daeun-middle", "title": "大運の中盤", "preview": "新しく広げるより、進行中のことを三つ以下に減らす期間" },
+              { "section_id": "timing-daeun-end", "title": "大運の終盤", "preview": "整理・引き渡し・回収・締めが重要な区間" },
+              { "section_id": "timing-year", "title": "歳運", "preview": "今年のお金のテーマ、大運と重ねて読む必要がある" },
+              { "section_id": "timing-month", "title": "月運", "preview": "今月受け取るお金、すること、約束の条件を整理する期間" },
+              { "section_id": "timing-today", "title": "今日の運", "preview": "収入・支出・契約のうち、今日は一つだけ先に見る区間" }
+            ]
+          },
+          {
+            "group_id": "relationship-contract",
+            "title": "関係・契約のお金の問題",
+            "summary": "人との間でお金が曖昧になる瞬間を、記録、断ること、共有する範囲で整理します。",
+            "sections": [
+              { "section_id": "relation-friend-lover-mix", "title": "友人・恋人とのお金の混同", "preview": "身近な人とお金の境界が曖昧になる問題" },
+              { "section_id": "relation-shared-cost", "title": "共同費用・割り勘の精算問題", "preview": "一緒に使ったお金の基準とタイミングがずれる問題" },
+              { "section_id": "relation-unwritten-condition", "title": "金額・期限・責任の範囲の記録がない", "preview": "うまく流した条件が、あとで負担として残る問題" },
+              { "section_id": "relation-no-refusal-line", "title": "断る文がない", "preview": "言葉を決めていないため支払いがずれる問題" },
+              { "section_id": "relation-short-share", "title": "信頼できる人にだけ短く共有するべき問題", "preview": "お金の悩みを広げすぎず、安全に確認する問題" }
+            ]
+          },
+          {
+            "group_id": "expanded-reading",
+            "title": "拡張の読み解き",
+            "summary": "必要な時だけ紫微斗数と空間のヒントを補助に加えます。",
+            "sections": [
+              { "section_id": "expand-ziwei-wealth", "title": "紫微斗数の財帛宮", "preview": "収入の形・消費習慣・お金の感覚" },
+              { "section_id": "expand-ziwei-career", "title": "紫微斗数の官禄宮", "preview": "職業・役割・責任と収入のつながり" },
+              { "section_id": "expand-ziwei-property", "title": "紫微斗数の田宅宮", "preview": "蓄えた資産、住まい、家族の資産" },
+              { "section_id": "expand-fengshui", "title": "風水・空間の補助", "preview": "玄関・机・動線・事業所の流れを、お金の保証ではなく生活を整えるヒントとして使う" }
+            ]
+          }
+        ]
+      }
+    </script>
+
+
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {
+          "asset_key": "save-01-hook",
+          "filename": "assets/generated/save/01-scene-01-hook.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["緑の髪", "猫耳", "スーツ", "水彩の質感", "照れた表情"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "通帳ログアウトの導入。携帯の銀行画面を見る緑の猫耳スーツのキャラクターと散る硬貨。テキストなし。",
+          "alt": "携帯と散らばる硬貨の前で困っている、猫耳のスーツ姿のキャラクター",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-hook\"]"
+        },
+        {
+          "asset_key": "save-01-empathy",
+          "filename": "assets/generated/save/01-scene-02-empathy.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["緑の髪", "猫耳", "スーツ", "水彩の質感", "照れた表情"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "空の財布、レシート、買い物袋の前で慌てる緑の猫耳スーツのキャラクター。テキストなし。",
+          "alt": "空の財布と領収書の前で戸惑う猫耳スーツのキャラクター",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-empathy\"]"
+        },
+        {
+          "asset_key": "save-01-separate-flow",
+          "filename": "assets/generated/save/01-scene-03-separate-flow.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["緑の髪", "猫耳", "スーツ", "水彩の質感", "落ち着いた表情"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "コイン、レシート、空の契約書を三つの欄に整理する、緑の猫耳スーツのキャラクター。テキストなし。",
+          "alt": "猫耳のスーツ姿が、硬貨、領収書、白紙の契約書を三つに整理する",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-separate-flow\"]"
+        },
+        {
+          "asset_key": "save-01-wealth-peer-balance",
+          "filename": "assets/generated/save/01-scene-04-wealth-peer-balance.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["緑の髪", "猫耳", "スーツ", "水彩の質感", "慎重な表情"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "コインの木と、使っているお金のあいだで秤を持つ、緑の猫耳スーツのキャラクター。テキストなし。",
+          "alt": "コインの木と共有するお金の間で均衡を取る猫耳スーツのキャラクター",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-wealth-peer-balance\"]"
+        },
+        {
+          "asset_key": "save-01-index-preview",
+          "filename": "assets/generated/save/01-scene-05-index-preview.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["緑の髪", "猫耳", "スーツ", "水彩の質感", "案内する表情"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "八枚の象徴カードの前で結果一覧を案内する緑の猫耳スーツのキャラクター、文字なし。",
+          "alt": "八枚の象徴的なカードの前で、結果一覧を案内する、猫耳のスーツ姿のキャラクター",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-index-preview\"]"
+        },
+        {
+          "asset_key": "save-01-cta-start",
+          "filename": "assets/generated/save/01-scene-06-cta-start.webp",
+          "role": "scene",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["緑の髪", "猫耳", "スーツ", "水彩の質感", "柔らかな微笑み"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "緑色の猫耳のスーツ姿のキャラクターが、空のチェックリストとコインの瓶を持って次の段階を案内する。文字なし。",
+          "alt": "空の確認リストと硬貨の瓶を持ち、案内する猫耳のスーツ姿のキャラクター",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-01-cta-start\"]"
+        }
+      ]
+    </script>
+
+    <script>
+      const parseJsonBlock = (id) => JSON.parse(document.getElementById(id).textContent);
+      const indexData = parseJsonBlock("INTERPRETATION_INDEX");
+      const groupGrid = document.querySelector("[data-group-grid]");
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        })[char]);
+      }
+
+      groupGrid.innerHTML = indexData.groups.map((group, index) => {
+        const sectionCount = Array.isArray(group.sections) ? group.sections.length : 0;
+        return `
+          \x3carticle class="group-card" data-group-id="${escapeHtml(group.group_id)}">
+            \x3cheader>
+              \x3ch3>${escapeHtml(group.title)}\x3c/h3>
+              \x3csmall>${String(index + 1).padStart(2, "0")}\x3c/small>
+            \x3c/header>
+            \x3cp>${escapeHtml(group.summary)}\x3c/p>
+            \x3cdiv class="chip-row">\x3cspan class="chip">${sectionCount}の詳しい解釈\x3c/span>\x3c/div>
+          \x3c/article>
+        `;
+      }).join("");
+
+      const progressBar = document.querySelector(".progress span");
+      const count = document.querySelector(".scene-count");
+      const scenes = [...document.querySelectorAll(".story-scene")];
+
+      function syncProgress() {
+        const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const progress = Math.min(100, Math.max(0, (window.scrollY / max) * 100));
+        progressBar.style.width = `${progress}%`;
+
+        const middle = window.scrollY + window.innerHeight * 0.42;
+        const activeIndex = scenes.reduce((closest, scene, index) => {
+          const distance = Math.abs(scene.offsetTop - middle);
+          return distance < closest.distance ? { index, distance } : closest;
+        }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
+        count.textContent = `${activeIndex + 1} / ${scenes.length}`;
+      }
+
+      syncProgress();
+      window.addEventListener("scroll", syncProgress, { passive: true });
+      window.addEventListener("resize", syncProgress);
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/save-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>
