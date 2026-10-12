@@ -672,7 +672,7 @@
     <details class="admin-nav-group" data-nav-group="marketing" open>
       <summary class="admin-nav-label">마케팅</summary>
       <div class="admin-nav-links">
-        <a href="/ops/constellation-7f3c/messages" data-admin-route="messages">메시지</a>
+        <a href="/ops/constellation-7f3c/messages" data-admin-route="messages">푸시</a>
         <a href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업</a>
         <a href="/ops/constellation-7f3c/coupons" data-admin-route="coupons">쿠폰</a>
       </div>
@@ -951,7 +951,7 @@
           { path: '/quality', label: '품질 점검', load: function (body) { loadQualityEvaluations(body); } },
           { path: '/release', label: '배포 정보', load: function (body) { loadReleaseInfo(body); } },
         ] },
-        { path: '/messages', key: 'messages', title: '메시지', detail: '보낸 메시지의 결과를 확인하고, 새 메시지를 보냅니다.', load: function (body) { loadMessagesManager(body); } },
+        { path: '/messages', key: 'messages', title: '푸시', detail: '앱 푸시와 카카오 채널 메시지를 보내고 결과를 확인합니다.', load: function (body) { loadMessagesManager(body); } },
         { path: '/popup', key: 'popup', title: '팝업', detail: '첫 페이지 팝업의 이미지와 노출 기간을 관리합니다.', load: function (body) { loadPopupManager(body); } },
         { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '이용권·질문권·할인 쿠폰을 발급하고 사용 현황을 봅니다.', load: function (body) { loadCouponManager(body); } },
         { path: '/admins', key: 'admins', title: '관리자', detail: '관리자 계정을 추가하고 비밀번호·사용 여부를 관리합니다.', load: function (body) { loadAdminAccounts(body); } },
@@ -1757,7 +1757,7 @@
           var actions = document.createElement('div'); actions.className = 'admin-actions'; actions.style.marginTop = '16px';
           var edit = document.createElement('button'); edit.type = 'button'; edit.className = 'admin-button'; edit.setAttribute('data-variant', 'quiet'); edit.textContent = '프로필 수정·계정 정지';
           edit.addEventListener('click', function () { dialog.close(); renderMemberDetail(document.body, member.userId); });
-          var push = document.createElement('a'); push.className = 'admin-button'; push.setAttribute('data-variant', 'quiet'); push.href = ADMIN_BASE + '/messages'; push.textContent = '메시지 보내기';
+          var push = document.createElement('a'); push.className = 'admin-button'; push.setAttribute('data-variant', 'quiet'); push.href = ADMIN_BASE + '/messages'; push.textContent = '푸시 보내기';
           push.title = '메시지 작성에서 "특정 회원"을 골라 이 회원 이름으로 찾으면 됩니다.';
           var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'admin-button'; remove.setAttribute('data-variant', 'quiet'); remove.setAttribute('data-tone', 'danger-text'); remove.textContent = '회원 삭제';
           remove.addEventListener('click', function () { deleteMemberFlow({ id: member.userId, name: member.name, email: member.email, purchaseCount: purchases ? purchases.purchaseCount : null }, function () { dialog.close(); renderWorkspace(currentAdminRoute()); }); });
@@ -2039,7 +2039,7 @@
             card.append(label, value, compare); kGrid.appendChild(card);
           });
           kpiSection.replaceChildren(kHead, kGrid);
-          var names = { members: '회원', payments: '결제', refunds: '환불', support: '문의', reports: '리포트', messages: '메시지' };
+          var names = { members: '회원', payments: '결제', refunds: '환불', support: '문의', reports: '리포트', messages: '푸시' };
           foot.textContent = '기준 ' + memberWhen(data.asOf) + (data.errors && data.errors.length ? ' · 불러오지 못한 부분: ' + data.errors.map(function (key) { return names[key] || key; }).join(', ') : '');
         } catch (error) { todoSection.replaceChildren(memberEmpty(error.message)); }
         if (refresh) refresh.disabled = false;
@@ -2673,60 +2673,90 @@
 
       async function loadMessagesManager(body) {
         body.replaceChildren();
-        var state = { view: 'history', status: 'all', query: '', items: [], page: 0, kakao: { items: [], settings: {}, error: '' } };
+        // 2026-10-12: 발송 내역은 푸시와 카카오를 한 표에 섞어 보여 주고, 채널 필터로 거른다(사용자 요청).
+        var state = { view: 'history', channel: 'all', status: 'all', query: '', items: [], page: 0, pushError: '', kakao: { items: [], settings: {}, error: '' } };
         var PAGE = 20;
 
         var toolbar = document.createElement('div'); toolbar.className = 'admin-toolbar';
         var views = document.createElement('nav'); views.className = 'admin-tabs admin-tabs-inline'; views.setAttribute('aria-label', '메시지 보기');
-        [['history', '발송 내역'], ['scheduled', '예약'], ['kakao', '카카오 채널']].forEach(function (entry) {
+        [['history', '발송 내역'], ['scheduled', '예약']].forEach(function (entry) {
           var link = document.createElement('a'); link.href = '#'; link.dataset.view = entry[0]; link.innerHTML = entry[1] + ' <em data-count></em>';
           link.addEventListener('click', function (event) { event.preventDefault(); state.view = entry[0]; state.page = 0; render(); });
           views.appendChild(link);
         });
         var create = document.createElement('button'); create.type = 'button'; create.className = 'admin-button'; create.textContent = '＋ 새 메시지';
-        create.addEventListener('click', function () { if (state.view === 'kakao') openKakaoComposer(); else openComposer(); });
-        var kakaoSettings = document.createElement('button'); kakaoSettings.type = 'button'; kakaoSettings.className = 'admin-button'; kakaoSettings.setAttribute('data-variant', 'quiet'); kakaoSettings.textContent = '채널 설정';
+        create.addEventListener('click', function () { if (state.view === 'history' && state.channel === 'kakao') openKakaoComposer(); else openComposer(); });
+        var kakaoSettings = document.createElement('button'); kakaoSettings.type = 'button'; kakaoSettings.className = 'admin-button'; kakaoSettings.setAttribute('data-variant', 'quiet'); kakaoSettings.textContent = '카카오 채널 설정';
         kakaoSettings.addEventListener('click', function () { openKakaoSettings(); });
         toolbar.append(views, kakaoSettings, create);
 
         var filters = document.createElement('div'); filters.className = 'admin-filterbar';
+        var channelSeg = document.createElement('div'); channelSeg.className = 'admin-seg'; channelSeg.setAttribute('role', 'group'); channelSeg.setAttribute('aria-label', '채널');
+        [['all', '전체 채널'], ['push', '푸시'], ['kakao', '카카오']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.channel = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { state.channel = entry[0]; state.page = 0; if (!statusVisible(state.status)) state.status = 'all'; render(); });
+          channelSeg.appendChild(button);
+        });
+        // 상태 버튼. only 는 그 상태가 생기는 채널(푸시만 실패·취소, 카카오만 발송 확인 전·작성됨).
+        var STATUS_FILTERS = [['all', '전체'], ['done', '완료'], ['partial', '일부 실패', 'push'], ['failed', '실패', 'push'], ['opened', '발송 확인 전', 'kakao'], ['draft', '작성됨', 'kakao'], ['cancelled', '취소', 'push']];
+        function statusVisible(key) { var found = STATUS_FILTERS.find(function (entry) { return entry[0] === key; }); return !found || !found[2] || state.channel === 'all' || state.channel === found[2]; }
         var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '상태');
-        [['all', '전체'], ['done', '완료'], ['partial', '일부 실패'], ['failed', '실패'], ['cancelled', '취소']].forEach(function (entry) {
+        STATUS_FILTERS.forEach(function (entry) {
           var button = document.createElement('button'); button.type = 'button'; button.dataset.status = entry[0]; button.textContent = entry[1];
           button.addEventListener('click', function () { state.status = entry[0]; state.page = 0; render(); });
           seg.appendChild(button);
         });
         var search = document.createElement('input'); search.type = 'search'; search.placeholder = '메시지 제목 검색'; search.className = 'admin-filter-search'; search.setAttribute('aria-label', '메시지 제목 검색');
         search.addEventListener('input', function () { state.query = search.value.trim(); state.page = 0; render(); });
-        filters.append(search, seg);
+        filters.append(search, channelSeg, seg);
 
         var card = document.createElement('section'); card.className = 'admin-section';
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
         card.appendChild(status);
         body.append(toolbar, filters, card);
 
-        function matches(item) {
-          if (state.view === 'scheduled') return item.status === 'scheduled' || item.status === 'sending';
-          if (item.status === 'scheduled' || item.status === 'draft') return false;
-          if (state.query && String(item.title).indexOf(state.query) < 0) return false;
-          var label = pushStatus(item).label;
-          if (state.status === 'done') return label === '완료';
-          if (state.status === 'partial') return label === '일부 실패';
-          if (state.status === 'failed') return label === '실패';
-          if (state.status === 'cancelled') return label === '취소';
-          return true;
+        /** 카카오 상태를 발송 내역 상태 이름에 맞춘다. 파트너센터에서 보낸 뒤 완료 표시한 건은 "완료". */
+        function kakaoRowStatus(item) {
+          if (item.status === 'sent') return { key: 'done', label: '완료', tone: 'ok' };
+          if (item.status === 'opened') return { key: 'opened', label: '발송 확인 전', tone: 'warn' };
+          return { key: 'draft', label: '작성됨', tone: '' };
+        }
+        function pushRowStatus(item) {
+          var info = pushStatus(item);
+          var key = { '완료': 'done', '일부 실패': 'partial', '실패': 'failed', '취소': 'cancelled' }[info.label] || 'other';
+          return { key: key, label: info.label, tone: info.tone };
+        }
+        function historyRows() {
+          var rows = [];
+          if (state.channel !== 'kakao') state.items.forEach(function (item) {
+            if (item.status === 'scheduled' || item.status === 'draft') return;
+            rows.push({ channel: 'push', item: item, when: item.sentAt || item.startedAt || item.scheduledAt || item.createdAt, status: pushRowStatus(item) });
+          });
+          if (state.channel !== 'push') state.kakao.items.forEach(function (item) {
+            rows.push({ channel: 'kakao', item: item, when: item.sentAt || item.openedAt || item.createdAt, status: kakaoRowStatus(item) });
+          });
+          return rows.filter(function (row) {
+            if (state.query && String(row.item.title).indexOf(state.query) < 0) return false;
+            return state.status === 'all' || row.status.key === state.status;
+          }).sort(function (a, b) { return String(b.when || '').localeCompare(String(a.when || '')); });
         }
         function render() {
+          var historyCount = state.kakao.items.length + state.items.filter(function (item) { return item.status !== 'scheduled' && item.status !== 'draft'; }).length;
           views.querySelectorAll('a').forEach(function (link) {
             if (link.dataset.view === state.view) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
-            var count = link.dataset.view === 'kakao' ? state.kakao.items.length : state.items.filter(function (item) { return link.dataset.view === 'scheduled' ? (item.status === 'scheduled' || item.status === 'sending') : (item.status !== 'scheduled' && item.status !== 'draft'); }).length;
+            var count = link.dataset.view === 'scheduled' ? state.items.filter(function (item) { return item.status === 'scheduled' || item.status === 'sending'; }).length : historyCount;
             link.querySelector('[data-count]').textContent = String(count);
           });
           filters.hidden = state.view !== 'history';
-          kakaoSettings.hidden = state.view !== 'kakao';
-          if (state.view === 'kakao') { renderKakao(); return; }
-          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false'); });
-          var list = state.items.filter(matches);
+          kakaoSettings.hidden = !(state.view === 'history' && state.channel === 'kakao');
+          channelSeg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.channel === state.channel ? 'true' : 'false'); });
+          seg.querySelectorAll('button').forEach(function (button) { button.hidden = !statusVisible(button.dataset.status); button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false'); });
+          var list = state.view === 'scheduled'
+            ? state.items.filter(function (item) { return item.status === 'scheduled' || item.status === 'sending'; }).map(function (item) { return { channel: 'push', item: item, status: pushRowStatus(item) }; })
+            : historyRows();
+          var notices = [];
+          if (state.pushError && (state.view === 'scheduled' || state.channel !== 'kakao')) notices.push('푸시 발송 내역을 불러오지 못했습니다. ' + state.pushError);
+          if (state.kakao.error && state.view === 'history' && state.channel !== 'push') notices.push('카카오 채널 메시지를 불러오지 못했습니다. ' + state.kakao.error);
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
           var head = state.view === 'scheduled'
             ? ['예약 시각', '채널', '메시지', '대상', '상태', '작성자']
@@ -2737,30 +2767,39 @@
           var pageItems = list.slice(state.page * PAGE, state.page * PAGE + PAGE);
           if (!pageItems.length) {
             var empty = document.createElement('tr'); var cell = document.createElement('td'); cell.colSpan = head.length; cell.className = 'admin-empty';
-            cell.textContent = state.view === 'scheduled' ? '예약된 메시지가 없습니다.' : (state.items.length ? '조건에 맞는 메시지가 없습니다.' : '아직 보낸 메시지가 없습니다. ＋ 새 메시지로 첫 메시지를 보내 보세요.');
+            cell.textContent = state.view === 'scheduled' ? '예약된 메시지가 없습니다.' : (historyCount ? '조건에 맞는 메시지가 없습니다.' : '아직 보낸 메시지가 없습니다. ＋ 새 메시지로 첫 메시지를 보내 보세요.');
             empty.appendChild(cell); rows.appendChild(empty);
           }
-          pageItems.forEach(function (item) {
+          pageItems.forEach(function (entry) {
+            var item = entry.item; var kakao = entry.channel === 'kakao';
             var row = document.createElement('tr'); row.tabIndex = 0;
-            var done = item.status === 'sent' || item.status === 'failed' || item.status === 'sending';
+            var done = !kakao && (item.status === 'sent' || item.status === 'failed' || item.status === 'sending');
             function td(value, className) { var cell = document.createElement('td'); if (className) cell.className = className; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); return cell; }
-            td(fmtWhen(state.view === 'scheduled' ? item.scheduledAt : (item.sentAt || item.startedAt || item.scheduledAt || item.createdAt)));
-            var channel = document.createElement('span'); channel.className = 'admin-channel'; channel.textContent = '푸시'; td(channel);
+            td(fmtWhen(state.view === 'scheduled' ? item.scheduledAt : entry.when));
+            var channel = document.createElement('span'); channel.className = 'admin-channel'; channel.setAttribute('data-channel', entry.channel); channel.textContent = kakao ? '카카오' : '푸시'; td(channel);
             var message = document.createElement('div'); message.className = 'admin-msg-cell';
             var title = document.createElement('b'); title.textContent = item.title; var sub = document.createElement('span'); sub.textContent = String(item.body || '').split('\n')[0];
             message.append(title, sub); td(message);
-            td((item.isMarketing ? '[광고] ' : '') + (item.targetLabel || '—'));
+            if (kakao) td((item.isAd ? '[광고] ' : '') + '채널 친구');
+            else td((item.isMarketing ? '[광고] ' : '') + (item.targetLabel || '—'));
             if (state.view !== 'scheduled') {
-              td(done ? fmtNumber(item.totalCount) : '—', 'admin-num');
-              td(done ? fmtNumber(item.successCount) : '—', 'admin-num');
-              var fail = td(done ? fmtNumber(item.failureCount) : '—', 'admin-num'); if (done && item.failureCount) fail.classList.add('admin-bad');
-              td(done ? fmtNumber(item.clickCount) : '—', 'admin-num');
-              td(done && item.successCount ? (Math.round(item.clickCount / item.successCount * 1000) / 10) + '%' : '—', 'admin-num');
+              if (kakao) {
+                // 카카오는 파트너센터에서 보내서 우리 쪽에는 운영자가 옮겨 적은 발송 수만 있다.
+                var sent = td(fmtNumber(item.sentCount), 'admin-num'); if (item.sentCount != null) sent.title = '파트너센터 발송 결과를 옮겨 적은 수';
+                ['—', '—', '—', '—'].forEach(function (value) { td(value, 'admin-num'); });
+              } else {
+                td(done ? fmtNumber(item.totalCount) : '—', 'admin-num');
+                td(done ? fmtNumber(item.successCount) : '—', 'admin-num');
+                var fail = td(done ? fmtNumber(item.failureCount) : '—', 'admin-num'); if (done && item.failureCount) fail.classList.add('admin-bad');
+                td(done ? fmtNumber(item.clickCount) : '—', 'admin-num');
+                td(done && item.successCount ? (Math.round(item.clickCount / item.successCount * 1000) / 10) + '%' : '—', 'admin-num');
+              }
             }
-            td(badge(pushStatus(item)));
+            td(badge(entry.status));
             td(String(item.createdBy || '').split('@')[0], 'admin-muted');
-            row.addEventListener('click', function () { openDetail(item); });
-            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openDetail(item); });
+            function open() { if (kakao) openKakaoDetail(item); else openDetail(item); }
+            row.addEventListener('click', open);
+            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') open(); });
             rows.appendChild(row);
           });
           table.appendChild(rows);
@@ -2778,7 +2817,8 @@
           var current = document.createElement('span'); current.className = 'admin-pager-current'; current.textContent = (state.page + 1) + ' / ' + pages;
           nav.insertBefore(current, nav.lastChild);
           pager.append(info, nav);
-          card.replaceChildren(scroll, pager);
+          var parts = notices.map(function (text) { var note = document.createElement('p'); note.className = 'admin-empty'; note.textContent = text; return note; });
+          card.replaceChildren.apply(card, parts.concat([scroll, pager]));
         }
         async function loadKakao() {
           try {
@@ -2788,18 +2828,15 @@
             state.kakao.error = '';
           } catch (error) { state.kakao.error = error.message; }
         }
-        async function load() {
-          await loadKakao();
-          if (state.view === 'kakao') { render(); }
+        async function loadPush() {
           try {
             var data = await pushRequest('?limit=100');
             state.items = Array.isArray(data.items) ? data.items : [];
-            render();
-          } catch (error) {
-            var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '발송 내역을 불러오지 못했습니다. ' + error.message;
-            card.replaceChildren(failed);
-          }
+            state.pushError = '';
+          } catch (error) { state.pushError = error.message; }
         }
+        // 한 채널을 못 불러와도 다른 채널 내역은 보여 준다.
+        async function load() { await Promise.all([loadPush(), loadKakao()]); render(); }
 
         function openDetail(item) {
           var statusInfo = pushStatus(item);
@@ -2999,56 +3036,6 @@
           var saved = state.kakao.settings || {};
           return { channelName: saved.channelName || KAKAO_DEFAULTS.channelName, partnerCenterUrl: saved.partnerCenterUrl || KAKAO_DEFAULTS.partnerCenterUrl };
         }
-        function renderKakao() {
-          if (state.kakao.error) {
-            var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '카카오 채널 메시지를 불러오지 못했습니다. ' + state.kakao.error;
-            card.replaceChildren(failed); return;
-          }
-          var head = ['작성일시', '채널', '메시지', '구분', '발송일시', '발송 수', '상태', '작성자'];
-          var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr>' + head.map(function (name) { return '<th scope="col"' + (name === '발송 수' ? ' class="admin-num"' : '') + '>' + name + '</th>'; }).join('') + '</tr></thead>';
-          var rows = document.createElement('tbody');
-          var list = state.kakao.items;
-          var pageItems = list.slice(state.page * PAGE, state.page * PAGE + PAGE);
-          if (!pageItems.length) {
-            var empty = document.createElement('tr'); var cell = document.createElement('td'); cell.colSpan = head.length; cell.className = 'admin-empty';
-            cell.textContent = '아직 작성한 카카오 채널 메시지가 없습니다. ＋ 새 메시지로 첫 메시지를 써 보세요.';
-            empty.appendChild(cell); rows.appendChild(empty);
-          }
-          pageItems.forEach(function (item) {
-            var row = document.createElement('tr'); row.tabIndex = 0;
-            function td(value, className) { var cell = document.createElement('td'); if (className) cell.className = className; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); return cell; }
-            td(fmtWhen(item.createdAt));
-            var channel = document.createElement('span'); channel.className = 'admin-channel'; channel.setAttribute('data-channel', 'kakao'); channel.textContent = '카카오'; td(channel);
-            var message = document.createElement('div'); message.className = 'admin-msg-cell';
-            var title = document.createElement('b'); title.textContent = item.title; var sub = document.createElement('span'); sub.textContent = String(item.body || '').split('\n')[0];
-            message.append(title, sub); td(message);
-            td(item.isAd ? '광고' : '정보');
-            td(fmtWhen(item.sentAt));
-            td(fmtNumber(item.sentCount), 'admin-num');
-            td(badge(KAKAO_STATUS[item.status] || { label: item.status, tone: '' }));
-            td(String(item.createdBy || '').split('@')[0], 'admin-muted');
-            row.addEventListener('click', function () { openKakaoDetail(item); });
-            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openKakaoDetail(item); });
-            rows.appendChild(row);
-          });
-          table.appendChild(rows);
-          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
-          var pager = document.createElement('div'); pager.className = 'admin-pager';
-          var pages = Math.max(1, Math.ceil(list.length / PAGE));
-          var info = document.createElement('span'); info.textContent = list.length ? list.length.toLocaleString('ko-KR') + '건 중 ' + (state.page * PAGE + 1) + '–' + Math.min(list.length, state.page * PAGE + PAGE) : '0건';
-          var nav = document.createElement('div'); nav.className = 'admin-pager-buttons';
-          [['‹', state.page - 1], ['›', state.page + 1]].forEach(function (entry) {
-            var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[0]; button.setAttribute('aria-label', entry[0] === '‹' ? '이전 페이지' : '다음 페이지');
-            button.disabled = entry[1] < 0 || entry[1] >= pages;
-            button.addEventListener('click', function () { state.page = entry[1]; render(); });
-            nav.appendChild(button);
-          });
-          var current = document.createElement('span'); current.className = 'admin-pager-current'; current.textContent = (state.page + 1) + ' / ' + pages;
-          nav.insertBefore(current, nav.lastChild);
-          pager.append(info, nav);
-          card.replaceChildren(scroll, pager);
-        }
         async function reloadKakao() { await loadKakao(); render(); }
 
         /** 파트너센터 창은 클릭하는 순간 먼저 연다(팝업 차단 방지). 주소는 서버 기록이 끝난 뒤 넣는다. */
@@ -3155,7 +3142,7 @@
             { label: '저장만 하기', onClick: async function (d) {
               var message = check(); if (!message) return;
               lock(d, true);
-              try { await kakaoRequest('', message); d.close(); adminToast('저장했습니다. 카카오 채널 목록에서 언제든 발송할 수 있습니다.'); state.view = 'kakao'; state.page = 0; await reloadKakao(); }
+              try { await kakaoRequest('', message); d.close(); adminToast('저장했습니다. 카카오 채널 목록에서 언제든 발송할 수 있습니다.'); state.view = 'history'; state.page = 0; await reloadKakao(); }
               catch (error) { adminToast(error.message); lock(d, false); }
             } },
             { label: '파트너센터에서 발송', primary: true, onClick: function (d) {
@@ -3164,7 +3151,7 @@
               var win = window.open('about:blank', '_blank');
               lock(d, true);
               kakaoRequest('', message).then(function (data) {
-                d.close(); state.view = 'kakao'; state.page = 0;
+                d.close(); state.view = 'history'; state.page = 0;
                 return openPartnerCenter(data.item, win).then(function (result) {
                   openedToast(result.copied);
                   return reloadKakao().then(function () { openKakaoDetail(result.item, true); });
