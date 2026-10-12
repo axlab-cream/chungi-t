@@ -42,10 +42,10 @@ test('live legacy verb endings stay grammatical',()=>{
  assert.equal(api.voice('먼저 움직이십시오. 기록을 남기십시오. 틀리지 않았습니다.'),'먼저 움직여. 기록을 남겨. 틀리지 않았어.')
 })
 
-test('opening is added only to legacy formal verdicts and never accumulates',()=>{
+test('narrator never prepends an artificial address',()=>{
  const original={verdict:{statement:'권한을 확인하십시오.'},sections:[]}
  const once=api.report(original,'saju_master')
- assert.equal(once.verdict.statement,'야, 너 — 권한을 확인해.')
+ assert.equal(once.verdict.statement,'권한을 확인해.')
  assert.equal(api.report(once,'saju_master').verdict.statement,once.verdict.statement)
  assert.equal(api.report({verdict:{statement:'네 기준부터 봐.'}},'saju_master').verdict.statement,'네 기준부터 봐.')
 })
