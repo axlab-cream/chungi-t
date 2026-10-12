@@ -78,31 +78,6 @@
         "publisher": { "@id": "https://umsh.kr/#organization" }
       }
     </script>
-    <script>
-      (() => {
-        const splashSessionKey = 'umsh_splash_seen_v1';
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const standalone = window.matchMedia('(display-mode: standalone)').matches
-          || window.matchMedia('(display-mode: window-controls-overlay)').matches
-          || Boolean(window.navigator.standalone);
-        let fromOwnSite = false;
-        try {
-          fromOwnSite = Boolean(document.referrer) && new URL(document.referrer).origin === location.origin;
-        } catch (_error) {
-          fromOwnSite = false;
-        }
-        let shouldShowSplash = !reducedMotion;
-        if (fromOwnSite && !standalone) {
-          try {
-            shouldShowSplash = shouldShowSplash && sessionStorage.getItem(splashSessionKey) !== '1';
-          } catch (_error) {
-            // Keep the splash available when storage is blocked.
-          }
-        }
-
-        document.documentElement.classList.add(shouldShowSplash ? 'splash-pending' : 'splash-disabled');
-      })();
-    </script>
     <meta name="theme-color" content="#0C0B0A" />
     <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
@@ -110,12 +85,11 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
-    <link rel="preload" as="video" href="/assets/umsh-splash.mp4?v=20260903" type="video/mp4" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="stylesheet" href="/css/portal.css?v=20261006-slim-header" />
+    <link rel="stylesheet" href="/css/portal.css?v=20261012-no-splash" />
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
@@ -133,19 +107,6 @@
         }
       })();
     </script>
-    <div class="splash-screen" id="splashScreen" aria-hidden="false">
-      <video
-        class="splash-video"
-        id="splashVideo"
-        src="/assets/umsh-splash.mp4?v=20260903"
-        autoplay
-        muted
-        playsinline
-        preload="auto"
-      ></video>
-      <button class="splash-skip" type="button" data-splash-skip>건너뛰기</button>
-    </div>
-
     <div class="stage">
       <main class="phone" aria-label="운명상회 메인">
         <header class="appbar">
@@ -507,6 +468,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261012-hero"></script>
+    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261012-no-splash"></script>
   </body>
 </html>

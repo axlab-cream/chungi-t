@@ -1,47 +1,15 @@
 import assert from 'node:assert/strict'
-import { readFile, stat } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
-const portalPath = new URL('../../사주/portal.html', import.meta.url)
-const portalScriptPath = new URL('../../사주/js/portal.js', import.meta.url)
-const portalStylePath = new URL('../../사주/css/portal.css', import.meta.url)
-const splashVideoPath = new URL('../../사주/사주/assets/umsh-splash.mp4', import.meta.url)
-
-test('portal splash uses the supplied video once per browser session', async () => {
-  const [portal, script, style, video] = await Promise.all([
-    readFile(portalPath, 'utf8'),
-    readFile(portalScriptPath, 'utf8'),
-    readFile(portalStylePath, 'utf8'),
-    stat(splashVideoPath),
+test('home opens directly without a splash download, overlay or interaction lock', async () => {
+  const [html, script, style] = await Promise.all([
+    readFile(new URL('../../사주/portal.html', import.meta.url), 'utf8'),
+    readFile(new URL('../../사주/js/portal.js', import.meta.url), 'utf8'),
+    readFile(new URL('../../사주/css/portal.css', import.meta.url), 'utf8'),
   ])
-
-  assert.match(portal, /src="\/assets\/umsh-splash\.mp4\?v=20260903"/)
-  assert.match(portal, /autoplay[\s\S]*muted[\s\S]*playsinline/)
-  assert.match(portal, /document\.documentElement\.classList\.add\(shouldShowSplash \? 'splash-pending' : 'splash-disabled'\)/)
-  assert.match(portal, /id="splashScreen" aria-hidden="false">/)
-  assert.doesNotMatch(portal, /id="splashScreen"[^>]*\shidden(?:\s|>)/)
-  assert.match(portal, /document\.referrer/)
-  assert.match(script, /sessionStorage\.getItem\(SPLASH_SESSION_KEY\)/)
-  assert.match(script, /shouldSkipSplashBySession/)
-  assert.match(script, /isOwnSiteReferrer/)
-  assert.match(script, /classList\.contains\('splash-pending'\)/)
-  assert.match(script, /classList\.add\('splash-disabled'\)/)
-  assert.match(script, /addEventListener\('ended', finishSplash/)
-  assert.match(script, /addEventListener\('error', finishSplash/)
-  assert.match(script, /setTimeout\(finishSplash, 6500\)/)
-  assert.match(style, /\.splash-screen[\s\S]*position: fixed/)
-  assert.match(style, /html\.splash-pending \.stage\s*{\s*visibility: hidden;/)
-  assert.ok(video.size > 0)
-})
-
-test('bookmark and PWA launches replay splash before the portal main', async () => {
-  const [portal, script] = await Promise.all([
-    readFile(portalPath, 'utf8'),
-    readFile(portalScriptPath, 'utf8'),
-  ])
-
-  assert.match(portal, /fromOwnSite && !standalone/)
-  assert.match(script, /isStandaloneLaunch/)
-  assert.match(script, /shouldSkipSplashBySession\(\)/)
-  assert.doesNotMatch(script, /!splashPending \|\| hasSeenSplash\(\)/)
+  assert.match(html, /<main class="phone" aria-label="운명상회 메인">/)
+  assert.doesNotMatch(html, /umsh-splash|splashScreen|splash-pending/)
+  assert.doesNotMatch(script, /startSplash|phone\.inert\s*=\s*true|SPLASH_SESSION_KEY/)
+  assert.doesNotMatch(style, /html\.splash-pending/)
 })
