@@ -1488,10 +1488,10 @@
           var total = Number(payload.total || 0);
           // 서버가 거르고 나눈 페이지라 화면 쪽 정렬·페이지(enhanceTable)는 겹치지 않게 끈다.
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col">풀이·결제 알림</th><th scope="col">이벤트 알림</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!members.length) {
-            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="10">' + (memberListState.q || memberListState.paid || memberListState.from || memberListState.to ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="12">' + (memberListState.q || memberListState.paid || memberListState.from || memberListState.to ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
           }
           members.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
@@ -1500,7 +1500,11 @@
             var idCell = document.createElement('td'); idCell.className = 'admin-mono'; idCell.title = item.id; idCell.appendChild(copyChip(item.id, String(item.id).slice(0, 8))); row.appendChild(idCell);
             var emailCell = document.createElement('td'); emailCell.textContent = item.email || '—'; row.appendChild(emailCell);
             var stateCell = document.createElement('td'); stateCell.appendChild(item.banned ? memberChip('정지', 'error') : memberChip('정상', 'ok')); row.appendChild(stateCell);
-            [[memberDay(item.createdAt)], [memberWhen(item.lastSignInAt)], [MEMBER_PROVIDERS[item.signupProvider] || item.signupProvider || '—'], [item.purchaseCount ? item.purchaseCount + '건' : '—', 'admin-num'], [item.totalPurchaseAmount ? memberWon(item.totalPurchaseAmount) : '—', 'admin-num']].forEach(function (entry) {
+            [[memberDay(item.createdAt)], [memberWhen(item.lastSignInAt)], [MEMBER_PROVIDERS[item.signupProvider] || item.signupProvider || '—']].forEach(function (entry) {
+              var cell = document.createElement('td'); cell.textContent = entry[0] == null || entry[0] === '' ? '—' : String(entry[0]); if (entry[1]) cell.className = entry[1]; row.appendChild(cell);
+            });
+            ['service', 'marketing'].forEach(function (kind) { var cell = document.createElement('td'); cell.appendChild(memberNoticeChip(item.notifications, kind)); row.appendChild(cell); });
+            [[item.purchaseCount ? item.purchaseCount + '건' : '—', 'admin-num'], [item.totalPurchaseAmount ? memberWon(item.totalPurchaseAmount) : '—', 'admin-num']].forEach(function (entry) {
               var cell = document.createElement('td'); cell.textContent = entry[0] == null || entry[0] === '' ? '—' : String(entry[0]); if (entry[1]) cell.className = entry[1]; row.appendChild(cell);
             });
             var manage = document.createElement('td'); manage.className = 'admin-row-actions';
@@ -1626,6 +1630,24 @@
       var MEMBER_COUPON_KIND = { service_free: '서비스 무료', consultation_questions: '상담 질문', amount_off: '금액 할인', percent_off: '비율 할인' };
       var MEMBER_PLATFORM = { android: '안드로이드', ios: 'iOS' };
       function memberChip(label, tone) { var node = document.createElement('span'); node.className = 'admin-badge'; if (tone) node.setAttribute('data-tone', tone); node.textContent = label; return node; }
+      /*
+       * 2026-10-12: 회원이 마이페이지 › 알림에서 켜고 끈 값. 풀이·결제 알림은 "받음/안 받음",
+       * 이벤트·혜택 알림(광고성)은 "동의/미동의"와 그 날짜. 조회 실패면 "—".
+       */
+      function memberNoticeChip(notifications, kind) {
+        if (!notifications) { var unknown = document.createElement('span'); unknown.textContent = '—'; unknown.title = '알림 설정을 불러오지 못했습니다.'; return unknown; }
+        if (kind === 'service') return notifications.servicePush ? memberChip('받음', 'ok') : memberChip('안 받음', '');
+        var chip = notifications.marketingPush ? memberChip('동의', 'ok') : memberChip('미동의', '');
+        chip.title = notifications.marketingPush
+          ? '동의일 ' + memberDay(notifications.marketingConsentedAt)
+          : (notifications.marketingWithdrawnAt ? '철회일 ' + memberDay(notifications.marketingWithdrawnAt) : '동의한 적 없음');
+        return chip;
+      }
+      function memberMarketingText(notifications) {
+        if (!notifications) return '—';
+        if (notifications.marketingPush) return '동의 · ' + memberDay(notifications.marketingConsentedAt);
+        return notifications.marketingWithdrawnAt ? '미동의 · ' + memberDay(notifications.marketingWithdrawnAt) + ' 철회' : '미동의 · 동의한 적 없음';
+      }
       function memberTable(head, items, cells, onRow) {
         var table = document.createElement('table'); table.className = 'admin-table' + (onRow ? ' admin-table-clickable' : ''); table.setAttribute('data-plain', '');
         var thead = document.createElement('thead'); var headRow = document.createElement('tr');
@@ -1706,6 +1728,11 @@
             ['이름', member.name || '—'], ['생년월일', birthText], ['태어난 시각', timeText], ['성별', birth.gender === 'male' ? '남' : birth.gender === 'female' ? '여' : '—'],
           ]), h3, dlRows([
             ['결제 완료', purchases ? purchases.purchaseCount + '건' : '—'], ['누적 결제액', purchases ? memberWon(purchases.totalPurchaseAmount) : '—'],
+          ]));
+          var h5 = document.createElement('h4'); h5.textContent = '알림 설정';
+          right.append(h5, dlRows([
+            ['풀이·결제 알림', member.notifications ? (member.notifications.servicePush ? '받음' : '안 받음') : '—'],
+            ['이벤트·혜택 알림', memberMarketingText(member.notifications)],
           ]));
           grid.append(left, right);
           var actions = document.createElement('div'); actions.className = 'admin-actions'; actions.style.marginTop = '16px';

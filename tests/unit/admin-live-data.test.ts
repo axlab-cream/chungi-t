@@ -41,6 +41,10 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
       { report_id: 'report-purchase-pending', payload: { status: 'generating' } },
     ]))
   }
+  // 2026-10-12: 회원 목록에 알림 설정을 함께 싣는다. MEMBER_A 는 풀이·결제 알림을 끄고 광고성 알림에 동의했다.
+  if (url.pathname.endsWith('/umsh_notification_prefs')) {
+    return new Response(JSON.stringify([{ user_id: MEMBER_A, service_push: false, marketing_push: true, marketing_consented_at: '2026-10-12T01:00:00.000Z', marketing_withdrawn_at: null }]), { headers: { 'content-type': 'application/json' } })
+  }
   if (url.pathname.endsWith('/cheongi_user_profiles')) {
     const exact = url.searchParams.get('user_id')
     if (exact && exact !== `eq.${MEMBER_A}`) return new Response(JSON.stringify([]), { headers: { 'content-range': '*/0' } })
@@ -148,7 +152,12 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
       createdAt: '2026-09-01T00:00:00.000Z', lastSignInAt: '2026-09-15T03:00:00.000Z', signupProvider: 'kakao', banned: false,
       personalInfoRegistered: true, purchaseCount: 2, totalPurchaseAmount: 15800,
       updatedAt: '2026-09-02T00:00:00.000Z',
+      notifications: { servicePush: false, marketingPush: true, marketingConsentedAt: '2026-10-12T01:00:00.000Z', marketingWithdrawnAt: null },
     }])
+    // 알림 설정은 회원마다가 아니라 한 페이지를 한 번에 읽는다.
+    const prefRequests = requests.filter((r) => r.url.pathname.endsWith('/umsh_notification_prefs'))
+    assert.equal(prefRequests.length, 1)
+    assert.equal(prefRequests[0].url.searchParams.get('user_id'), `in.(${MEMBER_A})`)
     const profileRequest = requests.find((r) => r.url.pathname.endsWith('/cheongi_user_profiles'))
     assert.equal(profileRequest?.url.searchParams.get('select'), 'user_id,name,created_at,updated_at')
     assert.equal(profileRequest?.headers.get('apikey'), 'test-service-role-key')
