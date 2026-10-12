@@ -141,7 +141,8 @@
     }
     var birth = profile.birth || {};
     form.gender.value = birth.gender === 'male' ? 'male' : 'female';
-    form.calendar.value = birth.calendar === 'lunar' ? 'lunar' : 'solar';
+    // 윤달은 달력 칸의 "음력 (윤달)"로 고른다. 예전에는 저장할 때마다 윤달 표시를 지워 풀이 계산이 달라졌다.
+    form.calendar.value = birth.calendar === 'lunar' ? (birth.isLeapMonth ? 'lunar-leap' : 'lunar') : 'solar';
     form.birth.value = birth.year && birth.month && birth.day
       ? birth.year + '-' + pad2(birth.month) + '-' + pad2(birth.day)
       : '';
@@ -213,8 +214,8 @@
             hour: birthTimeKnown ? Number(timeParts()[0]) : 12,
             minute: birthTimeKnown ? Number(timeParts()[1]) : 0,
             gender: form.gender.value,
-            calendar: form.calendar.value,
-            isLeapMonth: false,
+            calendar: form.calendar.value === 'solar' ? 'solar' : 'lunar',
+            isLeapMonth: form.calendar.value === 'lunar-leap',
           },
           context: {},
           // 회원이 이전에 저장한 현실 기준은 서버가 유지한다. 프로필 저장으로 지우지 않는다.

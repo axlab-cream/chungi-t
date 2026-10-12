@@ -25,4 +25,15 @@ describe('고객 지원 저장소', { concurrency: false }, () => {
     const payload = JSON.parse(String(calls.at(-1)?.init?.body)) as Record<string, unknown>
     assert.deepEqual(payload, { case_id: '11111111-1111-1111-1111-111111111111', kind: 'customer_reply_draft', text: '고객에게 보낼 초안', author_email: 'staff@synthetic.invalid' }); assert.equal(result.kind, 'internal')
   })
+  it('고객에게 답변하면 문의를 해결로 옮기고, 이미 해결·종료면 그대로 둔다', async () => {
+    const base = { id: 'c1', memberId: null, orderId: null, reportId: null, category: 'access', status: 'received', assigneeEmail: null, priority: 'normal', resolutionCode: null, revision: 2, createdAt: 'x', updatedAt: 'x' } as any
+    const updates: any[] = []
+    const update = async (input: any) => { updates.push(input); return { ...base, status: input.status, revision: input.expectedRevision + 1 } }
+    const moved = await store.markSupportCaseAnswered('c1', { get: async () => base, update })
+    assert.equal(moved.statusChanged, true); assert.equal(moved.supportCase?.status, 'resolved'); assert.equal(updates[0].expectedRevision, 2)
+    const kept = await store.markSupportCaseAnswered('c1', { get: async () => ({ ...base, status: 'closed' }), update })
+    assert.equal(kept.statusChanged, false); assert.equal(updates.length, 1)
+    const raced = await store.markSupportCaseAnswered('c1', { get: async () => base, update: async () => null })
+    assert.equal(raced.statusChanged, false); assert.equal(raced.supportCase?.status, 'received')
+  })
 })

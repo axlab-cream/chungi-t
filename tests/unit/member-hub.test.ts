@@ -132,6 +132,17 @@ describe('1:1 inquiries', () => {
     assert.equal(cases[0].created_by_email, 'member@example.com')
   })
 
+  it('keeps showing 답변 도착 after the reply auto-resolves the case', async () => {
+    const caseId = String(cases[0].id)
+    cases[0].status = 'resolved'
+    let [inquiry] = (await listInquiries(USER)).filter((item) => item.id === caseId)
+    assert.equal(inquiry.state, 'answered')
+    cases[0].status = 'closed'
+    ;[inquiry] = (await listInquiries(USER)).filter((item) => item.id === caseId)
+    assert.equal(inquiry.state, 'closed')
+    cases[0].status = 'received'
+  })
+
   it('refuses a sixth open inquiry', async () => {
     while (cases.filter((row) => row.member_id === OTHER).length < 5) cases.push({ id: `open-${cases.length}`, member_id: OTHER, status: 'received', category: 'other', priority: 'normal', revision: 0, created_at: 'x', updated_at: 'x' })
     await assert.rejects(createInquiry({ id: OTHER }, { category: 'other', text: '열 글자가 넘는 문의입니다.' }), (error: unknown) => error instanceof HubError && error.code === 'INQUIRY_LIMIT')
@@ -171,7 +182,7 @@ describe('marketing push rules', async () => {
     assert.equal(code(() => parseDraft({ ...base, target: { type: 'guests' }, schedule: { mode: 'now' } }, morning)), 'PUSH_MARKETING_GUESTS')
     assert.equal(parseDraft({ ...base, schedule: { mode: 'now' } }, morning).marketing, true)
     // 일반 알림은 밤에도 보낼 수 있다.
-    assert.equal(parseDraft({ ...base, marketing: false, schedule: { mode: 'now' } }, night).marketing, false)
+    assert.equal(parseDraft({ ...base, marketing: false, notMarketingConfirmed: true, schedule: { mode: 'now' } }, night).marketing, false)
   })
 
   async function marketingRun(at: number) {
