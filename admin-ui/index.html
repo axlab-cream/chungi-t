@@ -4125,8 +4125,9 @@
       var REFUND_REASONS = { duplicate_payment: '중복 결제', customer_request: '고객 요청', service_issue: '서비스 이슈', other: '기타' };
       function payMethodLabel(method) {
         var raw = String(method || '');
-        var map = { GOOGLE_PLAY: '앱 결제(구글)', TEST: '테스트', Card: '카드', CARD: '카드', VBank: '가상계좌', DirectBank: '계좌이체', HPP: '휴대폰', KAKAOPAY: '카카오페이', NAVERPAY: '네이버페이', TOSSPAY: '토스페이' };
-        return map[raw] || (raw ? raw : '—');
+        // 결제사마다 대소문자가 달라(Card·CARD·VBank) 대문자로 맞춰 찾는다.
+        var map = { GOOGLE_PLAY: '앱 결제(구글)', TEST: '테스트', CARD: '카드', VBANK: '가상계좌', DIRECTBANK: '계좌이체', HPP: '휴대폰', KAKAOPAY: '카카오페이', NAVERPAY: '네이버페이', TOSSPAY: '토스페이' };
+        return map[raw.toUpperCase()] || (raw ? raw : '—');
       }
       function won(value) { return value === null || value === undefined ? '—' : Number(value).toLocaleString('ko-KR') + '원'; }
       function statusBadge(table, key) { var entry = table[key] || { label: key || '—', tone: '' }; return badge(entry); }
@@ -4253,19 +4254,24 @@
           var refundByOrder = {};
           state.refunds.forEach(function (refund) { (refundByOrder[refund.orderId] = refundByOrder[refund.orderId] || []).push(refund); });
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable';
-          table.innerHTML = '<thead><tr><th scope="col">결제일</th><th scope="col">회원</th><th scope="col">서비스</th><th scope="col" class="admin-num">금액</th><th scope="col">결제 수단</th><th scope="col">상태</th><th scope="col">환불</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">서비스</th><th scope="col" class="admin-num">금액</th><th scope="col">결제 수단</th><th scope="col">결제일</th><th scope="col">상태</th><th scope="col">환불</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!state.orders.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">조건에 맞는 결제가 없습니다.</td>'; rows.appendChild(empty); }
+          if (!state.orders.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="9">조건에 맞는 결제가 없습니다.</td>'; rows.appendChild(empty); }
           state.orders.forEach(function (order) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             function td(value, cls) { var cell = document.createElement('td'); if (cls) cell.className = cls; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); }
-            td(new Date(order.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }));
-            td(order.ownerEmailMasked || order.buyerEmailMasked || '—');
+            // 2026-10-12 요청: 누가 결제했는지(이름·회원 ID·이메일)를 먼저, 결제일은 결제 수단 오른쪽에 둔다.
+            td(order.ownerName || '이름 미등록');
+            var idCell = document.createElement('td'); idCell.className = 'admin-mono';
+            if (order.ownerId) { idCell.title = order.ownerId; idCell.appendChild(copyChip(order.ownerId, String(order.ownerId).slice(0, 8))); } else idCell.textContent = '—';
+            row.appendChild(idCell);
+            td(order.ownerEmail || order.ownerEmailMasked || order.buyerEmailMasked || '—');
             td(order.productTitle || '—'); td(won(order.amount), 'admin-num'); td(payMethodLabel(order.payMethod));
+            td(new Date(order.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }));
             td(order.unsettled ? badge({ label: '정산 확인 필요', tone: 'warn' }) : statusBadge(ORDER_STATUS, order.status));
             var refunds = refundByOrder[order.orderId] || [];
             td(refunds.length ? statusBadge(REFUND_STATE, refunds[0].state) : '—');
-            row.addEventListener('click', function () { openPaymentDetail(order, refunds, function () { state.refunds = []; load(true); }); });
+            row.addEventListener('click', function (event) { if (event.target.closest('button')) return; openPaymentDetail(order, refunds, function () { state.refunds = []; load(true); }); });
             row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openPaymentDetail(order, refunds, function () { state.refunds = []; load(true); }); });
             rows.appendChild(row);
           });

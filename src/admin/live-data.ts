@@ -368,6 +368,23 @@ export async function listMemberReports(userId: string): Promise<AdminMemberRepo
   })
 }
 
+/** 2026-10-12: 결제 목록에 회원 이름을 붙인다. 회원 번호 형식이 아닌 값은 묻지 않고, 프로필이 없으면 맵에서 빠진다. */
+export async function memberNamesByIds(ids: string[]): Promise<Map<string, string>> {
+  const names = new Map<string, string>()
+  const valid = [...new Set(ids.filter((id) => UUID_PATTERN.test(id)).map((id) => id.toLowerCase()))]
+  if (!valid.length) return names
+  const url = new URL(tableUrl('cheongi_user_profiles'))
+  url.searchParams.set('select', 'user_id,name')
+  url.searchParams.set('user_id', `in.(${valid.join(',')})`)
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
+  for (const row of await response.json() as RestRow[]) {
+    const name = clipped(row.name, '')
+    if (name) names.set(clipped(row.user_id, '').toLowerCase(), name)
+  }
+  return names
+}
+
 export function countLiveMembers(): Promise<number> {
   return countRows('cheongi_user_profiles', 'user_id')
 }
