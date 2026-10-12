@@ -5,7 +5,7 @@ import { CouponError, type CouponCampaign, type CreateCampaignInput, type Wallet
 export { CouponError } from './contracts.js'
 export type { CouponCampaign, Campaign, CreateCampaignInput, WalletCoupon, CouponKind } from './contracts.js'
 
-interface Audit { action: 'create' | 'disable'; campaignId: string; actor: string; at: string; requestKey?: string; hash?: string }
+interface Audit { action: 'create' | 'disable' | 'grant'; campaignId: string; actor: string; at: string; requestKey?: string; hash?: string; ownerId?: string }
 export interface CouponState { campaigns: CouponCampaign[]; wallets: WalletCoupon[]; audit: Audit[] }
 export interface CouponStorage {
   read(): Promise<{ revision: number; data: CouponState }>
@@ -75,7 +75,8 @@ function validate(input: CreateCampaignInput): CreateCampaignInput {
   if ((input.kind === 'percent_off' || input.kind === 'consultation_questions') && input.value > 100) return fail('COUPON_INPUT_INVALID', 400)
   if (input.kind === 'service_free' && (input.value !== 1 || productKey === 'cheonmyeong_consultation')) return fail('COUPON_INPUT_INVALID', 400)
   if (input.kind === 'consultation_questions' && productKey !== 'cheonmyeong_consultation') return fail('COUPON_INPUT_INVALID', 400)
-  return { code: input.code.trim().toUpperCase(), title: input.title.trim(), kind: input.kind, productKey, value: input.value, maxClaims: input.maxClaims, startsAt: new Date(input.startsAt).toISOString(), expiresAt: new Date(input.expiresAt).toISOString() }
+  if (input.grantOnly !== undefined && typeof input.grantOnly !== 'boolean') return fail('COUPON_INPUT_INVALID', 400)
+  return { code: input.code.trim().toUpperCase(), title: input.title.trim(), kind: input.kind, productKey, value: input.value, maxClaims: input.maxClaims, startsAt: new Date(input.startsAt).toISOString(), expiresAt: new Date(input.expiresAt).toISOString(), ...(input.grantOnly ? { grantOnly: true } : {}) }
 }
 function active(c: CouponCampaign | undefined) { return !!c?.enabled && Date.parse(c.startsAt) <= Date.now() && Date.parse(c.expiresAt) > Date.now() }
 function wallet(s: CouponState, ownerId: string, id: string) { const w = s.wallets.find(w => w.id === id && w.ownerId === ownerId); if (!w) return fail('COUPON_NOT_FOUND', 404); return w }
@@ -107,12 +108,38 @@ export async function disableCampaign(id: string, actor: string): Promise<Coupon
 export async function claimCoupon(ownerId: string, code: string): Promise<WalletCoupon> {
   if (!identifier(ownerId) || typeof code !== 'string' || !/^[a-zA-Z0-9_-]{3,40}$/.test(code.trim())) return fail('COUPON_INPUT_INVALID', 400)
   return mutate(s => {
-    const c = s.campaigns.find(c => c.code === code.trim().toUpperCase()); if (!c) return fail('COUPON_NOT_FOUND', 404)
+    const c = s.campaigns.find(c => c.code === code.trim().toUpperCase()); if (!c || c.grantOnly) return fail('COUPON_NOT_FOUND', 404)
     const existing = s.wallets.find(w => w.ownerId === ownerId && w.campaignId === c.id); if (existing) return project(s, existing)
     if (!active(c)) return fail('COUPON_INACTIVE')
     if (s.wallets.filter(w => w.campaignId === c.id).length >= c.maxClaims) return fail('COUPON_EXHAUSTED')
     const w: WalletCoupon = { id: randomUUID(), ownerId, campaignId: c.id, title: c.title, kind: c.kind, productKey: c.productKey, value: c.value, expiresAt: c.expiresAt, enabled: c.enabled, claimedAt: new Date().toISOString() }
     s.wallets.push(w); return w
+  })
+}
+/**
+ * 관리자가 회원 한 명에게 쿠폰을 바로 넣는다(2026-10-12, 회원 상세 › 쿠폰 › 쿠폰 지급).
+ * 고객 등록(claimCoupon)과 같은 한도·기간 규칙을 쓰되, 시작 전 쿠폰도 미리 지급할 수 있다(사용은 시작 후).
+ * 같은 쿠폰을 이미 가진 회원에게는 다시 주지 않는다. 같은 요청 키로 다시 보내면 처음 결과를 돌려준다.
+ */
+export async function grantCoupon(campaignId: string, ownerId: string, actor: string, idempotencyKey: string): Promise<WalletCoupon> {
+  if (!identifier(campaignId) || !identifier(ownerId) || !actorValid(actor) || !identifier(idempotencyKey)) return fail('COUPON_INPUT_INVALID', 400)
+  const hash = createHash('sha256').update(JSON.stringify({ campaignId, ownerId })).digest('hex')
+  return mutate(s => {
+    const replay = s.audit.find(a => a.action === 'grant' && a.actor === actor && a.requestKey === idempotencyKey)
+    if (replay) {
+      if (replay.hash !== hash) return fail('COUPON_REQUEST_CONFLICT')
+      const granted = s.wallets.find(w => w.ownerId === ownerId && w.campaignId === campaignId)
+      if (granted) return project(s, granted)
+    }
+    const c = s.campaigns.find(c => c.id === campaignId); if (!c) return fail('COUPON_NOT_FOUND', 404)
+    if (s.wallets.some(w => w.ownerId === ownerId && w.campaignId === c.id)) return fail('COUPON_ALREADY_OWNED')
+    if (!c.enabled) return fail('COUPON_DISABLED')
+    if (Date.parse(c.expiresAt) <= Date.now()) return fail('COUPON_EXPIRED')
+    if (s.wallets.filter(w => w.campaignId === c.id).length >= c.maxClaims) return fail('COUPON_EXHAUSTED')
+    const at = new Date().toISOString()
+    const w: WalletCoupon = { id: randomUUID(), ownerId, campaignId: c.id, title: c.title, kind: c.kind, productKey: c.productKey, value: c.value, expiresAt: c.expiresAt, enabled: c.enabled, claimedAt: at, granted: true }
+    s.wallets.push(w); s.audit.push({ action: 'grant', campaignId: c.id, actor, at, requestKey: idempotencyKey, hash, ownerId })
+    return project(s, w)
   })
 }
 export async function listWallet(ownerId: string): Promise<WalletCoupon[]> { const s = (await read()).data; return s.wallets.filter(w => w.ownerId === ownerId).map(w => project(s, w)) }
@@ -147,6 +174,8 @@ export async function removeWalletsForDeletedMember(ownerId: string): Promise<nu
   return mutate(s => {
     const before = s.wallets.length
     s.wallets = s.wallets.filter(w => w.ownerId !== ownerId || !!w.orderId)
+    // 지급 기록에 남은 회원 번호도 지운다. 누가 언제 어떤 쿠폰을 지급했는지는 남긴다.
+    s.audit.forEach(a => { if (a.ownerId === ownerId) delete a.ownerId })
     return before - s.wallets.length
   })
 }

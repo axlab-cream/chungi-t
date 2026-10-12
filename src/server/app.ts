@@ -3814,7 +3814,11 @@ app.use('/api/admin/v1/kakao-channel', adminKakaoChannelRouter({
   staff: requireStaff,
   audit: (actor: string, action: string, targetId: string) => postgrestAdminCommandStore().appendAuditEvent({ actorEmail: actor, action, target: { type: 'kakao_channel_message', id: targetId }, result: 'succeeded' }),
 }))
-app.use('/api/admin/v1/coupons', adminCouponRouter({ staff: requireStaff, audit: (event) => postgrestAdminCommandStore().appendAuditEvent({ ...event, result: 'succeeded' }) }))
+app.use('/api/admin/v1/coupons', adminCouponRouter({
+  staff: requireStaff,
+  audit: (event) => postgrestAdminCommandStore().appendAuditEvent({ ...event, result: 'succeeded' }),
+  memberExists: async (memberId) => Boolean(await getAdminMemberDetail(memberId)),
+}))
 app.use('/api/coupons', couponRouter({
   authenticate: requireSupabaseUser,
   staff: requireStaff,

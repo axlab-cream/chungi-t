@@ -1631,6 +1631,65 @@
         setTimeout(function () { input.focus(); }, 0);
       }
 
+      /**
+       * 회원에게 쿠폰 지급(2026-10-12). 쿠폰 화면에서 만든 쿠폰 중 지금 줄 수 있는 것(사용 중, 만료 전, 한도 남음,
+       * 이 회원이 아직 없음)만 고른다. "회원 지급 전용" 쿠폰을 위에 둔다. 지급은 되돌릴 수 없다.
+       */
+      async function openCouponGrant(member, owned, onGranted) {
+        var wrap = document.createElement('div');
+        var status = document.createElement('p'); status.className = 'admin-note'; status.setAttribute('role', 'status'); status.textContent = '지급할 수 있는 쿠폰을 불러오는 중입니다.';
+        wrap.appendChild(status);
+        var select = null; var key = crypto.randomUUID();
+        var dialog = openAdminModal({ title: '쿠폰 지급', subtitle: (member.name || '이름 미등록') + (member.email ? ' · ' + member.email : ''), body: wrap, actions: [
+          { label: '취소', onClick: function (d) { d.close(); } },
+          { label: '지급', primary: true, onClick: async function (d) {
+            if (!select || !select.value) return;
+            var buttons = d.querySelectorAll('.admin-modal-foot button'); buttons.forEach(function (b) { b.disabled = true; });
+            try {
+              var result = await adminJson('/api/admin/v1/coupons/' + encodeURIComponent(select.value) + '/grant', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify({ memberId: member.userId }) });
+              d.close(); adminToast('쿠폰을 지급했습니다. 회원의 MY › 내 쿠폰에 바로 보입니다.'); onGranted(result.item);
+            } catch (error) { adminToast(error.message, 'error'); buttons.forEach(function (b) { b.disabled = false; }); }
+          } },
+        ] });
+        dialog.setAttribute('data-size', 'small');
+        var submit = dialog.querySelector('.admin-modal-foot button:last-child'); submit.disabled = true;
+        var snapshot;
+        try { snapshot = await adminJson('/api/admin/v1/coupons'); } catch (error) { status.textContent = error.message; return; }
+        var now = Date.now();
+        var ownedIds = owned.map(function (item) { return item.campaignId; });
+        var choices = (snapshot.items || []).filter(function (c) { return c.enabled && Date.parse(c.expiresAt) > now && (c.claimCount || 0) < c.maxClaims && ownedIds.indexOf(c.id) < 0; })
+          .sort(function (a, b) { return (b.grantOnly ? 1 : 0) - (a.grantOnly ? 1 : 0) || String(b.createdAt).localeCompare(String(a.createdAt)); });
+        if (!choices.length) {
+          status.textContent = '지금 지급할 수 있는 쿠폰이 없습니다. 쿠폰 화면에서 "회원 지급 전용"을 켜고 먼저 만들어 주세요.';
+          var go = document.createElement('a'); go.className = 'admin-button'; go.setAttribute('data-variant', 'quiet'); go.href = ADMIN_BASE + '/coupons'; go.textContent = '쿠폰 만들러 가기';
+          wrap.appendChild(go); return;
+        }
+        function benefit(c) { return Number(c.value).toLocaleString('ko-KR') + (c.kind === 'percent_off' ? '%' : c.kind === 'amount_off' ? '원' : c.kind === 'consultation_questions' ? '회' : '장'); }
+        status.textContent = '';
+        var field = document.createElement('div'); field.className = 'admin-field';
+        var label = document.createElement('label'); label.htmlFor = 'coupon-grant-campaign'; label.textContent = '지급할 쿠폰';
+        select = document.createElement('select'); select.id = label.htmlFor;
+        choices.forEach(function (c) {
+          var option = document.createElement('option'); option.value = c.id;
+          option.textContent = (c.grantOnly ? '[지급 전용] ' : '') + c.title + ' · ' + (MEMBER_COUPON_KIND[c.kind] || c.kind) + ' ' + benefit(c) + ' · 남은 ' + (c.maxClaims - (c.claimCount || 0)) + '장';
+          select.appendChild(option);
+        });
+        field.append(label, select);
+        var detail = document.createElement('p'); detail.className = 'admin-note';
+        function describe() {
+          var c = choices.find(function (item) { return item.id === select.value; }); if (!c) return;
+          var product = (snapshot.products || []).find(function (p) { return p.key === c.productKey; });
+          detail.textContent = '적용 서비스: ' + (product ? product.title : c.productKey) + ' · 사용 기간: ' + memberDay(c.startsAt) + ' ~ ' + memberDay(c.expiresAt)
+            + (Date.parse(c.startsAt) > now ? ' (아직 시작 전이라 시작일부터 쓸 수 있습니다)' : '')
+            + (c.grantOnly ? '' : ' · 코드를 아는 고객도 직접 등록할 수 있는 쿠폰입니다.');
+        }
+        select.addEventListener('change', function () { key = crypto.randomUUID(); describe(); });
+        describe();
+        var warn = document.createElement('p'); warn.className = 'admin-confirm-warn'; warn.textContent = '지급하면 되돌릴 수 없습니다. 회원의 MY › 내 쿠폰에 바로 들어갑니다.';
+        wrap.append(field, detail, warn);
+        submit.disabled = false;
+      }
+
       var MEMBER_ORDER_STATUS = { ready: '결제 대기', approving: '승인 중', paid: '결제 완료', viewed: '결제 완료', cancelled: '취소·환불', failed: '실패' };
       var MEMBER_REPORT_STATUS = { complete: { label: '완성', tone: 'ok' }, partial: { label: '생성 중', tone: 'info' }, generating: { label: '생성 중', tone: 'info' }, pending: { label: '대기', tone: '' }, failed: { label: '실패', tone: 'error' }, unknown: { label: '확인 필요', tone: 'warn' } };
       var MEMBER_SUPPORT_STATUS = { received: '접수', triaged: '분류됨', assigned: '담당 지정', investigating: '확인 중', awaiting_customer: '고객 답변 대기', resolved: '해결', closed: '종료', reopened: '다시 열림' };
@@ -1783,12 +1842,24 @@
         }
         function renderCoupons(target) {
           if (!data.coupons) { target.appendChild(memberFailed('쿠폰')); return; }
+          // 2026-10-12: 이 회원에게 쿠폰을 바로 넣는다. 지급하면 탭을 다시 그리고 개수를 고친다.
+          var bar = document.createElement('div'); bar.className = 'admin-actions'; bar.style.marginBottom = '12px';
+          var grant = document.createElement('button'); grant.type = 'button'; grant.className = 'admin-button'; grant.textContent = '쿠폰 지급';
+          grant.addEventListener('click', function () {
+            openCouponGrant(member, data.coupons, function (item) {
+              data.coupons.push(item);
+              var link = tabs.querySelector('a[data-tab="coupons"]'); var count = link.querySelector('em');
+              if (!count) { count = document.createElement('em'); link.appendChild(count); }
+              count.textContent = String(data.coupons.length); show('coupons');
+            });
+          });
+          bar.appendChild(grant); target.appendChild(bar);
           if (!data.coupons.length) { target.appendChild(memberEmpty('받은 쿠폰이 없습니다.')); return; }
-          target.appendChild(memberTable(['받은 날', '쿠폰', '종류', '상태', '만료일'], data.coupons, function (item) {
+          target.appendChild(memberTable(['받은 날', '쿠폰', '종류', '받은 방법', '상태', '만료일'], data.coupons, function (item) {
             var used = Boolean(item.reportId || item.orderId);
             var expired = item.expiresAt && Date.parse(item.expiresAt) < Date.now();
             var state = used ? memberChip('사용함', 'ok') : !item.enabled ? memberChip('중단됨', '') : expired ? memberChip('만료', 'warn') : memberChip('사용 가능', 'info');
-            return [memberWhen(item.claimedAt), item.title, MEMBER_COUPON_KIND[item.kind] || item.kind, state, memberDay(item.expiresAt)];
+            return [memberWhen(item.claimedAt), item.title, MEMBER_COUPON_KIND[item.kind] || item.kind, item.granted ? '관리자 지급' : '코드 등록', state, memberDay(item.expiresAt)];
           }));
         }
         function renderDevices(target) {
@@ -2958,7 +3029,16 @@
           Object.keys(attrs || {}).forEach(function (key) { input.setAttribute(key, attrs[key]); }); wrapper.append(label, input); form.appendChild(wrapper); return input;
         }
         function option(select, value, label) { var item = document.createElement('option'); item.value = value; item.textContent = label; select.appendChild(item); }
-        field('title', '발급명', 'text', { maxlength: '100' }); field('code', '쿠폰 코드 (영문·숫자·하이픈)', 'text', { maxlength: '40', minlength: '8', pattern: '[A-Za-z0-9_-]{8,40}', autocomplete: 'off' });
+        field('title', '발급명', 'text', { maxlength: '100' }); var code = field('code', '쿠폰 코드 (영문·숫자·하이픈)', 'text', { maxlength: '40', minlength: '8', pattern: '[A-Za-z0-9_-]{8,40}', autocomplete: 'off' });
+        // 2026-10-12: 회원 지급 전용. 고객은 코드로 등록할 수 없고, 회원 상세 › 쿠폰에서 한 명씩 지급한다. 코드는 아무도 쓰지 않으니 자동으로 채운다.
+        var grantOnlyWrap = document.createElement('div'); grantOnlyWrap.className = 'admin-field'; grantOnlyWrap.dataset.span = '2';
+        var grantOnlyLabel = document.createElement('label'); grantOnlyLabel.className = 'admin-check';
+        var grantOnly = document.createElement('input'); grantOnly.type = 'checkbox'; grantOnly.name = 'grantOnly';
+        var grantOnlyText = document.createElement('span'); grantOnlyText.textContent = '회원 지급 전용 (고객이 코드로 등록할 수 없고, 회원 상세에서 한 명씩 지급합니다)'; grantOnlyLabel.append(grantOnly, grantOnlyText);
+        grantOnlyWrap.appendChild(grantOnlyLabel); form.appendChild(grantOnlyWrap);
+        function randomGrantCode() { var letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; var bytes = crypto.getRandomValues(new Uint8Array(10)); return 'GIFT-' + Array.from(bytes, function (b) { return letters[b % letters.length]; }).join(''); }
+        function updateGrantOnly() { code.readOnly = grantOnly.checked; if (grantOnly.checked) code.value = randomGrantCode(); else if (/^GIFT-/.test(code.value)) code.value = ''; }
+        grantOnly.addEventListener('change', updateGrantOnly);
         var kinds = { service_free: '무료 이용권', consultation_questions: '상담 질문권', amount_off: '금액 할인', percent_off: '비율 할인' };
         var kind = field('kind', '쿠폰 종류', 'select'); Object.keys(kinds).forEach(function (key) { option(kind, key, kinds[key]); });
         var product = field('productKey', '적용 서비스', 'select');
@@ -3016,7 +3096,7 @@
               try { await request('/' + encodeURIComponent(item.id) + '/disable', {}, disableKey); item.enabled = false; adminToast('쿠폰 사용을 중단했습니다.'); render(snapshot.items); }
               catch (error) { adminToast(error.message, 'error'); stop.disabled = false; }
             });
-            return [item.title, copyChip(item.code), kinds[item.kind] || item.kind, p ? p.title : item.productKey, Number(item.value).toLocaleString('ko-KR') + (item.kind === 'percent_off' ? '%' : item.kind === 'amount_off' ? '원' : '회'),
+            return [item.title, item.grantOnly ? memberChip('지급 전용', 'info') : copyChip(item.code), kinds[item.kind] || item.kind, p ? p.title : item.productKey, Number(item.value).toLocaleString('ko-KR') + (item.kind === 'percent_off' ? '%' : item.kind === 'amount_off' ? '원' : '회'),
               claimed + ' / ' + item.maxClaims, Number.isInteger(used) ? used : '—', claimed && Number.isInteger(used) ? Math.round(used / claimed * 100) + '%' : '—',
               memberDay(item.startsAt) + ' ~ ' + memberDay(item.expiresAt), memberChip(st.label, st.tone), stop];
           }));
@@ -3026,11 +3106,11 @@
           event.preventDefault(); if (busy || !form.reportValidity()) return;
           var f = form.elements; var start = new Date(f.startsAt.value), end = new Date(f.expiresAt.value);
           if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) { result.textContent = '종료는 시작 이후의 유효한 시각으로 입력해 주세요.'; return; }
-          var payload = { title: f.title.value.trim(), code: f.code.value.trim(), kind: f.kind.value, productKey: f.productKey.value, value: Number(f.value.value), maxClaims: Number(f.maxClaims.value), startsAt: start.toISOString(), expiresAt: end.toISOString() };
+          var payload = { title: f.title.value.trim(), code: f.code.value.trim(), kind: f.kind.value, productKey: f.productKey.value, value: Number(f.value.value), maxClaims: Number(f.maxClaims.value), startsAt: start.toISOString(), expiresAt: end.toISOString(), grantOnly: grantOnly.checked };
           if (!payload.title || !Number.isInteger(payload.value) || payload.value < 1 || !Number.isInteger(payload.maxClaims) || payload.maxClaims < 1 || payload.maxClaims > 20000 || ((payload.kind === 'percent_off' || payload.kind === 'consultation_questions') && payload.value > 100) || (payload.kind === 'service_free' && payload.value !== 1)) { result.textContent = '혜택 값과 등록 한도를 확인해 주세요.'; return; }
-          if (!await adminConfirm('"' + payload.title + '" 쿠폰(코드 ' + payload.code + ')을 발급합니다. 발급한 혜택은 수정할 수 없고, 고객이 바로 등록할 수 있습니다. 정말 발급할까요?', { title: '쿠폰 발급', okLabel: '발급', danger: true, irreversible: true })) return;
+          if (!await adminConfirm(payload.grantOnly ? '"' + payload.title + '" 쿠폰을 회원 지급 전용으로 만듭니다. 발급한 혜택은 수정할 수 없습니다. 회원 상세 › 쿠폰에서 최대 ' + payload.maxClaims + '명에게 지급할 수 있습니다. 정말 만들까요?' : '"' + payload.title + '" 쿠폰(코드 ' + payload.code + ')을 발급합니다. 발급한 혜택은 수정할 수 없고, 고객이 바로 등록할 수 있습니다. 정말 발급할까요?', { title: '쿠폰 발급', okLabel: '발급', danger: true, irreversible: true })) return;
           busy = true; Array.from(form.elements).forEach(function (control) { control.disabled = true; }); result.textContent = '발급 중입니다.';
-          try { await request('', payload, saveKey); result.textContent = '쿠폰을 발급했습니다.'; saveKey = crypto.randomUUID(); form.reset(); updateKind();
+          try { await request('', payload, saveKey); result.textContent = payload.grantOnly ? '쿠폰을 만들었습니다. 회원 › 회원 상세 › 쿠폰에서 지급하세요.' : '쿠폰을 발급했습니다.'; saveKey = crypto.randomUUID(); form.reset(); updateKind(); updateGrantOnly();
             try { snapshot = await request(''); render(snapshot.items); } catch (_error) { result.textContent = '발급은 완료했지만 목록을 다시 불러오지 못했습니다. 새로고침해 주세요.'; }
           } catch (error) { result.textContent = error.message; }
           finally { busy = false; Array.from(form.elements).forEach(function (control) { control.disabled = false; }); }
@@ -3240,7 +3320,7 @@
         'member.account.create': '회원 등록', 'member.account.delete': '회원 삭제', 'member.account.suspend': '회원 정지', 'member.account.restore': '회원 정지 해제', 'member.profile.update': '회원 프로필 수정',
         'refund.request': '환불 요청', 'refund.approve': '환불 승인', 'refund.reject': '환불 반려',
         'report.generation.restart': '리포트 다시 생성', 'report.generation.requeue_incomplete': '미완성 리포트 재시도', 'report.context.backfill_service_key': '리포트 서비스 정보 보정',
-        'coupon.campaign.create': '쿠폰 발급', 'coupon.campaign.disable': '쿠폰 사용 중단',
+        'coupon.campaign.create': '쿠폰 발급', 'coupon.campaign.disable': '쿠폰 사용 중단', 'coupon.wallet.grant': '회원 쿠폰 지급',
         'service.draft.save': '서비스 초안 저장', 'service.version.publish': '서비스 발행',
         'content.draft.create': '콘텐츠 초안 등록', 'content.draft.update': '콘텐츠 초안 수정', 'content.version.publish': '콘텐츠 게시', 'content.version.archive': '콘텐츠 보관',
         'prompt.draft.save': '프롬프트 초안 저장', 'prompt.version.publish': '프롬프트 발행',
