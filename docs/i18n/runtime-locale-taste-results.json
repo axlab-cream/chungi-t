@@ -1,0 +1,100 @@
+{
+  "observedAt": "2026-10-12T07:16:05.160Z",
+  "scope": "Fixed synthetic provider/prompt test in registered production runtime, not customer storage or full API E2E",
+  "maxCalls": 4,
+  "retries": 0,
+  "rows": [
+    {
+      "surface": "reading",
+      "locale": "en",
+      "model": "gpt-5.6-luna",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 500,
+      "providerModel": "gpt-5.6-luna",
+      "usage": {
+        "prompt_tokens": 21916,
+        "completion_tokens": 469,
+        "total_tokens": 22385,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 21913,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 299,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "status": "complete",
+      "finishReason": "stop",
+      "output": "{\"id\":\"income-salary-stable\",\"hook\":\"Your salary is steady; first-week spending is the pressure point.\",\"interpretation\":\"A fixed monthly salary gives you a reliable inflow, while the chart’s strong earth balance points to money that needs a clear container before it can accumulate. Your stated pattern—half spent in the first week, mainly on delivery and subscriptions—fits that question better than any promise of sudden income.\\n\\nThis is not a reason to cut every enjoyable purchase. Protect the spending that supports your life, and target the repeat leaks first. Next, compare delivery charges and subscription debits in your card statement, then record which one you will stop before the next salary arrives. That is the practical test for moving toward your 5,000,000 KRW goal.\"}",
+      "hangulCount": 0,
+      "fixture": "reading/en"
+    },
+    {
+      "surface": "consultation",
+      "locale": "en",
+      "model": "gemini-3.8-flash",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 500,
+      "providerModel": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 5133,
+        "candidatesTokenCount": 20,
+        "totalTokenCount": 5629,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5133
+          }
+        ],
+        "thoughtsTokenCount": 476,
+        "serviceTier": "standard"
+      },
+      "status": "failed",
+      "finishReason": "MAX_TOKENS",
+      "output": "Saving 5,000,000 KRW in a year means setting aside about",
+      "hangulCount": 0,
+      "fixture": "consultation/en"
+    },
+    {
+      "surface": "reading",
+      "locale": "ja",
+      "model": "gpt-5.6-luna",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 500,
+      "providerModel": "gpt-5.6-luna",
+      "usage": {
+        "prompt_tokens": 22089,
+        "completion_tokens": 500,
+        "total_tokens": 22589,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 22086,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 500,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "status": "failed",
+      "finishReason": "length",
+      "output": "",
+      "hangulCount": 0,
+      "fixture": "reading/ja"
+    },
+    {
+      "fixture": "consultation/ja",
+      "status": "blocked",
+      "code": "PREVIOUS_PROVIDER_SMOKE_FAILED_NO_RETRY"
+    }
+  ]
+}

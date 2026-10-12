@@ -146,18 +146,73 @@ test('4. 프로필 저장은 검증 전에 캐시를 덮어쓰지 않는다', ()
 })
 
 test('5. 이름 규칙은 서버와 같다', () => {
-  const client = stripComments(read(CMDG))
+  // 기존 사주와 최신 /cmdg/의 이름 계약을 함께 검사한다. 다른 렌더 가드는 유지한다.
+  const client = stripComments(read(join(root, '사주', 'cmdg', 'index.html')))
   const server = stripComments(read(join(root, 'src', 'server', 'app.ts')))
+  const message = '이름은 문자 2자 이상 20자 이하로 입력해 주세요.'
 
-  assert.match(
-    client,
-    /function isUsableProfileName[\s\S]{0,300}?\/\^\[가-힣\]\{2,20\}\$\//,
-    '클라이언트 이름 검증이 한글 2~20자 규칙이어야 한다',
-  )
-  assert.ok(
-    server.includes('이름은 한글 2자 이상 20자 이하로 입력해 주세요.'),
-    '서버 검증 문구가 바뀌었다. 클라이언트 규칙도 같이 확인해야 한다.',
-  )
+  function functionSource(source: string, name: string): string {
+    const match = source.match(new RegExp(
+      'function ' + name + '\\([^)]*\\)(?:\\s*:\\s*boolean)?\\s*\\{[\\s\\S]*?^\\s*\\}', 'm',
+    ))
+    assert.ok(match, name + ' 함수를 찾지 못했다')
+    return match[0].replace('value: string', 'value').replace(/\)\s*:\s*boolean/, ')')
+  }
+
+  const serverValid = new Function(
+    functionSource(server, 'isValidProfileName') + '; return isValidProfileName;',
+  )() as (value: string) => boolean
+  const legacy = stripComments(read(CMDG))
+  const legacyChecks = new Function(
+    functionSource(legacy, 'isUsableProfileName') + '\n' +
+    functionSource(legacy, 'validateName') + '\n' +
+    'return { isUsableProfileName, validateName };',
+  )() as {
+    isUsableProfileName: (value: string) => boolean
+    validateName: (value: string) => string
+  }
+  let cached: { userId: string; name: string } | null = null
+  const clientChecks = new Function('readCachedUserProfile',
+    functionSource(client, 'isUsableProfileName') + '\n' +
+    functionSource(client, 'validateName') + '\n' +
+    functionSource(client, 'cachedProfileForSession') + '\n' +
+    'return { isUsableProfileName, validateName, cachedProfileForSession };',
+  )(() => cached) as {
+    isUsableProfileName: (value: string) => boolean
+    validateName: (value: string) => string
+    cachedProfileForSession: (session: { user: { id: string } } | null) => unknown
+  }
+
+  const cases: [string, boolean][] = [
+    ['Alex Morgan', true], ['日本語', true], ['한글', true],
+    ['A. B', true], ["O'Neil", true], ['O’Neil', true], ['Anne-Marie', true],
+    ['  Alex Morgan  ', true], ['e\u0301mile', true], ['한글', true],
+    ['𐐀𐐁', true], ['𐐀'.repeat(20), true], ['가'.repeat(20), true],
+    ['', false], ['  ', false], ['A', false], ['e\u0301', false],
+    ['가'.repeat(21), false], ['𐐀'.repeat(21), false],
+    ['<b>Alex</b>', false], ['Alex123', false], ['123', false],
+    ['Alex_Morgan', false], ['Alex@Morgan', false], ['Alex🙂', false],
+    ['.Alex', false], ["'Alex", false], ['-Alex', false], ['Alex\tMorgan', false],
+  ]
+  for (const [name, expected] of cases) {
+    assert.equal(serverValid(name), expected, '서버: ' + JSON.stringify(name))
+    assert.equal(legacyChecks.isUsableProfileName(name), expected, '기존 사주 캐시 이름: ' + JSON.stringify(name))
+    assert.equal(legacyChecks.validateName(name), expected ? '' : message, '기존 사주 입력 안내: ' + JSON.stringify(name))
+    assert.equal(clientChecks.isUsableProfileName(name), expected, '캐시 이름: ' + JSON.stringify(name))
+    assert.equal(clientChecks.validateName(name), expected ? '' : message, '입력 안내: ' + JSON.stringify(name))
+    cached = { userId: 'owner', name }
+    assert.equal(clientChecks.cachedProfileForSession({ user: { id: 'owner' } }), expected ? cached : null,
+      '캐시 복원: ' + JSON.stringify(name))
+    assert.equal(clientChecks.cachedProfileForSession(null), expected ? cached : null,
+      '세션 없는 캐시: ' + JSON.stringify(name))
+  }
+  cached = { userId: 'owner', name: 'Alex Morgan' }
+  assert.equal(clientChecks.cachedProfileForSession({ user: { id: 'other' } }), null)
+  cached = null
+  assert.equal(clientChecks.cachedProfileForSession(null), null)
+  assert.match(functionSource(client, 'applyUserProfile'), /!isUsableProfileName\(profile\.name\)/,
+    '서버 또는 캐시 프로필을 적용하기 전에 같은 이름 검증을 사용해야 한다')
+  assert.ok(server.includes(message), '클라이언트 안내 문구는 서버와 같아야 한다')
 })
 
 test('6. 고민 화면은 캐시에서 프로필을 복구한다', () => {

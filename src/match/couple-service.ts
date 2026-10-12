@@ -1,3 +1,4 @@
+import { parseBirthLocation, birthLocationKey, birthForIdentity } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from '../love/reading-content.js'
@@ -266,6 +267,7 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
     gender,
     calendar,
     isLeapMonth: Boolean(source.isLeapMonth),
+    ...parseBirthLocation(source),
   }
 }
 
@@ -286,7 +288,7 @@ export function parseCoupleMatchRequest(body: Record<string, unknown>): CoupleMa
     if (selfBirthBody.gender !== 'male' && selfBirthBody.gender !== 'female') throw new InputError('내 성별을 선택해 주세요.')
     if (selfBirthBody.calendar !== 'solar' && selfBirthBody.calendar !== 'lunar') throw new InputError('내 생년월일의 양력 또는 음력을 선택해 주세요.')
     if (selfTimeKnown && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) throw new InputError('내 태어난 시간을 다시 확인해 주세요.')
-    selfBirth = { year, month, day, hour: selfTimeKnown ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth) }
+    selfBirth = { year, month, day, hour: selfTimeKnown ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth), ...parseBirthLocation(selfBirthBody) }
   }
   return {
     selfName: trimmed(body.selfName, 20),
@@ -556,8 +558,9 @@ export function createCoupleMatchReportId(ownerId: string | undefined, birth: Bi
       ...(birth.minute ? { minute: birth.minute } : {}),
       gender: birth.gender,
       calendar: birth.calendar,
+      ...birthLocationKey(birth),
     },
-    partnerBirth: input.partnerBirth,
+    partnerBirth: birthForIdentity(input.partnerBirth),
     partnerName: input.partnerName,
     relationshipStage: input.relationshipStage,
     conflictPattern: input.conflictPattern,

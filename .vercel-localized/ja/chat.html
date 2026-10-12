@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>チョンミョンサジュ · 四柱相談</title>
+  <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+       og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="運命商会" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="運命商会 - 運命を売ります。" />
+  <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+  <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <link rel="stylesheet" href="/css/immersive-chat.css" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+  </head>
+<body>
+  <main class="phone chat-phone" data-umsh-chrome data-service="四柱推命の相談" data-active="destiny" aria-label="天命四柱推命のテキスト相談">
+    <header class="topbar">
+      <div class="chat-brand-logo" aria-label="運命商会">
+        <span>運命商会</span>
+      </div>
+      <button class="icon-button" type="button" id="btn-back" aria-label="命式の結果で">←</button>
+    </header>
+    <p class="saju-chip" id="chat-saju-label">自分の四柱推命に基づく相談</p>
+    <section id="chat-log" class="chat-log" aria-live="polite"></section>
+    <form id="chat-form" class="chat-input">
+      <textarea id="chat-message" rows="2" placeholder="今気になることをそのまま書いてください..." required></textarea>
+      <button type="submit" class="send-btn" id="btn-send">送信</button>
+    </form>
+    <!-- PDF 받기는 상단바가 아니라 본문 맨 아래에 둔다. 공용 GNB 에는 서비스마다 다른
+         동작을 넣지 않고, 어느 화면에서든 같은 자리에서 찾게 하려는 것이다.
+         id 는 그대로 유지한다 — chat.js 가 가드 없이 getElementById 로 찾는다. -->
+    <div class="umsh-pdf-dock">
+      <button class="pdf-button" type="button" id="btn-pdf" aria-label="PDFをダウンロード">PDFをダウンロード</button>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/chat.js?v=20261008-three-voice-v1"></script>
+</body>
+</html>

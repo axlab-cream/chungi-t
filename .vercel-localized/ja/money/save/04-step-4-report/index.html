@@ -1,0 +1,1590 @@
+<!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>無料の結果 | どうしてお金が貯まらないのですか？</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="運命商会">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="運命商会 - 運命を売ります。">
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。">
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="財星と比肩・劫財の流れで、お金が入る、漏れるパターンを先に確認する無料の要約画面。">
+    <meta name="application-name" content="運命商会">
+    <meta property="og:title" content="どうしてお金が貯まらないのですか？ 無料結果">
+    <meta property="og:description" content="お金が貯まらない理由を、収入、支出、関係の精算の構造から先に見る。">
+    <meta property="og:url" content="https://money.umsh.kr/save">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <style>
+      :root {
+        color-scheme: dark;
+        --mobile-width: 430px;
+        --bg: #0e1310;
+        --bg-deep: #070907;
+        --ink: #fff8ed;
+        --muted: rgba(255, 248, 237, 0.72);
+        --dim: rgba(255, 248, 237, 0.52);
+        --line: rgba(231, 190, 101, 0.24);
+        --gold: #d9a845;
+        --gold-soft: #f3d891;
+        --green: #70c292;
+        --green-deep: #1c4a36;
+        --coral: #dc7554;
+        --blue: #76acb8;
+        --panel: rgba(255, 248, 237, 0.075);
+        --paper: #fff3df;
+        --danger: #ffb49f;
+        --shadow: 0 24px 72px rgba(0, 0, 0, 0.42);
+        --font-ui: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100svh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 14% 0%, rgba(112, 194, 146, 0.2), transparent 18rem),
+          radial-gradient(circle at 88% 18%, rgba(220, 117, 84, 0.13), transparent 16rem),
+          linear-gradient(180deg, #050705 0%, var(--bg) 46%, #15110d 100%);
+        color: var(--ink);
+        font-family: var(--font-ui);
+        letter-spacing: 0;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, var(--mobile-width));
+        min-height: 100svh;
+        margin: 0 auto;
+        border-right: 1px solid rgba(231, 190, 101, 0.18);
+        border-left: 1px solid rgba(231, 190, 101, 0.18);
+        background: rgba(14, 19, 16, 0.97);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        min-height: 64px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(10, 14, 11, 0.92);
+        backdrop-filter: blur(18px);
+      }
+
+      .back-link {
+        display: inline-grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        color: var(--gold-soft);
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .brand {
+        display: grid;
+        min-width: 0;
+        gap: 2px;
+        text-align: center;
+      }
+
+      .brand strong {
+        overflow: hidden;
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.14;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand span {
+        color: var(--gold-soft);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .price-pill {
+        flex: 0 0 auto;
+        padding: 7px 9px;
+        border: 1px solid rgba(112, 194, 146, 0.34);
+        border-radius: 999px;
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      html[data-umsh-report-check] #step-4-report > :not([data-umsh-slot]) {
+        display: none !important;
+      }
+
+      main {
+        display: grid;
+        gap: 14px;
+        padding: 16px 16px 124px;
+      }
+
+      .hero {
+        overflow: hidden;
+        border: 1px solid rgba(231, 190, 101, 0.24);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .hero-figure {
+        position: relative;
+        min-height: 310px;
+        overflow: hidden;
+        background: var(--paper);
+      }
+
+      .hero-figure img,
+      .image-band img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 25%;
+      }
+
+      .hero-figure::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.72)),
+          radial-gradient(circle at 50% 20%, transparent 0 32%, rgba(0, 0, 0, 0.18) 70%);
+      }
+
+      .hero-copy {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        left: 16px;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+      }
+
+      .kicker,
+      .chapter {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 7px;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .kicker::before,
+      .chapter::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 18px rgba(112, 194, 146, 0.72);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: var(--font-title);
+        font-weight: 900;
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        font-size: 31px;
+        line-height: 1.13;
+      }
+
+      h2 {
+        font-size: 21px;
+        line-height: 1.2;
+      }
+
+      h3 {
+        font-size: 16px;
+        line-height: 1.28;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+        line-height: 1.58;
+        word-break: keep-all;
+      }
+
+      .hero-note {
+        color: rgba(255, 248, 237, 0.86);
+        font-size: 14px;
+        font-weight: 780;
+      }
+
+      .tag-row,
+      .chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .tag,
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 6px 9px;
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.07);
+        color: rgba(255, 248, 237, 0.8);
+        font-size: 11px;
+        font-weight: 850;
+        line-height: 1.25;
+      }
+
+      .panel {
+        display: grid;
+        gap: 14px;
+        padding: 16px;
+        border: 1px solid rgba(231, 190, 101, 0.22);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 248, 237, 0.09), rgba(255, 248, 237, 0.045)),
+          var(--panel);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+      }
+
+      .panel-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .answer {
+        padding: 13px;
+        border-left: 3px solid var(--green);
+        border-radius: 8px;
+        background: rgba(112, 194, 146, 0.12);
+        color: rgba(255, 248, 237, 0.86);
+        font-size: 13px;
+        font-weight: 780;
+        line-height: 1.55;
+        word-break: keep-all;
+      }
+
+      .progress {
+        display: grid;
+        gap: 7px;
+      }
+
+      .progress-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .progress-track {
+        height: 9px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.12);
+      }
+
+      .progress-track span {
+        display: block;
+        width: 12%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--green), var(--gold), var(--coral));
+      }
+
+      .signal-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal {
+        display: grid;
+        gap: 6px;
+        padding: 13px;
+        border: 1px solid rgba(255, 248, 237, 0.13);
+        border-radius: 8px;
+        background: rgba(5, 7, 6, 0.32);
+      }
+
+      .signal strong {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .signal span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+
+      .image-band {
+        min-height: 250px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 248, 237, 0.14);
+        border-radius: 8px;
+        background: var(--paper);
+      }
+
+      .paid-preview {
+        display: grid;
+        gap: 8px;
+      }
+
+      .scope-item {
+        border: 1px solid rgba(255, 248, 237, 0.13);
+        border-radius: 8px;
+        background: rgba(5, 7, 6, 0.28);
+      }
+
+      .scope-item[open] {
+        border-color: rgba(112, 194, 146, 0.34);
+      }
+
+      .scope-item summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px;
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .scope-item summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .scope-title {
+        display: grid;
+        gap: 4px;
+      }
+
+      .scope-title strong {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .scope-title span,
+      .scope-count {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.38;
+      }
+
+      .scope-count {
+        flex: 0 0 auto;
+      }
+
+      .scope-body {
+        display: grid;
+        gap: 10px;
+        padding: 0 13px 13px;
+      }
+
+      .state-box {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid rgba(112, 194, 146, 0.28);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 80% 0%, rgba(112, 194, 146, 0.18), transparent 11rem),
+          rgba(5, 7, 6, 0.36);
+      }
+
+      .state-kicker {
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .state-title {
+        color: var(--ink);
+        font-size: 18px;
+        font-weight: 950;
+        line-height: 1.32;
+        word-break: keep-all;
+      }
+
+      .state-body {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.52;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .primary,
+      .ghost {
+        display: inline-flex;
+        min-height: 50px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.25;
+      }
+
+      .primary {
+        border: 1px solid rgba(255, 244, 223, 0.22);
+        background: linear-gradient(135deg, #6ed29b, #d9a845 62%, #df7350);
+        color: #12110d;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+      }
+
+      .ghost {
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        background: rgba(255, 248, 237, 0.06);
+        color: rgba(255, 248, 237, 0.86);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.48;
+        word-break: keep-all;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 8px;
+      }
+
+      .timeline-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 248, 237, 0.1);
+      }
+
+      .timeline-row:last-child {
+        border-bottom: 0;
+      }
+
+      .timeline-row strong {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .timeline-row span {
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 950;
+        text-align: right;
+      }
+
+      .refund-box {
+        display: none;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(118, 172, 184, 0.28);
+        border-radius: 8px;
+        background: rgba(118, 172, 184, 0.1);
+      }
+
+      .refund-box.is-open {
+        display: grid;
+      }
+
+      .refund-box strong {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 96px;
+        left: 50%;
+        z-index: 40;
+        display: none;
+        width: min(calc(100% - 36px), calc(var(--mobile-width) - 36px));
+        transform: translateX(-50%);
+        padding: 12px 13px;
+        border: 1px solid rgba(112, 194, 146, 0.36);
+        border-radius: 8px;
+        background: rgba(17, 28, 22, 0.98);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.5;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      }
+
+      .toast.is-visible {
+        display: block;
+      }
+
+      .submit-dock {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        z-index: 30;
+        display: grid;
+        width: min(100%, var(--mobile-width));
+        transform: translateX(-50%);
+        justify-items: center;
+        padding: 14px 14px max(14px, env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(14, 19, 16, 0), rgba(14, 19, 16, 0.98) 32%);
+        pointer-events: none;
+      }
+
+      .dock-inner {
+        display: grid;
+        width: 100%;
+        gap: 8px;
+        pointer-events: auto;
+      }
+
+      .dock-note {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 374px) {
+        main {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+
+        .hero-figure {
+          min-height: 288px;
+        }
+
+        h1 {
+          font-size: 28px;
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own docks.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .submit-dock,
+      body.umsh-has-chrome .cta-dock,
+      body.umsh-has-chrome nav.bottom-nav[aria-label="상세 리포트 이동"] { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .save-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(112, 194, 146, 0.45); border-radius: 10px; background: rgba(112, 194, 146, 0.08); padding: 14px; margin-bottom: 14px; }
+      .save-saved-profile b { color: #70c292; font-size: 14px; }
+      .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
+      .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css">
+  </head>
+  <body>
+    <div class="phone" data-umsh-chrome="" data-service="消費の傾向" data-price="9,900 KRW" data-active="home">
+      <header class="appbar topbar" aria-label="サービスの段階">
+
+        <a class="brand" href="#step-4-report" aria-label="なぜお金が貯まらない？無料結果">
+          <strong>自分はなぜお金がたまらない？</strong>
+          <span>STEP 04 FREE REPORT</span>
+        </a>
+      </header>
+
+      <main id="step-4-report">
+        <section id="umsh-preview-host" class="umsh-preview-panel" data-umsh-slot="preview" aria-label="自分の入力から先に見る解釈"></section>
+        <section class="hero" aria-labelledby="report-title">
+          <div class="hero-figure">
+            <img data-asset-key="save-04-free-hero" src="../assets/save/04-free-hero.webp" data-source-file="assets/generated/save/04-free-hero.webp" alt="お金が入る流れと漏れる流れを見る、緑の猫耳のスーツ姿">
+            <div class="hero-copy">
+              <span class="kicker">無料要約</span>
+              <h1 id="report-title">お金が貯まらない理由、まずここで分かれる。</h1>
+              <p class="hero-note">収入だけの問題ではない可能性が高い。お金が入るとすぐ、関係・比較・精算の問題を追って出ていくこともある。</p>
+              <div class="tag-row" aria-label="鑑定の主なタグ">
+                <span class="tag">財星＋比劫</span>
+                <span class="tag">関係の精算</span>
+                <span class="tag">貯蓄の仕組み</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" data-input-summary-card="">
+          <div class="panel-head">
+            <span class="chapter">入力を基準に</span>
+            <h2>今入力したお金の流れ</h2>
+            <p data-input-summary="">入力値を確認しています。</p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="teaser-title">
+          <div class="panel-head">
+            <span class="chapter">先に開く12%</span>
+            <h2 id="teaser-title">無料で見える要点</h2>
+            <p>結論は隠しません。お金が漏れる方向と、最初の行動から見ましょう。</p>
+          </div>
+          <div class="progress" aria-label="無料公開の範囲">
+            <div class="progress-top">
+              <span>無料公開</span>
+              <strong>12%</strong>
+            </div>
+            <div class="progress-track" aria-hidden="true"><span></span></div>
+          </div>
+          <div class="answer" data-one-line-answer="">
+            今はもっと稼ぐ前に、誰とどの約束でお金が散るかから押さえる方が合って見えます。
+          </div>
+          <div class="signal-list" data-signal-list=""></div>
+        </section>
+
+        <section class="panel" aria-labelledby="signal-title">
+          <div class="image-band">
+            <img data-asset-key="save-04-signal-card" src="../assets/save/04-signal-card.webp" data-source-file="assets/generated/save/04-signal-card.webp" alt="お金が関係と支出の間で分かれるサインを説明するキャラクター">
+          </div>
+          <div class="panel-head">
+            <span class="chapter">核心シグナル</span>
+            <h2 id="signal-title">一緒に稼ぎ、一緒に使う傾向が強い</h2>
+            <p>比劫の流れは、協働・競争・分配がお金に付く構造だ。うまく使えば、一緒に育てる力だ。境界がぼけると、精算が遅れうる。</p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="paid-title">
+          <div class="panel-head">
+            <span class="chapter">決済後に開く項目</span>
+            <h2 id="paid-title">全体のレポートの目次</h2>
+            <p>有料結果では、下の8つの大分類に沿って詳細な読み解きを開く。</p>
+          </div>
+          <div class="paid-preview" data-paid-scope=""></div>
+        </section>
+
+        <section class="panel" aria-labelledby="payment-title">
+          <div class="image-band">
+            <img data-asset-key="save-04-payment-cta" src="../assets/save/04-payment-cta.webp" data-source-file="assets/generated/save/04-payment-cta.webp" alt="お金の流れの全レポートを開く鍵を持つ緑の猫耳スーツのキャラクター">
+          </div>
+          <div class="panel-head">
+            <span class="chapter">全体の結果</span>
+            <h2 id="payment-title">9,900ウォンの決済後、すぐに続きが見られる</h2>
+
+          </div>
+          <div class="timeline" aria-label="決済後の提供範囲">
+            <div class="timeline-row"><strong>提供する範囲</strong><span>大分類8個 · 中分類16個</span></div>
+            <div class="timeline-row"><strong>移動経路</strong><span>全体の一覧と詳細な読み解き</span></div>
+
+          </div>
+          <div class="state-box" data-state-box="">
+            <span class="state-kicker" data-state-kicker="">状態の確認</span>
+            <strong class="state-title" data-state-title="">ログイン状態を確認している</strong>
+            <p class="state-body" data-state-body="">少し待ってね。</p>
+            <div class="actions">
+              <button class="primary" type="button" data-state-primary="">続ける</button>
+              <button class="ghost" type="button" data-state-secondary="">再確認</button>
+            </div>
+          </div>
+          <button class="ghost" type="button" data-action="toggle-refund">取消・返金の案内</button>
+          <div class="refund-box" data-refund-box="">
+            <strong>決済前の確認</strong>
+            <p>決済がキャンセル・失敗しても、無料の結果は残ります。返金・キャンセルの条件は、決済画面で確認できます。</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="submit-dock" aria-label="全体の結果を開く">
+        <div class="dock-inner">
+          <button class="primary" type="button" data-action="dock-primary">全体の鑑定を見る</button>
+
+        </div>
+      </footer>
+
+      <div class="toast" role="status" aria-live="polite" data-toast=""></div>
+    </div>
+
+    <script type="application/json" id="PROMPT_INPUT">{
+      "service_key": "save",
+      "service_slug": "save",
+      "service_title": "自分はなぜお金がたまらない？",
+      "service_description": "財星と比劫の流れをもとに、収入・消費・貯蓄・人との精算を分けて見る、消費傾向の四柱推命サービス。",
+      "category": "消費傾向",
+      "subcategory": "貯蓄／お金管理",
+      "price_krw": 9900,
+      "service_url_hint": "money.umsh.kr/save",
+      "target_question": "自分はなぜお金がたまらない？",
+      "analysis_basis": [
+            "財星",
+            "比肩・劫財",
+            "十神の金銭的な質感",
+            "日干の強弱",
+            "五行",
+            "大運・歳運・月運"
+      ],
+      "interpretation_index_source": "user_seed",
+      "report_version": "save-v1.0",
+      "copy_version": "mz-save-v1",
+      "representative_character": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+      "next_route": "../05-step-5-chat/chat.html#step-5-chat",
+      "step": "04-step-4-report",
+      "previous_route": "../02-step-2-saju-input/index.html#step-2-saju-input"
+}</script>
+    <script type="application/json" id="INTERPRETATION_INDEX">{
+      "source": "user_seed",
+      "persist_keys": [
+            "umsh_save_interpretation_index",
+            "umsh_save_step2_payload_v1"
+      ],
+      "groups": [
+            {
+                  "group_id": "income-flow",
+                  "title": "お金が入る方式",
+                  "summary": "お金の入口が給与型・機会型・生産型のどれかから分けます。",
+                  "sections": [
+                        {
+                              "section_id": "income-salary-stable",
+                              "title": "安定した給料のタイプ",
+                              "preview": "正財・正官型で、固定収入と契約には強いが、機会を広げるのは遅いことがある"
+                        },
+                        {
+                              "section_id": "income-side-hustle",
+                              "title": "複数の仕事の機会を探す人",
+                              "preview": "偏財型。収入につながる道が多い一方、支出につながる道も広がる"
+                        },
+                        {
+                              "section_id": "income-steady-maker",
+                              "title": "着実な生産タイプ",
+                              "preview": "食神型で、一発より習慣・コンテンツ・成果物でお金を作る"
+                        },
+                        {
+                              "section_id": "income-idea-runner",
+                              "title": "アイデアが速すぎる人",
+                              "preview": "傷官型、企画は早いが締切前に新しい案を始めがち"
+                        },
+                        {
+                              "section_id": "income-pressure-breaker",
+                              "title": "責任で突破するタイプ",
+                              "preview": "偏官型で、重圧の中で大きく動くが、負担も大きく残ることがあります"
+                        },
+                        {
+                              "section_id": "income-learning-investor",
+                              "title": "学びに投資する人",
+                              "preview": "正印・偏印型で、勉強・資格・アイデアには強いが、実行の欄が空きやすい"
+                        },
+                        {
+                              "section_id": "income-peer-share",
+                              "title": "一緒に稼ぎ使う型",
+                              "preview": "比肩・劫財型、協力・競争・分配の課題がお金の流れに影響"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "money-leak",
+                  "title": "お金が漏れるパターン",
+                  "summary": "口座に残らない点を感情・関係・体裁・準備費に分けます。",
+                  "sections": [
+                        {
+                              "section_id": "leak-account-logout",
+                              "title": "口座がログアウトする型",
+                              "preview": "入るとすぐ支出、精算、約束に散る"
+                        },
+                        {
+                              "section_id": "leak-flex-overheat",
+                              "title": "見栄消費の過熱型",
+                              "preview": "火の気・偏財／劫財の流れで、気分と速さから消費が増える"
+                        },
+                        {
+                              "section_id": "leak-comparison",
+                              "title": "比較して使う型",
+                              "preview": "辛金・丁火系で、感情・好み・比較が支出につながる"
+                        },
+                        {
+                              "section_id": "leak-face-payment",
+                              "title": "体面支払い型",
+                              "preview": "庚金・正官の系統。自尊心、役割、体面のために金が出る"
+                        },
+                        {
+                              "section_id": "leak-learning-cost",
+                              "title": "学び費用の暴走型",
+                              "preview": "印星系。講義・機材・資格・準備費用が大きくなる"
+                        },
+                        {
+                              "section_id": "leak-relationship-blur",
+                              "title": "関係での精算が曖昧なタイプ",
+                              "preview": "比肩・劫財系で、友人・恋人・同僚とのお金の境界が曖昧になります"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "saving-blocker",
+                  "title": "貯蓄ができない理由",
+                  "summary": "お金が残らない理由を、意志より構造と例外ルールから探す。",
+                  "sections": [
+                        {
+                              "section_id": "saving-no-structure",
+                              "title": "貯める仕組みがないです",
+                              "preview": "残す額が数字で固定されていない"
+                        },
+                        {
+                              "section_id": "saving-income-outgoing-mixed",
+                              "title": "受け取るお金と払うお金が未分離",
+                              "preview": "収入・支出・契約を一つに見ます"
+                        },
+                        {
+                              "section_id": "saving-exception-budget",
+                              "title": "例外が多い予算",
+                              "preview": "可能な範囲より、今回だけがよく開く"
+                        },
+                        {
+                              "section_id": "saving-plan-over-action",
+                              "title": "実行より計画過多",
+                              "preview": "アイデアは多いけれど、自動化・締切・習慣づくりが弱い"
+                        },
+                        {
+                              "section_id": "saving-stability-illusion",
+                              "title": "安定の錯覚",
+                              "preview": "正財型でも安全に見えて確認を止めるとお金が漏れる"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "saju-strength",
+                  "title": "命式のバランスと管理方法",
+                  "summary": "自分がお金の管理を押し進めるタイプか、支援と順番が必要なタイプかを見ます。",
+                  "sections": [
+                        {
+                              "section_id": "strength-strong",
+                              "title": "身強型のお金管理",
+                              "preview": "一人で全部しようとして、速さ・頑固さ・任せることの不足から、お金が漏れる仕組み"
+                        },
+                        {
+                              "section_id": "strength-weak",
+                              "title": "身弱型のお金管理",
+                              "preview": "大きな盤面より支援・リズム・順番が先に必要な構造"
+                        },
+                        {
+                              "section_id": "strength-balanced",
+                              "title": "バランス型のお金管理",
+                              "preview": "過剰な処方より、今偏っている一つの軸だけを掴む構造"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "ohaeng-os",
+                  "title": "五行に基づくお金管理OS",
+                  "summary": "木・火・土・金・水の偏りを生活のお金管理の方法に置き換えます。",
+                  "sections": [
+                        {
+                              "section_id": "ohaeng-wood",
+                              "title": "木",
+                              "preview": "開始・拡張型。過剰なら広げすぎ、不足なら始まりが遅い"
+                        },
+                        {
+                              "section_id": "ohaeng-fire",
+                              "title": "火",
+                              "preview": "表現・目立ちやすさのタイプ。多すぎると衝動的・過熱気味になり、少ないと宣伝・表現が弱くなる"
+                        },
+                        {
+                              "section_id": "ohaeng-earth",
+                              "title": "土",
+                              "preview": "安定・整理型。過剰なら心配や停滞、不足なら中心と習慣が弱い"
+                        },
+                        {
+                              "section_id": "ohaeng-metal",
+                              "title": "金",
+                              "preview": "基準・締切を重視するタイプ。強すぎると削りすぎ、弱すぎると締切や予算の線が曖昧になる。"
+                        },
+                        {
+                              "section_id": "ohaeng-water",
+                              "title": "水",
+                              "preview": "流れ・休息型。過ぎると考えが長く、足りないと回復と整理の時間が不足します"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "timing",
+                  "title": "運のタイミング",
+                  "summary": "今年・今月・今日のお金の問題は混ぜず順に見ます。",
+                  "sections": [
+                        {
+                              "section_id": "timing-daeun-start",
+                              "title": "大運の始まり",
+                              "preview": "慣れた稼ぎ方の場が揺れる仕切り直しの時期"
+                        },
+                        {
+                              "section_id": "timing-daeun-middle",
+                              "title": "大運の中盤",
+                              "preview": "新しく広げるより、進行中のことを三つ以下に減らす期間"
+                        },
+                        {
+                              "section_id": "timing-daeun-end",
+                              "title": "大運の終盤",
+                              "preview": "整理・引き渡し・回収・締めが重要な区間"
+                        },
+                        {
+                              "section_id": "timing-year",
+                              "title": "歳運",
+                              "preview": "今年のお金のテーマ、大運と重ねて読む必要がある"
+                        },
+                        {
+                              "section_id": "timing-month",
+                              "title": "月運",
+                              "preview": "今月受け取るお金、すること、約束の条件を整理する期間"
+                        },
+                        {
+                              "section_id": "timing-today",
+                              "title": "今日の運",
+                              "preview": "収入・支出・契約のうち、今日は一つだけ先に見る区間"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "relationship-contract",
+                  "title": "関係・契約のお金の問題",
+                  "summary": "人との間でお金が曖昧になる瞬間を、記録、断ること、共有する範囲で整理します。",
+                  "sections": [
+                        {
+                              "section_id": "relation-friend-lover-mix",
+                              "title": "友人・恋人とのお金の混同",
+                              "preview": "身近な人とお金の境界が曖昧になる問題"
+                        },
+                        {
+                              "section_id": "relation-shared-cost",
+                              "title": "共同費用・割り勘の精算問題",
+                              "preview": "一緒に使ったお金の基準とタイミングがずれる問題"
+                        },
+                        {
+                              "section_id": "relation-unwritten-condition",
+                              "title": "金額・期限・責任の範囲の記録がない",
+                              "preview": "うまく流した条件が、あとで負担として残る問題"
+                        },
+                        {
+                              "section_id": "relation-no-refusal-line",
+                              "title": "断る文がない",
+                              "preview": "言葉を決めていないため支払いがずれる問題"
+                        },
+                        {
+                              "section_id": "relation-short-share",
+                              "title": "信頼できる人にだけ短く共有するべき問題",
+                              "preview": "お金の悩みを広げすぎず、安全に確認する問題"
+                        }
+                  ]
+            },
+            {
+                  "group_id": "expanded-reading",
+                  "title": "拡張の読み解き",
+                  "summary": "必要な時だけ紫微斗数と空間のヒントを補助に加えます。",
+                  "sections": [
+                        {
+                              "section_id": "expand-ziwei-wealth",
+                              "title": "紫微斗数の財帛宮",
+                              "preview": "収入の形・消費習慣・お金の感覚"
+                        },
+                        {
+                              "section_id": "expand-ziwei-career",
+                              "title": "紫微斗数の官禄宮",
+                              "preview": "職業・役割・責任と収入のつながり"
+                        },
+                        {
+                              "section_id": "expand-ziwei-property",
+                              "title": "紫微斗数の田宅宮",
+                              "preview": "蓄えた資産、住まい、家族の資産"
+                        },
+                        {
+                              "section_id": "expand-fengshui",
+                              "title": "風水・空間の補助",
+                              "preview": "玄関・机・動線・事業所の流れを、お金の保証ではなく生活を整えるヒントとして使う"
+                        }
+                  ]
+            }
+      ]
+}</script>
+    <script type="application/json" id="TEASER_RESULT">{
+      "headline": "お金が貯まらない理由は、とりあえずここで分かれます",
+      "summary": "今はもっと稼ぐより、入ったお金が誰とのどんな約束で散るかを先につかむ方が合いそうです。",
+      "free_ratio": "12%",
+      "signals": [
+            {
+                  "title": "一行の方向性",
+                  "body": "収入自体より、入った後に関係・好み・精算へ広がる道筋を先につかむ必要があります。",
+                  "evidence_ids": [
+                        "item-12-p1-0004",
+                        "item-12-p1-0012"
+                  ]
+            },
+            {
+                  "title": "強い合図1個",
+                  "body": "財星はお金の入口を、比劫は自分に似た人・競争・分配を見ます。二つが重なると、一緒に稼ぐ機会と一緒に漏れる穴が同時に大きくなることがあります。",
+                  "evidence_ids": [
+                        "item-12-p1-0004",
+                        "item-12-p1-0012",
+                        "item-12-p1-0036"
+                  ]
+            },
+            {
+                  "title": "今月の条件",
+                  "body": "受け取るお金、払うお金、新しく決める条件を一つの欄に混ぜず、分けて書くと流れが見える。",
+                  "evidence_ids": [
+                        "item-23-qa-0006"
+                  ]
+            },
+            {
+                  "title": "妨げる要因1つ",
+                  "body": "よい人に見られたい支払い、曖昧な割り勘、口頭だけの約束が、口座のお金を減らすことがある。",
+                  "evidence_ids": [
+                        "item-23-qa-0010"
+                  ]
+            }
+      ],
+      "paid_preview": [
+            "お金が入る方式",
+            "お金が漏れるパターン",
+            "貯蓄ができない理由",
+            "命式のバランスと管理方法",
+            "五行に基づくお金管理OS",
+            "運のタイミング",
+            "関係・契約のお金の問題",
+            "拡張の読み解き"
+      ],
+      "safety_note": "財務の結果は保証せず、四柱の流れを生活点検の言葉に訳す。"
+}</script>
+    <script type="application/json" id="CTA_STATES">{
+      "anonymous": {
+            "kicker": "ログイン前",
+            "title": "ログインすると、この無料の結果をそのまま続けて見られます",
+            "body": "アカウント確認後に決済へ進みます。生年月日とお金の悩みはアドレス欄に付けません。",
+            "primary_label": "ログインして全体を見る (9,900ウォン)",
+            "primary_action": "login",
+            "secondary_label": "無料結果をもう一度見る",
+            "secondary_action": "scroll-top",
+            "dock_label": "ログインして全体を見る (9,900ウォン)"
+      },
+      "login_pending": {
+            "kicker": "ログインへの移動を準備",
+            "title": "運用環境では共通ログイン後に戻ります",
+            "body": "ローカルファイルのプレビューでは実際のログイン画面を開きません。結果を保持する経路だけセッションに保存しました。",
+            "primary_label": "支払いの案内を見る",
+            "primary_action": "start-payment",
+            "secondary_label": "入力し直す",
+            "secondary_action": "back-input",
+            "dock_label": "支払いの案内を見る"
+      },
+      "login_unpaid": {
+            "kicker": "ログイン済み・未決済",
+            "title": "全体の鑑定を開くには決済確認が必要です",
+            "body": "9,900ウォンの決済後、05の一覧と06の詳細へ進みます。重複注文を防ぐため進行中の決済をセッションに保存します。",
+            "primary_label": "全体を見る（9,900ウォン）",
+            "primary_action": "start-payment",
+            "secondary_label": "入力し直す",
+            "secondary_action": "back-input",
+            "dock_label": "全体を見る（9,900ウォン）"
+      },
+      "payment_processing": {
+            "kicker": "決済中",
+            "title": "決済の確認を待っています",
+            "body": "新しい支払いを作らず、進行中の申請を復旧する。成功後、サーバーで権限を確認して全体の結果が開く。",
+            "primary_label": "進行状況を復元",
+            "primary_action": "restore-payment",
+            "secondary_label": "権限を確認して開く",
+            "secondary_action": "open-paid",
+            "dock_label": "進行状況を復元"
+      },
+      "entitled": {
+            "kicker": "権限の確認が完了",
+            "title": "全体の解説をすぐ開けます",
+            "body": "全文の読み解きをすぐ確認できる。",
+            "primary_label": "全体の解説を開く",
+            "primary_action": "open-paid",
+            "secondary_label": "無料結果をもう一度見る",
+            "secondary_action": "scroll-top",
+            "dock_label": "全体の解説を開く"
+      },
+      "payment_failed": {
+            "kicker": "決済の取り消し・失敗",
+            "title": "無料の結果はそのまま残っている",
+            "body": "決済の取消や失敗があっても、今見ている要約は消えません。再試行するか、入力の段階へ戻れます。",
+            "primary_label": "再試行",
+            "primary_action": "retry-payment",
+            "secondary_label": "入力し直す",
+            "secondary_action": "back-input",
+            "dock_label": "決済をもう一度試す"
+      },
+      "missing_report": {
+            "kicker": "入力値なし",
+            "title": "先に情報を入力してください",
+            "body": "URLから直接入ると無料要約のサンプルだけです。決済前に命式の基準とお金の悩みを入力してください。",
+            "primary_label": "02の入力へ戻る",
+            "primary_action": "back-input",
+            "secondary_label": "サンプルの要約を見ます",
+            "secondary_action": "scroll-top",
+            "dock_label": "02の入力へ戻る"
+      },
+      "no_entitlement": {
+            "kicker": "権限が未確認",
+            "title": "まだ全体の結果を開けません",
+            "body": "端末側の値だけで決済成功とは処理しません。サーバーで権限を確認すると全鑑定が開きます。",
+            "primary_label": "支払い状態を再確認",
+            "primary_action": "restore-payment",
+            "secondary_label": "無料結果をもう一度見る",
+            "secondary_action": "scroll-top",
+            "dock_label": "支払い状態を再確認"
+      }
+}</script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">[
+      {
+            "asset_key": "save-04-free-hero",
+            "filename": "assets/generated/save/04-free-hero.webp",
+            "role": "hero",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+            "reference_status": "selected",
+            "character_style_lock": [
+                  "緑の髪",
+                  "猫耳",
+                  "スーツ",
+                  "水彩の質感",
+                  "思慮深い表情"
+            ],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "お金が入って漏れる流れを見る、緑の猫耳スーツのキャラクター。画像内テキストなし。",
+            "alt": "お金が入る流れと漏れる流れを見る、緑の猫耳のスーツ姿",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": "[data-asset-key=\"save-04-free-hero\"]",
+            "delivery": "embedded_data_uri"
+      },
+      {
+            "asset_key": "save-04-signal-card",
+            "filename": "assets/generated/save/04-signal-card.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+            "reference_status": "selected",
+            "character_style_lock": [
+                  "緑の髪",
+                  "猫耳",
+                  "スーツ",
+                  "水彩の質感",
+                  "案内する表情"
+            ],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "関係と精算のあいだでお金が分かれる信号を説明するキャラクター。画像内テキストなし。",
+            "alt": "お金が関係と支出の間で分かれるサインを説明するキャラクター",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": "[data-asset-key=\"save-04-signal-card\"]",
+            "delivery": "embedded_data_uri"
+      },
+      {
+            "asset_key": "save-04-payment-cta",
+            "filename": "assets/generated/save/04-payment-cta.webp",
+            "role": "payment-cta",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+            "reference_status": "selected",
+            "character_style_lock": [
+                  "緑の髪",
+                  "猫耳",
+                  "スーツ",
+                  "水彩の質感",
+                  "全体のレポートの鍵"
+            ],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "お金の流れの全レポートを開く鍵を持つキャラクター。画像内に文字なし。",
+            "alt": "お金の流れの全レポートを開く鍵を持つ緑の猫耳スーツのキャラクター",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": "[data-asset-key=\"save-04-payment-cta\"]",
+            "delivery": "embedded_data_uri"
+      }
+]</script>
+    <script>
+      const STORAGE_KEYS = {
+        inputPayload: "umsh_save_step2_payload_v1",
+        interpretationIndex: "umsh_save_interpretation_index",
+        teaser: "umsh_save_step4_teaser_v1",
+        reportId: "umsh_save_report_id_v1",
+        entitlement: "umsh_save_entitlement_v1",
+        pendingPayment: "umsh_pending_payment_request_v1",
+        paymentStatus: "umsh_save_payment_status_v1",
+        returnTo: "umsh_common_auth_return_to_v1",
+      };
+
+      const SERVICE = readJsonBlock("PROMPT_INPUT");
+      const INTERPRETATION_INDEX = readJsonBlock("INTERPRETATION_INDEX");
+      const TEASER = readJsonBlock("TEASER_RESULT");
+      const CTA_STATES = readJsonBlock("CTA_STATES");
+      const IMAGE_MANIFEST = readJsonBlock("IMAGE_MANIFEST");
+
+      const inputSummary = document.querySelector("[data-input-summary]");
+      const oneLineAnswer = document.querySelector("[data-one-line-answer]");
+      const signalList = document.querySelector("[data-signal-list]");
+      const paidScope = document.querySelector("[data-paid-scope]");
+      const stateKicker = document.querySelector("[data-state-kicker]");
+      const stateTitle = document.querySelector("[data-state-title]");
+      const stateBody = document.querySelector("[data-state-body]");
+      const statePrimary = document.querySelector("[data-state-primary]");
+      const stateSecondary = document.querySelector("[data-state-secondary]");
+      const dockPrimary = document.querySelector("[data-action='dock-primary']");
+      const refundBox = document.querySelector("[data-refund-box]");
+      const toast = document.querySelector("[data-toast]");
+
+      let currentStateId = "anonymous";
+      let toastTimer = 0;
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        try {
+          return JSON.parse(node?.textContent || "{}");
+        } catch (_error) {
+          return {};
+        }
+      }
+
+      function readStoredJson(key) {
+        for (const storage of [sessionStorage, localStorage]) {
+          try {
+            const value = JSON.parse(storage.getItem(key) || "null");
+            if (value) return value;
+          } catch (_error) {
+            // Browser storage can be unavailable in some embedded contexts.
+          }
+        }
+        return null;
+      }
+
+      function writeSessionJson(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+          return true;
+        } catch (_error) {
+          return false;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function ensureReportId(payload) {
+        const existing = payload?.report_id || readStoredJson(STORAGE_KEYS.reportId);
+        if (existing) return String(existing);
+        const reportId = `save-${Date.now().toString(36)}`;
+        try {
+          sessionStorage.setItem(STORAGE_KEYS.reportId, reportId);
+        } catch (_error) {
+          // The visible result still works without a stored report id.
+        }
+        return reportId;
+      }
+
+      function activePayload() {
+        return readStoredJson(STORAGE_KEYS.inputPayload);
+      }
+
+      function activeIndex() {
+        const stored = readStoredJson(STORAGE_KEYS.interpretationIndex);
+        if (stored?.groups?.length) return stored;
+        return INTERPRETATION_INDEX;
+      }
+
+      function hasAuthSession() {
+        const hints = [
+          "umsh_auth_session_v1",
+          "cheongi_auth_device_session_started_at_v1",
+          "sb-auth-token",
+        ];
+        return hints.some((key) => {
+          try {
+            return Boolean(localStorage.getItem(key) || sessionStorage.getItem(key));
+          } catch (_error) {
+            return false;
+          }
+        });
+      }
+
+      function hasVerifiedEntitlement() {
+        const entitlement = readStoredJson(STORAGE_KEYS.entitlement);
+        return Boolean(
+          entitlement
+          && entitlement.service_key === SERVICE.service_key
+          && entitlement.status === "granted"
+          && entitlement.verified_by === "server"
+        );
+      }
+
+      function resolveInitialState(payload) {
+        const params = new URLSearchParams(location.search);
+        const payment = params.get("payment") || params.get("paymentStatus") || "";
+        if (!payload) return "missing_report";
+        if (hasVerifiedEntitlement()) return "entitled";
+        if (payment === "cancel" || payment === "failed" || payment === "fail") return "payment_failed";
+        if (payment === "processing") return "payment_processing";
+        const storedStatus = readStoredJson(STORAGE_KEYS.paymentStatus);
+        if (storedStatus?.status === "processing") return "payment_processing";
+        return hasAuthSession() ? "login_unpaid" : "anonymous";
+      }
+
+      function renderInputSummary(payload) {
+        if (!payload) {
+          inputSummary.textContent = "入力値が見つかりませんでした。無料要約はサンプルのまま残します。決済前なら02の入力段階に戻って作り直せます。";
+          return;
+        }
+        const birth = payload.birth || payload.profile || {};
+        const money = payload.money_context || {};
+        const name = payload.nickname || birth.nickname || "自分";
+        const income = money.incomeType || "収入の形が未選択";
+        const leak = money.leakPattern || "漏れるパターン未選択";
+        const goal = money.savingGoal || "貯蓄目標は未選択";
+        inputSummary.textContent = `${name}の基準は${income}、一番気になる点は${leak}、この解説の目標は${goal}だ。`;
+      }
+
+      function renderTeaser() {
+        oneLineAnswer.textContent = TEASER.summary;
+        signalList.innerHTML = TEASER.signals
+          .map((item) => `
+            <div class="signal">
+              <strong>${escapeHtml(item.title)}</strong>
+              <span>${escapeHtml(item.body)}</span>
+            </div>
+          `)
+          .join("");
+      }
+
+      function renderPaidScope() {
+        const groups = activeIndex().groups || [];
+        paidScope.innerHTML = groups
+          .map((group, index) => {
+            const sections = group.sections || [];
+            return `
+              \x3cdetails class="scope-item" ${index < 2 ? "open" : ""}>
+                \x3csummary>
+                  \x3cspan class="scope-title">
+                    \x3cstrong>${escapeHtml(group.title)}\x3c/strong>
+                    \x3cspan>${escapeHtml(group.summary || "細かい項目を開いて確認する。")}\x3c/span>
+                  \x3c/span>
+                  \x3cspan class="scope-count">${sections.length}個\x3c/span>
+                \x3c/summary>
+                \x3cdiv class="scope-body">
+                  \x3cdiv class="chip-list">
+                    ${sections.map((section) => `<span class="chip">${escapeHtml(section.title || section)}</span>`).join("")}
+                  \x3c/div>
+                \x3c/div>
+              \x3c/details>
+            `;
+          })
+          .join("");
+      }
+
+      function renderState(stateId) {
+        const state = CTA_STATES[stateId] || CTA_STATES.anonymous;
+        currentStateId = stateId;
+        stateKicker.textContent = state.kicker;
+        stateTitle.textContent = state.title;
+        stateBody.textContent = state.body;
+        statePrimary.textContent = state.primary_label;
+        statePrimary.dataset.action = state.primary_action;
+        stateSecondary.textContent = state.secondary_label;
+        stateSecondary.dataset.action = state.secondary_action;
+        dockPrimary.textContent = state.dock_label || state.primary_label;
+        dockPrimary.dataset.action = state.primary_action;
+      }
+
+      function rememberReturnTo() {
+        const returnTo = `${location.pathname}${location.search}#step-4-report`;
+        try {
+          sessionStorage.setItem(STORAGE_KEYS.returnTo, returnTo);
+        } catch (_error) {
+          // OAuth can still receive the return path in real service routing.
+        }
+        return returnTo;
+      }
+
+      function handleLogin() {
+        const returnTo = rememberReturnTo();
+        if (location.protocol === "file:") {
+          renderState("login_pending");
+          showToast("運用環境では共通ログインへ移動し、完了後にこの無料結果へ戻ります。");
+          return;
+        }
+        const url = new URL("/signup", location.origin);
+        url.searchParams.set("entry", SERVICE.service_key);
+        url.searchParams.set("returnTo", returnTo);
+        url.hash = "login";
+        location.assign(url.toString());
+      }
+
+      function startPayment() {
+        const payload = activePayload();
+        const reportId = ensureReportId(payload);
+        const request = {
+          service_key: SERVICE.service_key,
+          product_slug: SERVICE.service_slug,
+          report_id: reportId,
+          amount_krw: SERVICE.price_krw,
+          return_to: `${location.pathname}${location.search}#step-4-report`,
+          requested_at: new Date().toISOString(),
+        };
+        writeSessionJson(STORAGE_KEYS.pendingPayment, request);
+        writeSessionJson(STORAGE_KEYS.paymentStatus, { status: "processing", report_id: reportId, saved_at: Date.now() });
+        renderState("payment_processing");
+        if (location.protocol === "file:") {
+          showToast("決済依頼の情報をセッションに保管しました。運用の決済窓につなぐ前は、詳細結果を開きません。");
+          return;
+        }
+        const url = new URL("/payment", location.origin);
+        url.searchParams.set("product", SERVICE.service_key);
+        url.searchParams.set("reportId", reportId);
+        url.searchParams.set("returnTo", request.return_to);
+        location.assign(url.toString());
+      }
+
+      function openPaidReport() {
+        if (hasVerifiedEntitlement()) {
+          location.assign(SERVICE.next_route);
+          return;
+        }
+        renderState("no_entitlement");
+        showToast("全体の結果は、サーバーで閲覧権限が確認されてから開く。");
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
+      }
+
+      function persistTeaser(payload) {
+        const groups = activeIndex().groups || [];
+        writeSessionJson(STORAGE_KEYS.teaser, {
+          service: SERVICE,
+          teaser: TEASER,
+          paid_scope_preview: { source: "user_seed", groups },
+          report_id: ensureReportId(payload),
+          saved_at: new Date().toISOString(),
+        });
+      }
+
+      document.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        if (!action) return;
+        if (action === "login") handleLogin();
+        if (action === "start-payment") startPayment();
+        if (action === "restore-payment") renderState("payment_processing");
+        if (action === "open-paid") openPaidReport();
+        if (action === "retry-payment") renderState(hasAuthSession() ? "login_unpaid" : "anonymous");
+        if (action === "back-input") location.assign("../02-step-2-saju-input/index.html#step-2-saju-input");
+        if (action === "scroll-top") window.scrollTo({ top: 0, behavior: "smooth" });
+        if (action === "toggle-refund") refundBox.classList.toggle("is-open");
+      });
+
+      const payload = activePayload();
+      renderInputSummary(payload);
+      renderTeaser();
+      renderPaidScope();
+      persistTeaser(payload);
+      renderState(resolveInitialState(payload));
+
+      if (!IMAGE_MANIFEST.length) {
+        showToast("画像の接続情報を確認できなかった。");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/save-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

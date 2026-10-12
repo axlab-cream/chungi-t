@@ -1,0 +1,1486 @@
+<!DOCTYPE html><html lang="ko"><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>命式の入力 | 恋人は浮気する？</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="運命商会">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="運命商会 - 運命を売ります。">
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。">
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="四柱推命の相性、五行、日支を基準に関係の合図を見るための、自分と相手の命式の入力画面">
+    <meta name="application-name" content="運命商会">
+    <meta name="theme-color" content="#080303">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080303;
+        --surface: rgba(18, 7, 7, 0.92);
+        --surface-strong: rgba(32, 9, 10, 0.94);
+        --surface-soft: rgba(255, 255, 255, 0.055);
+        --line: rgba(235, 189, 101, 0.22);
+        --line-strong: rgba(235, 189, 101, 0.48);
+        --gold: #e9bf6a;
+        --gold-soft: #ffe4aa;
+        --red: #b31e24;
+        --red-deep: #52080b;
+        --teal: #76c6bf;
+        --text: #fff7ea;
+        --muted: rgba(255, 247, 234, 0.72);
+        --dim: rgba(255, 247, 234, 0.52);
+        --danger: #ff6b5f;
+        --ok: #8bd6ae;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+        --font-ui: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        min-height: 100%;
+        background: #000;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(circle at 50% -12rem, rgba(179, 30, 36, 0.22), transparent 33rem),
+          radial-gradient(circle at 10% 18rem, rgba(118, 198, 191, 0.08), transparent 20rem),
+          #000;
+        color: var(--text);
+        font-family: var(--font-ui);
+      }
+
+      body,
+      button,
+      input,
+      select,
+      textarea {
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background:
+          linear-gradient(180deg, rgba(97, 10, 13, 0.3), transparent 22rem),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        min-height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(235, 189, 101, 0.14);
+        background: rgba(8, 3, 3, 0.88);
+        backdrop-filter: blur(16px);
+      }
+
+      .back-link {
+        width: 38px;
+        height: 38px;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid rgba(235, 189, 101, 0.2);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .brand {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+      }
+
+      .brand strong {
+        overflow: hidden;
+        color: var(--gold-soft);
+        font-family: var(--font-title);
+        font-size: 18px;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand span {
+        color: var(--dim);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .top-pill {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        border: 1px solid rgba(235, 189, 101, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 12px;
+        font-weight: 950;
+        white-space: nowrap;
+      }
+
+      main {
+        padding: 16px 16px max(34px, env(safe-area-inset-bottom));
+      }
+
+      .hero {
+        position: relative;
+        min-height: 360px;
+        display: grid;
+        align-items: end;
+        overflow: hidden;
+        border: 1px solid rgba(235, 189, 101, 0.18);
+        border-radius: 8px;
+        background: #140706;
+      }
+
+      .hero :is(img, video) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.36) 42%, rgba(0, 0, 0, 0.92)),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.66), transparent 54%);
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+      }
+
+      .eyebrow,
+      .section-kicker {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 12ch;
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: clamp(31px, 9vw, 42px);
+        line-height: 1.12;
+      }
+
+      .hero p {
+        max-width: 25rem;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.65;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 12px 0 14px;
+      }
+
+      .summary-item {
+        min-width: 0;
+        min-height: 62px;
+        display: grid;
+        align-content: center;
+        gap: 5px;
+        padding: 10px 8px;
+        border: 1px solid rgba(235, 189, 101, 0.15);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .summary-item span {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .summary-item strong {
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .form-shell {
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel {
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(235, 189, 101, 0.17);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(179, 30, 36, 0.16), transparent 16rem),
+          rgba(13, 5, 5, 0.88);
+      }
+
+      .panel-head {
+        display: grid;
+        gap: 8px;
+      }
+
+      .panel h2 {
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: 24px;
+        line-height: 1.28;
+      }
+
+      .panel-head p,
+      .helper,
+      .fineprint {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .helper {
+        font-size: 13px;
+      }
+
+      .fineprint {
+        color: var(--dim);
+        font-size: 12px;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      label,
+      .choice-label {
+        color: var(--gold-soft);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 50px;
+        border: 1px solid rgba(255, 226, 175, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.065);
+        color: var(--text);
+        outline: none;
+      }
+
+      input,
+      select {
+        padding: 0 14px;
+      }
+
+      textarea {
+        min-height: 92px;
+        resize: vertical;
+        padding: 13px 14px;
+        line-height: 1.55;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 247, 234, 0.34);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: rgba(242, 191, 107, 0.8);
+        box-shadow: 0 0 0 3px rgba(242, 191, 107, 0.12);
+      }
+
+      input[aria-invalid="true"],
+      textarea[aria-invalid="true"] {
+        border-color: rgba(255, 107, 95, 0.9);
+        box-shadow:
+          0 0 0 3px rgba(255, 107, 95, 0.14),
+          inset 0 1px 10px rgba(0, 0, 0, 0.22);
+      }
+
+      select {
+        appearance: none;
+        background:
+          linear-gradient(45deg, transparent 50%, var(--gold-soft) 50%) right 18px center / 8px 8px no-repeat,
+          linear-gradient(135deg, var(--gold-soft) 50%, transparent 50%) right 12px center / 8px 8px no-repeat,
+          rgba(255, 255, 255, 0.065);
+      }
+
+      select option {
+        background: #fff8ee;
+        color: #24110e;
+      }
+
+      .field-error,
+      .group-error {
+        min-height: 18px;
+        color: var(--danger);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.45;
+      }
+
+      .choice-block {
+        display: grid;
+        gap: 8px;
+      }
+
+      .choice-grid {
+        display: grid;
+        gap: 8px;
+      }
+
+      .choice-grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .choice-grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .choice {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 11px;
+        border: 1px solid rgba(255, 226, 175, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .choice[aria-pressed="true"] {
+        border-color: rgba(242, 191, 107, 0.78);
+        background:
+          linear-gradient(180deg, rgba(179, 30, 36, 0.28), rgba(82, 8, 11, 0.34)),
+          rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        box-shadow: 0 0 0 1px rgba(242, 191, 107, 0.14) inset;
+      }
+
+      .profile-choice .choice {
+        justify-content: flex-start;
+        min-height: 64px;
+        text-align: left;
+      }
+
+      .choice strong,
+      .choice span {
+        display: block;
+      }
+
+      .choice span {
+        margin-top: 3px;
+        color: var(--dim);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .profile-preview {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(118, 198, 191, 0.22);
+        border-radius: 8px;
+        background: rgba(118, 198, 191, 0.08);
+      }
+
+      .profile-preview strong {
+        color: var(--ok);
+        font-size: 13px;
+      }
+
+      .profile-preview span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(235, 189, 101, 0.36), transparent);
+      }
+
+      .inline-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .is-hidden {
+        display: none !important;
+      }
+
+      .notice {
+        display: grid;
+        gap: 8px;
+        padding: 13px;
+        border: 1px solid rgba(235, 189, 101, 0.15);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .notice strong {
+        color: var(--gold-soft);
+        font-size: 13px;
+      }
+
+      .notice p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .status-line {
+        min-height: 22px;
+        color: var(--ok);
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.45;
+      }
+
+      .status-line.is-error {
+        color: var(--danger);
+      }
+
+      .actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 8;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        margin: 0 -16px;
+        padding: 12px 16px max(14px, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(235, 189, 101, 0.15);
+        background: rgba(8, 3, 3, 0.9);
+        backdrop-filter: blur(16px);
+      }
+
+      .ghost,
+      .primary {
+        min-height: 52px;
+        border-radius: 8px;
+        font-weight: 950;
+      }
+
+      .ghost {
+        border: 1px solid rgba(255, 226, 175, 0.17);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+      }
+
+      .primary {
+        border: 1px solid rgba(255, 225, 168, 0.38);
+        background: linear-gradient(180deg, #b31e24, #650d10);
+        color: #fff8e8;
+        box-shadow: 0 16px 34px rgba(105, 9, 12, 0.34);
+      }
+
+      .primary:disabled {
+        cursor: not-allowed;
+        opacity: 0.58;
+      }
+
+      .footer {
+        padding: 18px 2px 0;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 26px 0;
+        }
+
+        .app {
+          min-height: calc(100vh - 52px);
+          border: 1px solid rgba(235, 189, 101, 0.16);
+          border-radius: 18px;
+          overflow: clip;
+        }
+
+        .topbar {
+          border-radius: 18px 18px 0 0;
+        }
+      }
+
+      @media (max-width: 370px) {
+        .choice-grid.three {
+          grid-template-columns: 1fr;
+        }
+
+        .summary-grid,
+        .inline-row {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .choice,
+        .primary,
+        .ghost,
+        .back-link {
+          transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            background 160ms ease;
+        }
+
+        .choice:active,
+        .primary:active,
+        .ghost:active,
+        .back-link:active {
+          transform: translateY(1px);
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta,
+      body.umsh-has-chrome .sticky,
+      body.umsh-has-chrome .submit-dock { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .signal-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+      .signal-analysis-loading { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: rgba(5, 1, 2, .94); color: #fff7ea; text-align: center; }
+      .signal-analysis-loading__card { width: min(100%, 360px); padding: 28px 22px; border: 1px solid rgba(233, 191, 106, .48); border-radius: 18px; background: linear-gradient(155deg, rgba(81, 11, 16, .96), rgba(17, 7, 7, .98)); box-shadow: 0 24px 70px rgba(0, 0, 0, .55); }
+      .signal-analysis-loading__card span { color: #e9bf6a; font-size: 13px; font-weight: 800; }
+      .signal-analysis-loading__card h2 { margin: 12px 0 10px; font-size: 22px; line-height: 1.42; }
+      .signal-analysis-loading__card p { margin: 0; color: rgba(255, 247, 234, .74); font-size: 14px; line-height: 1.7; }
+      .signal-analysis-loading__bar { height: 4px; margin-top: 22px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+      .signal-analysis-loading__bar i { display: block; width: 42%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #e9bf6a, #ff7468); animation: signal-loading 1.2s ease-in-out infinite alternate; }
+      @keyframes signal-loading { to { transform: translateX(138%); } }
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
+      <link rel="stylesheet" href="/css/umsh-chrome.css">
+  </head>
+  <body class="umsh-fields">
+    <div class="app" data-umsh-chrome="" data-service="恋人は浮気する？" data-price="19,900 KRW" data-active="home">
+      <header class="appbar topbar">
+
+        <div class="brand">
+          <strong>恋人は浮気します？</strong>
+          <span>カップル相性・情報入力</span>
+        </div>
+        <span class="top-pill">19,900ウォン</span>
+      </header>
+
+      <main id="step-2-saju-input">
+        <section class="hero" aria-labelledby="input-title">
+          <img src="../assets/signal/videos/06-form-guide-poster.webp" alt="赤い衣装の相談者が、二人の関係の入力を準備している場面">
+          <div class="hero-copy">
+            <span class="eyebrow">二人のあいだで、変わった場面から拾いましょう</span>
+            <h1 id="input-title">最近変わったあの人。気持ちまで遠くなった？</h1>
+            <p>いつ返事が遅くなり、約束が変わった？二人の命式と並べ、不安だけを育てた場面から具体的に解く。</p>
+          </div>
+        </section>
+
+        <div class="summary-grid" aria-label="入力の案内">
+          <div class="summary-item">
+            <span>自分の情報</span>
+            <strong>保存した四柱推命の情報を使う</strong>
+          </div>
+          <div class="summary-item">
+            <span>相手の情報</span>
+            <strong>誕生日で比べる</strong>
+          </div>
+          <div class="summary-item">
+            <span>今の悩み</span>
+            <strong>直接書いて反映</strong>
+          </div>
+        </div>
+
+        <form class="form-shell" id="signalForm" novalidate="">
+          <section class="panel" aria-labelledby="profile-title">
+            <div class="panel-head">
+              <span class="section-kicker">MY PROFILE</span>
+              <h2 id="profile-title">自分はどう愛情を確かめる？</h2>
+              <p>保存した四柱推命の情報があれば、そのまま続ける。別の生年月日で見たいときだけ、自分で入力してね。</p>
+            </div>
+
+            <div class="choice-block">
+              <span class="choice-label" id="profile-mode-label">入力方法</span>
+              <div class="choice-grid profile-choice" role="group" aria-labelledby="profile-mode-label">
+                <button class="choice" type="button" data-choice="profileMode" data-value="saved" aria-pressed="false">
+                  <span><strong>自分の基本の四柱推命情報を使う</strong><span>ログイン中のアカウントの保存情報で続ける</span></span>
+                </button>
+                <button class="choice" type="button" data-choice="profileMode" data-value="manual" aria-pressed="true">
+                  <span><strong>直接入力</strong><span>別の四柱推命や新しい情報で確認</span></span>
+                </button>
+              </div>
+              <div class="group-error" data-error-for="profileMode" aria-live="polite"></div>
+            </div>
+
+            <div class="profile-preview is-hidden" data-profile-preview="">
+              <strong>保存した基本の命式で見る</strong>
+              <span data-profile-summary="">アカウントに基本の命式があればここで聞き直さない。</span>
+            </div>
+
+            <div class="field-grid" data-self-fields="">
+              <div class="field">
+                <label for="selfAlias">自分の呼び名 <span class="fineprint">選択</span></label>
+                <input id="selfAlias" name="selfAlias" type="text" placeholder="例: 私、ミンジ" autocomplete="off">
+                <p class="helper">読みで呼ぶ名前です。楽な呼び方で書いてください。</p>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="self-gender-label">自分の性別</span>
+                <div class="choice-grid two" role="group" aria-labelledby="self-gender-label">
+                  <button class="choice" type="button" data-choice="selfGender" data-value="female" aria-pressed="false">女性</button>
+                  <button class="choice" type="button" data-choice="selfGender" data-value="male" aria-pressed="false">男性</button>
+                </div>
+                <p class="helper">愛情を表し受け取る方法を見る時に必要だ。</p>
+                <div class="group-error" data-error-for="selfGender" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="self-calendar-label">自分の誕生日を基準に</span>
+                <div class="choice-grid two" role="group" aria-labelledby="self-calendar-label">
+                  <button class="choice" type="button" data-choice="selfCalendar" data-value="solar" aria-pressed="true">陽暦</button>
+                  <button class="choice" type="button" data-choice="selfCalendar" data-value="lunar" aria-pressed="false">陰暦</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="selfBirth">自分の生年月日</label>
+                <input id="selfBirth" name="selfBirth" type="date" min="1900-01-01" autocomplete="bday" aria-describedby="selfBirth-error">
+                <div class="field-error" id="selfBirth-error" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="self-time-label">自分の出生時刻</span>
+                <div class="choice-grid two" role="group" aria-labelledby="self-time-label">
+                  <button class="choice" type="button" data-choice="selfTimeKnown" data-value="true" aria-pressed="false">出生時刻を入力</button>
+                  <button class="choice" type="button" data-choice="selfTimeKnown" data-value="false" aria-pressed="true">出生時刻不明</button>
+                </div>
+              </div>
+
+              <div class="field is-hidden" data-time-field="self">
+                <label for="selfTime">自分の出生時刻</label>
+                <input id="selfTime" name="selfTime" type="time" step="60" aria-describedby="selfTime-error">
+                <div class="field-error" id="selfTime-error" aria-live="polite"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="partner-title">
+            <div class="panel-head">
+              <span class="section-kicker">PARTNER</span>
+              <h2 id="partner-title">あの人は、どのように気持ちを表す？</h2>
+              <p>相手の生年月日で、愛情表現の速さと近づくときの反応を見る。自分との違いを比べよう。</p>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="partnerAlias">相手の呼び方 <span class="fineprint">選択</span></label>
+                <input id="partnerAlias" name="partnerAlias" type="text" placeholder="例：恋人、その人" autocomplete="off">
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="relationship-label">今の関係</span>
+                <div class="choice-grid two" role="group" aria-labelledby="relationship-label">
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="lover" aria-pressed="true">交際中</button>
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="situationship" aria-pressed="false">友達以上・曖昧な関係</button>
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="distance" aria-pressed="false">距離を置いた状態</button>
+                  <button class="choice" type="button" data-choice="relationshipStatus" data-value="ex_variable" aria-pressed="false">元恋人という要素</button>
+                </div>
+                <div class="group-error" data-error-for="relationshipStatus" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="partner-gender-label">相手の性別</span>
+                <div class="choice-grid two" role="group" aria-labelledby="partner-gender-label">
+                  <button class="choice" type="button" data-choice="partnerGender" data-value="female" aria-pressed="false">女性</button>
+                  <button class="choice" type="button" data-choice="partnerGender" data-value="male" aria-pressed="false">男性</button>
+                </div>
+                <div class="group-error" data-error-for="partnerGender" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="partner-calendar-label">相手の誕生日基準</span>
+                <div class="choice-grid two" role="group" aria-labelledby="partner-calendar-label">
+                  <button class="choice" type="button" data-choice="partnerCalendar" data-value="solar" aria-pressed="true">陽暦</button>
+                  <button class="choice" type="button" data-choice="partnerCalendar" data-value="lunar" aria-pressed="false">陰暦</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="partnerBirth">相手の生年月日</label>
+                <input id="partnerBirth" name="partnerBirth" type="date" min="1900-01-01" autocomplete="off" aria-describedby="partnerBirth-help partnerBirth-error">
+                <p class="helper" id="partnerBirth-help">愛情をやり取りする方式と近づく速度、両方を一緒に見るために必要です。</p>
+                <div class="field-error" id="partnerBirth-error" aria-live="polite"></div>
+              </div>
+
+              <div class="choice-block">
+                <span class="choice-label" id="partner-time-label">相手の生まれた時間</span>
+                <div class="choice-grid two" role="group" aria-labelledby="partner-time-label">
+                  <button class="choice" type="button" data-choice="partnerTimeKnown" data-value="true" aria-pressed="false">出生時刻を入力</button>
+                  <button class="choice" type="button" data-choice="partnerTimeKnown" data-value="false" aria-pressed="true">出生時刻不明</button>
+                </div>
+              </div>
+
+              <div class="field is-hidden" data-time-field="partner">
+                <label for="partnerTime">相手の生まれた時間</label>
+                <input id="partnerTime" name="partnerTime" type="time" step="60" aria-describedby="partnerTime-error">
+                <div class="field-error" id="partnerTime-error" aria-live="polite"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="focus-title">
+            <div class="panel-head">
+              <span class="section-kicker">SIGNAL</span>
+              <h2 id="focus-title">気になった場面を一つだけ選んで</h2>
+              <p>返信が遅れた日だった？急に先延ばしになった約束だった？実際に変わったと感じた瞬間から見ていこう。</p>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="signalFocus">先に見たいところ</label>
+                <select id="signalFocus" name="signalFocus">
+                  <option value="contact_change">連絡のテンションの変化</option>
+                  <option value="schedule_change">約束の変更が増えた</option>
+                  <option value="sns_group">SNS・集まりの変数</option>
+                  <option value="ex_return">元恋人が再び現れた感じ</option>
+                  <option value="cold_mood">表現が冷めた感じ</option>
+                  <option value="not_sure">まだよくわからない</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="concern">最近、変わったと感じた場面 <span class="fineprint">選択</span></label>
+                <textarea id="concern" name="concern" maxlength="120" placeholder="例: 最近、返信が遅く、約束をよく先延ばしにする" aria-describedby="concern-help"></textarea>
+                <p class="helper" id="concern-help">最近変わったと感じる場面を書こう。最初の無料の読みから、この悩みを中心に見ていこう。</p>
+              </div>
+            </div>
+
+            <div class="notice">
+              <strong>一つの場面より、繰り返す態度を見よう</strong>
+              <p>一度遅れた返信ではなく、説明なく繰り返す連絡の変化はどうだった？ 約束を延ばした後の態度など、心に残ることを思い出そう。</p>
+            </div>
+          </section>
+
+          <div class="status-line" data-form-status="" aria-live="polite"></div>
+
+          <div class="actions">
+            <button class="ghost" type="button" data-back="">前へ</button>
+            <button class="primary" type="submit">二人の関係の最初の解釈を見る</button>
+          </div>
+        </form>
+
+        <footer class="footer">
+          入力した名前と生年月日は二人の関係の読みを作るためだけに使い、共有するアドレスには表示しません。
+        </footer>
+      </main>
+    </div>
+
+    <script src="../signal-video.js"></script>
+    <script>
+      const schemaVersion = "couple-signal-input-v1";
+      const serviceState = {
+        service_key: "couple_signal",
+        service_slug: "couple-signal",
+        service_title: "恋人は浮気する？",
+        category: "カップル相性",
+        subcategory: "恋人は浮気する？",
+        price_krw: 19900,
+        analysis_basis: ["四柱推命の相性", "五行", "日支"],
+        analysis_period: "今の流れと近い時期",
+        target_question: "関係で確認された変化と、互いに合意した境界線を見たい。",
+        report_version: "couple-signal-v1",
+        copy_version: "input-red-v1"
+      };
+
+      const interpretationIndex = [
+        { id: "relationship_temperature", title: "今の私たちの関係の温度", items: ["本物の愛が続く見込み", "少し倦怠期かも", "連絡の温度感の変化", "デートのエネルギーの変化"] },
+        { id: "partner_signal_radar", title: "関係の外の活動と合意した境界", items: ["桃花・紅艶による魅力のサイン", "注目されるのが好きなタイプ", "不快な状況で守る境界", "関係の境界線を確認する場面"] },
+        { id: "switch_flirt_check", title: "新しい接点と、関係への意向", items: ["新しい出会いへの合意", "SNS・集まりの変数", "過去の関係に対する今の基準"] },
+        { id: "partner_palace_signal", title: "夫妻宮・恋人宮のサイン", items: ["夫妻宮の冲・合・刑・破・害チェック", "怨嗔の反りポイント。", "関係を近づける構造と遠ざける構造"] },
+        { id: "ten_gods_love_style", title: "十神で見る恋愛スタイル", items: ["傷官", "偏財", "正財", "正官", "偏印", "正印"] },
+        { id: "compatibility_chemistry", title: "相性の分析", items: ["天干の相性。", "地支の相性", "五行の相生", "五行の相克", "意思疎通が得意な型"] },
+        { id: "timing_flow", title: "時期ごとの揺れ", items: ["大運", "歳運", "月運", "日辰", "初め", "中盤", "末期"] },
+        { id: "anxiety_source", title: "不安の原因の解釈", items: ["直感が合っているのか、不安なのか", "執着ボタンが押された理由", "会話が減った本当の理由"] },
+        { id: "reality_check_action", title: "現実確認の行動。", items: ["問い詰めず、確認の質問", "連絡パターンのチェックリスト", "会話の時機の提案", "関係を修復するための一言"] },
+        { id: "final_conclusion_type", title: "最終レポートの結論タイプ。", items: ["安心の可能性", "様子を見る見込み", "対話のタイミング", "境界を置く判断", "整理の時", "再確認のタイミング"] }
+      ];
+
+      const storageKeys = {
+        service: "umsh:service:couple_signal",
+        draft: "umsh:input:couple_signal",
+        reportInput: "umsh:report-input:couple_signal",
+        authReturn: "umsh:auth:return:couple_signal",
+        legacyBirth: "cheongi_birth",
+        cachedProfile: "cheongi_user_birth_profile_v1"
+      };
+
+      const state = {
+        profileMode: "manual",
+        selfAlias: "",
+        selfGender: "",
+        selfCalendar: "solar",
+        selfBirth: "",
+        selfTimeKnown: false,
+        selfTime: "",
+        partnerAlias: "",
+        relationshipStatus: "lover",
+        partnerGender: "",
+        partnerCalendar: "solar",
+        partnerBirth: "",
+        partnerTimeKnown: false,
+        partnerTime: "",
+        signalFocus: "contact_change",
+        concern: ""
+      };
+
+      const labels = {
+        female: "女性",
+        male: "男性",
+        solar: "陽暦",
+        lunar: "陰暦",
+        lover: "交際中",
+        situationship: "ときめき・曖昧さ",
+        distance: "距離を置いている",
+        ex_variable: "元恋人の変数"
+      };
+
+      const form = document.querySelector("#signalForm");
+      const statusLine = document.querySelector("[data-form-status]");
+      let cachedProfile = readCachedProfile();
+
+      function readJson(storage, key) {
+        try {
+          const value = storage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function writeSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function readCachedProfile() {
+        const sessionBirth = readJson(sessionStorage, storageKeys.legacyBirth);
+        if (sessionBirth?.year && sessionBirth?.month && sessionBirth?.day) {
+          return {
+            source: "session",
+            name: sessionBirth.name || "",
+            birth: sessionBirth,
+            birthTimeKnown: sessionBirth.birthTimeKnown !== false
+          };
+        }
+
+        const profile = readJson(localStorage, storageKeys.cachedProfile);
+        if (profile?.birth?.year && profile?.birth?.month && profile?.birth?.day) {
+          return {
+            source: "account_cache",
+            name: profile.name || "",
+            birth: profile.birth,
+            birthTimeKnown: profile.birthTimeKnown !== false
+          };
+        }
+
+        return null;
+      }
+
+      function normalizeBirthDigits(value) {
+        return String(value || "").replace(/\D/g, "").slice(0, 8);
+      }
+
+      /** 날짜 컨트롤은 1998-03-15 만 받고, 저장된 값은 19980315 로 남아 있다. */
+      function toDateInput(value) {
+        const digits = normalizeBirthDigits(value);
+        if (digits.length !== 8) return "";
+        return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+      }
+
+      function formatBirthLabel(value) {
+        const digits = normalizeBirthDigits(value);
+        if (digits.length !== 8) return value || "生年月日が未入力";
+        return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
+      }
+
+      function profileBirthString(profile) {
+        const birth = profile?.birth || {};
+        if (!birth.year || !birth.month || !birth.day) return "";
+        return `${birth.year}${String(birth.month).padStart(2, "0")}${String(birth.day).padStart(2, "0")}`;
+      }
+
+      function profileSummary(profile) {
+        if (!profile) return "保存した基本の四柱推命の情報はまだない。直接入力して進めてね。";
+        const birth = profile.birth || {};
+        const calendar = birth.calendar === "lunar" ? "陰暦" : "陽暦";
+        const gender = birth.gender === "female" ? "여성" : birth.gender === "male" ? "남성" : "성별 저장됨";
+        const time = profile.birthTimeKnown === false ? "出生時刻は不明" : `${String(birth.hour ?? 0).padStart(2, "0")}:${String(birth.minute ?? 0).padStart(2, "0")}`;
+        return `${profile.name ? `${profile.name} · ` : ""}${gender} · ${calendar} ${formatBirthLabel(profileBirthString(profile))} · ${time}`;
+      }
+
+      function restoreDraft() {
+        const draft = readJson(sessionStorage, storageKeys.draft);
+        if (!draft || draft.schema_version !== schemaVersion || draft.service_key !== serviceState.service_key) return false;
+        Object.assign(state, {
+          profileMode: draft.profileMode || state.profileMode,
+          selfAlias: draft.selfAlias || "",
+          selfGender: draft.selfGender || "",
+          selfCalendar: draft.selfCalendar || "solar",
+          selfBirth: draft.selfBirth || "",
+          selfTimeKnown: draft.selfTimeKnown === true,
+          selfTime: draft.selfTime || "",
+          partnerAlias: draft.partnerAlias || "",
+          relationshipStatus: draft.relationshipStatus || "lover",
+          partnerGender: draft.partnerGender || "",
+          partnerCalendar: draft.partnerCalendar || "solar",
+          partnerBirth: draft.partnerBirth || "",
+          partnerTimeKnown: draft.partnerTimeKnown === true,
+          partnerTime: draft.partnerTime || "",
+          signalFocus: draft.signalFocus || "contact_change",
+          concern: draft.concern || ""
+        });
+        return true;
+      }
+
+      function syncInputsFromState() {
+        const setValue = (id, value) => {
+          const target = document.querySelector(`#${id}`);
+          if (target) target.value = value || "";
+        };
+
+        setValue("selfAlias", state.selfAlias);
+        setValue("selfBirth", toDateInput(state.selfBirth));
+        setValue("selfTime", state.selfTime);
+        setValue("partnerAlias", state.partnerAlias);
+        setValue("partnerBirth", toDateInput(state.partnerBirth));
+        setValue("partnerTime", state.partnerTime);
+        setValue("signalFocus", state.signalFocus);
+        setValue("concern", state.concern);
+        renderChoices();
+        renderConditionalBlocks();
+      }
+
+      function collectTextInputs() {
+        const value = (id) => document.querySelector(`#${id}`)?.value.trim() || "";
+        state.selfAlias = value("selfAlias");
+        state.selfBirth = normalizeBirthDigits(value("selfBirth"));
+        state.selfTime = normalizeTime(value("selfTime"));
+        state.partnerAlias = value("partnerAlias");
+        state.partnerBirth = normalizeBirthDigits(value("partnerBirth"));
+        state.partnerTime = normalizeTime(value("partnerTime"));
+        state.signalFocus = document.querySelector("#signalFocus")?.value || state.signalFocus;
+        state.concern = value("concern").slice(0, 120);
+      }
+
+      function persistDraft() {
+        collectTextInputs();
+        writeSession(storageKeys.draft, {
+          schema_version: schemaVersion,
+          service_key: serviceState.service_key,
+          profileMode: state.profileMode,
+          selfAlias: state.selfAlias,
+          selfGender: state.selfGender,
+          selfCalendar: state.selfCalendar,
+          selfBirth: state.selfBirth,
+          selfTimeKnown: state.selfTimeKnown,
+          selfTime: state.selfTime,
+          partnerAlias: state.partnerAlias,
+          relationshipStatus: state.relationshipStatus,
+          partnerGender: state.partnerGender,
+          partnerCalendar: state.partnerCalendar,
+          partnerBirth: state.partnerBirth,
+          partnerTimeKnown: state.partnerTimeKnown,
+          partnerTime: state.partnerTime,
+          signalFocus: state.signalFocus,
+          concern: state.concern
+        });
+      }
+
+      function renderChoices() {
+        document.querySelectorAll("[data-choice]").forEach((button) => {
+          const key = button.dataset.choice;
+          const value = parseChoiceValue(button.dataset.value);
+          const selected = state[key] === value;
+          button.setAttribute("aria-pressed", String(selected));
+        });
+      }
+
+      function renderConditionalBlocks() {
+        const selfFields = document.querySelector("[data-self-fields]");
+        const profilePreview = document.querySelector("[data-profile-preview]");
+        const profileSummaryEl = document.querySelector("[data-profile-summary]");
+        const useSaved = state.profileMode === "saved" && cachedProfile;
+
+        selfFields?.classList.toggle("is-hidden", useSaved);
+        profilePreview?.classList.toggle("is-hidden", !useSaved);
+        if (profileSummaryEl) profileSummaryEl.textContent = profileSummary(cachedProfile);
+
+        document.querySelector("[data-time-field='self']")?.classList.toggle("is-hidden", !state.selfTimeKnown || useSaved);
+        document.querySelector("[data-time-field='partner']")?.classList.toggle("is-hidden", !state.partnerTimeKnown);
+      }
+
+      function parseChoiceValue(value) {
+        if (value === "true") return true;
+        if (value === "false") return false;
+        return value;
+      }
+
+      function setGroupError(key, message) {
+        const target = document.querySelector(`[data-error-for="${key}"]`);
+        if (target) target.textContent = message || "";
+      }
+
+      function setFieldError(id, message) {
+        const input = document.querySelector(`#${id}`);
+        const error = document.querySelector(`#${id}-error`);
+        if (input) {
+          input.setAttribute("aria-invalid", "true");
+          input.focus({ preventScroll: false });
+        }
+        if (error) error.textContent = message || "";
+      }
+
+      function clearFieldError(id) {
+        const input = document.querySelector(`#${id}`);
+        const error = document.querySelector(`#${id}-error`);
+        input?.removeAttribute("aria-invalid");
+        if (error) error.textContent = "";
+      }
+
+      function clearErrors() {
+        document.querySelectorAll("[aria-invalid='true']").forEach((input) => input.removeAttribute("aria-invalid"));
+        document.querySelectorAll(".field-error, .group-error").forEach((node) => {
+          node.textContent = "";
+        });
+      }
+
+      function showStatus(message, type = "ok") {
+        statusLine.textContent = message || "";
+        statusLine.classList.toggle("is-error", type === "error");
+      }
+
+      function validateBirth(value, ownerLabel) {
+        const birth = normalizeBirthDigits(value);
+        if (!birth) return `${ownerLabel}の生年月日を入力してください。`;
+        if (!/^\d{8}$/.test(birth)) return `${ownerLabel}の生年月日は数字8桁で入れて。`;
+
+        const year = Number(birth.slice(0, 4));
+        const month = Number(birth.slice(4, 6));
+        const day = Number(birth.slice(6, 8));
+        const date = new Date(year, month - 1, day);
+        const isValidDate =
+          date.getFullYear() === year &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day;
+
+        if (!isValidDate) return `${ownerLabel}の生年月日に、存在しない日付が入った。`;
+        if (year < 1900 || year > new Date().getFullYear()) return `${ownerLabel}の生年月日の年を再確認してください。`;
+        return "";
+      }
+
+      function normalizeTime(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
+        if (!match) return raw;
+        return `${String(Number(match[1])).padStart(2, "0")}:${String(Number(match[2] || 0)).padStart(2, "0")}`;
+      }
+
+      function validateTime(value, ownerLabel) {
+        const raw = String(value || "").trim();
+        if (!raw) return `${ownerLabel}の出生時刻を入力するか、「出生時刻不明」を選んでください。`;
+        const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
+        if (!match) return `${ownerLabel}の出生時刻は13:30のように入力してください。`;
+        const hour = Number(match[1]);
+        const minute = Number(match[2] || 0);
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return `${ownerLabel} 出生時刻は00:00から23:59の間で入力しよう。`;
+        return "";
+      }
+
+      function validateForm() {
+        clearErrors();
+        collectTextInputs();
+
+        if (state.profileMode === "saved" && !cachedProfile) {
+          setGroupError("profileMode", "保存済みの基本四柱推命がない。直接入力に切り替えてください。");
+          showStatus("自分の情報の入力方法から確認してください。", "error");
+          document.querySelector("[data-choice='profileMode'][data-value='manual']")?.focus();
+          return false;
+        }
+
+        if (state.profileMode !== "saved") {
+          if (!state.selfGender) {
+            setGroupError("selfGender", "自分の性別を選ぼう。");
+            document.querySelector("[data-choice='selfGender']")?.focus();
+            showStatus("自分の情報に不足する項目があります。", "error");
+            return false;
+          }
+
+          const selfBirthError = validateBirth(state.selfBirth, "自分の");
+          if (selfBirthError) {
+            setFieldError("selfBirth", selfBirthError);
+            showStatus("自分の生年月日をもう一度確認してください。", "error");
+            return false;
+          }
+
+          if (state.selfTimeKnown) {
+            const selfTimeError = validateTime(state.selfTime, "自分の");
+            if (selfTimeError) {
+              setFieldError("selfTime", selfTimeError);
+              showStatus("生まれた時刻をもう一度確認してください。", "error");
+              return false;
+            }
+          }
+        }
+
+        if (!state.relationshipStatus) {
+          setGroupError("relationshipStatus", "今の関係を選んで。");
+          showStatus("相手の情報に未入力の項目があります。", "error");
+          return false;
+        }
+
+        if (!state.partnerGender) {
+          setGroupError("partnerGender", "相手の性別を選んでね。");
+          document.querySelector("[data-choice='partnerGender']")?.focus();
+          showStatus("相手の情報に未入力の項目があります。", "error");
+          return false;
+        }
+
+        const partnerBirthError = validateBirth(state.partnerBirth, "相手");
+        if (partnerBirthError) {
+          setFieldError("partnerBirth", partnerBirthError);
+          showStatus("相手の生年月日をもう一度確認して。", "error");
+          return false;
+        }
+
+        if (state.partnerTimeKnown) {
+          const partnerTimeError = validateTime(state.partnerTime, "相手");
+          if (partnerTimeError) {
+            setFieldError("partnerTime", partnerTimeError);
+            showStatus("相手の出生時刻を確認してください。", "error");
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function birthParts(value) {
+        const digits = normalizeBirthDigits(value);
+        return {
+          raw: digits,
+          year: Number(digits.slice(0, 4)),
+          month: Number(digits.slice(4, 6)),
+          day: Number(digits.slice(6, 8))
+        };
+      }
+
+      function profilePayload(profile) {
+        const birth = profile.birth || {};
+        return {
+          source: "saved_profile",
+          alias: profile.name || "自分",
+          gender: birth.gender || "",
+          calendar: birth.calendar || "solar",
+          birth: {
+            raw: profileBirthString(profile),
+            year: Number(birth.year),
+            month: Number(birth.month),
+            day: Number(birth.day)
+          },
+          birth_time_known: profile.birthTimeKnown !== false,
+          time: profile.birthTimeKnown === false
+            ? ""
+            : `${String(birth.hour ?? 0).padStart(2, "0")}:${String(birth.minute ?? 0).padStart(2, "0")}`
+        };
+      }
+
+      function buildPayload() {
+        const self = state.profileMode === "saved" && cachedProfile
+          ? profilePayload(cachedProfile)
+          : {
+              source: "manual",
+              alias: state.selfAlias || "自分",
+              gender: state.selfGender,
+              calendar: state.selfCalendar,
+              birth: birthParts(state.selfBirth),
+              birth_time_known: state.selfTimeKnown,
+              time: state.selfTimeKnown ? normalizeTime(state.selfTime) : ""
+            };
+
+        return {
+          service: serviceState,
+          schema_version: schemaVersion,
+          subject_mode: "pair",
+          submitted_at: new Date().toISOString(),
+          input: {
+            self,
+            partner: {
+              source: "manual_partner",
+              alias: state.partnerAlias || "相手",
+              relationship_status: state.relationshipStatus,
+              relationship_label: labels[state.relationshipStatus] || state.relationshipStatus,
+              gender: state.partnerGender,
+              calendar: state.partnerCalendar,
+              birth: birthParts(state.partnerBirth),
+              birth_time_known: state.partnerTimeKnown,
+              time: state.partnerTimeKnown ? normalizeTime(state.partnerTime) : ""
+            },
+            signal_focus: state.signalFocus,
+            concern: state.concern || "",
+            analysis_basis: serviceState.analysis_basis,
+            required_calculated_facts: [
+              "self_day_branch",
+              "partner_day_branch",
+              "five_element_relation",
+              "day_branch_relation",
+              "relationship_star_context"
+            ],
+            safety_contract: {
+              no_deterministic_cheating_claim: true,
+              partner_missing_not_filled_from_self: true,
+              price_is_not_entitlement: true
+            }
+          },
+          interpretation_index: interpretationIndex
+        };
+      }
+
+      async function continueToReport() {
+        const payload = buildPayload();
+        const nextRoute = "../04-step-4-report/index.html";
+        const params = new URLSearchParams(window.location.search);
+        params.set("service_key", serviceState.service_key);
+        params.set("service_slug", serviceState.service_slug);
+        params.set("report_version", serviceState.report_version);
+        params.set("input_schema_version", schemaVersion);
+        params.set("entry", "step-2-saju-input");
+        params.delete("selfBirth");
+        params.delete("partnerBirth");
+        params.delete("name");
+
+        writeSession(storageKeys.service, {
+          service_key: serviceState.service_key,
+          service_slug: serviceState.service_slug,
+          category: serviceState.category,
+          report_version: serviceState.report_version,
+          entry: "step-2-saju-input"
+        });
+
+        writeSession(storageKeys.authReturn, {
+          service_key: serviceState.service_key,
+          schema_version: schemaVersion,
+          flow_step: "step-2-saju-input",
+          next_route: "../04-step-4-report/index.html#step-4-report",
+          return_hash: "step-4-report",
+          contains_personal_values: false
+        });
+
+        if (!writeSession(storageKeys.reportInput, payload)) {
+          showStatus("ブラウザーの保存領域が不足しています。入力画面を開いたまま、もう一度お試しください。", "error");
+          const submit = form.querySelector('[type="submit"]');
+          if (submit) submit.disabled = false;
+          return;
+        }
+
+        if (!window.UMSHSignalService?.createPreviewFromInput) {
+          showStatus("無料解釈の接続を読み込めませんでした。入力は残しているため、少し後で押してください。", "error");
+          const submit = form.querySelector('[type="submit"]');
+          if (submit) submit.disabled = false;
+          return;
+        }
+
+        try {
+          await window.UMSHSignalService.createPreviewFromInput(payload);
+        } catch (error) {
+          document.querySelector("[data-signal-loading]")?.remove();
+          showStatus(error?.message || "無料の読みを準備できなかった。少ししてからもう一度押そう。", "error");
+          const submit = form.querySelector('[type="submit"]');
+          if (submit) submit.disabled = false;
+        }
+      }
+
+      document.querySelector("[data-back]")?.addEventListener("click", () => {
+        window.location.href = "../01-step-1-story/index.html#step-1-story";
+      });
+
+      document.querySelectorAll("[data-choice]").forEach((button) => {
+        button.addEventListener("click", () => {
+          collectTextInputs();
+          const key = button.dataset.choice;
+          const value = parseChoiceValue(button.dataset.value);
+          state[key] = value;
+
+          if (key === "profileMode" && value === "saved" && !cachedProfile) {
+            state.profileMode = "manual";
+            setGroupError("profileMode", "保存した基本の四柱推命のプロフィールがない。直接入力で進めてね。");
+            showStatus("直接入力に切り替えました。", "error");
+          } else {
+            setGroupError(key, "");
+            showStatus("");
+          }
+
+          renderChoices();
+          renderConditionalBlocks();
+          persistDraft();
+        });
+      });
+
+      form.addEventListener("input", (event) => {
+        const id = event.target?.id;
+        if (id) clearFieldError(id);
+        persistDraft();
+      });
+
+      form.addEventListener("change", () => {
+        persistDraft();
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!validateForm()) return;
+        persistDraft();
+        const submit = form.querySelector('[type="submit"]');
+        if (submit) submit.disabled = true;
+        showStatus("二人の情報と、今気になる場面を一緒に読んでいる。");
+        await continueToReport();
+      });
+
+      const restored = restoreDraft();
+      if (!restored && cachedProfile) {
+        state.profileMode = "saved";
+      }
+      syncInputsFromState();
+
+      const query = new URLSearchParams(window.location.search);
+      if (query.get("authReturn") === "1") {
+        showStatus("ログイン後に入力へ戻りました。確認して続けられます。");
+      } else if (restored) {
+        showStatus("入力途中の値を戻した。");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/signal-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

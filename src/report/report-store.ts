@@ -151,6 +151,10 @@ function birthKey(birth: BirthInput): Record<string, unknown> {
     gender: birth.gender,
     calendar: birth.calendar,
     isLeapMonth: birth.isLeapMonth ?? false,
+    // Existing omitted/named-Seoul inputs retain their historical Korean IDs.
+    ...(birth.birthTimeZone && birth.birthTimeZone !== 'Asia/Seoul'
+      ? { birthTimeZone: birth.birthTimeZone, ...(birth.birthTimeDisambiguation ? { birthTimeDisambiguation: birth.birthTimeDisambiguation } : {}) }
+      : {}),
   }
 }
 

@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>会社を移ってもいい？ | 運命商会</title>
+  <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+       og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="運命商会" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="運命商会 - 運命を売ります。" />
+  <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+  <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta name="description" content="大運・歳運・官星の流れで今の転職と現実の条件を一緒に点検する転職運サービスです。">
+  <style>
+    :root {
+      --bg: #130b0c;
+      --bg-2: #241012;
+      --ink: #fff8ef;
+      --muted: #d9c6b7;
+      --soft: #b99477;
+      --red: #8e171b;
+      --red-2: #c8322e;
+      --gold: #d8a94f;
+      --mint: #8bb6a8;
+      --panel: #211416;
+      --line: rgba(255, 230, 188, .18);
+      --shadow: 0 24px 60px rgba(0, 0, 0, .42);
+      color-scheme: dark;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(200, 50, 46, .18), transparent 34rem), var(--bg);
+      color: var(--ink);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      width: min(100%, 440px);
+      margin: 0 auto;
+      min-height: 100svh;
+      background: linear-gradient(180deg, rgba(36, 16, 18, .94), rgba(19, 11, 12, 1) 52%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 88svh;
+      padding: 24px 22px calc(92px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(19, 11, 12, .06) 0%, rgba(19, 11, 12, .18) 38%, rgba(19, 11, 12, .78) 72%, rgba(19, 11, 12, .94) 100%);
+      z-index: -2;
+    }
+
+    /* The hero art is a 7s loop now; the still it replaced stays as the poster, so the
+       header looks identical before playback and if a browser refuses to autoplay. */
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 25%;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 22px 22px 22px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(216, 169, 79, .64), transparent);
+      z-index: -1;
+    }
+
+    .hero-copy {
+      margin-top: auto;
+      padding-top: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 9em;
+      font-size: 40px;
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    .lead {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.72;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .meta-pill {
+      min-height: 58px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(19, 11, 12, .56);
+    }
+
+    .meta-pill span {
+      display: block;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .meta-pill strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .scroll-cue {
+      margin-top: 20px;
+      color: rgba(255, 248, 239, .74);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    main {
+      background: var(--bg);
+    }
+
+    .story {
+      padding: 0 18px 8px;
+    }
+
+    .story-block {
+      position: relative;
+      padding: 0 0 48px;
+      overflow: hidden;
+    }
+
+    .story-block:first-child {
+      padding-top: 0;
+    }
+
+    /* 장면은 이제 <video> 이고 정지컷은 poster 로 남는다. 두 요소가 같은 상자를 쓴다. */
+    .scene-media {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      border-radius: 0;
+      object-fit: cover;
+      object-position: 50% 25%;
+      display: block;
+      background: #12090a;
+      border: 0;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 76%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 76%, transparent 100%);
+    }
+
+    .scene-copy {
+      position: relative;
+      z-index: 1;
+      margin-top: -112px;
+      padding: 0 2px;
+    }
+
+    .scene-kicker {
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .scene-copy h2 {
+      margin-top: 8px;
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-wrap: pretty;
+    }
+
+    .scene-copy p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.75;
+      text-wrap: pretty;
+    }
+
+    .quote-line {
+      margin-top: 16px;
+      padding: 14px 15px;
+      border-left: 3px solid var(--red-2);
+      background: rgba(255, 248, 239, .055);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.55;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .decision-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 7px;
+      margin-top: 16px;
+    }
+
+    .decision-row span {
+      min-height: 48px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 7px 4px;
+      border: 1px solid rgba(216, 169, 79, .24);
+      border-radius: 8px;
+      background: rgba(36, 16, 18, .86);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.28;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .signal {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(33, 20, 22, .78);
+    }
+
+    .signal-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--bg);
+      background: var(--gold);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .signal strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .signal span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .index-section {
+      padding: 26px 18px 34px;
+      background: linear-gradient(180deg, var(--bg), #1a0d0e);
+      border-top: 1px solid var(--line);
+    }
+
+    .index-head {
+      margin-bottom: 16px;
+    }
+
+    .index-head h2 {
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .index-head p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .index-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .index-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 248, 239, .045);
+    }
+
+    .index-card h3 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 900;
+    }
+
+    .index-card h3 span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .chips span {
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(139, 182, 168, .12);
+      color: #d8f0e7;
+      border: 1px solid rgba(139, 182, 168, .22);
+      font-size: 12px;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+
+    .cta {
+      padding: 24px 18px 34px;
+      background: linear-gradient(180deg, #1a0d0e, #2b1114);
+    }
+
+    .cta-panel {
+      border: 1px solid rgba(216, 169, 79, .28);
+      border-radius: 8px;
+      background: rgba(19, 11, 12, .68);
+      overflow: hidden;
+    }
+
+    .cta-panel img {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      object-fit: cover;
+      object-position: 50% 25%;
+      display: block;
+      border: 0;
+      border-radius: 0;
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 76%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, #000 76%, transparent 100%);
+    }
+
+    .cta-copy {
+      position: relative;
+      z-index: 1;
+      margin-top: -92px;
+      padding: 0 18px 18px;
+    }
+
+    .cta-copy h2 {
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .cta-copy p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .cta-button {
+      margin-top: 18px;
+      min-height: 54px;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      color: #1a0d0e;
+      background: linear-gradient(135deg, #f1c96d, #c8322e);
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 900;
+      box-shadow: 0 16px 34px rgba(200, 50, 46, .24);
+      cursor: pointer;
+    }
+
+    .fine-print {
+      margin-top: 14px;
+      color: rgba(217, 198, 183, .82);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 380px) {
+      .decision-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 481px) {
+      body {
+        padding: 18px 0;
+      }
+
+      .page {
+        border-radius: 14px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/css/service-shell.css?v=20260916-mobile" />
+  <link rel="stylesheet" href="/css/work-move-service.css?v=20260902-work-move" />
+</head>
+<body class="work-move-page">
+  <div class="page">
+    <div data-umsh-service-top data-umsh-service-category="직업"></div>
+    <header class="hero" id="top">
+      <video
+        class="hero-video"
+        poster="../assets/generated/move/01-scene-01-question.webp"
+        src="../assets/generated/move/01-hero.mp4"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+        tabindex="-1"
+      ></video>
+      <div class="hero-copy">
+        <p class="eyebrow">転職を判断するリポート</p>
+        <h1>私、会社を移ってもいい？</h1>
+        <p class="lead">退職のボタンから押さない。転職の可能性か、準備の段階かを先に分ける。</p>
+        <div class="hero-meta" aria-label="鑑定の基準">
+          <div class="meta-pill">
+            <span>見る流れ</span>
+            <strong>大きな流れ・今年・職場の責任</strong>
+          </div>
+          <div class="meta-pill">
+            <span>結論の種類</span>
+            <strong>転職の時から保留の時まで</strong>
+          </div>
+        </div>
+        <p class="scroll-cue">自分の状況から整理し、その後で条件も確認する。</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="story" aria-label="サービスのストーリー">
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-question" poster="../assets/generated/move/01-scene-01-question.webp" src="../assets/generated/move/01-scene-01-question.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="残業後の帰り道、スマホを見ながら転職を考える会社員"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 01</p>
+            <h2>帰り道にふと思った。今、移ってもいい？</h2>
+            <p>会社が合わないのか、自分が疲れたのか、新しい会社が答えなのか迷う？感情の一言で終わらせず、流れと条件を一緒に見よう。</p>
+            <div class="quote-line">「今はすぐ逃げるより準備の時かもしれない。」</div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-pressure" poster="../assets/generated/move/01-scene-02-pressure.webp" src="../assets/generated/move/01-scene-02-pressure.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="深夜のオフィスの机にある業務資料と悩みの跡"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 02</p>
+            <h2>会社より、役割が問題なのかもしれない。</h2>
+            <p>役割は曖昧なのに、責任ばかり増えていない？ 決定権がはっきりしないまま、圧力が強くなることもある。上司、同僚、認められたい気持ち、燃え尽きの兆候を分けて見よう。</p>
+            <div class="quote-line">「今の会社は役割の整理が先。感情での退職はいったん止める。」</div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-crossroad" poster="../assets/generated/move/01-scene-03-crossroad.webp" src="../assets/generated/move/01-scene-03-crossroad.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="慣れた扉と新しい扉の間で考える、仕事選びの場面"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 03</p>
+            <h2>結論は五つに分けて整理しよう。</h2>
+            <p>転職を勧めるだけ、止めるだけにはしない。動く流れなのか、条件から確認するのか、先に余裕をつくるのかを分けてみよう。</p>
+            <div class="decision-row" aria-label="最終結論のタイプ">
+              <span>転職の見込み</span>
+              <span>踏ん張る見込み</span>
+              <span>準備の時</span>
+              <span>保留する見込み</span>
+              <span>条件つき乗り換え角</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-basis" poster="../assets/generated/move/01-scene-04-basis.webp" src="../assets/generated/move/01-scene-04-basis.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="キャリア相談の机で、大きな流れと今年の流れを一緒に分析する場面"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 04</p>
+            <h2>大きな流れ、今年の流れ、仕事の責任。三つを一緒に見ます。</h2>
+            <p>大運は仕事の大きな状況、歳運は今年の雰囲気、官星は組織で担う役割と圧力だ。三つが同じ方向か、ずれているかから見よう。</p>
+            <div class="signal-list">
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">大</div>
+                <div><strong>大きな流れ</strong><span>10年単位の状況の変化と、引き受けられる方向</span></div>
+              </div>
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">年</div>
+                <div><strong>今年の流れ</strong><span>今年の機会、圧力、契約の時期</span></div>
+              </div>
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">官</div>
+                <div><strong>職場の責任</strong><span>役割・上司・組織力・圧力の受け方</span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-index" poster="../assets/generated/move/01-scene-05-index.webp" src="../assets/generated/move/01-scene-05-index.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="十一枚の結果カードをテーブルに広げた、レポートの試し表示"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 05</p>
+            <h2>レポートはこの項目で開く。</h2>
+            <p>結論だけ投げて終わらない。キャリアの体質から、お金の条件、リスクのブレーキ、現実の行動まで続ける。</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="index-section" aria-label="読み解きの大分類と中分類">
+        <div class="index-head">
+          <h2>鑑定の大分類</h2>
+          <p>大分類と中分類は、確認の基準に沿って整理してある。実際の結果では、入力した生年月日と時刻に応じて、必要な項目を詳しく見る。</p>
+        </div>
+
+        <div class="index-grid">
+          <article class="index-card">
+            <h3>最終結論のタイプ <span>01</span></h3>
+            <div class="chips"><span>転職の見込み</span><span>踏ん張る見込み</span><span>準備の時</span><span>保留する見込み</span><span>条件つき乗り換え角</span></div>
+          </article>
+          <article class="index-card">
+            <h3>自分の仕事の気質 <span>02</span></h3>
+            <div class="chips"><span>日干別の働き方</span><span>五行のバランス</span><span>身強・身弱の受け止める力</span><span>用神を補う方向</span></div>
+          </article>
+          <article class="index-card">
+            <h3>職務との相性の分析 <span>03</span></h3>
+            <div class="chips"><span>比肩・劫財</span><span>食神・傷官</span><span>偏財・正財</span><span>偏官と正官</span><span>偏印・正印</span></div>
+          </article>
+          <article class="index-card">
+            <h3>今の会社の状態の読み <span>04</span></h3>
+            <div class="chips"><span>役割が曖昧</span><span>決定権が曖昧</span><span>上司の圧力</span><span>競争のストレス</span><span>燃え尽きのサイン</span></div>
+          </article>
+          <article class="index-card">
+            <h3>新しい会社との相性の解説 <span>05</span></h3>
+            <div class="chips"><span>仕事・職業の宮</span><span>移動・外の環境</span><span>年収・収入の流れ</span><span>持ちこたえる方法</span></div>
+          </article>
+          <article class="index-card">
+            <h3>金の条件の解説 <span>06</span></h3>
+            <div class="chips"><span>年俸アップの可能性</span><span>収入の安定性</span><span>契約書の確認</span><span>支出のリスク</span><span>退職前の備え</span></div>
+          </article>
+          <article class="index-card">
+            <h3>時期の解説 <span>07</span></h3>
+            <div class="chips"><span>大運の初期・中期・末期</span><span>大運の交差期</span><span>歳運の流れ</span><span>月運</span><span>日取り・日運</span></div>
+          </article>
+          <article class="index-card">
+            <h3>リスクのブレーキ <span>08</span></h3>
+            <div class="chips"><span>空亡</span><span>冲</span><span>刑</span><span>破</span><span>害</span><span>火気</span></div>
+          </article>
+          <article class="index-card">
+            <h3>現実のアクションガイド <span>09</span></h3>
+            <div class="chips"><span>90日テスト</span><span>ポートフォリオを整理する</span><span>面接のタイミング</span><span>退職の話</span><span>年収の確認リスト</span></div>
+          </article>
+          <article class="index-card">
+            <h3>MZトーンの結果カード <span>10</span></h3>
+            <div class="chips"><span>飛び出すより準備</span><span>先走りは控える</span><span>役割整理が先</span><span>契約書が本物</span><span>回復が先</span></div>
+          </article>
+          <article class="index-card">
+            <h3>安全・運用の基準 <span>11</span></h3>
+            <div class="chips"><span>退職を断定しないです</span><span>根拠と推測を分ける</span><span>検収前の内部メモ</span><span>絶対的な表現は禁止</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="cta" id="start" aria-label="入力の段階へ">
+        <div class="cta-panel">
+          <video class="scene-media" data-asset="scene-cta" poster="../assets/generated/move/01-scene-06-cta.webp" src="../assets/generated/move/01-scene-06-cta.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="キャリアリポートの入力段階へ入るモバイルサービスの画面"></video>
+          <div class="cta-copy">
+            <h2>無料ティーザーで感触から掴みましょう。判断するときは条件まで確認します。</h2>
+            <p>生年月日と生まれた時刻、今の悩みを書いてみよう。転職を考える流れなのか、現実では何を先に準備するか、一緒に整理する。</p>
+            <a class="cta-button" data-action="enter" href="../02-step-2-saju-input/index.html#step-2-saju-input" aria-label="自分の転職運を確認">
+              自分の転職運を確認
+            </a>
+            <p class="fine-print">四柱推命は退職、採用、利益を保証しません。結果は判断の参考で、最終選択は実際の契約条件と自分の状況を一緒に確認してください。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="application/json" id="PROMPT_INPUT">
+{
+  "service_title": "会社を移ってもいい？",
+  "service_category": "転職運",
+  "service_price_krw": 14900,
+  "service_url": "https://work.umsh.kr/move",
+  "service_slug": "move",
+  "service_key": "work_move",
+  "analysis_basis": ["大運", "歳運", "官星"],
+  "target_question": "会社を移ってもいい？",
+  "target_audience": "転職、退職、オファーの受諾、今の会社に残るかの前で確信がほしい20~30代の会社員",
+  "source_priority": [
+    "RAG分類README",
+    "RAG LLM契約",
+    "紫微斗数KMSの転職ルール：官禄宮＋遷移宮＋財帛宮",
+    "承認版CSVの大運、歳運、日取り、目標設定、心のケア、通変星、身強身弱、用神のコーパス"
+  ],
+  "stage": "01-step-1-story"
+}
+  </script>
+
+  <script type="application/json" id="INTERPRETATION_INDEX">
+{
+  "source": "user_seed_preserved",
+  "groups": [
+    {
+      "id": "decision_type",
+      "order": 1,
+      "major": "最終結論のタイプ",
+      "middle": ["転職の見込み", "踏ん張る見込み", "準備の時", "保留する見込み", "条件つき乗り換え角"],
+      "tone_examples": ["今はすぐ走るより、準備の段階", "条件が合えば転職できる。"]
+    },
+    {
+      "id": "career_constitution",
+      "order": 2,
+      "major": "自分の仕事の気質",
+      "middle": ["日干別の働き方", "五行のバランス", "身強・身弱の受け止める力", "用神にもとづく補いの方向"]
+    },
+    {
+      "id": "role_fit",
+      "order": 3,
+      "major": "職務との相性の分析",
+      "middle": [
+        "比肩: 主体性",
+        "劫財：勝負・競争",
+        "食神：着実な成果",
+        "傷官: 改善・企画",
+        "偏財：拡大・営業",
+        "正財：契約・精算",
+        "偏官：突破・危機対応",
+        "正官：正式な役割・組織力",
+        "偏印: 研究・アイデア",
+        "正印：文書・教育・支援"
+      ]
+    },
+    {
+      "id": "current_company",
+      "order": 4,
+      "major": "今の会社の状態の読み",
+      "middle": ["役割が曖昧", "決定権が曖昧", "上司からの圧迫", "同僚・競争のストレス", "承認欲求", "燃え尽きのサイン"]
+    },
+    {
+      "id": "new_company_fit",
+      "order": 5,
+      "major": "新しい会社との相性の解説",
+      "middle": ["官禄宮：仕事・職業宮", "遷移宮: 移動・外の環境", "財帛宮: 給料・収入の流れ", "命宮・身宮：実際に続けられる方法"]
+    },
+    {
+      "id": "money_terms",
+      "order": 6,
+      "major": "金の条件の解説",
+      "middle": ["年俸アップの可能性", "収入の仕組みの安定性", "契約書の確認", "支出増加のリスク", "退職前の余裕の必要性"]
+    },
+    {
+      "id": "timing",
+      "order": 7,
+      "major": "時期の解説",
+      "middle": ["大運の初期・中期・末期", "大運の交差期", "年運・年間の流れ", "月運", "日取り・日運", "立春・新しく始める流れ"]
+    },
+    {
+      "id": "risk_brake",
+      "order": 8,
+      "major": "リスクのブレーキ",
+      "middle": ["空亡: 確定は保留", "冲: 衝突に注意", "刑: 繰り返す摩擦", "破: 既存の約束の点検", "害: ゆるい確認", "化忌: 役割の混乱・お金の心配"]
+    },
+    {
+      "id": "action_guide",
+      "order": 9,
+      "major": "現実のアクションガイド",
+      "middle": ["90日テスト", "履歴書・ポートフォリオ整理", "面接のタイミング", "退職の会話の台本", "年収・業務範囲の確認リスト"]
+    },
+    {
+      "id": "mz_result_cards",
+      "order": 10,
+      "major": "MZトーンの結果カード",
+      "middle": [
+        "今はすぐ走るより、準備の段階",
+        "お金の条件を確認する前に先走らない",
+        "今の会社は役割整理が先",
+        "新しい会社は相性より契約書が本番",
+        "気力が尽きているなら、運より回復が先"
+      ]
+    },
+    {
+      "id": "safety_operation",
+      "order": 11,
+      "major": "安全・運用の基準",
+      "middle": ["四柱推命で退職・採用・収益を確定しない", "根拠と個人の推論を分ける", "監修前の資料は内部参考です", "成功・失敗を断定する表現は使わない"]
+    }
+  ]
+}
+  </script>
+
+
+
+  <script type="application/json" id="IMAGE_MANIFEST">
+{
+  "reference_image": "IMAGE/umsh-signature-card-bg.png",
+  "reference_usage": "style_reference_only_text_removed_in_generated_assets",
+  "html_delivery_mode": "single_file_embedded_data_uri",
+  "character_style_lock": {
+    "character": "Korean professional woman, black blazer, white shirt, red scarf accent",
+    "mood": "premium fortune consultation, career decision, cinematic red and gold lighting",
+    "constraints": [
+      "no readable text inside image",
+      "no logo recreation",
+      "consistent character styling across scenes"
+    ]
+  },
+  "assets": [
+    {
+      "asset_key": "scene-question",
+      "filename": "assets/generated/move/01-scene-01-question.webp",
+      "role": "hero_and_scene_01",
+      "aspect_ratio": "9:16",
+      "alt": "残業後の帰り道、スマホを見ながら転職を考える会社員",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-question']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-pressure",
+      "filename": "assets/generated/move/01-scene-02-pressure.webp",
+      "role": "scene_02_current_company_pressure",
+      "aspect_ratio": "9:16",
+      "alt": "深夜のオフィスの机にある業務資料と悩みの跡",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-pressure']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-crossroad",
+      "filename": "assets/generated/move/01-scene-03-crossroad.webp",
+      "role": "scene_03_decision_type",
+      "aspect_ratio": "9:16",
+      "alt": "慣れた扉と新しい扉の間で考える、仕事選びの場面",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-crossroad']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-basis",
+      "filename": "assets/generated/move/01-scene-04-basis.webp",
+      "role": "scene_04_analysis_basis",
+      "aspect_ratio": "9:16",
+      "alt": "キャリア相談の机で、大きな流れと今年の流れを一緒に分析する場面",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-basis']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-index",
+      "filename": "assets/generated/move/01-scene-05-index.webp",
+      "role": "scene_05_interpretation_index",
+      "aspect_ratio": "9:16",
+      "alt": "十一枚の結果カードをテーブルに広げた、レポートの試し表示",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-index']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-cta",
+      "filename": "assets/generated/move/01-scene-06-cta.webp",
+      "role": "scene_06_next_step_cta",
+      "aspect_ratio": "9:16",
+      "alt": "キャリアリポートの入力段階へ入るモバイルサービスの画面",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-cta']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    }
+  ]
+}
+  </script>
+
+  <div data-umsh-service-bottom></div>
+  <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/work-move-service.js?v=20261008-three-voice-v1"></script>
+  <script src="/js/service-shell.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-lazy-video.js?v=20260904"></script>
+</body>
+</html>

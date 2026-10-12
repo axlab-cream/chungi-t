@@ -1,4 +1,5 @@
-import { configuredEnv } from '../env/load.js'
+import { configuredEnv } from '../env/load.js'
+
 import { assertDurableStorage, storageReadiness, type StorageReadiness } from '../payment/storage-readiness.js'
 import { Pool } from 'pg'
 import type { BirthInput, SajuReportContext } from '../types/index.js'
@@ -46,6 +47,8 @@ type UserProfileRow = {
     orientation?: string
     work?: string
     life_context?: UserLifeContext
+    birth_time_zone?: string
+    birth_time_disambiguation?: BirthInput['birthTimeDisambiguation']
   }
   created_at: string
   updated_at: string
@@ -132,6 +135,8 @@ function rowToProfile(row: UserProfileRow): UserBirthProfile {
       gender: row.gender === 'female' ? 'female' : 'male',
       calendar: row.calendar === 'lunar' ? 'lunar' : 'solar',
       isLeapMonth: Boolean(row.is_leap_month),
+      ...(row.profile_payload?.birth_time_zone ? { birthTimeZone: row.profile_payload.birth_time_zone } : {}),
+      ...(row.profile_payload?.birth_time_disambiguation ? { birthTimeDisambiguation: row.profile_payload.birth_time_disambiguation } : {}),
     },
     birthTimeKnown: Boolean(row.birth_time_known),
     context: {
@@ -173,6 +178,8 @@ function profileToRow(profile: UserBirthProfile): UserProfileRow {
       orientation: profile.context.orientation,
       work: profile.context.work,
       ...(profile.lifeContext ? { life_context: profile.lifeContext } : {}),
+      ...(profile.birth.birthTimeZone ? { birth_time_zone: profile.birth.birthTimeZone } : {}),
+      ...(profile.birth.birthTimeDisambiguation ? { birth_time_disambiguation: profile.birth.birthTimeDisambiguation } : {}),
     },
     created_at: profile.createdAt,
     updated_at: profile.updatedAt,
@@ -200,6 +207,8 @@ export function buildUserBirthProfile(params: {
       gender: params.birth.gender,
       calendar: params.birth.calendar,
       isLeapMonth: Boolean(params.birth.isLeapMonth),
+      ...(params.birth.birthTimeZone ? { birthTimeZone: params.birth.birthTimeZone } : {}),
+      ...(params.birth.birthTimeDisambiguation ? { birthTimeDisambiguation: params.birth.birthTimeDisambiguation } : {}),
     },
     birthTimeKnown: params.birthTimeKnown ?? true,
     context: {

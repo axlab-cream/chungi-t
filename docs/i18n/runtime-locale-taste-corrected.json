@@ -1,0 +1,91 @@
+{
+  "observedAt": "2026-10-12T07:26:35.915Z",
+  "reason": "Diagnosed reasoning consumed initial 500 token limit. One bounded correction to 2048, no auto retries.",
+  "totalProviderRequestCapAcrossBatches": 6,
+  "rows": [
+    {
+      "surface": "reading",
+      "locale": "ja",
+      "model": "gpt-5.6-luna",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 2048,
+      "providerModel": "gpt-5.6-luna",
+      "usage": {
+        "prompt_tokens": 22089,
+        "completion_tokens": 660,
+        "total_tokens": 22749,
+        "prompt_tokens_details": {
+          "cached_tokens": 22086,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 512,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "status": "complete",
+      "finishReason": "stop",
+      "output": "{\"id\":\"income-salary-stable\",\"hook\":\"今月は自動決済を一つ止め、配達費は必要な分だけ残すのが先。\",\"interpretation\":\"固定給でも、月給の翌週に半分を使う事実があります。戊土の日主と土の強さは、入る額より先に配分を決める課題として読めます。オンラインの買い物かごと自動決済を分けて見て、今月は自動決済を一つ比較して止めてください。配達費まで削る必要はありません。\"}\n",
+      "hangulCount": 0,
+      "fixture": "reading/ja"
+    },
+    {
+      "surface": "consultation",
+      "locale": "en",
+      "model": "gemini-3.8-flash",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 2048,
+      "providerModel": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 5133,
+        "candidatesTokenCount": 347,
+        "totalTokenCount": 6610,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5133
+          }
+        ],
+        "thoughtsTokenCount": 1130,
+        "serviceTier": "standard"
+      },
+      "status": "complete",
+      "finishReason": "STOP",
+      "output": "Saving five million won over the course of a year breaks down to roughly four hundred and twenty thousand won each month, which is completely achievable once we plug the quiet leaks. You are not dealing with an insurmountable debt or a sudden catastrophe, but rather daily friction that slowly drains your momentum. With a bit of deliberate structure, you can easily shift that money back into your own hands.\n\nYour chart is anchored by Yang Earth, showing a grounded, sturdy core with a very heavy presence of Peer energy. In traditional terms, when Earth is this dominant while Water represents your financial resources, money rarely vanishes through reckless gambles; instead, it tends to seep away into comfort, convenience, and routine comforts that help you decompress after demanding days. Because your foundation naturally absorbs resources without creating immediate friction, small automated charges and quick food orders easily escape your daily awareness.\n\nThe key force that restores balance to your chart is Metal, which governs clear boundaries, precise trimming, and functional systems. When you rely solely on willpower to resist delivery apps at the end of an exhausting evening, you are asking a tired mind to fight an uphill battle. You need the decisive, clean edge of Metal to step in and handle the decision ahead of time, putting a firm channel between your hard-earned earnings and everyday impulses.\n\nTo put this into practice immediately, set up an automatic bank transfer of four hundred and twenty thousand won to a separate, inconvenient account on the very morning your paycheck arrives, securing your target before you can spend it. Then, sit down tonight to audit your payment history, cancel every digital subscription you have not touched in the last two weeks, and remove your saved cards from food delivery platforms so every order requires a conscious pause.",
+      "hangulCount": 0,
+      "fixture": "consultation/en"
+    },
+    {
+      "surface": "consultation",
+      "locale": "ja",
+      "model": "gemini-3.8-flash",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 2048,
+      "providerModel": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 5214,
+        "candidatesTokenCount": 77,
+        "totalTokenCount": 7258,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5214
+          }
+        ],
+        "thoughtsTokenCount": 1967,
+        "serviceTier": "standard"
+      },
+      "status": "failed",
+      "finishReason": "MAX_TOKENS",
+      "output": "年間5000000 KRWなら月約42万ウォンの確保だね。土の気が強い命式だから、気合で我慢するより枠組みを先に作るのが合ってる。まずは今日、履歴を見て使っていないサブスクを1つ解約してみて。デリバリーは週の上限額を決めて別口座に移すこと",
+      "hangulCount": 0,
+      "fixture": "consultation/ja"
+    }
+  ]
+}

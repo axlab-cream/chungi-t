@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#051013">
+  <meta name="description" content="二人の関係総評、干支と地支の相性、五行の相性、会話のリズム、対立のパターン、今日の関係の行動を見るカップル相性の導入です。">
+  <title>二人は本当に相性がよい？ | 運命商店のカップル相性</title>
+  <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+       og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="運命商会" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="運命商会 - 運命を売ります。" />
+  <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+  <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+  <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <style>
+    @font-face {
+      font-family: "Pretendard";
+      src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "MaruBuri";
+      src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: dark;
+      --ink: #f8fffb;
+      --muted: #b7cbc9;
+      --soft: #d9f8f3;
+      --deep: #051013;
+      --panel: rgba(5, 16, 19, 0.72);
+      --line: rgba(191, 239, 242, 0.2);
+      --teal: #16b5bc;
+      --teal-deep: #0f7f86;
+      --coral: #ff7a66;
+      --mint: #80f1dc;
+      --gold: #f1c76b;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.34);
+      --radius: 8px;
+      --content: min(100%, 560px);
+      font-family: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--deep);
+    }
+
+    html {
+      background: #020607;
+    }
+
+    body {
+      margin: 0 auto;
+      width: min(100%, 430px);
+      min-height: 100svh;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(22, 181, 188, 0.24), transparent 34rem),
+        linear-gradient(180deg, #061013 0%, #071a1c 44%, #020607 100%);
+      color: var(--ink);
+      letter-spacing: 0;
+      padding-bottom: 92px;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: 16px;
+      z-index: 40;
+      transform: translateY(-160%);
+      background: var(--ink);
+      color: var(--deep);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 14px;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 30;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      padding: max(14px, env(safe-area-inset-top)) 14px 0;
+    }
+
+    .topbar-inner {
+      width: var(--content);
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(3, 12, 14, 0.62);
+      backdrop-filter: blur(18px);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      padding: 10px 12px;
+      pointer-events: auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-size: 13px;
+      color: var(--soft);
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, var(--ink) 0 18%, transparent 19%),
+        conic-gradient(from 180deg, var(--teal), var(--coral), var(--gold), var(--teal));
+      box-shadow: 0 0 18px rgba(22, 181, 188, 0.44);
+      flex: 0 0 auto;
+    }
+
+    .stage-pill {
+      flex: 0 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: #e9fffb;
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 12px;
+    }
+
+    .page {
+      width: min(100%, 430px);
+      margin-inline: auto;
+      overflow: hidden;
+    }
+
+    .hero,
+    .story-scene {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      isolation: isolate;
+      background: #061113;
+    }
+
+    /* 첫 장면만 <video> で、残りは <img> 다. 두 요소가 같은 상자를 쓰게 둔다. */
+    video.scene-media {
+      display: block;
+    }
+
+    .scene-media {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      z-index: -3;
+      background: linear-gradient(135deg, #0c3d42, #050b0d);
+    }
+
+    .hero .scene-media {
+      object-position: 50% 42%;
+    }
+
+    .story-scene[data-scene="empathy"] .scene-media {
+      object-position: 50% 38%;
+    }
+
+    .story-scene[data-scene="loop"] .scene-media {
+      object-position: 50% 45%;
+    }
+
+    .story-scene[data-scene="basis"] .scene-media,
+    .story-scene[data-scene="preview"] .scene-media {
+      object-position: 50% 34%;
+    }
+
+    .story-scene[data-scene="cta"] .scene-media {
+      object-position: 50% 45%;
+    }
+
+    .scrim {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        linear-gradient(180deg, rgba(1, 7, 8, 0.16) 0%, rgba(1, 7, 8, 0.12) 34%, rgba(1, 7, 8, 0.86) 100%),
+        linear-gradient(90deg, rgba(2, 9, 11, 0.82) 0%, rgba(2, 9, 11, 0.24) 46%, rgba(2, 9, 11, 0.76) 100%);
+    }
+
+    .story-scene::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 36%;
+      z-index: -1;
+      background: linear-gradient(180deg, transparent, rgba(2, 7, 8, 0.94));
+    }
+
+    .copy {
+      width: var(--content);
+      padding: 112px 20px 46px;
+    }
+
+    .hero .copy {
+      padding-top: 138px;
+      padding-bottom: 54px;
+    }
+
+    .eyebrow,
+    .scene-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      border: 1px solid rgba(191, 239, 242, 0.22);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(3, 12, 14, 0.48);
+      color: var(--mint);
+      font-size: 12px;
+      line-height: 1.2;
+      box-shadow: 0 0 22px rgba(22, 181, 188, 0.14);
+    }
+
+    h1,
+    h2 {
+      margin: 14px 0 0;
+      font-family: "MaruBuri", "Pretendard", serif;
+      line-height: 1.04;
+      letter-spacing: 0;
+      text-wrap: balance;
+      word-break: keep-all;
+    }
+
+    h1 {
+      max-width: 10ch;
+      font-size: clamp(44px, 13vw, 72px);
+    }
+
+    h2 {
+      max-width: 12ch;
+      font-size: clamp(34px, 10vw, 54px);
+    }
+
+    p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: clamp(16px, 4.2vw, 19px);
+      line-height: 1.68;
+      word-break: keep-all;
+    }
+
+    .lead {
+      max-width: 31ch;
+      color: #e6faf6;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.52);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .chip {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: #e9fffb;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .price-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+      color: var(--soft);
+      font-size: 14px;
+    }
+
+    .price-line strong {
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .button,
+    .button-secondary,
+    .sticky-button {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      padding: 0 16px;
+      font-size: 15px;
+      line-height: 1.2;
+      border: 1px solid transparent;
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    .button,
+    .sticky-button {
+      background: var(--coral);
+      color: #240806;
+      box-shadow: 0 12px 28px rgba(255, 122, 102, 0.24);
+    }
+
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f2fffc;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .button:hover,
+    .button-secondary:hover,
+    .sticky-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.34);
+    }
+
+    .button:focus-visible,
+    .button-secondary:focus-visible,
+    .sticky-button:focus-visible {
+      outline: 2px solid var(--mint);
+      outline-offset: 3px;
+    }
+
+    .moment-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .moment-list li {
+      border-left: 2px solid var(--coral);
+      background: rgba(5, 16, 19, 0.52);
+      padding: 10px 12px;
+      color: #edfdfa;
+      line-height: 1.52;
+      font-size: 14px;
+    }
+
+    .basis-grid,
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .basis-item,
+    .feature-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(3, 12, 14, 0.62);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .basis-item b,
+    .feature-card b {
+      display: block;
+      color: #fff;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .basis-item span,
+    .feature-card span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .feature-card {
+      min-height: 124px;
+      box-shadow: none;
+    }
+
+    .feature-card:nth-child(1) {
+      border-color: rgba(255, 122, 102, 0.36);
+    }
+
+    .feature-card:nth-child(3) {
+      border-color: rgba(128, 241, 220, 0.32);
+    }
+
+    .feature-card:nth-child(6) {
+      border-color: rgba(241, 199, 107, 0.34);
+    }
+
+    .teaser-band {
+      margin-top: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius);
+      background: rgba(248, 255, 251, 0.08);
+      padding: 14px;
+    }
+
+    .teaser-band strong {
+      display: block;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .teaser-band span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+      word-break: keep-all;
+    }
+
+    .sticky-cta {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 35;
+      display: flex;
+      justify-content: center;
+      padding: 10px 14px max(10px, env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(5, 16, 19, 0), rgba(5, 16, 19, 0.92) 20%, rgba(5, 16, 19, 0.98));
+    }
+
+    .sticky-inner {
+      width: var(--content);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: rgba(4, 14, 16, 0.82);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.26);
+    }
+
+    .sticky-copy {
+      min-width: 0;
+      color: #e9fffb;
+      font-size: 13px;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    .sticky-copy small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .sticky-button {
+      min-height: 42px;
+      padding: 0 13px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .footer-note {
+      width: var(--content);
+      margin: 0 auto;
+      padding: 28px 20px 46px;
+      color: #8aa4a1;
+      font-size: 12px;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    @media (min-width: 760px) {
+      body {
+        background:
+          radial-gradient(circle at 18% 10%, rgba(22, 181, 188, 0.22), transparent 40rem),
+          radial-gradient(circle at 80% 70%, rgba(255, 122, 102, 0.12), transparent 34rem),
+          #031012;
+      }
+
+      .hero,
+      .story-scene {
+        min-height: 760px;
+      }
+
+      .copy {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .feature-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .button,
+      .button-secondary,
+      .sticky-button {
+        transition: none;
+      }
+    }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .couple-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .couple-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .couple-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .couple-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+<body data-umsh-chrome data-service="カップル相性" data-price="19,900 KRW" data-active="home">
+  <a class="skip-link" href="#scene-preview">結果の試し表示へ</a>
+
+  <header class="appbar topbar" aria-label="サービス上部">
+    <div class="topbar-inner">
+      <div class="brand" aria-label="運命商会">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>運命商会</span>
+      </div>
+      <span class="stage-pill">01 · カップル相性</span>
+    </div>
+  </header>
+
+  <main
+    id="step-1-story"
+    class="page"
+    data-service-key="couple_match"
+    data-service-slug="couple-match"
+    data-service-title="우리 둘, 진짜 잘 맞아?"
+    data-price-krw="19900"
+  >
+    <section class="hero" id="scene-hook" data-scene="hook" data-asset-key="couple-match-01-hook" aria-labelledby="hook-title">
+      <video class="scene-media" poster="../assets/couple/01-scene-01-hook.webp" src="../assets/couple/01-hero.mp4" autoplay muted loop playsinline preload="auto" aria-hidden="true" tabindex="-1"></video>
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="eyebrow">命理の相性・五行・日支から見る関係の手がかり</span>
+        <h1 id="hook-title">二人、本当に合う？</h1>
+        <p class="lead">好きなのに、返信の温度が違うのはなぜ？ 衝突のきっかけと続ける体力まで、関係の流れから見よう。</p>
+        <div class="chip-row" aria-label="分析の範囲">
+          <span class="chip">関係の総評</span>
+          <span class="chip">干支の相性</span>
+          <span class="chip">五行の相性</span>
+          <span class="chip">コミュニケーションの相性</span>
+        </div>
+        <div class="price-line">
+          <span>全体レポート</span>
+          <strong>19,900ウォン</strong>
+        </div>
+        <div class="cta-row">
+          <a class="button js-start" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-cta="hero">自分の相性信号を確認する</a>
+          <a class="button-secondary" href="#scene-preview">どこまで見るか確認</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-empathy" data-scene="empathy" data-asset-key="couple-match-01-empathy" aria-labelledby="empathy-title">
+      <img class="scene-media" src="../assets/couple/01-scene-02-empathy.webp" alt="携帯電話の画面を一緒に見ながら、返信のリズムを気にしている若いカップル">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">悩みへの共感</span>
+        <h2 id="empathy-title">いいのに、なぜ気になる？</h2>
+        <p>話し方一つ、返信の間隔一つで心が揺れることもある。このサービスは、感情と確認する事実を分けて見る。</p>
+        <ul class="moment-list" aria-label="よくある関係の悩み">
+          <li>先に連絡すると、負担に見えるか気になる瞬間</li>
+          <li>表現の速さが違い、気持ちまで違うか迷う瞬間</li>
+          <li>雰囲気はよいのに同じ所で繰り返しつまずく時</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-loop" data-scene="loop" data-asset-key="couple-match-01-loop" aria-labelledby="loop-title">
+      <img class="scene-media" src="../assets/couple/01-scene-03-loop.webp" alt="繰り返す関係のパターンを象徴する円形の軌道の中に立つ二人">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">繰り返す状況</span>
+        <h2 id="loop-title">相性はいいのに同じところでつまずくなら</h2>
+        <p>惹かれてもけんかはする。二人の地支、五行のやり取り、話し方の温度を並べ、繰り返す流れを見よう。</p>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-basis" data-scene="basis" data-asset-key="couple-match-01-basis" aria-labelledby="basis-title">
+      <img class="scene-media" src="../assets/couple/01-scene-04-basis.webp" alt="抽象的な四柱推命の表と五行の合図を一緒に見ているカップル">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">このサービスの基準</span>
+        <h2 id="basis-title">相性は、片方の気持ちだけで見ない</h2>
+        <p>干支と地支は近づく方法、五行は力をやり取りする方向、日支は心地よさや衝突が表れる生活感覚として読む。</p>
+        <div class="basis-grid" aria-label="解釈の基準">
+          <div class="basis-item">
+            <b>干支の相性</b>
+            <span>ぴったり合う組み合わせ、無理のない組み合わせ、距離が必要な組み合わせと、衝突の引き金を分ける。</span>
+          </div>
+          <div class="basis-item">
+            <b>五行の相性</b>
+            <span>相生と相剋のテンション、足りないエネルギーを補う点を見ます。</span>
+          </div>
+          <div class="basis-item">
+            <b>対話のリズム</b>
+            <span>言葉の温度、連絡の速さ、ケンカでの防御パターンを現実の言葉にする。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-preview" data-scene="preview" data-asset-key="couple-match-01-preview" aria-labelledby="preview-title">
+      <img class="scene-media" src="../assets/couple/01-scene-05-preview.webp" alt="六枚の相性結果カードを一緒に確かめるカップル">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">こんなところまで見ます</span>
+        <h2 id="preview-title">最初は六つだけ、はっきりと</h2>
+        <p>最初は、関係を理解してすぐ行動に移しやすい項目から開きます。</p>
+        <div class="feature-grid" aria-label="二人の相性MVPの結果項目">
+          <article class="feature-card">
+            <b>関係の総評</b>
+            <span>相性を一言で・青信号・注意点・確認する質問</span>
+          </article>
+          <article class="feature-card">
+            <b>干支の相性</b>
+            <span>ぴったりの組み合わせ、無難な組み合わせ、距離が必要な組み合わせ、衝突の引き金</span>
+          </article>
+          <article class="feature-card">
+            <b>五行の相性</b>
+            <span>相生のテンション、相剋のテンション、エネルギーの充電と消耗の点</span>
+          </article>
+          <article class="feature-card">
+            <b>コミュニケーションの相性</b>
+            <span>言葉の温度、返信のリズム、物足りなさの扱い方、仲直りの文</span>
+          </article>
+          <article class="feature-card">
+            <b>衝突レポート</b>
+            <span>繰り返す葛藤のループ、信頼の揺れ、線を越える瞬間</span>
+          </article>
+          <article class="feature-card">
+            <b>今日の関係の行動</b>
+            <span>今日の連絡の調子、一拍遅らせる、自分を守る境界の言葉</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-scene" id="scene-cta" data-scene="cta" data-asset-key="couple-match-01-cta" aria-labelledby="cta-title">
+      <img class="scene-media" src="../assets/couple/01-scene-06-cta.webp" alt="輝く扉へ一緒に歩くカップル">
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="copy">
+        <span class="scene-kicker">無料プレビューから入力のステップへ</span>
+        <h2 id="cta-title">結論の代わりに、今確認する質問から</h2>
+        <p>まず二人の基本のサインを書いて。決済後は全レポートと項目ごとの詳細が開く。別れや結婚の選択は断定しない。</p>
+        <div class="teaser-band">
+          <strong>まず無料で見られること</strong>
+          <span>関係の質問の整理、入力値の確認、有料レポートの主要項目の試し読み</span>
+        </div>
+        <div class="cta-row">
+          <a class="button js-start" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-cta="final">自分の相性信号を確認する</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <p class="footer-note">四柱推命の解釈は、関係を理解する参考ツールです。実際の選択は、二人の会話、安全、尊重、現実の条件を合わせて決めてください。</p>
+
+  <nav class="sticky-cta" aria-label="次の段階へ">
+    <div class="sticky-inner">
+      <div class="sticky-copy">
+        自分の相性信号を確認する
+        <small>二人の情報を入れて、無料の試し読みから見る</small>
+      </div>
+      <a class="sticky-button js-start" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-cta="sticky">入力する</a>
+    </div>
+  </nav>
+
+  <script>
+    (function () {
+      var nextRoute = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      var serviceState = {
+        service_key: "couple_match",
+        service_slug: "couple-match",
+        service_title: "私たち二人、本当に合う？",
+        category: "カップル相性",
+        subcategory: "四柱推命の相性",
+        price_krw: 19900,
+        service_url_hint: "https://match.umsh.kr/couple",
+        analysis_basis: ["四柱推命の相性", "五行", "日支", "干支・地支の関係"],
+        report_version: "couple-match-r1",
+        copy_version: "step01-copy-v1",
+        entry_stage: "01-step-1-story"
+      };
+
+      function persistStartState(event) {
+        try {
+          var payload = Object.assign({}, serviceState, {
+            started_at: new Date().toISOString(),
+            cta: event.currentTarget.getAttribute("data-cta") || "unknown"
+          });
+          sessionStorage.setItem("umsh:pending-service", JSON.stringify(payload));
+          sessionStorage.setItem("umsh:couple-match:step1", JSON.stringify(payload));
+        } catch (error) {
+          document.documentElement.dataset.storageFallback = "true";
+        }
+      }
+
+      document.querySelectorAll(".js-start").forEach(function (link) {
+        link.setAttribute("href", nextRoute);
+        link.addEventListener("click", persistStartState);
+      });
+    })();
+  </script>
+
+  <script type="application/json" id="PROMPT_INPUT">
+{
+  "SERVICE_TITLE": "二人、本当に合う？",
+  "SERVICE_DESCRIPTION": "関係の総評・干支地支の相性・五行の相性・日支による生活感・意思疎通のリズム・衝突の繰り返し・今日の関係の行動を見るカップル相性サービス",
+  "SERVICE_CATEGORY": "二人の相性",
+  "SERVICE_PRICE_KRW": 19900,
+  "SERVICE_URL_HINT": "https://match.umsh.kr/couple",
+  "TARGET_AUDIENCE": "恋愛、片思い、長期の恋愛、結婚前の関係の流れを、MZの言葉ですばやく確認したい人",
+  "INTERPRETATION_INDEX_SEED": [
+    {
+      "large": "関係の総評",
+      "middle": ["二人の相性を一言で", "脈ありのポイント", "黄色のアクセント", "関係を保つ難度", "今確かめる質問"]
+    },
+    {
+      "large": "干支の相性",
+      "middle": ["ぴったりな組み合わせ", "無難な組み合わせ", "距離が必要な組み合わせ", "衝突のきっかけ", "結婚と共同事業の相性"]
+    },
+    {
+      "large": "五行の相性",
+      "middle": ["相生の相性", "相克の相性", "エネルギー充電型", "力を消耗するタイプ", "不足する五行を補うポイント"]
+    },
+    {
+      "large": "日主の性向の同期",
+      "middle": ["表現のペース", "感情を整理する方法", "愛情表現の仕方", "独立性と依存度", "関係で楽になる条件"]
+    },
+    {
+      "large": "十神の関係コード",
+      "middle": ["友達のような恋愛", "ときめき・誘いの型", "現実のケアのコード", "責任と公式な関係のコード", "頼りたい情緒のコード"]
+    },
+    {
+      "large": "コミュニケーションの相性",
+      "middle": ["話し方の温度", "返事・連絡のリズム", "物足りなさの扱い方", "争うときの防御パターン", "仲直りの言葉の提案"]
+    },
+    {
+      "large": "惹かれる点・好意のポイント",
+      "middle": ["第一印象のときめき", "長く知るほど感じられる魅力", "桃花・紅艶の魅力", "心地よさのポイント", "ときめきを保つボタン"]
+    },
+    {
+      "large": "衝突レポート",
+      "middle": ["繰り返す対立の流れ", "競争心のポイント", "会話の障害", "信頼の揺れ", "線を越える瞬間"]
+    },
+    {
+      "large": "恋愛段階別の読み",
+      "middle": ["曖昧な恋の可能性", "告白のタイミング", "恋愛の初期の注意点", "長く恋愛を続ける体力", "結婚前の確認点"]
+    },
+    {
+      "large": "現実の相性",
+      "middle": ["お金を使う温度", "約束の守り方", "仕事・事業のパートナーシップ", "家族の期待", "生活習慣の調整"]
+    },
+    {
+      "large": "運の流れの相性",
+      "middle": ["今年の関係の温度感", "今月の関係のリズム", "今日連絡してもよい日", "冲がある日の話し方", "関係が変わる時機"]
+    },
+    {
+      "large": "気持ちのケア",
+      "middle": ["確信と不安を分ける", "感情に名前を付ける", "一拍遅らせる", "距離を置くミッション", "自分を守る境界の文"]
+    },
+    {
+      "large": "結果のパッケージ化",
+      "middle": ["二人の相性カード", "補う課題", "会話のミッション", "デート／連絡の案内", "「別れろ」「結婚しろ」と断定しない案内"]
+    }
+  ],
+  "MVP_GROUPS": ["関係の総評", "干支の相性", "五行の相性", "コミュニケーションの相性", "衝突レポート", "今日の関係の行動"]
+}
+  </script>
+
+
+
+  <script type="application/json" id="IMAGE_MANIFEST">
+[
+  {
+    "asset_key": "couple-match-01-hook",
+    "filename": "assets/generated/couple-match/01/01-scene-01-hook.webp",
+    "role": "hero",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "黒のジャケットと白のインナー", "銀色の髪と青緑の輪郭光", "冷たくくっきりしたハイファッション照明"],
+    "prompt": "青緑の相性チャートの前で互いに惹かれる若いカップル。画像内テキスト禁止",
+    "alt": "青緑の相性表の前で互いに惹かれる若いカップル",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-hook'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-empathy",
+    "filename": "assets/generated/couple-match/01/01-scene-02-empathy.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "黒のジャケットと白のインナー", "銀色の髪と青緑の輪郭光", "冷たくくっきりしたハイファッション照明"],
+    "prompt": "携帯の返信リズムを一緒に見る若いカップル。空の吹き出しだけを使い、画像内のテキストは禁止",
+    "alt": "携帯電話の画面を一緒に見ながら、返信のリズムを気にしている若いカップル",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-empathy'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-loop",
+    "filename": "assets/generated/couple-match/01/01-scene-03-loop.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "黒のジャケットと白のインナー", "銀色の髪と青緑の輪郭光", "冷たくくっきりしたハイファッション照明"],
+    "prompt": "繰り返す葛藤のループを円軌道と接続線で表したカップル。画像内のテキストは禁止",
+    "alt": "繰り返す関係のパターンを象徴する円形の軌道の中に立つ二人",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-loop'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-basis",
+    "filename": "assets/generated/couple-match/01/01-scene-04-basis.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "黒のジャケットと白のインナー", "銀色の髪と青緑の輪郭光", "冷たくくっきりしたハイファッション照明"],
+    "prompt": "抽象的な四柱チャートと五行の信号を一緒に見るカップル。画像内のテキストは禁止",
+    "alt": "抽象的な四柱推命の表と五行の合図を一緒に見ているカップル",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-basis'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-preview",
+    "filename": "assets/generated/couple-match/01/01-scene-05-preview.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "黒のジャケットと白のインナー", "銀色の髪と青緑の輪郭光", "冷たくくっきりしたハイファッション照明"],
+    "prompt": "六枚の抽象的な結果カードを一緒に確認するカップル。カード内テキスト禁止",
+    "alt": "六枚の相性結果カードを一緒に確かめるカップル",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-preview'] .scene-media"
+  },
+  {
+    "asset_key": "couple-match-01-cta",
+    "filename": "assets/generated/couple-match/01/01-scene-06-cta.webp",
+    "role": "scene",
+    "aspect_ratio": "9:16",
+    "reference_image": "IMAGE/Codex 이미지 2026년 9월 3일 오후 01_18_29.png",
+    "reference_status": "selected",
+    "character_style_lock": ["半実写のウェブトゥーン風カップル", "黒のジャケットと白のインナー", "銀色の髪と青緑の輪郭光", "冷たくくっきりしたハイファッション照明"],
+    "prompt": "光る入力の段階へ一緒に歩くカップル。画像内の文字は禁止",
+    "alt": "光る扉へ一緒に歩く二人",
+    "text_in_image": false,
+    "generation_status": "generated",
+    "file_exists": true,
+    "html_usage_selector": "[data-asset-key='couple-match-01-cta'] .scene-media"
+  }
+]
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/couple-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

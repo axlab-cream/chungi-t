@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Could this go beyond dating to marriage? | Fortune Shop</title>
+    <meta name="description" content="A marriage-compatibility reading using the spouse position, broad flow, and relationship-clash signals to explore whether your current relationship can extend to marriage." />
+    <meta name="application-name" content="Fortune Shop" />
+    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+    <meta property="og:site_name" content="Fortune Shop" />
+    <meta property="og:url" content="https://match.umsh.kr/marry" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:alt" content="Illustration of a couple considering marriage compatibility against a night city" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #070303;
+        --ink: #fff7ec;
+        --muted: rgba(255, 239, 220, 0.74);
+        --dim: rgba(255, 239, 220, 0.56);
+        --gold: #f0c06f;
+        --gold-soft: #ffe5aa;
+        --rose: #e16b67;
+        --red: #8f1f1d;
+        --burgundy: #341111;
+        --panel: rgba(19, 10, 10, 0.9);
+        --line: rgba(255, 221, 176, 0.22);
+        --font-brand: "Maru Buri", Georgia, serif;
+        --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100%;
+        background: #000;
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      body {
+        display: grid;
+        place-items: start center;
+      }
+
+      a,
+      button {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      .phone {
+        width: min(100%, 440px);
+        min-height: 100svh;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% -20%, rgba(218, 74, 67, 0.2), transparent 24rem),
+          linear-gradient(180deg, #120606 0%, #070303 48%, #030202 100%);
+        box-shadow: 0 22px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid rgba(240, 192, 111, 0.16);
+        background: rgba(8, 3, 3, 0.88);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        line-height: 1;
+      }
+
+      .brand strong {
+        color: var(--gold-soft);
+        font-family: var(--font-brand);
+        font-size: 19px;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .pill {
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .pill {
+        padding: 8px 10px;
+        border: 1px solid rgba(240, 192, 111, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .hero {
+        position: relative;
+        min-height: calc(100svh - 64px);
+        display: grid;
+        align-items: end;
+        overflow: hidden;
+      }
+
+      .hero img,
+      .scene-image img,
+      .final-visual img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 25%;
+      }
+
+      .hero img {
+        object-position: 52% 26%;
+      }
+
+      .scrim {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.1) 32%, rgba(0, 0, 0, 0.68) 71%, rgba(0, 0, 0, 0.96) 100%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.4), transparent 30% 72%, rgba(0, 0, 0, 0.28));
+      }
+
+      .hero-copy,
+      .final-copy {
+        position: relative;
+        z-index: 1;
+        padding: 0 22px max(28px, env(safe-area-inset-bottom));
+      }
+
+      .eyebrow,
+      .chapter {
+        display: inline-flex;
+        width: fit-content;
+        margin-bottom: 12px;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-brand);
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        max-width: 10ch;
+        margin-bottom: 14px;
+        font-size: clamp(39px, 11vw, 52px);
+        line-height: 1.06;
+      }
+
+      h2 {
+        margin-bottom: 12px;
+        font-size: clamp(27px, 7.4vw, 36px);
+        line-height: 1.18;
+      }
+
+      h3 {
+        margin-bottom: 6px;
+        font-size: 16px;
+        line-height: 1.35;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.72;
+        word-break: keep-all;
+      }
+
+      .lead {
+        max-width: 30ch;
+        margin-bottom: 0;
+        font-size: 15px;
+      }
+
+      .red {
+        color: #ff7c70;
+      }
+
+      .cta-row {
+        display: grid;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .primary-cta,
+      .secondary-cta {
+        display: inline-flex;
+        min-height: 54px;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 18px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 950;
+      }
+
+      .primary-cta {
+        background: linear-gradient(135deg, #a92e26, #681514);
+        color: #fff9ef;
+        box-shadow: 0 16px 34px rgba(137, 27, 23, 0.34);
+      }
+
+      .secondary-cta {
+        border: 1px solid rgba(240, 192, 111, 0.3);
+        background: rgba(0, 0, 0, 0.36);
+        color: var(--gold-soft);
+      }
+
+      .primary-cta:focus-visible,
+      .secondary-cta:focus-visible,
+      .toc-link:focus-visible {
+        outline: 2px solid var(--gold-soft);
+        outline-offset: 3px;
+      }
+
+      .section {
+        padding: 34px 22px;
+        border-top: 1px solid rgba(240, 192, 111, 0.12);
+      }
+
+      .section.deep {
+        background:
+          radial-gradient(circle at 22% 12%, rgba(225, 107, 103, 0.17), transparent 15rem),
+          linear-gradient(180deg, rgba(31, 9, 9, 0.9), rgba(9, 4, 4, 0.96));
+      }
+
+      .scene-image,
+      .final-visual {
+        position: relative;
+        min-height: 540px;
+        overflow: hidden;
+        background: #170b0b;
+      }
+
+      .scene-image.small {
+        min-height: 440px;
+      }
+
+      .scene-image::after,
+      .final-visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52)),
+          radial-gradient(circle at 50% 0%, transparent 0 40%, rgba(0, 0, 0, 0.34) 78%);
+      }
+
+      .hook-grid {
+        display: grid;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .hook-card,
+      .proof-row,
+      .price-box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .hook-card {
+        padding: 15px;
+      }
+
+      .hook-card strong {
+        display: block;
+        color: var(--gold-soft);
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      .hook-card span {
+        display: block;
+        margin-top: 7px;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.55;
+        word-break: keep-all;
+      }
+
+      .proof-list {
+        display: grid;
+        gap: 9px;
+        margin-top: 18px;
+      }
+
+      .proof-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 13px 14px;
+      }
+
+      .proof-row span {
+        color: var(--dim);
+        font-size: 12px;
+      }
+
+      .proof-row strong {
+        color: var(--gold-soft);
+        font-size: 13px;
+        text-align: right;
+      }
+
+      .preview-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .toc-link {
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        align-items: center;
+        gap: 12px;
+        min-height: 76px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .toc-no {
+        color: var(--rose);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .toc-copy strong,
+      .toc-copy span {
+        display: block;
+      }
+
+      .toc-copy strong {
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      .toc-copy span {
+        margin-top: 4px;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .toc-arrow {
+        color: var(--gold);
+        font-size: 18px;
+      }
+
+      .price-box {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+        padding: 16px;
+      }
+
+      .price-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .price-line.final {
+        padding-top: 11px;
+        border-top: 1px solid rgba(240, 192, 111, 0.16);
+        color: var(--gold-soft);
+        font-size: 18px;
+        font-weight: 950;
+      }
+
+      .final-visual {
+        min-height: 620px;
+        display: grid;
+        align-items: end;
+      }
+
+      .fineprint {
+        margin: 14px 0 0;
+        color: rgba(255, 239, 220, 0.58);
+        font-size: 11px;
+        line-height: 1.55;
+      }
+
+      .footer {
+        padding: 20px 22px 30px;
+        border-top: 1px solid rgba(240, 192, 111, 0.12);
+        color: rgba(255, 239, 220, 0.54);
+        font-size: 11px;
+        line-height: 1.7;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 24px 0;
+        }
+
+        .phone {
+          min-height: calc(100svh - 48px);
+          border: 1px solid rgba(240, 192, 111, 0.14);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav from covering the page tail.
+         The shell publishes its measured height in --umsh-chrome-bottom-h, but that
+         measurement can land before layout settles and report far less than the nav's
+         real 74px, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* The story hero filled the viewport minus the design's own 64px bar. It now shares the
+         screen with a taller app bar and the bottom nav; a fixed share keeps both CTAs above
+         the fold without depending on a chrome height that may not be measured yet. */
+      body.umsh-has-chrome #step-1-story .hero { min-height: 62svh; }
+      body.umsh-has-chrome .composer { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .chat-log, body.umsh-has-chrome .screen { padding-bottom: calc(112px + max(74px, var(--umsh-chrome-bottom-h, 74px))); }
+      body.umsh-has-chrome .footer { padding-bottom: 18px; }
+      /* The teaser cards were sized for one short sample sentence. Real readings run longer,
+         and three columns inside a 375px phone wrapped them to two or three words per line. */
+      .teaser-grid { grid-template-columns: 1fr; }
+      .teaser-grid .mini-card { min-height: 0; gap: 4px; padding: 12px 14px; }
+      .marry-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(240, 192, 111, 0.45); border-radius: 10px; background: rgba(240, 192, 111, 0.08); padding: 14px; margin-bottom: 14px; }
+      .marry-saved-profile b { color: var(--gold, #f0c06f); font-size: 14px; }
+      .marry-saved-profile span { color: var(--muted, rgba(255,239,220,.74)); font-size: 13px; line-height: 1.55; }
+      .marry-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="phone" data-umsh-chrome data-service="Marriage compatibility" data-price="24,900 KRW" data-active="home" id="step-1-story" aria-label="Introduction: beyond dating, could we marry?">
+      <header class="appbar topbar" aria-label="Go to top">
+        <a class="brand" href="/" aria-label="Fortune Shop home">
+          <strong>Fortune Shop</strong>
+          <span>MATCH READING</span>
+        </a>
+        <span class="pill">Marriage compatibility</span>
+      </header>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <img src="../assets/marry/01-scene-01-hero.webp" alt="A couple looking at each other against a nighttime city backdrop, considering the possibility of marriage" />
+        <div class="scrim" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <span class="eyebrow">Could this go beyond dating to marriage?</span>
+          <h1 id="hero-title">Should I explore marriage with this person?</h1>
+          <p class="lead">I know you’re excited. But could it last? Let’s look at the spouse position, major fortune flow, and clashing signals too.</p>
+          <div class="cta-row">
+            <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-action="enter">Check my marriage compatibility</a>
+            <a class="secondary-cta" href="#preview">See what the service examines first</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section deep" aria-labelledby="worry-title">
+        <span class="chapter">Current concern</span>
+        <h2 id="worry-title">The feeling of liking someone, and<br /><span class="red">A relationship that could lead to marriage</span>is different, so</h2>
+        <p>Is this a flirtation shaken by one reply, or a relationship that can stand living together? Separate emotional warmth from what you can actually agree on.</p>
+      </section>
+
+      <section class="scene-image small" aria-label="Relationship-concern scene">
+        <img src="../assets/marry/01-scene-02-worry.webp" alt="A woman in a night cafe, looking at her phone and weighing whether the relationship is sincere" loading="lazy" />
+      </section>
+
+      <section class="section" aria-labelledby="loop-title">
+        <span class="chapter">A scene that repeats</span>
+        <h2 id="loop-title">If the same fight repeats<br />It may not be only a personality difference</h2>
+        <p>Warmth in contact, attitudes toward promises, money, and family. Let’s start with topics that grow bigger after marriage. Rather than conclude you should break up, I’ll identify where your words diverge.</p>
+      </section>
+
+      <section class="scene-image" aria-label="Recurring conflict scenes">
+        <img src="../assets/marry/01-scene-03-loop.webp" alt="A couple faces each other late at night, searching for clues to recurring conflict" loading="lazy" />
+      </section>
+
+      <section class="section deep" aria-labelledby="basis-title">
+        <span class="chapter">Reading basis</span>
+        <h2 id="basis-title">Spouse position and major patterns,<br />And <span class="red">Combinations and clashes</span>Let us look at that together too</h2>
+        <p>I will not end compatibility by looking at only one person&#39;s tendencies. Let us separate the two people&#39;s baselines, the stretch where the relationship is easier to make official, and the points where you often collide.</p>
+        <div class="proof-list" aria-label="Analysis basis">
+          <div class="proof-row"><span>The relationship position</span><strong>Spouse palace</strong></div>
+          <div class="proof-row"><span>Flow of time</span><strong>Major-cycle and yearly flow</strong></div>
+          <div class="proof-row"><span>Clashes and attraction</span><strong>Combination, clash, and earthly-branch signals</strong></div>
+        </div>
+      </section>
+
+      <section class="scene-image" aria-label="A birth-chart compatibility analysis scene">
+        <img src="../assets/marry/01-scene-04-basis.webp" alt="Hands looking over two saju cards and the flow of marriage compatibility" loading="lazy" />
+      </section>
+
+      <section class="section" id="preview" aria-labelledby="preview-title">
+        <span class="chapter">It looks at even this</span>
+        <h2 id="preview-title">Marriage potential, rather than a score<br /><span class="red">Practical signals</span> matter</h2>
+        <div class="hook-grid">
+          <div class="hook-card">
+            <strong>My relationship baseline</strong>
+            <span>The temperature of expression, time alone, and the pattern I repeat in dating</span>
+          </div>
+          <div class="hook-card">
+            <strong>Your chemistry together</strong>
+            <span>Day-stem chemistry, element balance, conversational rhythm, and emotional drain</span>
+          </div>
+          <div class="hook-card">
+            <strong>Beyond dating: marriage readiness</strong>
+            <span>Whether this is a partner for everyday life, and where family, money, or housing issues clash</span>
+          </div>
+          <div class="hook-card">
+            <strong>Marriage-timing luck</strong>
+            <span>This year’s pattern, defining your relationship, and periods to consider moving toward a proposal or meeting each other’s families</span>
+          </div>
+          <div class="hook-card">
+            <strong>Red-flag check</strong>
+            <span>Contact warmth gaps, avoidance/clinging, marriage-view differences, and issues that grow if overlooked</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene-image" aria-label="Preview scene of the marriage-compatibility report">
+        <img src="../assets/marry/01-scene-05-preview.webp" alt="A couple looking down at several marriage-compatibility report cards" loading="lazy" />
+      </section>
+
+      <section class="section deep" aria-labelledby="paid-title">
+        <span class="chapter">Full report structure</span>
+        <h2 id="paid-title">After payment,<br />You can open them one by one, by list</h2>
+        <p>I won’t overwhelm you with long text first. Move from categories to subcategories and choose what you need.</p>
+        <div class="preview-list" aria-label="Representative report contents">
+          <div class="toc-link">
+            <span class="toc-no">01</span>
+            <span class="toc-copy"><strong>The other person’s relationship character</strong><span>Expression, responsibility, and signs to look for in actions rather than words</span></span>
+          </div>
+          <div class="toc-link">
+            <span class="toc-no">02</span>
+            <span class="toc-copy"><strong>Real life together and married life</strong><span>Daily rhythm, money management, housework, and how long conflicts get resolved</span></span>
+          </div>
+          <div class="toc-link">
+            <span class="toc-no">03</span>
+            <span class="toc-copy"><strong>Actions you can use today</strong><span>A sentence for bringing up marriage, and a 30-day observation checklist</span></span>
+          </div>
+        </div>
+        <div class="price-box" aria-label="Price information">
+          <div class="price-line"><span>Reading categories</span><strong>Marriage compatibility</strong></div>
+          <div class="price-line"><span>Analysis criteria</span><strong>Spouse palace + major cycle + combinations and clashes</strong></div>
+          <div class="price-line final"><span>Full report</span><strong>24,900 KRW</strong></div>
+        </div>
+      </section>
+
+      <section class="final-visual" aria-labelledby="final-title">
+        <img src="../assets/marry/01-scene-06-cta.webp" alt="A couple walking together toward a bright doorway and the next step" loading="lazy" />
+        <div class="scrim" aria-hidden="true"></div>
+        <div class="final-copy">
+          <span class="chapter">Input is on the next screen</span>
+          <h2 id="final-title">The marriage potential of this relationship,<br />Shall we take a proper look, not just a light one?</h2>
+          <p>Write your details and the other person&#39;s separately. In the next step I will check only the chart basis needed for marriage compatibility.</p>
+          <div class="cta-row">
+            <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-action="enter">Check my marriage compatibility</a>
+          </div>
+          <p class="fineprint">This is a reference service that looks at possibilities and conditions from a traditional four-pillar reading. It does not decide marriage or separation for you.</p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        Fortune Shop marriage compatibility · Results focus on possibilities, conditions, and actions now. They do not determine medical, legal, financial, or relationship decisions.
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        if (!location.hash) {
+          history.replaceState(null, "", location.pathname + location.search + "#step-1-story");
+        }
+
+        var serviceContext = {
+          service_key: "marriage_compatibility",
+          service_slug: "marry",
+          service_title: "Beyond dating, can we marry?",
+          category: "Marriage compatibility",
+          price_krw: 24900,
+          analysis_basis: ["Spouse palace", "Major fortune cycles", "Combinations and clashes"],
+          report_version: "marry-intro-v1",
+          copy_version: "mz-safe-v1",
+        };
+
+        var seed = [
+          { title: "My dating defaults", items: ["Warmth of contact, expression, and physical affection", "Where you cross boundaries in love", "Daily habits that emerge in marriage"] },
+          { title: "The other person's dating character", items: ["How affection is expressed", "Responsibility and how you handle commitments", "Signals to read through actions, not words"] },
+          { title: "Your chemistry together", items: ["Day-master chemistry", "Five-element balance", "Conversational chemistry"] },
+          { title: "Marriage potential, not just dating", items: ["An everyday-life connection", "Agreement on real conditions", "Family, money, and home issues"] },
+          { title: "Marriage-timing luck", items: ["This year’s marriage fortune", "Proposal timing", "A period to watch for impulsive escalation"] },
+          { title: "Red-flag check", items: ["Difference in contact warmth", "Avoidance and clinging", "Different views of marriage"] },
+          { title: "Practical cohabitation and married-life simulation", items: ["Daily rhythm", "Money management", "Long-term conflict resolution"] },
+          { title: "Restoring relationships and caring for feelings", items: ["Why it feels uneasy", "How to express hurt feelings", "Options for sorting things out"] },
+          { title: "Actions to use today", items: ["One line on KakaoTalk", "Words for bringing up marriage", "30-day observation checklist"] },
+          { title: "MZ-style result label", items: ["Marriage-readiness warmth", "Emotional-depletion alert", "Pace-adjustment reminder"] }
+        ];
+
+        try {
+          sessionStorage.setItem("umsh_service_context", JSON.stringify(serviceContext));
+          sessionStorage.setItem("umsh_interpretation_seed_marry", JSON.stringify(seed));
+        } catch (_error) {
+          // The intro still works when browser storage is restricted.
+        }
+
+        document.addEventListener("click", function (event) {
+          var link = event.target.closest("[data-action='enter']");
+          if (!link) return;
+          event.preventDefault();
+          try {
+            sessionStorage.setItem("umsh_service_context", JSON.stringify(serviceContext));
+            sessionStorage.setItem("umsh_interpretation_seed_marry", JSON.stringify(seed));
+          } catch (_error) {}
+          location.href = link.getAttribute("href");
+        });
+      })();
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/marry-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

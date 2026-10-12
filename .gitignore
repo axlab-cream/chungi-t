@@ -35,3 +35,5 @@ CreamAI/logs/**/_prompt_*.txt
 # AIOS 승인 게이트 훅(.claude/hooks/aios-approval-gate.mjs)이 쌓는 도구 사용 로그.
 # 실행한 명령 원문이 그대로 들어가므로 저장소에 올리지 않는다.
 99_logs/
+
+.vercel

@@ -1,0 +1,1311 @@
+<!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/umsh-auth-session.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Free guidance | Does my current home fit me?</title>
+    <meta name="description" content="With feng shui and personal four pillars, check a free direction for the home you live in now and your daily rhythm.">
+    <meta property="og:title" content="Fortune Shop - We sell fate.">
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://place.umsh.kr/home">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0c1110;
+        --surface: #141a17;
+        --surface-2: #1d2420;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.5);
+        --line: rgba(215, 234, 213, 0.18);
+        --sage: #9fb7a1;
+        --mint: #d8ecd4;
+        --brass: #e4c36f;
+        --clay: #bf6745;
+        --blue: #89a9bd;
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #050706;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% -8%, rgba(159, 183, 161, 0.2), transparent 28rem),
+          linear-gradient(180deg, #050706 0%, #0f1412 42%, #050706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(12, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 1.2;
+      }
+
+      .brand span,
+      .step-badge,
+      .eyebrow {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .step-badge {
+        flex: 0 0 auto;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 29px;
+        line-height: 1.17;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        font-size: 15px;
+        line-height: 1.36;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .hero {
+        display: grid;
+        gap: 16px;
+        align-items: center;
+        padding: 24px 18px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .chips,
+      .micro-grid,
+      .state-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip,
+      .mini-state {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .visual-frame {
+        position: relative;
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(215, 234, 213, 0.24);
+        border-radius: 8px;
+        background: #eadfcb;
+      }
+
+      .visual-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .notice {
+        display: none;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(228, 195, 111, 0.2);
+        background: rgba(191, 103, 69, 0.12);
+      }
+
+      .notice.is-open {
+        display: block;
+      }
+
+      .band {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .result-shell {
+        display: grid;
+        gap: 12px;
+      }
+
+      .summary-row,
+      .signal-card,
+      .scope-card,
+      .state-card,
+      .receipt-row,
+      .action-tile {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .summary-row {
+        display: grid;
+        gap: 8px;
+        padding: 16px;
+      }
+
+      .summary-row strong,
+      .signal-card strong,
+      .scope-card strong,
+      .state-card strong,
+      .receipt-row strong {
+        display: block;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .summary-row span,
+      .signal-card span,
+      .scope-card span,
+      .state-card span,
+      .receipt-row span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.5;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .teaser-copy {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        background: rgba(228, 195, 111, 0.07);
+      }
+
+      .teaser-copy strong {
+        color: var(--brass);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .teaser-copy p {
+        margin: 0;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 780;
+        line-height: 1.7;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .verdict-box {
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+        border: 1px solid rgba(228, 195, 111, 0.28);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 88% 0%, rgba(228, 195, 111, 0.18), transparent 12rem),
+          linear-gradient(145deg, rgba(31, 41, 33, 0.96), rgba(18, 22, 19, 0.98));
+      }
+
+      .verdict-label {
+        width: fit-content;
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: rgba(159, 183, 161, 0.14);
+        color: var(--mint);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .verdict-box h2 {
+        font-size: 25px;
+      }
+
+      .signal-layout {
+        display: grid;
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .signal-list,
+      .scope-list,
+      .receipt-list,
+      .action-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal-card {
+        display: grid;
+        gap: 7px;
+        padding: 14px;
+      }
+
+      /* 손볼 곳인지 아닌지를 카드 첫 줄에서 바로 읽히게 한다. Back에는 네 카드가
+         모두 같은 톤이라, 자기 답이 문제인지 아닌지 알 수 없었다. */
+      .signal-flag {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 7px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--sage);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 900;
+        letter-spacing: 0;
+        vertical-align: middle;
+      }
+
+      .signal-flag.is-warn {
+        border-color: rgba(191, 103, 69, 0.55);
+        background: rgba(191, 103, 69, 0.16);
+        color: var(--clay);
+      }
+
+      .signal-card .signal-issue {
+        color: var(--ink);
+        font-weight: 800;
+        opacity: 0.9;
+      }
+
+      .signal-card .signal-fix {
+        padding-top: 7px;
+        border-top: 1px solid var(--line);
+        color: var(--mint);
+      }
+
+      .signal-card .signal-fix::before {
+        content: "What to add ";
+        color: var(--brass);
+        font-weight: 950;
+      }
+
+      .signal-card b,
+      .scope-card b {
+        color: var(--brass);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.04em;
+      }
+
+      .scope-card {
+        display: grid;
+        gap: 7px;
+        padding: 14px;
+      }
+
+      .scope-card ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .scope-card li {
+        padding: 6px 8px;
+        border: 1px solid rgba(215, 234, 213, 0.12);
+        border-radius: 8px;
+        color: rgba(255, 248, 239, 0.72);
+        background: rgba(0, 0, 0, 0.14);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .state-card {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 148px;
+        padding: 12px;
+      }
+
+      .state-card strong {
+        color: var(--mint);
+        font-size: 12px;
+      }
+
+      .paid-band {
+        background:
+          radial-gradient(circle at 18% 0%, rgba(137, 169, 189, 0.18), transparent 13rem),
+          rgba(255, 255, 255, 0.02);
+      }
+
+      .cta-layout {
+        display: grid;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .price {
+        color: var(--brass);
+        font-size: 32px;
+        font-weight: 950;
+        letter-spacing: 0;
+        line-height: 1;
+      }
+
+      .receipt-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+      }
+
+      .receipt-row span {
+        text-align: right;
+      }
+
+      .cta-stack {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        display: grid;
+        gap: 10px;
+        padding: 12px 18px max(16px, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: rgba(12, 17, 16, 0.95);
+        backdrop-filter: blur(16px);
+      }
+
+      .cta-primary,
+      .cta-secondary {
+        display: grid;
+        min-height: 52px;
+        place-items: center;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.25;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+
+      .cta-primary {
+        border: 1px solid rgba(228, 195, 111, 0.55);
+        background: linear-gradient(135deg, #efd47d, #c8913d);
+        color: #1b1207;
+      }
+
+      .cta-secondary {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+
+      .fallback-link {
+        color: var(--brass);
+        font-weight: 900;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      @media (max-width: 374px) {
+        .hero,
+        .signal-layout,
+        .cta-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .visual-frame {
+          width: 100%;
+          min-height: 0;
+          justify-self: center;
+        }
+
+        h1 {
+          font-size: 25px;
+        }
+
+        .verdict-box h2 {
+          font-size: 22px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell">
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907">
+  </head>
+  <body>
+    <main class="app" id="step-4-report">
+      <div data-umsh-service-top=""></div>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <span class="eyebrow">Does my current home fit me?</span>
+          <h1 id="page-title">Forget the label on the house. Start with whether it suits your rhythm now.</h1>
+          <p id="hero-summary">
+            Rather than declare a site lucky or unlucky, first see freely whether this home supports your sleep, work, money, and relationships.
+          </p>
+          <div class="chips" aria-label="Analysis basis">
+            <span class="chip">Feng shui</span>
+            <span class="chip">Personal destiny reading</span>
+            <span class="chip">Daily rhythm</span>
+          </div>
+        </div>
+        <figure class="visual-frame" data-asset-key="home-04-free-report-hero">
+          <img src="assets/generated/home/04-free-report-hero.webp" alt="A Fortune Shop guide examining home plans and models to prepare the free direction">
+        </figure>
+      </section>
+
+      <section class="notice" id="missing-input">
+        <p>
+          The house details you just entered are not in this browser. Check the input again from the start.
+
+        </p>
+      </section>
+
+      <section class="band">
+        <div class="section-head">
+          <span class="eyebrow">The first direction shown free</span>
+          <h2>Don&#39;t hide the conclusion; keep the scope light</h2>
+          <p>This is a taste of the full reading: start with a one-line direction and strong signals.</p>
+        </div>
+
+        <div class="verdict-box" aria-live="polite">
+          <span class="verdict-label" id="verdict-label">Preliminary home-fit assessment</span>
+          <h2 id="verdict-title">From the inputs, it separates an angle for staying, an angle for repair, and an angle for comparison</h2>
+          <p id="verdict-summary">
+            Look first at whether you shake less and recover well in this home, more than whether the home is good or bad.
+          </p>
+        </div>
+
+        <div class="result-shell" id="snapshot-list" aria-label="Input summary">
+          <div class="summary-row">
+            <strong>Awaiting input summary</strong>
+            <span>If values were entered in step 02, the home type, purpose, and concerns are organized here.</span>
+          </div>
+        </div>
+
+        <div class="result-shell" aria-label="Personalized free preview">
+          <div class="teaser-copy" id="personal-teaser">
+            <strong>Awaiting personalized preview</strong>
+            <p>Once Four Pillars and home input connect, your first home-focused hook reading appears here.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="signals-title">
+        <div class="section-head">
+          <span class="eyebrow">4 strong signals</span>
+          <h2 id="signals-title">Points to check first right now</h2>
+          <p>Entrance, bedroom, desk, and outside-window flow alone can outline whether home supports or tires you.</p>
+        </div>
+
+        <div class="signal-layout">
+          <figure class="visual-frame" data-asset-key="home-04-key-signal">
+            <img src="assets/generated/home/04-key-signal.webp" alt="An Fortune Shop guide looking at the entrance path and what blocks the view">
+          </figure>
+          <div class="signal-list" id="signal-list">
+            <article class="signal-card">
+              <b>Entrance</b>
+              <strong>Whether incoming energy leaves right away</strong>
+              <span>If the bedroom or a large window is visible from the entrance, screening and organizing may come first.</span>
+            </article>
+            <article class="signal-card">
+              <b>Bedroom</b>
+              <strong>Whether it is a place for deeper sleep</strong>
+              <span>Strong road noise, exposure to others’ gaze, or the door’s orientation may make the space feel less restorative.</span>
+            </article>
+            <article class="signal-card">
+              <b>Desk</b>
+              <strong>Whether there is support behind you</strong>
+              <span>For work or study, backing onto a wall or stable surface is preferable to an exposed feeling behind you.</span>
+            </article>
+            <article class="signal-card">
+              <b>Outside the window</b>
+              <strong>Whether the front is open with less pressure</strong>
+              <span>Look at the balance of openness and support. Fitting your daily pace matters more than good or bad.</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band paid-band" aria-labelledby="paid-title">
+        <div class="section-head">
+          <span class="eyebrow">Post-payment full scope</span>
+          <h2 id="paid-title">The 19,900 KRW report continues through a 12-chapter flow</h2>
+          <p>Go beyond the free direction to Four Pillars/home Five Elements fit, room-by-room adjustments, and 7-day actions.</p>
+        </div>
+
+        <div class="cta-layout">
+          <div class="receipt-list">
+            <div class="receipt-row">
+              <strong>Product</strong>
+              <span>Does my current home fit me?</span>
+            </div>
+            <div class="receipt-row">
+              <strong>What is included</strong>
+              <span>12 chapters, an 8-axis scorecard, and practical actions</span>
+            </div>
+            <div class="receipt-row">
+              <strong>Payment amount</strong>
+              <span class="price">19,900 KRW</span>
+            </div>
+          </div>
+          <figure class="visual-frame" data-asset-key="home-04-paid-preview">
+            <img src="assets/generated/home/04-paid-preview.webp" alt="An Fortune Shop guide organizing a model home and blank report cards">
+          </figure>
+        </div></section>
+
+      <section class="band" aria-labelledby="scope-title">
+        <div class="section-head">
+          <span class="eyebrow">Full report contents</span>
+          <h2 id="scope-title">You’ll continue through this much</h2>
+
+        </div>
+        <div class="scope-list" id="scope-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="action-title">
+        <div class="section-head">
+          <span class="eyebrow">What you can do now</span>
+          <h2 id="action-title">What to check today from the free direction guide alone</h2>
+          <p>Even before the full report, you can check how mornings and evenings feel different right away.</p>
+        </div>
+        <div class="action-list">
+          <div class="action-tile summary-row">
+            <strong>1 minute in the morning</strong>
+            <span>Looks at where your gaze lands directly between the entrance and living room.</span>
+          </div>
+          <div class="action-tile summary-row">
+            <strong>1 minute in the evening</strong>
+            <span>When lying in bed, check whether the door, window, or noise bothers you first.</span>
+          </div>
+          <div class="action-tile summary-row">
+            <strong>10 minutes on weekends</strong>
+            <span>First clear behind the desk and bed; if immovable, supplement with light and storage.</span>
+          </div>
+        </div>
+      </section>
+
+      <nav class="cta-stack" aria-label="Next step">
+        <a class="cta-primary" href="/payment?product=home_pungsu&amp;returnTo=%2Fplace%2Fhome%2F04-step-4-report%2Findex.html" data-action="open-paid">
+          View all (19,900 KRW)
+        </a>
+
+
+      </nav>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "Does my current home fit me?",
+        "service_category": "Home feng shui",
+        "rag": ["Feng shui", "Personal destiny reading"],
+        "domain": "place.umsh.kr/home",
+        "price_krw": 19900,
+        "stage": "04-step-4-report"
+      }
+    </script>
+
+    <script type="application/json" id="FREE_REPORT_MODEL">
+      {
+        "teaser_ratio": "10-15%",
+        "free_components": ["Direction in one line", "At least one strong signal", "Conditions or timing", "Obstacles", "Items that open after payment"],
+        "decision_labels": ["Time to keep living here", "Time to adjust", "Ready to compare", "Hold off on interpreting how it feels"],
+        "client_authority": "The free screen does not confirm a successful payment or permission."
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX_PAYLOAD">
+      {
+        "source": "user_seed",
+        "interpretation_index_version": "home-fit-index-v1",
+        "groups": [
+          {
+            "group_id": "home-fit-overall",
+            "title": "Does this home really fit me?",
+            "items": ["Overall fit assessment", "Stay / Adjust / Compare", "Why it pulls", "Subtly draining points", "Compatibility with my timing now", "One-line conclusion"]
+          },
+          {
+            "group_id": "house-energy",
+            "title": "Does the site support me or push me away?",
+            "items": ["Site similarity", "Sense of support", "Travel burden", "Daily-life patterns in similar sites"]
+          },
+          {
+            "group_id": "saju-house-ohaeng",
+            "title": "My saju × the home’s five-element fit",
+            "items": ["Day-master daily rhythm", "Balancing excessive/missing elements", "Useful god and the space's texture", "Home pace by strong or weak chart", "A house that is too much for me", "A home that keeps me going"]
+          },
+          {
+            "group_id": "sleep-recovery",
+            "title": "Sleep, recovery, and mental rhythm",
+            "items": ["Bedroom calm", "Depth of sleep", "Recovery at home", "Noise and visual fatigue", "Make room for rest", "Recharge after work", "Burnout prevention points"]
+          },
+          {
+            "group_id": "entrance-flow",
+            "title": "Entrance and route energy",
+            "items": ["First impression", "Entrance tidiness", "Straight entrance–living room–bedroom flow", "Elevator and corridor stimulation", "Whether the qi that entered stays", "Package and shoe congestion"]
+          },
+          {
+            "group_id": "remote-focus",
+            "title": "Focus for working from home, studying, and work",
+            "items": ["Desk position", "Support behind the back", "Door and window positions", "A corner for deep focus", "Video-call or phone-call fit", "Separate work and rest spaces", "Productivity routine"]
+          },
+          {
+            "group_id": "money-living",
+            "title": "Money, household, and spending flow",
+            "items": ["How money accumulates", "Where money slips away", "Sense of rent and maintenance costs", "Work-from-home income rhythm", "Important documents and safe placement", "Impulse-spending triggers"]
+          },
+          {
+            "group_id": "relationship-cohabitation",
+            "title": "Relationship, family, and living-together chemistry",
+            "items": ["Comfort when alone", "Movement paths that clash with family", "Fit for inviting a partner or a friend", "Roommate or cohabitation compatibility", "Stress from neighbors and noise", "Sense of privacy"]
+          },
+          {
+            "group_id": "spatial-fix",
+            "title": "Room-by-room adjustments",
+            "items": ["Bed position", "Desk position", "Sofa and dining-table placement", "Using plants, mirrors, and a TV", "Curtain, lighting, and storage improvements", "Color and material hints", "Alternatives when you cannot move"]
+          },
+          {
+            "group_id": "reality-action",
+            "title": "Reality check and action plan",
+            "items": ["Morning and evening comfort check", "Keep contract / Compare moving", "3 things to adjust right now", "Arrangements to avoid", "A 7-day living check", "Recommended next actions"]
+          }
+        ]
+      }
+    </script>
+
+
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-04-free-report-hero",
+            "filename": "assets/generated/home/04-free-report-hero.webp",
+            "role": "hero",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["Round glasses", "Neatly styled dark hair", "Beige knit outerwear", "Sage tones", "Warm indoor lighting"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "Preparing a free direction while examining home plans and models. No text inside the image.",
+            "alt": "A Fortune Shop guide examining home plans and models to prepare the free direction",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-free-report-hero'] img"
+          },
+          {
+            "asset_key": "home-04-key-signal",
+            "filename": "assets/generated/home/04-key-signal.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["Round glasses", "Neatly styled dark hair", "Beige knit outerwear", "Sage tones", "Warm indoor lighting"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "A scene examining the entrance route and a screen. No text inside the image.",
+            "alt": "An Fortune Shop guide looking at the entrance path and what blocks the view",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-key-signal'] img"
+          },
+          {
+            "asset_key": "home-04-paid-preview",
+            "filename": "assets/generated/home/04-paid-preview.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["Round glasses", "Neatly styled dark hair", "Beige knit outerwear", "Sage tones", "Warm indoor lighting"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "A pre-payment scope preview: sorting a house model and blank report cards. No text in the image.",
+            "alt": "An Fortune Shop guide organizing a model home and blank report cards",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-paid-preview'] img"
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        service_title: "Does the house I live in now fit me?",
+        category: "Home feng shui",
+        subcategory: "How home fits my daily life",
+        price_krw: 19900,
+        report_version: "home-fit-v1.0",
+        copy_version: "mz-home-pungsu-v1",
+        next_route: "../05-step-5-chat/chat.html#step-5-chat"
+      };
+
+      const STORAGE_KEYS = {
+        input: "umsh_home_fit_input_payload_v1",
+        paymentIntent: "umsh_home_fit_payment_intent_v1"
+      };
+
+      const HOME_GUIDE_GROUPS = [
+        { group_id: "home-fit-overall", title: "Does this home really fit me?", items: ["Overall assessment", "8-axis scorecard", "Key strengths", "Priority risk"] },
+        { group_id: "terrain-support", title: "Does the site support me or push me away?", items: ["Site similarity", "Sense of support", "Travel burden", "Daily-life patterns in similar sites"] },
+        { group_id: "external-flow", title: "Waterways, roads, wind: what comes rushing in?", items: ["Water systems", "Road", "Wind", "External noise"] },
+        { group_id: "light-air-noise", title: "Is light medicine, or an alarm bomb?", items: ["Orientation and sunlight", "Ventilation", "Noise", "Stimulus by time of day"] },
+        { group_id: "building-unit", title: "Basic stamina of the building and the household", items: ["Floor and completion year", "Shared facilities", "Floor plan", "Dwelling-unit conditions"] },
+        { group_id: "entrance-flow", title: "Already drained at the entrance?", items: ["First path through the space", "Congestion at the door", "Shoes and packages", "Coming and going rhythm"] },
+        { group_id: "sleep-recovery", title: "Is the bedroom for rest, or overtime round two?", items: ["Sleep stimulation", "Sense of recovery", "Nighttime light and sound", "7-day experiment"] },
+        { group_id: "remote-focus", title: "Is the desk a focus seat, or a coliseum of notifications?", items: ["Backing", "View", "Notifications and sound", "Start · finish"] },
+        { group_id: "money-living", title: "Is money leaking, or is the route?", items: ["Duplicate purchase", "Storage", "Returns / subscriptions", "Household path"] },
+        { group_id: "relationship-cohabitation", title: "Living together: chemistry, or a noise agreement", items: ["Shared space", "Private life", "Hours of use", "Relationship distance"] },
+        { group_id: "saju-house-ohaeng", title: "My saju × the home’s five-element fit", items: ["Your Five Elements", "Home symbols", "Target element", "Annual flow"] },
+        { group_id: "reality-action", title: "So what should I do?", items: ["Today", "7 days", "30 days", "Criteria for comparing moves"] }
+      ];
+
+      const LABELS = {
+        building_type: {
+          apartment: "Apartment",
+          officetel: "Officetel",
+          villa: "Low-rise multi-unit",
+          studio: "Studio apartment",
+          house: "Detached house",
+          other: "Other housing"
+        },
+        main_purpose: {
+          recovery: "Recovery",
+          work_study: "Work and study focus",
+          money: "Money and household stability",
+          relationship: "관계·동거",
+          move_decision: "Moving decision"
+        },
+        stay_decision: {
+          stay: "Unsure whether to keep living here",
+          fix: "Wondering if a fix would make it okay",
+          compare: "Compare possible places to move to",
+          unknown: "Want to know the cause first"
+        },
+        pain_points: {
+          sleep: "Light sleep",
+          noise: "Bothered by noise",
+          entrance: "Cluttered entrance",
+          focus: "Cannot concentrate",
+          money: "고민ed about money and household life",
+          spending: "It feels like money keeps leaking",
+          relationship: "같이 살 때 부딪힘",
+          move: "A decision about moving or a contract is at stake",
+          pressure: "Pressure from the view and buildings outside"
+        },
+        entrance_flow: {
+          direct: "The inside is almost a straight line from the entrance",
+          direct_bedroom: "The bedroom is visible straight from the entry",
+          direct_window: "A large window visible directly from the entrance",
+          bent: "The path bends once",
+          blocked: "Some obstruction",
+          unknown: "Not sure"
+        },
+        bedroom_feel: {
+          quiet: "Quiet and steady",
+          window_road: "Noise or outside views through the window",
+          door_line: "고민ed about the door’s direction",
+          too_bright: "Strong light or hard to rest",
+          cluttered: "Too many objects feel cramped",
+          unknown: "Not sure"
+        },
+        desk_position: {
+          back_wall: "A wall behind you",
+          back_window: "A window or open space behind you",
+          face_door: "Facing the door directly",
+          mixed_rest: "Mixed with the resting area",
+          none: "No fixed place"
+        },
+        outside_flow: {
+          open: "The front is relatively open",
+          pressed: "The building across from me is close",
+          road_noise: "There is stimulus from the road or the alley",
+          balanced: "Smooth and stable",
+          unknown: "Not sure"
+        }
+      };
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        try {
+          return JSON.parse(node.textContent);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function fromSession(key) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function toSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          return false;
+        }
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function label(group, key, fallback = "Not entered") {
+        return LABELS[group]?.[key] || fallback;
+      }
+
+      function snakeInputFromHome(home = {}) {
+        return {
+          address_or_building: home.addressOrBuilding,
+          building_type: home.buildingType,
+          living_period: home.livingPeriod,
+          main_purpose: home.mainPurpose,
+          stay_decision: home.stayDecision,
+          pain_points: home.painPoints,
+          entrance_flow: home.entranceFlow,
+          bedroom_feel: home.bedroomFeel,
+          desk_position: home.deskPosition,
+          outside_flow: home.outsideFlow,
+          extra_note: home.extraNote
+        };
+      }
+
+      function inputFromPayload(payload) {
+        return payload?.input || snakeInputFromHome(payload?.home || payload?.context?.home || {});
+      }
+
+      function reportFromPayload(payload) {
+        return payload?.analysis?.report || safeParse(fromSession("umsh_home_fit_report_v1"));
+      }
+
+      function reportSection(payload, ...ids) {
+        const report = reportFromPayload(payload);
+        const sections = Array.isArray(report?.sections) ? report.sections : [];
+        return ids.map((id) => sections.find((section) => section.id === id)).find(Boolean) || sections[0] || null;
+      }
+
+      function teaserParagraphs(section) {
+        const text = String(section?.interpretation || "").trim();
+        if (!text) return [];
+        return text
+          .split(/\n{2,}/)
+          .map((part) => part.replace(/^\[[^\]]+\]\s*/, "").trim())
+          .filter(Boolean)
+          .slice(0, 2);
+      }
+
+      function compactName(payload) {
+        if (payload?.context?.name) return payload.context.name;
+        if (payload?.profile?.name) return payload.profile.name;
+        if (payload?.profile?.nickname) return payload.profile.nickname;
+        return "Me";
+      }
+
+      function deriveVerdict(input) {
+        const pain = new Set(Array.isArray(input.pain_points) ? input.pain_points : []);
+        const hasSleepDrag = pain.has("sleep") || pain.has("noise") || input.bedroom_feel === "window_road" || input.bedroom_feel === "door_line";
+        const hasFlowDrag = pain.has("entrance") || input.entrance_flow === "direct" || input.entrance_flow === "direct_bedroom" || input.entrance_flow === "direct_window";
+        const hasFocusDrag = pain.has("focus") || input.desk_position === "back_window" || input.desk_position === "mixed_rest";
+        const hasPressure = pain.has("pressure") || input.bedroom_feel === "too_bright" || input.outside_flow === "pressed" || input.outside_flow === "road_noise";
+
+        if (input.stay_decision === "compare") {
+          return {
+            label: "Ready to compare",
+            title: "For now, compare other candidates rather than decide immediately",
+            summary: "If you compare conditions that repeat every day, such as the flow outside the window, how settled sleep feels, and how the rent feels, the judgment becomes much clearer."
+          };
+        }
+
+        if (input.stay_decision === "fix" || hasFlowDrag || hasSleepDrag || hasFocusDrag || hasPressure) {
+          return {
+            label: "Time to adjust",
+            title: "This home first shows points that can improve with adjustments",
+            summary: "Before deciding to move, it may be worth trying small changes such as screening the entrance, making the bedroom calmer, and adding support behind your desk chair."
+          };
+        }
+
+        if (input.stay_decision === "stay") {
+          return {
+            label: "Check readiness to keep living here",
+            title: "Separate the fatigue signals when deciding whether this home is one you can keep living in.",
+            summary: "The key is whether it fits your daily needs, not the house itself. Start by checking which is weakest: recovery, focus, or money flow."
+          };
+        }
+
+        return {
+          label: "Hold off on interpreting how it feels",
+          title: "For now, gather felt signals before reaching a conclusion",
+          summary: "Observe morning/evening physical condition, your first entrance impression, and bedroom visual fatigue for 7 days to clarify direction."
+        };
+      }
+
+      function signalCards(input) {
+        const cards = [];
+        const entranceMap = {
+          direct: ["Entrance", "A place to work on", "The qi that entered passes straight through to the inside", "When the door opens, your gaze reaches inside without pausing. Even at home, you may not settle into rest and your mind can keep running ahead.", "Lay a rug between the entry and the living room, or place low storage, so the eye stops once. What you can do today is clear the entry floor."],
+          direct_bedroom: ["Entrance", "A place to work on", "The resting area is visible as soon as the door opens", "Tension carried in from outside reaches the bedroom directly. If the entrance keeps catching your attention when you lie down, this layout may be one reason.", "Close the bedroom door or use a thin curtain to interrupt sightlines. If furniture is hard to move, a rug outside the bedroom door can create a boundary too."],
+          direct_window: ["Entrance", "A place to work on", "Incoming energy flows straight out through a large window", "Because the door and the window are in a straight line, a feeling of staying inside the home does not form well. Even if you stay a long time, the sense of having settled into a place is weak.", "Place a plant or a lamp between the entrance and the window so the sightline catches on it. Drawing the thin curtain on the window side halfway also changes how it feels."],
+          bent: ["Entrance", "Fine", "A bend in the route provides stability.", "Nothing here snags the flow. The incoming flow pauses once before moving farther inside, so the structure should be left as it is.", "Leave the layout as it is. Simply taking shoes and parcels off the floor can improve the first impression."],
+          blocked: ["Entrance", "Fine", "A screen keeps the interior from direct view.", "The structure filters external stimuli through one layer, so there is no major problem. It may, however, feel confining.", "Add one soft entrance light and organize storage. The blocked feeling lessens while its filtering benefit remains."]
+        };
+        const bedroomMap = {
+          quiet: ["Bedroom", "Fine", "A bedroom comfortable for recovery", "Few stimuli interfere with sleep here. If you're tired now, another area is more likely the cause than the bedroom.", "Keep the layout as it is and lower the lighting by one level before bed. If you want to find something else to change, start with the other cards."],
+          window_road: ["Bedroom", "A place to work on", "Outside noise and views through the window disturb sleep", "Your body lies down, but keeps reacting to outside sound and light. This is a typical spot where morning recovery feels low relative to time slept.", "Put up thick curtains first, then place the bed’s head against the wall farthest from the window. If you can’t move the bed, put low furniture near the head to create a barrier."],
+          door_line: ["Bedroom", "A place to work on", "The door is directly visible when lying down", "If the door is in view, the body does not fully release tension. Waking during sleep can increase, or falling asleep can take time.", "Turn the bed slightly diagonal to the door. If it can't move, break the sightline with a bedside table or low divider between door and bed."],
+          too_bright: ["Bedroom", "A place to work on", "Strong light keeps this from being a restful space", "A bright room is pleasant by day, but at night can leave your body switched on. If fatigue at home grows in the evening, start here.", "Install blackout curtains and turn on one low light instead of the ceiling light. Start by reducing one bright surface directly visible from the bed."],
+          cluttered: ["Bedroom", "A place to work on", "Objects catch your eye before the resting space does", "If you see something to tidy every time you lie down, the head cannot rest. This may be why coming home does not feel like rest.", "Clear only 60cm around the bed, not the whole room. Even that area restores space for recovery."]
+        };
+        const deskMap = {
+          back_wall: ["Desk", "Fine", "A wall behind the back favors concentration", "A stable work arrangement. If focus scatters, the number of desk objects may be the issue rather than the spot.", "Keep the position unchanged and leave only your current task on the desk. Reducing stimulation from the door and window is enough."],
+          back_window: ["Desk", "A place to work on", "An open space behind you lets focus slip", "With an open space behind you, the body stays slightly on guard. A seat where long hours may yield few finished tasks.", "If the desk cannot turn, add support with a low shelf or curtain behind you. A high-backed chair has the same effect."],
+          face_door: ["Desk", "A place to work on", "Facing the door keeps tension present", "Seeing the door increases alertness, but fatigue can build quickly when sitting long. It helps short bursts of focus but works against long tasks.", "Turn the desk slightly diagonal to the door. If it cannot move, adjust the monitor angle a little and dim the light toward the door."],
+          mixed_rest: ["Desk", "A place to work on", "Work and rest spaces overlap", "Working and resting in the same place can erase the feeling of being off work. All your time at home can start to feel vaguely tiring.", "Use a rug or lighting to make two areas visibly distinct. Closing the laptop and putting it in a drawer after work alone creates a boundary."],
+          none: ["Desk", "A place to work on", "There is no fixed workspace", "Moving seats every time keeps spending the energy it takes to start. It is not that focus fails. It is that starting fails.", "Choose and keep one spot at home where you’re least disturbed. Fixing the location matters more than size, even with a small table."]
+        };
+        const outsideMap = {
+          open: ["Outside the window", "Fine", "An open view ahead gives room to breathe", "Good conditions for activity and a change of mood. If your sleep is sensitive, the same openness may feel stimulating at night.", "Use it as is in daylight and close curtains only in the evening, separating use by time. Add extra covering for the bedroom window."],
+          pressed: ["Outside the window", "A place to work on", "Pressure from the building opposite accumulates as fatigue", "Blocked sightlines let a little frustration accumulate every day. The home isn’t bad; your eyes have nowhere to rest.", "Place a plant or light by the window so your gaze rests there rather than outside. Sheer curtains can also soften the view of the building opposite."],
+          road_noise: ["Outside the window", "A place to work on", "The flow of the main road and the alley is fast", "If the outside pace is fast, the home's rhythm gets pulled along. The difference is especially noticeable when sleeping or focusing.", "Close the windows and draw the curtains only during sleep and focus hours. Record which times are especially difficult for just a week, and the answer will emerge."],
+          balanced: ["Outside the window", "Fine", "The outside flow is moderate.", "There seem to be relatively few problems coming from outside the window. If something is bothering you now, the layout inside the home is more likely to be the cause than the outside surroundings.", "Do not touch the view outside the window. Start with the place marked to be handled among the entrance, bedroom, and desk cards."]
+        };
+
+        [entranceMap[input.entrance_flow], bedroomMap[input.bedroom_feel], deskMap[input.desk_position], outsideMap[input.outside_flow]]
+          .filter(Boolean)
+          .forEach(([area, status, title, issue, fix]) => cards.push({ area, status, title, issue, fix }));
+
+        if (cards.length >= 4) return cards.slice(0, 4);
+
+        const fallback = [
+          { area: "Entrance", status: "확인 필요", title: "The first impression shapes the rhythm of the whole home", issue: "No entrance answer yet, so no assessment.", fix: "Start with shoes, parcels, and mirror placement to get a sense of whether outside stimulation lingers or passes through quickly." },
+          { area: "Bedroom", status: "확인 필요", title: "Sleep is the No. 1 priority for home fit", issue: "No bedroom answer is available, so no assessment has been made yet.", fix: "Start by checking whether the bed feels stable and noise and visual exposure decrease." },
+          { area: "Desk", status: "확인 필요", title: "Support behind your back helps focus", issue: "No desk answer was provided, so no judgment has been made yet.", fix: "If you often work or study at home, first check whether a wall is behind you." },
+          { area: "Outside the window", status: "확인 필요", title: "Look at openness ahead and pressure together", issue: "There is no response about the view outside the window, so I cannot assess it yet.", fix: "Open views and fast road flow feel different to each person; observe at different times." }
+        ];
+
+        fallback.forEach((item) => {
+          if (cards.length < 4 && !cards.some((card) => card.area === item.area)) cards.push(item);
+        });
+
+        return cards;
+      }
+
+      function renderSnapshot(payload) {
+        const input = inputFromPayload(payload);
+        const name = compactName(payload);
+        const pain = Array.isArray(input.pain_points) ? input.pain_points : [];
+        const painText = pain.length
+          ? pain.map((key) => label("pain_points", key, key)).join(", ")
+          : "Nothing selected yet";
+
+        document.getElementById("snapshot-list").innerHTML = [
+          ["Criteria", `Read ${escapeHtml(name)}'s chart profile together with how the current home feels.`],
+          ["Home type", `${label("building_type", input.building_type)} · ${label("main_purpose", input.main_purpose, "Purpose not entered")}`],
+          ["Current concern", label("stay_decision", input.stay_decision, "No concern entered")],
+          ["The first signs you notice", painText]
+        ]
+          .map(([title, body]) => `<div class="summary-row"><strong>${title}</strong><span>${body}</span></div>`)
+          .join("");
+      }
+
+      function renderPersonalTeaser(payload) {
+        const teaser = document.getElementById("personal-teaser");
+        const mainSection = reportSection(payload, "home-fit-overall", "saju-house-ohaeng");
+        const elementSection = reportSection(payload, "saju-house-ohaeng");
+        const paragraphs = teaserParagraphs(mainSection);
+
+        if (!mainSection || paragraphs.length === 0) {
+          teaser.innerHTML = `
+            \x3cstrong>Preparing personalized preview\x3c/strong>
+            \x3cp>Once input and Four Pillars calculations connect, preview how your current home affects sleep, work, money, and relationship rhythms.\x3c/p>
+          `;
+          return;
+        }
+
+        teaser.innerHTML = `
+          \x3cstrong>${escapeHtml(mainSection.category || "Personalized preview")} · ${escapeHtml(mainSection.hook || "")}\x3c/strong>
+          ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+          ${elementSection && elementSection.id !== mainSection.id ? `<p>${escapeHtml(elementSection.hook || "")}</p>` : ""}
+        `;
+      }
+
+      function renderSignals(input) {
+        document.getElementById("signal-list").innerHTML = signalCards(input)
+          .map(
+            (card) => `
+              \x3carticle class="signal-card">
+                \x3cb>${escapeHtml(card.area)}\x3ci class="signal-flag${card.status === "손볼 곳" ? " is-warn" : ""}">${escapeHtml(card.status)}\x3c/i>\x3c/b>
+                \x3cstrong>${escapeHtml(card.title)}\x3c/strong>
+                \x3cspan class="signal-issue">${escapeHtml(card.issue)}\x3c/span>
+                \x3cspan class="signal-fix">${escapeHtml(card.fix)}\x3c/span>
+              \x3c/article>
+            `
+          )
+          .join("");
+      }
+
+      function renderScope() {
+        const payload = readJsonBlock("INTERPRETATION_INDEX_PAYLOAD");
+        const groups = HOME_GUIDE_GROUPS.length ? HOME_GUIDE_GROUPS : (payload?.groups || []);
+        document.getElementById("scope-list").innerHTML = groups
+          .map(
+            (group, index) => `
+              <article class="scope-card">
+                <b>${String(index + 1).padStart(2, "0")}</b>
+                <strong>${escapeHtml(group.title)}</strong>
+                <ul>
+                  ${(group.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function applyPayload(payload) {
+        const input = inputFromPayload(payload);
+        const name = compactName(payload);
+        const verdict = deriveVerdict(input);
+        const firstSection = reportSection(payload, "home-fit-overall");
+        document.getElementById("page-title").textContent = `이 집은 지금 ${name}님에게 ${verdict.label}으로 보입니다`;
+        document.getElementById("hero-summary").textContent = firstSection?.hook
+          ? `${firstSection.hook} The free direction starts with only the strongest daily-life signal.`
+          : `${verdict.summary} The free direction preview starts with only the strongest daily-life signal.`;
+        document.getElementById("verdict-label").textContent = verdict.label;
+        document.getElementById("verdict-title").textContent = firstSection?.category || verdict.title;
+        document.getElementById("verdict-summary").textContent = firstSection?.hook || verdict.summary;
+        renderSnapshot(payload);
+        renderPersonalTeaser(payload);
+        renderSignals(input);
+      }
+
+      /**
+       * The catalog is what checkout charges, so every price printed on this step follows
+       * it. Keeps the CTA honest if the operator repricing happens in catalog.ts alone.
+       */
+      async function syncCatalogPrice() {
+        const config = await fetch("/api/payment/config").then((res) => res.json()).catch(() => null);
+        const product = config?.catalog?.find((item) => item.key === "home_pungsu");
+        if (!product) return;
+        const current = `${Number(SERVICE.price_krw).toLocaleString("ko-KR")} KRW`;
+        const next = `${Number(product.amount).toLocaleString("ko-KR")} KRW`;
+        if (next === current) return;
+        document
+          .querySelectorAll("#paid-title, .price, [data-action='open-paid']")
+          .forEach((node) => {
+            node.textContent = node.textContent.replace(current, next);
+          });
+        SERVICE.price_krw = product.amount;
+      }
+
+      function init() {
+        renderScope();
+        syncCatalogPrice();
+        const payload = safeParse(fromSession(STORAGE_KEYS.input));
+        if (!payload || payload.service?.service_key !== SERVICE.service_key) {
+          document.getElementById("missing-input").classList.add("is-open");
+          renderSignals({});
+        } else {
+          applyPayload(payload);
+        }
+
+        document.querySelectorAll("[data-action='open-paid']").forEach((link) => {
+          link.addEventListener("click", (event) => {
+            const reportId = payload?.reportId || payload?.analysis?.report?.reportId || "";
+            toSession(STORAGE_KEYS.paymentIntent, {
+              service: SERVICE,
+              requested_at: new Date().toISOString(),
+              from_stage: "04-step-4-report",
+              amount_krw: SERVICE.price_krw,
+              next_route: SERVICE.next_route,
+              report_id: reportId,
+              input_payload_present: Boolean(payload)
+            });
+            if (!window.UMSHCheckout) return;
+            // Hold navigation while checkout answers. The plain-link fallback is the
+            // payment page, never the paid table of contents.
+            const fallbackHref = link.getAttribute("href");
+            event.preventDefault();
+            window.UMSHCheckout
+              .start({
+                productKey: "home_pungsu",
+                reportId,
+                returnTo: "/place/home/04-step-4-report/index.html"
+              })
+              .then((result) => {
+                if (!result.started) window.location.href = fallbackHref;
+              })
+              .catch(() => {
+                window.location.href = fallbackHref;
+              });
+          });
+        });
+      }
+
+      init();
+    </script>
+    <div data-umsh-service-bottom=""></div>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-checkout.js?v=20260916-product-alias"></script>
+    <script src="/js/umsh-home-reading.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/service-shell.js?v=20261008-three-voice-v1"></script>
+      <!-- 2026-09-15: 해석 신고 버튼을 전 화면에서 내렸다. 되살릴 때 주석만 풀 것. <script src="/js/ai-report-flag.js?v=20261008-three-voice-v1" defer=""></script> -->
+
+
+</body></html>

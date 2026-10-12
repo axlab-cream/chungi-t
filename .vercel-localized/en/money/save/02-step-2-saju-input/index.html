@@ -1,0 +1,1454 @@
+<!DOCTYPE html><html lang="ko"><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Saju input | Why can’t I save money?</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Fortune Shop">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="Fortune Shop - We sell fate.">
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility.">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Fortune Shop - We sell fate.">
+    <meta name="twitter:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility.">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="Enter birth date/time and current money flow for a spending-tendency Four Pillars reading.">
+    <meta name="application-name" content="Fortune Shop">
+    <meta property="og:title" content="Why can’t I save money? Saju input">
+    <meta property="og:description" content="Enter basic information to examine how money comes in and patterns of leakage.">
+    <meta property="og:url" content="https://money.umsh.kr/save">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <style>
+      :root {
+        color-scheme: dark;
+        --mobile-width: 430px;
+        --bg: #101411;
+        --bg-soft: #17201b;
+        --ink: #fff8ed;
+        --muted: rgba(255, 248, 237, 0.72);
+        --dim: rgba(255, 248, 237, 0.52);
+        --line: rgba(220, 184, 104, 0.24);
+        --gold: #d9a845;
+        --gold-soft: #f5dc9b;
+        --green: #66b889;
+        --green-deep: #214c3a;
+        --coral: #d7704c;
+        --blue: #6da8b5;
+        --danger: #ffb3a0;
+        --panel: rgba(255, 248, 237, 0.07);
+        --paper: #fff4df;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+        --font-ui: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        display: grid;
+        place-items: start center;
+        min-height: 100svh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 12% 0%, rgba(102, 184, 137, 0.2), transparent 19rem),
+          radial-gradient(circle at 88% 10%, rgba(217, 168, 69, 0.15), transparent 18rem),
+          linear-gradient(180deg, #070a08 0%, var(--bg) 45%, #14110e 100%);
+        color: var(--ink);
+        font-family: var(--font-ui);
+        letter-spacing: 0;
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .app {
+        position: relative;
+        width: min(100%, var(--mobile-width));
+        min-width: 0;
+        max-width: var(--mobile-width);
+        min-height: 100svh;
+        margin: 0 auto;
+        border-right: 1px solid rgba(220, 184, 104, 0.18);
+        border-left: 1px solid rgba(220, 184, 104, 0.18);
+        background: rgba(16, 20, 17, 0.96);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(12, 17, 14, 0.9);
+        backdrop-filter: blur(18px);
+      }
+
+      .back-link {
+        display: inline-grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        color: var(--gold-soft);
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+        text-align: center;
+      }
+
+      .brand strong {
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.1;
+      }
+
+      .brand span {
+        color: var(--gold-soft);
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+      }
+
+      .step-pill {
+        min-width: 48px;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      main {
+        display: grid;
+        gap: 16px;
+        padding: 18px 18px 112px;
+      }
+
+      /* 공용 크롬이 body 에 word-break: keep-all 을 걸면 grid 항목의 min-width: auto 가
+         내용의 최소 너비를 그대로 받는다. 그래서 이 화면의 단이 838px 까지 커져 모바일
+         프레임(390px) 밖으로 삐져나가고, .app 이 clip 이라 오른쪽이 잘려 닿지 않았다. */
+      main :where(div, section, fieldset, form, p, h1, h2, h3, ul, ol, li) {
+        min-width: 0;
+      }
+
+      .hero-panel,
+      .panel {
+        border: 1px solid rgba(220, 184, 104, 0.22);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 248, 237, 0.09), rgba(255, 248, 237, 0.045)),
+          var(--panel);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+      }
+
+      .hero-panel {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        align-items: center;
+        padding: 14px;
+      }
+
+      .hero-visual {
+        width: 168px;
+        justify-self: center;
+        aspect-ratio: 9 / 16;
+        overflow: hidden;
+        border: 1px solid rgba(217, 168, 69, 0.28);
+        border-radius: 8px;
+        background: var(--paper);
+      }
+
+      .hero-visual img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 25%;
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .kicker {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 7px;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .kicker::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 18px rgba(102, 184, 137, 0.72);
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-family: var(--font-title);
+        font-weight: 900;
+        line-height: 1.18;
+        letter-spacing: 0;
+        word-break: keep-all;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+        line-height: 1.58;
+        word-break: keep-all;
+      }
+
+      .panel {
+        display: grid;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .panel-head div {
+        display: grid;
+        gap: 6px;
+      }
+
+      .panel-head small {
+        flex: 0 0 auto;
+        color: var(--gold-soft);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .profile-card {
+        display: none;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid rgba(102, 184, 137, 0.32);
+        border-radius: 8px;
+        background: rgba(102, 184, 137, 0.13);
+      }
+
+      .profile-card.is-visible {
+        display: grid;
+      }
+
+      .profile-summary {
+        display: grid;
+        gap: 6px;
+      }
+
+      .profile-summary strong {
+        font-size: 14px;
+        font-weight: 950;
+      }
+
+      .profile-summary span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .profile-actions,
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      fieldset {
+        display: grid;
+        gap: 14px;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      legend {
+        margin-bottom: 4px;
+        color: var(--gold-soft);
+        font-size: 12px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field-grid.two {
+        grid-template-columns: 1fr;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      label,
+      .choice-label {
+        color: rgba(255, 248, 237, 0.88);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        border-radius: 8px;
+        outline: 0;
+        background: rgba(5, 7, 6, 0.48);
+        color: var(--ink);
+        font-size: 15px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      input {
+        padding: 0 13px;
+      }
+
+      textarea {
+        min-height: 92px;
+        resize: vertical;
+        padding: 13px;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 248, 237, 0.34);
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: rgba(102, 184, 137, 0.72);
+        box-shadow: 0 0 0 3px rgba(102, 184, 137, 0.16);
+      }
+
+      .helper {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .field-error {
+        min-height: 16px;
+        color: var(--danger);
+        font-size: 11px;
+        font-weight: 850;
+        line-height: 1.45;
+      }
+
+      .choices {
+        display: grid;
+        gap: 8px;
+      }
+
+      .choices.two {
+        grid-template-columns: 1fr;
+      }
+
+      .choices.three {
+        grid-template-columns: 1fr;
+      }
+
+      .choice {
+        min-height: 48px;
+        padding: 11px 12px;
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        border-radius: 8px;
+        background: rgba(255, 248, 237, 0.06);
+        color: rgba(255, 248, 237, 0.82);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.25;
+        text-align: left;
+      }
+
+      .choice.is-selected {
+        border-color: rgba(102, 184, 137, 0.72);
+        background: rgba(102, 184, 137, 0.2);
+        color: var(--ink);
+        box-shadow: inset 0 0 0 1px rgba(102, 184, 137, 0.18);
+      }
+
+      .time-row {
+        display: grid;
+        gap: 10px;
+      }
+
+      .time-row[data-known="false"] .time-field {
+        display: none;
+      }
+
+      .note {
+        padding: 12px 13px;
+        border-left: 3px solid var(--green);
+        border-radius: 8px;
+        background: rgba(102, 184, 137, 0.12);
+        color: rgba(255, 248, 237, 0.78);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.55;
+        word-break: keep-all;
+      }
+
+      .toc-strip {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+
+      .toc-strip::-webkit-scrollbar {
+        display: none;
+      }
+
+      .toc-strip span {
+        flex: 0 0 auto;
+        padding: 8px 10px;
+        border: 1px solid rgba(220, 184, 104, 0.18);
+        border-radius: 999px;
+        background: rgba(255, 248, 237, 0.06);
+        color: rgba(255, 248, 237, 0.76);
+        font-size: 11px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+
+      .ghost,
+      .next-cta {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.25;
+      }
+
+      .ghost {
+        border: 1px solid rgba(255, 248, 237, 0.16);
+        background: rgba(255, 248, 237, 0.06);
+        color: rgba(255, 248, 237, 0.84);
+      }
+
+      .next-cta {
+        border: 1px solid rgba(255, 244, 223, 0.22);
+        background: linear-gradient(135deg, #6ed29b, #d9a845 62%, #df7350);
+        color: #12110d;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+      }
+
+      .dock-note {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 92px;
+        left: 50%;
+        z-index: 40;
+        display: none;
+        width: 354px;
+        margin: 0 auto;
+        transform: translateX(-50%);
+        padding: 12px 13px;
+        border: 1px solid rgba(102, 184, 137, 0.36);
+        border-radius: 8px;
+        background: rgba(17, 28, 22, 0.98);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.5;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      }
+
+      .toast.is-visible {
+        display: block;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own docks.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .cta-dock,
+      body.umsh-has-chrome nav.bottom-nav[aria-label="상세 리포트 이동"] { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .save-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(112, 194, 146, 0.45); border-radius: 10px; background: rgba(112, 194, 146, 0.08); padding: 14px; margin-bottom: 14px; }
+      .save-saved-profile b { color: #70c292; font-size: 14px; }
+      .save-saved-profile span { color: rgba(255, 248, 237, 0.74); font-size: 13px; line-height: 1.55; }
+      .save-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
+      <link rel="stylesheet" href="/css/umsh-chrome.css">
+  </head>
+  <body class="umsh-fields">
+    <div class="app" data-umsh-chrome="" data-service="Spending style" data-price="9,900 KRW" data-active="home">
+      <header class="appbar topbar" aria-label="Service steps">
+
+        <a class="brand" href="#step-2-saju-input" aria-label="Input screen for Why can’t I save money?">
+          <strong>Why does money not accumulate for me?</strong>
+          <span>STEP 02 INPUT</span>
+        </a>
+        <div class="step-pill">02</div>
+      </header>
+
+      <main id="step-2-saju-input">
+        <section class="hero-panel" aria-labelledby="intro-title">
+          <div class="hero-visual">
+            <img data-asset-key="save-02-input-guide" src="../assets/save/02-input-guide.webp" data-source-file="assets/generated/save/02-input-guide.webp" alt="A green cat-eared character in a suit guiding an empty input screen">
+          </div>
+          <div class="hero-copy">
+            <span class="kicker">Money flow</span>
+            <h1 id="intro-title">Start by finding where money is not accumulating</h1>
+            <p>Enter your birth date separately from recent spending leaks. The next screen starts by exploring where money is slipping away.</p>
+          </div>
+        </section>
+
+        <section class="profile-card" data-profile-card="" aria-live="polite">
+          <div class="profile-summary">
+            <strong>Found a saved birth-chart profile</strong>
+            <span data-profile-summary="">Use this profile and you won’t need to reenter basic chart details.</span>
+          </div>
+          <div class="profile-actions">
+            <button class="next-cta" type="button" data-action="use-profile">Use profile</button>
+            <button class="ghost" type="button" data-action="new-profile">Enter again</button>
+          </div>
+        </section>
+
+        <form class="panel" data-input-form="" novalidate="">
+          <div class="panel-head">
+            <div>
+              <h2>Based on my chart</h2>
+              <p>Details you do not know can stay optional. We ask only for the minimum information needed for the money reading.</p>
+            </div>
+            <small>Required</small>
+          </div>
+
+          <fieldset data-profile-fieldset="">
+            <legend>Basic saju information</legend>
+            <div class="field-grid">
+              <div class="field">
+                <label for="nickname">Name or what to call them</label>
+                <input id="nickname" name="nickname" type="text" autocomplete="off" placeholder="Example: Jimin" aria-describedby="nickname-error">
+                <div class="field-error" id="nickname-error" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="choice-label">Gender</div>
+              <div class="choices two" data-choice-group="gender" role="group" aria-label="Select gender">
+                <button class="choice" type="button" data-value="Female" aria-pressed="false">Woman</button>
+                <button class="choice" type="button" data-value="Male" aria-pressed="false">Male</button>
+              </div>
+              <input type="hidden" name="gender" id="gender">
+              <div class="field-error" id="gender-error" aria-live="polite"></div>
+            </div>
+
+            <div class="field">
+              <div class="choice-label">Calendar basis</div>
+              <div class="choices two" data-choice-group="calendar" role="group" aria-label="Solar or lunar calendar">
+                <button class="choice is-selected" type="button" data-value="Solar" aria-pressed="true">Solar calendar</button>
+                <button class="choice" type="button" data-value="Lunar" aria-pressed="false">Lunar calendar</button>
+              </div>
+              <input type="hidden" name="calendar" id="calendar" value="Solar">
+            </div>
+
+            <div class="field-grid two">
+              <div class="field">
+                <label for="birthDate">Birth date</label>
+                <input id="birthDate" name="birthDate" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birthDate-error">
+                <div class="field-error" id="birthDate-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="birthPlace">Place of birth</label>
+                <input id="birthPlace" name="birthPlace" type="text" autocomplete="off" placeholder="City only, optional" aria-describedby="birthPlace-help">
+                <div class="helper" id="birthPlace-help">Enter only the city, not a detailed address.</div>
+              </div>
+            </div>
+
+            <div class="time-row" data-time-row="" data-known="true">
+              <div class="field">
+                <div class="choice-label">Birth time</div>
+                <div class="choices two" data-choice-group="birthTimeKnown" role="group" aria-label="Whether birth time is entered">
+                  <button class="choice is-selected" type="button" data-value="true" aria-pressed="true">I know</button>
+                  <button class="choice" type="button" data-value="false" aria-pressed="false">Time unknown</button>
+                </div>
+                <input type="hidden" name="birthTimeKnown" id="birthTimeKnown" value="true">
+              </div>
+              <div class="field time-field">
+                <label for="birthTime">Time</label>
+                <input id="birthTime" name="birthTime" type="time" step="60" aria-describedby="birthTime-error">
+                <div class="field-error" id="birthTime-error" aria-live="polite"></div>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="note">Inputs stay only in the current browser session for the next step. Birth date and money concerns aren&#39;t added to the address bar.</div>
+
+          <fieldset>
+            <legend>Money-management situation</legend>
+            <div class="field">
+              <div class="choice-label">How money is coming in lately</div>
+              <div class="choices" data-choice-group="incomeType" role="group" aria-label="Income-method selection">
+                <button class="choice" type="button" data-value="월급 중심" aria-pressed="false">Salary-centered</button>
+                <button class="choice" type="button" data-value="N잡/프로젝트" aria-pressed="false">Multiple jobs / projects</button>
+                <button class="choice" type="button" data-value="프리랜서" aria-pressed="false">Freelancer</button>
+                <button class="choice" type="button" data-value="학생/준비 중" aria-pressed="false">Student / Preparing</button>
+                <button class="choice" type="button" data-value="혼합" aria-pressed="false">Mixed</button>
+              </div>
+              <input type="hidden" name="incomeType" id="incomeType">
+              <div class="field-error" id="incomeType-error" aria-live="polite"></div>
+            </div>
+
+            <div class="field">
+              <div class="choice-label">The feeling of where money leaks most often</div>
+              <div class="choices" data-choice-group="leakPattern" role="group" aria-label="Choose a money-leak pattern">
+                <button class="choice" type="button" data-value="관계/정산" aria-pressed="false">Relationships / settlements</button>
+                <button class="choice" type="button" data-value="쇼핑/취향" aria-pressed="false">Shopping / taste</button>
+                <button class="choice" type="button" data-value="구독/생활비" aria-pressed="false">Subscriptions / living costs</button>
+                <button class="choice" type="button" data-value="배움/장비" aria-pressed="false">Learning / Equipment</button>
+                <button class="choice" type="button" data-value="카드/할부" aria-pressed="false">Cards and installments</button>
+                <button class="choice" type="button" data-value="잘 모르겠음" aria-pressed="false">Not sure</button>
+              </div>
+              <input type="hidden" name="leakPattern" id="leakPattern">
+              <div class="field-error" id="leakPattern-error" aria-live="polite"></div>
+            </div>
+
+            <div class="field">
+              <div class="choice-label">What you want to focus on first in this reading</div>
+              <div class="choices" data-choice-group="savingGoal" role="group" aria-label="Choose a savings goal">
+                <button class="choice" type="button" data-value="비상금 만들기" aria-pressed="false">Build an emergency fund</button>
+                <button class="choice" type="button" data-value="카드값 정리" aria-pressed="false">Settle the card bill</button>
+                <button class="choice" type="button" data-value="월 고정저축" aria-pressed="false">Fixed monthly savings</button>
+                <button class="choice" type="button" data-value="관계 돈 경계" aria-pressed="false">Money boundaries in relationships</button>
+                <button class="choice" type="button" data-value="수입 구조" aria-pressed="false">Income structure</button>
+                <button class="choice" type="button" data-value="계약/정산" aria-pressed="false">Contracts and settling payments</button>
+              </div>
+              <input type="hidden" name="savingGoal" id="savingGoal">
+              <div class="field-error" id="savingGoal-error" aria-live="polite"></div>
+            </div>
+
+            <div class="field">
+              <div class="choice-label">How this month feels</div>
+              <div class="choices two" data-choice-group="monthlyMood" role="group" aria-label="Choose how this month’s finances feel">
+                <button class="choice" type="button" data-value="남는 돈 없음" aria-pressed="false">No money left over</button>
+                <button class="choice" type="button" data-value="왔다 갔다" aria-pressed="false">Back and forth</button>
+                <button class="choice" type="button" data-value="조금 남김" aria-pressed="false">A little left over</button>
+                <button class="choice" type="button" data-value="정리 중" aria-pressed="false">Organizing</button>
+              </div>
+              <input type="hidden" name="monthlyMood" id="monthlyMood">
+            </div>
+
+            <div class="field">
+              <label for="relationMoney">Money issues that concern you in relationships</label>
+              <input id="relationMoney" name="relationMoney" type="text" autocomplete="off" placeholder="Example: splitting costs is unclear; I keep paying first">
+            </div>
+
+            <div class="field">
+              <label for="current고민">The question I most want answered now</label>
+              <textarea id="current고민" name="current고민" placeholder="For example: money comes in, so why doesn’t any remain?" aria-describedby="current고민-error"></textarea>
+              <div class="field-error" id="current고민-error" aria-live="polite"></div>
+            </div>
+          </fieldset>
+
+          <section aria-label="Table of contents for the reading that will be delivered">
+            <div class="panel-head">
+              <div>
+                <h2>Contents to carry into the next step</h2>
+                <p>This outline carries through from the free teaser to the paid report.</p>
+              </div>
+              <small>8 items</small>
+            </div>
+            <div class="toc-strip" data-toc-strip=""></div>
+          </section>
+
+          <div class="actions">
+            <button class="next-cta" type="submit">Check where it leaks</button>
+            <p class="dock-note">Going to the free teaser. Personal information is not added to the URL.</p>
+          </div>
+        </form>
+      </main>
+
+      <div class="toast" data-toast="" role="status" aria-live="polite"></div>
+    </div>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_key": "save",
+        "service_slug": "save",
+        "service_title": "Why does money not accumulate for me?",
+        "service_description": "A saju reading on spending habits that uses Wealth Star and Peer Star patterns to examine income, spending, saving, and settling shared expenses separately.",
+        "category": "Spending tendencies",
+        "subcategory": "Saving / Money management",
+        "price_krw": 9900,
+        "service_url_hint": "money.umsh.kr/save",
+        "target_question": "Why does money not accumulate for me?",
+        "analysis_basis": ["Wealth star", "Peer and Rob Wealth stars", "Ten-God money patterns", "Day Master strength", "Five elements", "Major cycle · Annual cycle · Monthly cycle"],
+        "interpretation_index_source": "user_seed",
+        "report_version": "save-v1.0",
+        "copy_version": "mz-save-v1",
+        "representative_character": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+        "next_route": "../04-step-4-report/index.html#step-4-report"
+      }
+    </script>
+
+    <script type="application/json" id="INPUT_SCHEMA">
+      {
+        "subject_mode": "single",
+        "privacy_policy": {
+          "url_query_storage": false,
+          "long_term_local_storage_for_new_private_inputs": false,
+          "session_storage_keys": [
+            "umsh_save_step2_payload_v1",
+            "cheongi_birth",
+            "cheongi_initial_concern",
+            "umsh_save_interpretation_index"
+          ]
+        },
+        "fields": [
+          { "name": "nickname", "label": "Name or what to call them", "type": "text", "required": true, "storage": "sessionStorage" },
+          { "name": "gender", "label": "Gender", "type": "choice", "required": true, "options": ["Woman", "Male"], "storage": "sessionStorage" },
+          { "name": "calendar", "label": "Calendar basis", "type": "choice", "required": true, "options": ["Solar calendar", "Lunar calendar"], "storage": "sessionStorage" },
+          { "name": "birthDate", "label": "Birth date", "type": "date_yyyymmdd", "required": true, "storage": "sessionStorage" },
+          { "name": "birthPlace", "label": "Place of birth", "type": "city_text", "required": false, "storage": "sessionStorage" },
+          { "name": "birthTimeKnown", "label": "Whether birth time is entered", "type": "boolean_choice", "required": true, "storage": "sessionStorage" },
+          { "name": "birthTime", "label": "Birth time", "type": "time_hhmm", "required_if": "birthTimeKnown=true", "storage": "sessionStorage" },
+          { "name": "incomeType", "label": "How money is coming in lately", "type": "choice", "required": true, "storage": "sessionStorage" },
+          { "name": "leakPattern", "label": "The feeling of where money leaks most often", "type": "choice", "required": true, "storage": "sessionStorage" },
+          { "name": "savingGoal", "label": "What you want to focus on first in this reading", "type": "choice", "required": true, "storage": "sessionStorage" },
+          { "name": "monthlyMood", "label": "How this month feels", "type": "choice", "required": false, "storage": "sessionStorage" },
+          { "name": "relationMoney", "label": "Money issues that concern you in relationships", "type": "text", "required": false, "storage": "sessionStorage" },
+          { "name": "current고민", "label": "The question you're most curious about now", "type": "textarea", "required": true, "storage": "sessionStorage" }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX">
+{
+        "source": "user_seed",
+        "groups": [
+                {
+                        "group_id": "income-flow",
+                        "title": "How money comes in",
+                        "summary": "First separate whether my money comes through a salary, opportunities, or production.",
+                        "sections": [
+                                {
+                                        "section_id": "income-salary-stable",
+                                        "title": "Steady-paycheck type",
+                                        "preview": "Direct Wealth / Direct Officer type: strong in fixed income and contracts, but may expand opportunities slowly"
+                                },
+                                {
+                                        "section_id": "income-side-hustle",
+                                        "title": "Multi-job opportunity seeker",
+                                        "preview": "An Indirect Wealth style: more avenues for income, but also more ways for money to go out"
+                                },
+                                {
+                                        "section_id": "income-steady-maker",
+                                        "title": "Steady producer",
+                                        "preview": "Eating God type: earns through routines, content, and output rather than one big win"
+                                },
+                                {
+                                        "section_id": "income-idea-runner",
+                                        "title": "Someone whose ideas run too fast",
+                                        "preview": "Challenging Expression type: quick planning, but prone to opening a new project before the deadline"
+                                },
+                                {
+                                        "section_id": "income-pressure-breaker",
+                                        "title": "Responsibility-driven breakthrough type",
+                                        "preview": "Seven Killings type: acts boldly under pressure, but a heavy burden may remain"
+                                },
+                                {
+                                        "section_id": "income-learning-investor",
+                                        "title": "Learning investor",
+                                        "preview": "Direct / Indirect Resource type: strong in study, qualifications, and ideas, but the action space can remain empty"
+                                },
+                                {
+                                        "section_id": "income-peer-share",
+                                        "title": "Earn-and-spend-together type",
+                                        "preview": "Peer / Rob Wealth type: cooperation, competition, and sharing affect money flow"
+                                }
+                        ]
+                },
+                {
+                        "group_id": "money-leak",
+                        "title": "Patterns of money leaking",
+                        "summary": "Break down why money does not remain into feelings, relationships, appearances, and preparation costs.",
+                        "sections": [
+                                {
+                                        "section_id": "leak-account-logout",
+                                        "title": "The type where the account logs out",
+                                        "preview": "Disperses into spending, settlement, and promises as soon as it comes in"
+                                },
+                                {
+                                        "section_id": "leak-flex-overheat",
+                                        "title": "Conspicuous-spending overheat type",
+                                        "preview": "Fire energy and indirect-wealth / rob-wealth patterns: mood and speed increase spending"
+                                },
+                                {
+                                        "section_id": "leak-comparison",
+                                        "title": "Comparison-spending type",
+                                        "preview": "Xin Metal / Ding Fire type: emotion, taste, and comparison lead to spending"
+                                },
+                                {
+                                        "section_id": "leak-face-payment",
+                                        "title": "Face-saving payment type",
+                                        "preview": "Gyeong-metal and Direct Officer type: money leaves because of pride, role, and face"
+                                },
+                                {
+                                        "section_id": "leak-learning-cost",
+                                        "title": "Learning-cost surge type",
+                                        "preview": "Resource-star pattern: teaching, equipment, qualifications, and preparation costs grow"
+                                },
+                                {
+                                        "section_id": "leak-relationship-blur",
+                                        "title": "Blurred relationship settlements",
+                                        "preview": "Peer / Rob Wealth type: money boundaries blur with friends, partners, and colleagues"
+                                }
+                        ]
+                },
+                {
+                        "group_id": "saving-blocker",
+                        "title": "Why savings don't stick",
+                        "summary": "Look for why no money remains in structure and exception rules rather than willpower.",
+                        "sections": [
+                                {
+                                        "section_id": "saving-no-structure",
+                                        "title": "No saving structure",
+                                        "preview": "How much to keep is not fixed numerically"
+                                },
+                                {
+                                        "section_id": "saving-income-outgoing-mixed",
+                                        "title": "Money to receive and pay not separated",
+                                        "preview": "View income, spending, and contracts together"
+                                },
+                                {
+                                        "section_id": "saving-exception-budget",
+                                        "title": "A budget full of exceptions",
+                                        "preview": "This time only opens more often than the possible range"
+                                },
+                                {
+                                        "section_id": "saving-plan-over-action",
+                                        "title": "Too much planning, too little action",
+                                        "preview": "Plenty of ideas, but less follow-through on automation, deadlines, and routines"
+                                },
+                                {
+                                        "section_id": "saving-stability-illusion",
+                                        "title": "Illusion of stability",
+                                        "preview": "Even a Direct Resources type can lose money by stopping checks because things seem safe"
+                                }
+                        ]
+                },
+                {
+                        "group_id": "saju-strength",
+                        "title": "Chart balance and management style",
+                        "summary": "See whether I am the type who pushes money management, or the type who needs support and an order.",
+                        "sections": [
+                                {
+                                        "section_id": "strength-strong",
+                                        "title": "Higher-strength Day Master money management",
+                                        "preview": "A pattern of trying to do everything alone, with losses caused by rushing, stubbornness, or insufficient delegation"
+                                },
+                                {
+                                        "section_id": "strength-weak",
+                                        "title": "Lower-strength Day Master money management",
+                                        "preview": "A structure that needs support, rhythm, and order before a large board"
+                                },
+                                {
+                                        "section_id": "strength-balanced",
+                                        "title": "Balanced money management",
+                                        "preview": "A structure that catches only the one axis leaning now, rather than an excessive prescription"
+                                }
+                        ]
+                },
+                {
+                        "group_id": "ohaeng-os",
+                        "title": "Five Elements-based money-management OS",
+                        "summary": "Translate imbalances of Wood, Fire, Earth, Metal, and Water into everyday money-management approaches.",
+                        "sections": [
+                                {
+                                        "section_id": "ohaeng-wood",
+                                        "title": "Wood",
+                                        "preview": "Starting and expanding type; excess brings too many ventures, shortage delays beginnings"
+                                },
+                                {
+                                        "section_id": "ohaeng-fire",
+                                        "title": "Fire",
+                                        "preview": "Expression and visibility type: excess may lead to impulse or overheating; a shortage may weaken promotion and expression"
+                                },
+                                {
+                                        "section_id": "ohaeng-earth",
+                                        "title": "Earth",
+                                        "preview": "Stable and organizing type; excess brings worry or stagnation, shortage weakens grounding and routine"
+                                },
+                                {
+                                        "section_id": "ohaeng-metal",
+                                        "title": "Metal",
+                                        "preview": "A boundaries-and-deadlines style: too much can mean cutting back excessively; too little can leave deadlines and budget limits unclear."
+                                },
+                                {
+                                        "section_id": "ohaeng-water",
+                                        "title": "Water",
+                                        "preview": "Flow and rest type: too much makes thinking long, too little leaves too little time to recover and sort things"
+                                }
+                        ]
+                },
+                {
+                        "group_id": "timing",
+                        "title": "Fortune timing",
+                        "summary": "Read this year, this month, and today’s money issues in order, not mixed together.",
+                        "sections": [
+                                {
+                                        "section_id": "timing-daeun-start",
+                                        "title": "Start of the major fortune cycle",
+                                        "preview": "A reset phase when familiar ways of earning shift"
+                                },
+                                {
+                                        "section_id": "timing-daeun-middle",
+                                        "title": "Middle of the major fortune cycle",
+                                        "preview": "A period to reduce open tasks to three or fewer rather than start more"
+                                },
+                                {
+                                        "section_id": "timing-daeun-end",
+                                        "title": "Late major luck cycle",
+                                        "preview": "A period when organizing, handing over, collecting, and closing matter"
+                                },
+                                {
+                                        "section_id": "timing-year",
+                                        "title": "Annual cycle",
+                                        "preview": "This year’s money theme should be read alongside the major cycle"
+                                },
+                                {
+                                        "section_id": "timing-month",
+                                        "title": "Monthly fortune",
+                                        "preview": "A period to organize money due this month, tasks, and promise conditions"
+                                },
+                                {
+                                        "section_id": "timing-today",
+                                        "title": "Today's fortune",
+                                        "preview": "A stretch for looking at just one of income, spending, or contract today"
+                                }
+                        ]
+                },
+                {
+                        "group_id": "relationship-contract",
+                        "title": "Money issues in relationships / contracts",
+                        "summary": "Organizes moments when money becomes unclear between people through records, refusals, and the limits of sharing.",
+                        "sections": [
+                                {
+                                        "section_id": "relation-friend-lover-mix",
+                                        "title": "Mixing money with friends or partners",
+                                        "preview": "Blurred money boundaries with close people"
+                                },
+                                {
+                                        "section_id": "relation-shared-cost",
+                                        "title": "Shared expenses and split-cost settlement",
+                                        "preview": "The issue of mismatched standards and timing for money spent together"
+                                },
+                                {
+                                        "section_id": "relation-unwritten-condition",
+                                        "title": "Amount, deadline, and scope of responsibility not recorded",
+                                        "preview": "An issue where a condition that passed pleasantly remains as a burden later"
+                                },
+                                {
+                                        "section_id": "relation-no-refusal-line",
+                                        "title": "No refusal sentence",
+                                        "preview": "Payments delayed because no words were prepared"
+                                },
+                                {
+                                        "section_id": "relation-short-share",
+                                        "title": "An issue to share briefly only with someone you trust",
+                                        "preview": "An issue to check safely without spreading money concerns too broadly"
+                                }
+                        ]
+                },
+                {
+                        "group_id": "expanded-reading",
+                        "title": "Extended reading",
+                        "summary": "Add Zi Wei Dou Shu and spatial hints only as supporting layers when needed.",
+                        "sections": [
+                                {
+                                        "section_id": "expand-ziwei-wealth",
+                                        "title": "Zi Wei Dou Shu wealth palace",
+                                        "preview": "Income pattern, spending habits, and money sense"
+                                },
+                                {
+                                        "section_id": "expand-ziwei-career",
+                                        "title": "Zi Wei Dou Shu career palace",
+                                        "preview": "The link between occupation, role, responsibility, and income"
+                                },
+                                {
+                                        "section_id": "expand-ziwei-property",
+                                        "title": "Zi Wei Dou Shu Property Palace",
+                                        "preview": "Accumulated assets, housing, and family assets"
+                                },
+                                {
+                                        "section_id": "expand-fengshui",
+                                        "title": "Feng shui and space support",
+                                        "preview": "Use entrance, desk, routes, and workplace flow as hints for organizing life, not guarantees of money"
+                                }
+                        ]
+                }
+        ]
+}
+    </script>
+
+
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      [
+        {
+          "asset_key": "save-02-input-guide",
+          "filename": "assets/generated/save/02-input-guide.webp",
+          "role": "hero",
+          "aspect_ratio": "9:16",
+          "reference_image": "../IMAGE/Codex 이미지 2026년 9월 2일 오후 06_04_39.png",
+          "reference_status": "selected",
+          "character_style_lock": ["Green hair", "Cat ears", "Suit", "Watercolor texture", "Guiding expression"],
+          "generation_policy": "same-character-new-scene",
+          "prompt": "A green cat-eared suited character guiding a tablet input form. Tablet and paper are blank; no text.",
+          "alt": "A green cat-eared character in a suit guiding an empty input screen",
+          "text_in_image": false,
+          "generation_status": "generated",
+          "file_exists": true,
+          "html_usage_selector": "[data-asset-key=\"save-02-input-guide\"]",
+          "delivery": "embedded_data_uri"
+        }
+      ]
+    </script>
+
+    <script>
+      const SERVICE = JSON.parse(document.getElementById("PROMPT_INPUT").textContent);
+      const INPUT_SCHEMA = JSON.parse(document.getElementById("INPUT_SCHEMA").textContent);
+      const INTERPRETATION_INDEX = JSON.parse(document.getElementById("INTERPRETATION_INDEX").textContent);
+      const IMAGE_MANIFEST = JSON.parse(document.getElementById("IMAGE_MANIFEST").textContent);
+
+      const STORAGE_KEYS = {
+        profileCache: "cheongi_user_birth_profile_v1",
+        step2Payload: "umsh_save_step2_payload_v1",
+        birth: "cheongi_birth",
+        concern: "cheongi_initial_concern",
+        index: "umsh_save_interpretation_index",
+      };
+
+      const form = document.querySelector("[data-input-form]");
+      const toast = document.querySelector("[data-toast]");
+      const profileCard = document.querySelector("[data-profile-card]");
+      const profileSummary = document.querySelector("[data-profile-summary]");
+      const profileFieldset = document.querySelector("[data-profile-fieldset]");
+      const tocStrip = document.querySelector("[data-toc-strip]");
+      let cachedProfile = null;
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        })[char]);
+      }
+
+      function setToast(message) {
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        window.clearTimeout(setToast.timer);
+        setToast.timer = window.setTimeout(() => toast.classList.remove("is-visible"), 3600);
+      }
+
+      function setChoice(group, value) {
+        const wrap = document.querySelector(`[data-choice-group="${group}"]`);
+        const input = document.getElementById(group);
+        if (!wrap || !input) return;
+        input.value = value;
+        wrap.querySelectorAll(".choice").forEach((button) => {
+          const selected = button.dataset.value === value;
+          button.classList.toggle("is-selected", selected);
+          button.setAttribute("aria-pressed", String(selected));
+        });
+        if (group === "birthTimeKnown") {
+          document.querySelector("[data-time-row]")?.setAttribute("data-known", value);
+        }
+      }
+
+      function clearError(name) {
+        const el = document.getElementById(`${name}-error`);
+        if (el) el.textContent = "";
+      }
+
+      function setError(name, message) {
+        const el = document.getElementById(`${name}-error`);
+        if (el) el.textContent = message;
+      }
+
+      /** 날짜 피커는 1998-03-15 를, 예전 입력은 19980315 를 준다. 숫자만 남기면 같아진다. */
+      function birthDigits(value) {
+        return String(value || "").replace(/[^0-9]/g, "");
+      }
+
+      function validBirthDate(rawValue) {
+        const value = birthDigits(rawValue);
+        if (!/^\d{8}$/.test(value)) return false;
+        const year = Number(value.slice(0, 4));
+        const month = Number(value.slice(4, 6));
+        const day = Number(value.slice(6, 8));
+        const date = new Date(year, month - 1, day);
+        return year >= 1900
+          && year <= new Date().getFullYear()
+          && date.getFullYear() === year
+          && date.getMonth() === month - 1
+          && date.getDate() === day;
+      }
+
+      function validTime(value) {
+        const match = String(value || "").match(/^(\d{1,2}):?(\d{2})$/);
+        if (!match) return false;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+      }
+
+      function normalizeTime(value) {
+        const match = String(value || "").match(/^(\d{1,2}):?(\d{2})$/);
+        if (!match) return "";
+        return `${String(Number(match[1])).padStart(2, "0")}:${match[2]}`;
+      }
+
+      function parseBirthInput() {
+        const birthDate = birthDigits(form.birthDate.value);
+        const known = form.birthTimeKnown.value === "true";
+        const time = known ? normalizeTime(form.birthTime.value.trim()) : "Unknown";
+        const [hour, minute] = known && time ? time.split(":").map(Number) : [null, null];
+        return {
+          calendar: form.calendar.value === "Lunar" ? "lunar" : "solar",
+          year: Number(birthDate.slice(0, 4)),
+          month: Number(birthDate.slice(4, 6)),
+          day: Number(birthDate.slice(6, 8)),
+          gender: form.gender.value === "Female" ? "female" : "male",
+          birthTimeKnown: known,
+          hour,
+          minute,
+          birthplaceCity: form.birthPlace.value.trim(),
+        };
+      }
+
+      function buildPayload() {
+        const concern = form.current고민.value.trim();
+        const moneyContext = {
+          incomeType: form.incomeType.value,
+          leakPattern: form.leakPattern.value,
+          savingGoal: form.savingGoal.value,
+          monthlyMood: form.monthlyMood.value,
+          relationMoney: form.relationMoney.value.trim(),
+          current고민: concern,
+        };
+        return {
+          service: SERVICE,
+          input_schema_version: "save-step2-v1",
+          profile_source: cachedProfile?.used ? "cached_profile" : "new_session_input",
+          profile: {
+            nickname: form.nickname.value.trim(),
+            ...parseBirthInput(),
+          },
+          money_context: moneyContext,
+          interpretation_index_payload: {
+            source: "user_seed",
+            persist_keys: ["umsh_save_interpretation_index", "umsh_save_step2_payload_v1"],
+            groups: INTERPRETATION_INDEX.groups,
+          },
+          image_manifest: IMAGE_MANIFEST,
+          created_at: new Date().toISOString(),
+          next_route: "../04-step-4-report/index.html#step-4-report",
+        };
+      }
+
+      function validateForm() {
+        let ok = true;
+        ["nickname", "gender", "birthDate", "birthTime", "incomeType", "leakPattern", "savingGoal", "current고민"].forEach(clearError);
+
+        if (!form.nickname.value.trim()) {
+          setError("nickname", "Enter the name or form of address to use in the reading.");
+          ok = false;
+        }
+
+        if (!form.gender.value) {
+          setError("gender", "Choose your sex to set the major-cycle reference.");
+          ok = false;
+        }
+
+        if (!validBirthDate(form.birthDate.value.trim())) {
+          setError("birthDate", "Please choose the birth date.");
+          ok = false;
+        }
+
+        if (form.birthTimeKnown.value === "true" && !validTime(form.birthTime.value.trim())) {
+          setError("birthTime", "Choose your birth time. If you do not know it, select “Time unknown.”");
+          ok = false;
+        }
+
+        if (!form.incomeType.value) {
+          setError("incomeType", "Choose how money comes in.");
+          ok = false;
+        }
+
+        if (!form.leakPattern.value) {
+          setError("leakPattern", "Choose one common feeling of money leaking away.");
+          ok = false;
+        }
+
+        if (!form.savingGoal.value) {
+          setError("savingGoal", "Choose one goal to focus on first in this reading.");
+          ok = false;
+        }
+
+        if (form.current고민.value.trim().length < 4) {
+          setError("current고민", "Write your most pressing question in one sentence.");
+          ok = false;
+        }
+
+        return ok;
+      }
+
+      function saveAndContinue() {
+        if (!validateForm()) {
+          setToast("Check the empty required fields first.");
+          const firstError = document.querySelector(".field-error:not(:empty)");
+          firstError?.scrollIntoView({ block: "center", behavior: "smooth" });
+          return;
+        }
+
+        const payload = buildPayload();
+        sessionStorage.setItem(STORAGE_KEYS.step2Payload, JSON.stringify(payload));
+        sessionStorage.setItem(STORAGE_KEYS.index, JSON.stringify(payload.interpretation_index_payload));
+        sessionStorage.setItem(STORAGE_KEYS.concern, payload.money_context.current고민);
+        sessionStorage.setItem(STORAGE_KEYS.birth, JSON.stringify({
+          ...payload.profile,
+          serviceKey: SERVICE.service_key,
+          concern: payload.money_context.current고민,
+          moneyContext: payload.money_context,
+          interpretationIndexSource: "user_seed",
+        }));
+        setToast("Inputs saved in the session. Moving to the free teaser.");
+        window.setTimeout(() => {
+          location.assign("../04-step-4-report/index.html#step-4-report");
+        }, 420);
+      }
+
+      function readStoredJson(key) {
+        try {
+          const value = sessionStorage.getItem(key) || localStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function prefillFromPayload(payload) {
+        if (!payload) return;
+        const profile = payload.profile || payload;
+        const birth = profile.birth || profile;
+        const money = payload.money_context || profile.money_context || {};
+        const gender = birth.gender || profile.gender || "";
+        const calendar = birth.calendar || profile.calendar || "solar";
+        form.nickname.value = profile.nickname || profile.name || birth.nickname || "";
+        setChoice("gender", gender === "female" ? "Female" : gender === "male" ? "Man" : gender);
+        setChoice("calendar", calendar === "lunar" ? "Lunar calendar" : calendar === "solar" ? "Solar calendar" : calendar);
+        const savedDigits = birthDigits(profile.birthDate || birth.birthDate);
+        if (savedDigits.length === 8) {
+          form.birthDate.value = `${savedDigits.slice(0, 4)}-${savedDigits.slice(4, 6)}-${savedDigits.slice(6, 8)}`;
+        }
+        if (birth.year && birth.month && birth.day) {
+          form.birthDate.value = `${birth.year}-${String(birth.month).padStart(2, "0")}-${String(birth.day).padStart(2, "0")}`;
+        }
+        form.birthPlace.value = birth.birthplaceCity || profile.birthplaceCity || profile.birthPlace || "";
+        const known = (profile.birthTimeKnown ?? birth.birthTimeKnown) !== false;
+        setChoice("birthTimeKnown", String(known));
+        if (known && Number.isFinite(Number(birth.hour))) {
+          form.birthTime.value = `${String(birth.hour).padStart(2, "0")}:${String(birth.minute || 0).padStart(2, "0")}`;
+        }
+        if (money.incomeType) setChoice("incomeType", money.incomeType);
+        if (money.leakPattern) setChoice("leakPattern", money.leakPattern);
+        if (money.savingGoal) setChoice("savingGoal", money.savingGoal);
+        if (money.monthlyMood) setChoice("monthlyMood", money.monthlyMood);
+        form.relationMoney.value = money.relationMoney || "";
+        form.current고민.value = money.current고민 || payload.concern || "돈은 들어오는데 왜 안 남을까요?";
+      }
+
+      function completeProfile(profile) {
+        const birth = profile?.birth || profile?.profile || profile;
+        return Boolean(
+          birth
+          && (profile.name || profile.nickname || birth.nickname)
+          && (birth.gender || profile.gender)
+          && birth.year
+          && birth.month
+          && birth.day
+        );
+      }
+
+      function showCachedProfile(profile) {
+        if (!completeProfile(profile)) return;
+        cachedProfile = profile;
+        const birth = profile.birth || profile.profile || profile;
+        const date = `${birth.year}.${String(birth.month).padStart(2, "0")}.${String(birth.day).padStart(2, "0")}`;
+        const hasTime = Number.isFinite(Number(birth.hour));
+        const time = profile.birthTimeKnown === false || birth.birthTimeKnown === false || !hasTime
+          ? "Time unknown"
+          : `${String(birth.hour ?? 0).padStart(2, "0")}:${String(birth.minute || 0).padStart(2, "0")}`;
+        const genderLabel = birth.gender === "female" || birth.gender === "Female"
+          ? "Female"
+          : birth.gender === "male" || birth.gender === "Male"
+            ? "Man"
+            : "Gender not entered";
+        profileSummary.textContent = `${profile.name || profile.nickname || birth.nickname} · ${genderLabel} · ${date} · ${time}`;
+        profileCard.classList.add("is-visible");
+      }
+
+      tocStrip.innerHTML = INTERPRETATION_INDEX.groups
+        .map((group) => `<span>${escapeHtml(group.title)}</span>`)
+        .join("");
+
+      document.querySelectorAll("[data-choice-group]").forEach((wrap) => {
+        wrap.addEventListener("click", (event) => {
+          const button = event.target.closest(".choice");
+          if (!button) return;
+          setChoice(wrap.dataset.choiceGroup, button.dataset.value);
+        });
+      });
+
+      document.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        if (action === "use-profile" && cachedProfile) {
+          cachedProfile.used = true;
+          prefillFromPayload(cachedProfile);
+          profileFieldset.style.display = "none";
+          setToast("Use the saved Four Pillars profile as the basis for this reading.");
+        }
+        if (action === "new-profile") {
+          cachedProfile = null;
+          profileFieldset.style.display = "";
+          profileCard.classList.remove("is-visible");
+          setToast("Enter new Four Pillars details.");
+        }
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        saveAndContinue();
+      });
+
+      form.birthTime.addEventListener("input", () => {
+        const raw = form.birthTime.value.trim();
+        if (/^\d{4}$/.test(raw)) form.birthTime.value = `${raw.slice(0, 2)}:${raw.slice(2)}`;
+      });
+
+      prefillFromPayload(readStoredJson(STORAGE_KEYS.step2Payload));
+      if (!form.current고민.value) form.current고민.value = "돈은 들어오는데 왜 안 남을까요?";
+      showCachedProfile(readStoredJson(STORAGE_KEYS.profileCache));
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/save-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

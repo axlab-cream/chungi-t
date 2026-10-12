@@ -1,3 +1,4 @@
+import { birthLocationKey } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import type { BirthInput, RagChunk, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection, SectionStorytelling } from '../types/index.js'
@@ -401,6 +402,7 @@ export function createMoneySaveReportId(ownerId: string | undefined, birth: Birt
       gender: birth.gender,
       calendar: birth.calendar,
       ...(birth.minute ? { minute: birth.minute } : {}),
+      ...birthLocationKey(birth),
     },
     input,
     serviceKey: MONEY_SAVE_SERVICE_KEY,

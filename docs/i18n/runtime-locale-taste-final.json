@@ -1,0 +1,69 @@
+{
+  "observedAt": "2026-10-12T07:59:01.971Z",
+  "scope": "Synthetic only; actual production model/prompt transport, no customer data or writes. Corrected consultation trusted system + validation, existing4096 limit.",
+  "providerCallCapAcrossBatches": 8,
+  "rows": [
+    {
+      "surface": "consultation",
+      "locale": "en",
+      "model": "gemini-3.8-flash",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 4096,
+      "providerModel": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 5236,
+        "candidatesTokenCount": 134,
+        "totalTokenCount": 6003,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5236
+          }
+        ],
+        "thoughtsTokenCount": 633,
+        "serviceTier": "standard"
+      },
+      "status": "complete",
+      "finishReason": "STOP",
+      "languageSafetyGuard": true,
+      "output": "Saving 5,000,000 KRW in a year breaks down to roughly 417,000 KRW a month. That feels steep when money leaks out unnoticed, but your leak has a clear shape: frictionless spending. \n\nStart with one concrete move tonight. Audit your subscriptions and cancel anything you haven't opened this week. Next, remove your saved cards from food delivery apps. Adding even two minutes of friction between an impulse and checkout breaks the automatic habit. \n\nFinally, set up an automatic transfer for your monthly target the morning your paycheck lands, keeping that money out of reach before convenience takes its cut.",
+      "hangulCount": 0,
+      "fixture": "consultation/en"
+    },
+    {
+      "surface": "consultation",
+      "locale": "ja",
+      "model": "gemini-3.8-flash",
+      "scope": "synthetic fixed actual sectionPrompt/default consultation policy, not customer API E2E",
+      "retries": 0,
+      "maxOutputTokens": 4096,
+      "providerModel": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 5337,
+        "candidatesTokenCount": 115,
+        "totalTokenCount": 6458,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5337
+          }
+        ],
+        "thoughtsTokenCount": 1006,
+        "serviceTier": "standard"
+      },
+      "status": "complete",
+      "finishReason": "STOP",
+      "languageSafetyGuard": true,
+      "output": "1年で500万ウォンなら月に約42万ウォンだね。君の命式は土の気がどっしり強くて貯める力はあるけれど、食神の巡りで日々の心地よさにお金が流れやすい。まずは今日、使っていないサブスクを1つだけ解約して、デリバリーアプリを画面の奥に隠してみよう。給料日に決めた額を別口座へ先取りで移す仕組みを作れば、意志の強さに頼らず手元に残せるよ。",
+      "hangulCount": 0,
+      "fixture": "consultation/ja"
+    },
+    {
+      "tableReady": false,
+      "httpStatus": 404,
+      "scope": "table readiness only, zero customer rows requested",
+      "fixture": "storage/probe"
+    }
+  ]
+}

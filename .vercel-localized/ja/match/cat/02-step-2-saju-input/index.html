@@ -1,0 +1,1591 @@
+<!DOCTYPE html><html lang="ko"><head>
+    <script src="/js/umsh-analytics.js?v=ga-20261007-cat-display-v1"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/cat-display-locale.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>猫と自分、本当に相性が合う？｜入力｜運命商会</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="運命商会">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="運命商会 - 運命を売ります。">
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。">
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="飼い主の四柱推命と猫の行動プロフィールを入力し、生活相性のレポートへ続く画面">
+    <link rel="stylesheet" href="/css/umsh-chrome.css">
+    <style>
+      @font-face {
+        font-family: "MaruBuri";
+        src: url("/assets/fonts/MaruBuri-SemiBold.woff2") format("woff2");
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Pretendard";
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+        font-display: swap;
+      }
+
+      :root {
+        --bg: #050604;
+        --ink: #fffaf0;
+        --muted: #d9ceb6;
+        --dim: #9b917d;
+        --line: rgba(247, 207, 109, 0.22);
+        --line-strong: rgba(247, 207, 109, 0.42);
+        --gold: #f4ca6a;
+        --gold-soft: rgba(244, 202, 106, 0.14);
+        --green: #a8ff1f;
+        --green-soft: rgba(168, 255, 31, 0.14);
+        --teal: #6debd3;
+        --danger: #ff8f73;
+        --panel: rgba(8, 11, 7, 0.78);
+        --panel-strong: rgba(13, 17, 10, 0.92);
+        --shadow: rgba(0, 0, 0, 0.62);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 16% 0%, rgba(109, 235, 211, 0.12), transparent 24rem),
+          radial-gradient(circle at 86% 8%, rgba(168, 255, 31, 0.1), transparent 25rem),
+          linear-gradient(135deg, #030401 0%, #0d1109 54%, #020302 100%);
+        font-family:
+          "Pretendard",
+          "Apple SD Gothic Neo",
+          "Noto Sans KR",
+          sans-serif;
+      }
+
+      button,
+      input,
+      select,
+      textarea,
+      a {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      img {
+        display: block;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .page-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, 430px);
+        height: min(900px, 100dvh);
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid rgba(255, 244, 210, 0.18);
+        border-radius: 28px;
+        background: #050604;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.58);
+        scroll-behavior: smooth;
+      }
+
+      .phone::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 18px 10px;
+        background:
+          linear-gradient(180deg, rgba(3, 4, 2, 0.97), rgba(3, 4, 2, 0.76) 72%, transparent),
+          rgba(3, 4, 2, 0.58);
+        backdrop-filter: blur(14px);
+      }
+
+      .back-link {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        border: 1px solid rgba(255, 250, 240, 0.17);
+        border-radius: 50%;
+        color: var(--ink);
+        text-decoration: none;
+        background: rgba(255, 250, 240, 0.06);
+      }
+
+      .back-link:focus-visible,
+      .primary-cta:focus-visible,
+      .secondary-button:focus-visible,
+      .choice:focus-within,
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: 2px solid rgba(168, 255, 31, 0.72);
+        outline-offset: 2px;
+      }
+
+      .brand {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .brand span,
+      .price-chip,
+      .kicker {
+        letter-spacing: 0;
+      }
+
+      .brand span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: rgba(255, 250, 240, 0.76);
+        font-size: 11px;
+      }
+
+      .brand b {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-top: 2px;
+        color: var(--ink);
+        font-size: 14px;
+      }
+
+      .price-chip {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border: 1px solid rgba(168, 255, 31, 0.34);
+        border-radius: 999px;
+        color: #e9ffd0;
+        background: rgba(168, 255, 31, 0.1);
+        font-size: 12px;
+      }
+
+      .intro {
+        position: relative;
+        min-height: 392px;
+        display: flex;
+        align-items: flex-end;
+        padding: 64px 22px 24px;
+        isolation: isolate;
+      }
+
+      .intro-media,
+      .intro-media img,
+      .intro-shade {
+        position: absolute;
+        inset: 0;
+      }
+
+      .intro-media {
+        z-index: -2;
+        overflow: hidden;
+      }
+
+      .intro-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+
+      .intro-shade {
+        z-index: -1;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(3, 4, 2, 0.18) 34%, rgba(3, 4, 2, 0.94) 94%),
+          radial-gradient(circle at 50% 72%, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.74));
+      }
+
+      .intro.image-failed {
+        background:
+          radial-gradient(circle at 48% 24%, rgba(168, 255, 31, 0.16), transparent 15rem),
+          linear-gradient(180deg, #15170d, #050604);
+      }
+
+      .intro-copy {
+        width: 100%;
+        text-shadow: 0 2px 20px var(--shadow);
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 13px;
+        padding: 7px 10px;
+        border: 1px solid rgba(244, 202, 106, 0.28);
+        border-radius: 999px;
+        color: #f6e0a4;
+        background: rgba(0, 0, 0, 0.34);
+        font-size: 12px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 340px;
+        font-family:
+          "MaruBuri",
+          "Noto Serif KR",
+          serif;
+        font-size: clamp(31px, 8vw, 42px);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .intro-copy p {
+        max-width: 340px;
+        margin-top: 13px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .trust-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .trust-list li {
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        padding: 9px;
+        border: 1px solid rgba(255, 250, 240, 0.13);
+        border-radius: 8px;
+        color: rgba(255, 250, 240, 0.84);
+        background: rgba(0, 0, 0, 0.28);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .form-shell {
+        padding: 18px 18px 116px;
+      }
+
+      .step-rail {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .rail-item {
+        min-height: 46px;
+        padding: 8px;
+        border: 1px solid rgba(255, 250, 240, 0.12);
+        border-radius: 8px;
+        color: rgba(255, 250, 240, 0.68);
+        background: rgba(255, 250, 240, 0.04);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .rail-item.is-current {
+        border-color: rgba(168, 255, 31, 0.42);
+        color: #eaffc5;
+        background: rgba(168, 255, 31, 0.08);
+      }
+
+      .section-title {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 26px 0 11px;
+      }
+
+      .section-title:first-child {
+        margin-top: 0;
+      }
+
+      .section-no {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        color: #142003;
+        background: var(--green);
+        font-size: 12px;
+      }
+
+      .section-title h2 {
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      .section-title p {
+        margin-top: 4px;
+        color: var(--dim);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .form-card {
+        margin-bottom: 12px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 250, 240, 0.045), transparent),
+          var(--panel);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+      }
+
+      fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      legend,
+      .field label,
+      .group-label {
+        display: block;
+        margin-bottom: 8px;
+        color: rgba(255, 250, 240, 0.9);
+        font-size: 13px;
+      }
+
+      .help {
+        margin-top: 6px;
+        color: rgba(217, 206, 182, 0.78);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .two-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid rgba(255, 250, 240, 0.16);
+        border-radius: 8px;
+        color: var(--ink);
+        background: rgba(0, 0, 0, 0.28);
+        box-shadow: inset 0 0 0 1px rgba(255, 250, 240, 0.02);
+      }
+
+      .field input,
+      .field select {
+        padding: 0 12px;
+      }
+
+      .field textarea {
+        min-height: 94px;
+        resize: vertical;
+        padding: 12px;
+        line-height: 1.55;
+      }
+
+      .field select {
+        color-scheme: dark;
+      }
+
+      .field input::placeholder,
+      .field textarea::placeholder {
+        color: rgba(255, 250, 240, 0.38);
+      }
+
+      .field input[aria-invalid="true"],
+      .field select[aria-invalid="true"],
+      .field textarea[aria-invalid="true"] {
+        border-color: rgba(255, 143, 115, 0.82);
+      }
+
+      .choice-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .choice-grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .choice {
+        position: relative;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 11px;
+        border: 1px solid rgba(255, 250, 240, 0.15);
+        border-radius: 8px;
+        color: rgba(255, 250, 240, 0.84);
+        background: rgba(255, 250, 240, 0.045);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .choice input {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 auto;
+        accent-color: var(--green);
+      }
+
+      .choice:has(input:checked) {
+        border-color: rgba(168, 255, 31, 0.58);
+        color: #f4ffe4;
+        background:
+          linear-gradient(135deg, rgba(168, 255, 31, 0.14), rgba(109, 235, 211, 0.06)),
+          rgba(255, 250, 240, 0.04);
+      }
+
+      .choice input:disabled + span,
+      .choice:has(input:disabled) {
+        color: rgba(255, 250, 240, 0.42);
+      }
+
+      .profile-status,
+      .session-note,
+      .submit-note {
+        margin-top: 12px;
+        padding: 11px 12px;
+        border: 1px solid rgba(109, 235, 211, 0.24);
+        border-radius: 8px;
+        color: rgba(229, 255, 249, 0.86);
+        background: rgba(109, 235, 211, 0.07);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .session-note {
+        border-color: rgba(244, 202, 106, 0.26);
+        color: rgba(255, 239, 194, 0.88);
+        background: rgba(244, 202, 106, 0.075);
+      }
+
+      .inline-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 9px;
+        color: rgba(255, 250, 240, 0.82);
+        font-size: 13px;
+      }
+
+      .inline-check input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--green);
+      }
+
+      .tag-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .review-panel {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .review-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 42px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 250, 240, 0.1);
+        font-size: 13px;
+      }
+
+      .review-row:last-child {
+        border-bottom: 0;
+      }
+
+      .review-row span {
+        flex: 0 0 auto;
+        color: var(--dim);
+      }
+
+      .review-row strong {
+        min-width: 0;
+        color: rgba(255, 250, 240, 0.9);
+        text-align: right;
+        line-height: 1.45;
+      }
+
+      .field-error,
+      .form-error {
+        min-height: 18px;
+        margin-top: 6px;
+        color: var(--danger);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .form-error {
+        min-height: 0;
+        margin: 16px 0 0;
+        padding: 0;
+      }
+
+      .form-error.is-visible {
+        padding: 11px 12px;
+        border: 1px solid rgba(255, 143, 115, 0.45);
+        border-radius: 8px;
+        background: rgba(255, 143, 115, 0.08);
+      }
+
+      .bottom-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 24;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        margin: 18px -18px -116px;
+        padding: 14px 18px 18px;
+        background:
+          linear-gradient(180deg, transparent 0%, rgba(5, 6, 4, 0.82) 18%, rgba(5, 6, 4, 0.98) 100%);
+        backdrop-filter: blur(12px);
+      }
+
+      .cat-analysis-loading { position: fixed; inset: 0; z-index: 80; display: none; place-items: center; padding: 24px; background: rgba(3, 5, 2, .92); color: var(--ink); text-align: center; }
+      .cat-analysis-loading.is-visible { display: grid; }
+      .cat-analysis-loading strong { display: block; margin-bottom: 8px; color: var(--gold); font-family: "MaruBuri", serif; font-size: 22px; }
+      .cat-analysis-loading p { max-width: 300px; color: var(--muted); line-height: 1.65; }
+      @media (prefers-reduced-motion: reduce) { .phone { scroll-behavior: auto; } }
+
+      .primary-cta,
+      .secondary-button {
+        width: 100%;
+        min-height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .primary-cta {
+        color: #162005;
+        background: linear-gradient(135deg, #a8ff1f, #f4ca6a);
+        box-shadow: 0 14px 30px rgba(168, 255, 31, 0.16);
+      }
+
+      .primary-cta[aria-busy="true"] {
+        opacity: 0.74;
+        pointer-events: none;
+      }
+
+      .secondary-button {
+        color: rgba(255, 250, 240, 0.86);
+        background: rgba(255, 250, 240, 0.06);
+        border-color: rgba(255, 250, 240, 0.15);
+      }
+
+      .secondary-button.compact {
+        min-height: 38px;
+        width: 100%;
+        margin-top: 12px;
+        font-size: 13px;
+      }
+
+      @media (max-width: 520px) {
+        .page-shell {
+          display: block;
+          min-height: 100dvh;
+          padding: 0;
+        }
+
+        .phone {
+          width: 100%;
+          height: 100dvh;
+          border: 0;
+          border-radius: 0;
+        }
+      }
+
+      @media (max-width: 390px) {
+        .two-col,
+        .choice-grid,
+        .choice-grid.three,
+        .tag-grid,
+        .trust-list {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 31px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+          animation-duration: 0.001ms !important;
+        }
+      }
+
+      /* Shared UMSH chrome. The design frames the whole page as a fixed 430x900 phone
+         that scrolls inside itself; on the real site the document scrolls and the bottom
+         nav is fixed to the viewport, so the frame is unwrapped here. */
+      body.umsh-has-chrome .page-shell { min-height: 0; display: block; padding: 0; }
+      body.umsh-has-chrome .phone {
+        /* 세로로 갇힌 카드만 풀면 된다. 가로 폭까지 풀면 넓은 화면에서 화면 전체로
+           퍼져 다른 서비스의 모바일 프레임과 어긋난다. */
+        width: min(100%, 430px);
+        margin-inline: auto;
+        height: auto;
+        min-height: 100svh;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      /* Keep the fixed bottom nav clear of the page's last section. The shell publishes
+         its measured height, but that can land before layout settles, so the floor keeps
+         the reserve honest either way. */
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .bottom-actions {
+        bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
+        margin-bottom: 0;
+      }
+      body.umsh-has-chrome .nav-footer { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* UMSHChrome renders the shared bar as header.umsh-chrome-appbar inside its own
+         shell, and that header still carries the page's .topbar class. Hand the box back
+         so the design's own positioning cannot drag the shared bar around. */
+      body.umsh-has-chrome .umsh-chrome-appbar {
+        left: auto;
+        right: auto;
+        width: auto;
+        transform: none;
+        pointer-events: auto;
+      }
+      /* The saved 사주 profile the account already holds, shown instead of re-asking. */
+      .cat-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(255, 224, 150, 0.42); border-radius: 10px; background: rgba(255, 224, 150, 0.1); padding: 14px; margin-bottom: 14px; }
+      .cat-saved-profile b { color: #ffe9b5; font-size: 14px; }
+      .cat-saved-profile span { color: rgba(255, 248, 232, 0.78); font-size: 13px; line-height: 1.55; }
+      .cat-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
+  </head>
+  <body class="umsh-fields">
+    <div class="page-shell">
+      <main class="phone" data-umsh-chrome="" data-service="猫との相性" data-price="9,900 KRW" data-active="home" id="step-2-saju-input" aria-label="猫と自分、本当に相性が合う？ 入力">
+        <header class="appbar topbar">
+
+          <div class="brand">
+            <span data-cat-shell="brand">運命商会 · 猫の相性</span>
+            <b>猫と私、本当に相性が合う</b>
+          </div>
+          <span class="price-chip">9,900 KRW</span>
+        </header>
+
+        <section class="intro" aria-labelledby="page-title">
+          <picture class="intro-media">
+            <img src="../assets/cat-compatibility/02-input-companion.webp" alt="月明かりの机で行動チェックと出生時刻表を見るシルバータビーの猫" loading="eager" onerror="this.closest('.intro').classList.add('image-failed'); this.remove();">
+          </picture>
+          <div class="intro-shade" aria-hidden="true"></div>
+          <div class="intro-copy">
+            <span class="kicker">世話をする人と猫</span>
+            <h1 id="page-title">一緒に楽になる距離と習慣から探そう</h1>
+            <p>
+              飼い主の命式と猫の習慣を重ねよう。距離感・ごはんの場所・寝床を生活の場面で読む。誕生日が曖昧でも行動タグで続けられる。
+            </p>
+            <ul class="trust-list" aria-label="この入力で得られるもの">
+              <li>保護者の命式と猫の習慣を重ねて見ます</li>
+              <li>出生時刻が不明なら、時刻の解釈を除いて習慣を見ます。</li>
+              <li>健康・病気・寿命は判断しません</li>
+            </ul>
+          </div>
+        </section>
+
+        <form class="form-shell" id="compatibility-form" novalidate="">
+          <div class="step-rail" aria-label="進行の段階">
+            <span class="rail-item">01<br>ストーリー完了</span>
+            <span class="rail-item is-current">02<br>入力中</span>
+            <span class="rail-item">04<br>無料ティーザー</span>
+          </div>
+
+          <div class="section-title">
+            <span class="section-no">1</span>
+            <div>
+              <h2>自分の飼い主力の基準</h2>
+              <p>基本の四柱推命プロフィールがあれば、もう一度聞かずに続けます。</p>
+            </div>
+          </div>
+
+          <section class="form-card">
+            <fieldset>
+              <legend>飼い主の命式を基準に</legend>
+              <div class="choice-grid">
+                <label class="choice">
+                  <input id="profile-existing" type="radio" name="guardian_profile_mode" value="existing_profile">
+                  <span>既存の自分のプロフィールを使う</span>
+                </label>
+                <label class="choice">
+                  <input id="profile-new" type="radio" name="guardian_profile_mode" value="new_profile" checked="">
+                  <span>新しく入力する</span>
+                </label>
+              </div>
+              <p class="profile-status" id="profile-status" aria-live="polite">
+                保存済みの基本四柱推命プロフィールを確認しています。
+              </p>
+              <button class="secondary-button compact" type="button" data-action="clear-draft">
+                一時入力を消す
+              </button>
+            </fieldset>
+          </section>
+
+          <section class="form-card" data-owner-fields="">
+            <div class="field-grid">
+              <div class="field">
+                <label for="guardian-nickname">飼い主のニックネーム</label>
+                <input id="guardian-nickname" name="guardian_nickname" type="text" maxlength="20" placeholder="例: ミンジ" autocomplete="name" aria-describedby="guardian_nickname-help guardian_nickname-error">
+                <p class="help" id="guardian_nickname-help">レポートで呼ぶ名前だ。本名でなくてもいい。</p>
+                <div class="field-error" data-error-for="guardian_nickname" id="guardian_nickname-error" aria-live="polite"></div>
+              </div>
+
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="guardian-gender">保護者の性別</label>
+                  <select id="guardian-gender" name="guardian_gender" aria-describedby="guardian_gender-error">
+                    <option value="">選択</option>
+                    <option value="female">女性</option>
+                    <option value="male">男性</option>
+                    <option value="not_disclosed">未選択</option>
+                  </select>
+                  <div class="field-error" data-error-for="guardian_gender" id="guardian_gender-error" aria-live="polite"></div>
+                </div>
+                <div class="field">
+                  <label for="guardian-birth-date">生年月日</label>
+                  <input id="guardian-birth-date" name="guardian_birth_date" type="date" aria-describedby="guardian_birth_date-error">
+                  <div class="field-error" data-error-for="guardian_birth_date" id="guardian_birth_date-error" aria-live="polite"></div>
+                </div>
+              </div>
+
+              <fieldset>
+                <legend>暦の基準</legend>
+                <div class="choice-grid">
+                  <label class="choice">
+                    <input type="radio" name="guardian_calendar_type" value="solar" checked="">
+                    <span>陽暦</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="guardian_calendar_type" value="lunar">
+                    <span>陰暦</span>
+                  </label>
+                </div>
+                <div class="field-error" data-error-for="guardian_calendar_type" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="guardian-birth-time">生まれた時刻</label>
+                  <input id="guardian-birth-time" name="guardian_birth_time" type="time" aria-describedby="guardian_birth_time-help guardian_birth_time-error">
+                  <p class="help" id="guardian_birth_time-help">分からなければチェックしてください。時刻基準の解釈だけが減ります。</p>
+                  <label class="inline-check">
+                    <input id="guardian-time-unknown" name="guardian_birth_time_unknown" type="checkbox" value="true">
+                    <span>出生時刻不明</span>
+                  </label>
+                  <div class="field-error" data-error-for="guardian_birth_time" id="guardian_birth_time-error" aria-live="polite"></div>
+                </div>
+                <div class="field">
+                  <label for="guardian-birth-region">出生地</label>
+                  <input id="guardian-birth-region" name="guardian_birth_region" type="text" maxlength="24" placeholder="任意入力" autocomplete="address-level2">
+                  <p class="help">出生時刻の補正の参考にだけ使います。詳しい住所は受け取りません。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="section-title">
+            <span class="section-no">2</span>
+            <div>
+              <h2>猫の行動プロフィール</h2>
+              <p>猫の誕生日が不確かなら、性格・習慣のタグで相性を見る。</p>
+            </div>
+          </div>
+
+          <section class="form-card">
+            <div class="field-grid">
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="cat-nickname">猫の名前・呼び名</label>
+                  <input id="cat-nickname" name="cat_nickname" type="text" maxlength="20" placeholder="例：モチ" autocomplete="off" aria-describedby="cat_nickname-error">
+                  <div class="field-error" data-error-for="cat_nickname" id="cat_nickname-error" aria-live="polite"></div>
+                </div>
+                <div class="field">
+                  <label for="cat-household">同居の状況</label>
+                  <select id="cat-household" name="cat_household" aria-describedby="cat_household-error">
+                    <option value="">選択</option>
+                    <option value="single_cat">1匹の猫の家庭</option>
+                    <option value="multi_cat">多頭飼いの家庭</option>
+                    <option value="planning_adoption">迎える予定</option>
+                  </select>
+                  <div class="field-error" data-error-for="cat_household" id="cat_household-error" aria-live="polite"></div>
+                </div>
+              </div>
+
+              <fieldset>
+                <legend>猫の誕生日を知っていますか？</legend>
+                <div class="choice-grid">
+                  <label class="choice">
+                    <input type="radio" name="cat_birth_known" value="yes">
+                    <span>分かっている</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="cat_birth_known" value="no" checked="">
+                    <span>だいたいしか分からない</span>
+                  </label>
+                </div>
+                <div class="field-error" data-error-for="cat_birth_known" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field" data-cat-birth-wrap="" hidden="">
+                <label for="cat-birth-date">猫の生年月日</label>
+                <input id="cat-birth-date" name="cat_birth_date" type="date" aria-describedby="cat_birth_date-help cat_birth_date-error">
+                <p class="help" id="cat_birth_date-help">わかっている日付だけを使う。出生時刻は聞かない。</p>
+                <div class="field-error" data-error-for="cat_birth_date" id="cat_birth_date-error" aria-live="polite"></div>
+              </div>
+
+              <div class="field" data-cat-age-wrap="">
+                <label for="cat-age-band">おおよその年齢層</label>
+                <select id="cat-age-band" name="cat_age_band" aria-describedby="cat_age_band-error">
+                  <option value="">選択</option>
+                  <option value="kitten">子猫・若い猫</option>
+                  <option value="adult">成猫</option>
+                  <option value="senior">老猫</option>
+                  <option value="unknown">よくわかりません</option>
+                </select>
+                <div class="field-error" data-error-for="cat_age_band" id="cat_age_band-error" aria-live="polite"></div>
+              </div>
+
+              <fieldset>
+                <legend>最近いちばんよく見える傾向</legend>
+                <p class="help">最低2つ選んで。それで猫側の解釈を無理に作らずに済む。</p>
+                <div class="tag-grid" data-group="cat_behavior_tags">
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="shy"><span>人見知り</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="touch_friendly"><span>撫でられるのが好き</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="independent"><span>独立的</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="active"><span>活発さ</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="sensitive"><span>敏感さ</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="food_motivated"><span>間食への反応が速い</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="night_runner"><span>夜の駆け回り</span></label>
+                  <label class="choice"><input type="checkbox" name="cat_behavior_tags" value="jealous"><span>嫉妬・多頭飼いに敏感</span></label>
+                </div>
+                <div class="field-error" data-error-for="cat_behavior_tags" aria-live="polite"></div>
+              </fieldset>
+            </div>
+          </section>
+
+          <div class="section-title">
+            <span class="section-no">3</span>
+            <div>
+              <h2>生活の相性ポイント</h2>
+              <p>結果から、距離感・習慣・空間・トラブルのリセットへ続く。</p>
+            </div>
+          </div>
+
+          <section class="form-card">
+            <div class="field-grid">
+              <fieldset>
+                <legend>撫でるときの心地よさ</legend>
+                <div class="choice-grid">
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="loves_touch"><span>先に近づいてすり寄る</span></label>
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="short_touch"><span>短時間だけ可能</span></label>
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="mood_based"><span>気分による</span></label>
+                  <label class="choice"><input type="radio" name="cat_touch_style" value="avoid_touch"><span>ほぼ嫌がる</span></label>
+                </div>
+                <div class="field-error" data-error-for="cat_touch_style" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field">
+                <label for="cat-play-energy">遊ぶ力</label>
+                <select id="cat-play-energy" name="cat_play_energy" aria-describedby="cat_play_energy-error">
+                  <option value="">選択</option>
+                  <option value="low">低め · 見ているほう</option>
+                  <option value="medium">普通 · 一日に一、二回</option>
+                  <option value="high">高い · ずっと遊びたがる</option>
+                  <option value="night">夜にまとめて爆発</option>
+                </select>
+                <div class="field-error" data-error-for="cat_play_energy" id="cat_play_energy-error" aria-live="polite"></div>
+              </div>
+
+              <fieldset>
+                <legend>最近、衝突が起きる地点</legend>
+                <p class="help">なければ「なし」を選んでね。少なくとも1つ選ぶ必要がある。</p>
+                <div class="tag-grid" data-group="routine_flags">
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="sleep_conflict"><span>睡眠のパターン</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="food_rhythm"><span>食事・おやつのリズム</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="work_from_home"><span>外出・在宅の緊張感</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="space_litter"><span>トイレ・空間</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="multi_cat_tension"><span>複数の猫の嫉妬</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="clinic_grooming"><span>動物病院・トリミングの予約</span></label>
+                  <label class="choice"><input type="checkbox" name="routine_flags" value="none"><span>大きくはない</span></label>
+                </div>
+                <div class="field-error" data-error-for="routine_flags" aria-live="polite"></div>
+              </fieldset>
+
+              <div class="field">
+                <label for="focus-area">このレポートで一番見たいもの</label>
+                <select id="focus-area" name="focus_area" aria-describedby="focus_area-error">
+                  <option value="">選択</option>
+                  <option value="distance">距離感の相性</option>
+                  <option value="routine">生活習慣の足並み</option>
+                  <option value="space">空間の相性</option>
+                  <option value="trouble">トラブルのパターン</option>
+                  <option value="adoption">迎え入れ・猫同士の対面の時期</option>
+                  <option value="burnout">飼い主の消耗を防ぐ</option>
+                  <option value="today_action">今日の猫との暮らしアクション</option>
+                </select>
+                <div class="field-error" data-error-for="focus_area" id="focus_area-error" aria-live="polite"></div>
+              </div>
+
+              <div class="field-grid two-col">
+                <div class="field">
+                  <label for="upcoming-event">これから来る予定</label>
+                  <select id="upcoming-event" name="upcoming_event">
+                    <option value="none">なし</option>
+                    <option value="adoption">迎え入れ</option>
+                    <option value="introduce_cat">猫同士の対面</option>
+                    <option value="clinic">病院</option>
+                    <option value="grooming">トリミング</option>
+                    <option value="moving">引っ越し・部屋の配置変更</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="preferred-period">見たい期間</label>
+                  <input id="preferred-period" name="preferred_period" type="month">
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="free-note">一行メモ</label>
+                <textarea id="free-note" name="free_note" maxlength="120" placeholder="例：触ると逃げますが、夜は自分のベッドで寝ます。" aria-describedby="free_note-help"></textarea>
+                <p class="help" id="free_note-help">健康相談が必要な症状はこのサービスで判断しません。</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-card" aria-labelledby="summary-title">
+            <h2 id="summary-title">進む前の確認</h2>
+            <div class="review-panel" aria-live="polite">
+              <div class="review-row">
+                <span>飼い主を基準に</span>
+                <strong id="summary-guardian">新しい入力待ち</strong>
+              </div>
+              <div class="review-row">
+                <span>猫の基準</span>
+                <strong id="summary-cat">行動タグを待機中</strong>
+              </div>
+              <div class="review-row">
+                <span>結果につなぐ</span>
+                <strong>無料ティーザー後の有料レポート範囲の案内</strong>
+              </div>
+            </div>
+            <p class="session-note" id="session-note" aria-live="polite">
+              入力中の再読み込みに備えて、このブラウザのセッションにだけ一時保存されます。
+              アドレスバーには名前や生年月日を入れません。
+            </p>
+            <p class="submit-note">
+              送信後は共通ログインの確認が必要なことがあります。ログインから戻ると、同じサービスと入力段階に戻ります。
+            </p>
+            <div class="form-error" id="form-error" role="alert" aria-live="assertive"></div>
+          </section>
+
+          <div class="bottom-actions">
+
+            <button class="primary-cta" type="submit" data-action="submit">距離と習慣を確認する</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <div class="cat-analysis-loading" id="loadingPanel" data-umsh-step="03-loading" aria-hidden="true" role="status">
+      <div><strong>一緒に楽になる瞬間を探している</strong><p>教えてくれた行動と保存した命式を並べ、無料の解釈を二つ用意する。</p></div>
+    </div>
+
+    <script src="/js/cat-report-store.js"></script>
+    <script>
+      (() => {
+        const SERVICE = {
+          service_key: "cat_compatibility",
+          service_slug: "cat-compatibility",
+          service_title: "猫と私は本当に相性が合う",
+          category: "猫との相性",
+          subcategory: "生活の相性",
+          domain: "pet_compatibility",
+          price_krw: 9900,
+          report_version: "cat-compatibility-v1"
+        };
+
+        const INPUT_SCHEMA_VERSION = "cat-compatibility-input-v1";
+        const PAYLOAD_KEY = "cat_compatibility_step2_payload";
+        const DRAFT_KEY = "cat_compatibility_step2_draft";
+        const RETURN_STATE_KEY = "cat_compatibility_return_state";
+        const INDEX_KEY = "cat_compatibility_interpretation_index";
+        const sessionStore = safeStorage("sessionStorage");
+        const localStore = safeStorage("localStorage");
+
+        const interpretationIndex = {
+          source: "user_seed",
+          groups: [
+            { group: "自分の猫のお世話の基本", items: ["飼い主としての傾向", "世話するエネルギーのレベル", "愛情表現の温度。", "一人でいたい時間", "執着と放置のバランス"] },
+            { group: "私と猫の相性の温度", items: ["初対面のテンション", "撫でるときの心地よさ", "一緒に休む相性", "遊んであげるコード", "すねた気持ちが戻る速さ"] },
+            { group: "距離感の相性", items: ["一線を越える場面", "近づくタイミング", "無関心に見える愛情", "世話する人の言葉・行動の速さ", "猫が落ち着く距離"] },
+            { group: "生活習慣の一致", items: ["朝の習慣の相性", "食事・おやつのリズム", "睡眠パターンの衝突", "外出・在宅の相性", "繰り返す世話の習慣"] },
+            { group: "空間の相性", items: ["隠れ家の場所", "キャットタワー・窓辺の運", "トイレの位置への敏感さ。", "安定ゾーン対活動ゾーン", "うちの色と照明のムード。"] },
+            { group: "トラブルのパターンを読む", items: ["噛む・引っかく日の手がかり", "夜のウダウダと、飼い主の体力", "人見知り・警戒心", "多頭飼いの嫉妬", "繰り返す対立の立て直し方"] },
+            { group: "五行のバランスを整える", items: ["木の気：成長・遊び", "火の気：表現・興奮", "土の気: 安定・習慣", "金の気：ルール・整理", "水の気: 休息・一人の時間"] },
+            { group: "迎え入れ・猫同士の対面のタイミング", items: ["迎えるのに向いた流れ", "猫同士を初めて会わせる日の注意", "動物病院・お手入れの予約のタイミング", "引っ越し・部屋の配置変更日", "適応期間の確認"] },
+            { group: "世話をする人の燃え尽き防止", items: ["自分が過剰に世話する地点。", "後回しにする世話のポイント", "休むべき日", "感情の消耗を減らす方法", "長く同居する体力"] },
+            { group: "今日の猫ライフの行動", items: ["今日する一つ。", "今週のルーティン課題", "話し方・触れ方の調整", "遊び方の提案", "静かに見守る時期"] }
+          ]
+        };
+
+        const form = document.querySelector("#compatibility-form");
+        const ownerFields = document.querySelector("[data-owner-fields]");
+        const profileExistingInput = document.querySelector("#profile-existing");
+        const profileNewInput = document.querySelector("#profile-new");
+        const profileStatus = document.querySelector("#profile-status");
+        const timeUnknownInput = document.querySelector("#guardian-time-unknown");
+        const birthTimeInput = document.querySelector("#guardian-birth-time");
+        const catBirthWrap = document.querySelector("[data-cat-birth-wrap]");
+        const catAgeWrap = document.querySelector("[data-cat-age-wrap]");
+        const formError = document.querySelector("#form-error");
+        const submitButton = document.querySelector("[data-action='submit']");
+        const sessionNote = document.querySelector("#session-note");
+        const summaryGuardian = document.querySelector("#summary-guardian");
+        const summaryCat = document.querySelector("#summary-cat");
+
+        const labelMap = {
+          shy: "人見知り",
+          touch_friendly: "触れ合いが好き",
+          independent: "独立的",
+          active: "活発さ",
+          sensitive: "敏感さ",
+          food_motivated: "おやつへの反応が早い",
+          night_runner: "夜の駆け回り",
+          jealous: "嫉妬／多頭飼いに敏感",
+          sleep_conflict: "睡眠のパターン",
+          food_rhythm: "食事・おやつのリズム",
+          work_from_home: "外出・在宅の温度感",
+          space_litter: "トイレ・空間",
+          multi_cat_tension: "多頭飼いの嫉妬",
+          clinic_grooming: "病院・トリミングの予約",
+          none: "特にない",
+          distance: "距離感の相性",
+          routine: "生活習慣の一致",
+          space: "空間の相性",
+          trouble: "トラブルの型",
+          adoption: "迎え入れ・猫同士の対面のタイミング",
+          burnout: "世話をする人の燃え尽き防止",
+          today_action: "今日の猫ライフの行動"
+        };
+
+        function safeStorage(name) {
+          try {
+            return window[name] || null;
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        function readJsonFrom(storage, key) {
+          if (!storage) return null;
+          try {
+            return JSON.parse(storage.getItem(key) || "null");
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        function writeSessionJson(key, value) {
+          if (!sessionStore) return;
+          try {
+            sessionStore.setItem(key, JSON.stringify(value));
+          } catch (_error) {
+            // Restricted browser modes can block session storage.
+          }
+        }
+
+        function pad2(value) {
+          return String(value).padStart(2, "0");
+        }
+
+        function normalizeDateFromBirth(birth = {}) {
+          if (birth.date) return String(birth.date);
+          if (birth.year && birth.month && birth.day) {
+            return `${birth.year}-${pad2(birth.month)}-${pad2(birth.day)}`;
+          }
+          return "";
+        }
+
+        function normalizeExistingProfile(raw) {
+          if (!raw || typeof raw !== "object") return null;
+          const birth = raw.birth || raw.profile?.birth || {};
+          const birthDate = raw.birth_date || normalizeDateFromBirth(birth);
+          const calendarType = raw.calendar_type || raw.calendar || birth.calendar || "";
+          const gender = raw.gender || birth.gender || "";
+          const complete = raw.profile_complete === true || raw.complete === true || Boolean(birthDate && calendarType && gender);
+          if (!complete) return null;
+          return {
+            profile_id: raw.profile_id || raw.id || raw.userId || "current-user-profile",
+            nickname: raw.nickname || raw.name || "自分の基本プロフィール",
+            birth_profile_complete: true,
+            has_birth_time: raw.birthTimeKnown !== false && birth.hour !== undefined,
+            calendar_type: calendarType
+          };
+        }
+
+        function detectExistingProfile() {
+          const sessionKeys = ["cat_compatibility_guardian_profile_v1", "umsh_user_birth_profile_v1", "cheongi_user_birth_profile_v1"];
+          for (const key of sessionKeys) {
+            const profile = normalizeExistingProfile(readJsonFrom(sessionStore, key));
+            if (profile) return profile;
+          }
+          try {
+            const localProfile = normalizeExistingProfile(readJsonFrom(localStore, "cheongi_user_birth_profile_v1"));
+            if (localProfile) return localProfile;
+          } catch (_error) {
+            return null;
+          }
+          return null;
+        }
+
+        const existingProfile = detectExistingProfile();
+
+        function getCheckedValues(name) {
+          return Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map((item) => item.value);
+        }
+
+        function getRadioValue(name) {
+          return form.querySelector(`input[name="${name}"]:checked`)?.value || "";
+        }
+
+        function setFieldError(key, message) {
+          const target = document.querySelector(`[data-error-for="${key}"]`);
+          if (target) target.textContent = message;
+          const field = form.querySelector(`[name="${key}"]`);
+          if (field && field.type !== "radio" && field.type !== "checkbox") {
+            field.setAttribute("aria-invalid", "true");
+          }
+        }
+
+        function clearErrors() {
+          document.querySelectorAll("[data-error-for]").forEach((item) => {
+            item.textContent = "";
+          });
+          form.querySelectorAll("[aria-invalid='true']").forEach((item) => {
+            item.removeAttribute("aria-invalid");
+          });
+          formError.textContent = "";
+          formError.classList.remove("is-visible");
+        }
+
+        function focusField(key) {
+          const field = form.querySelector(`[name="${key}"]`);
+          const group = form.querySelector(`[data-group="${key}"] input`);
+          const target = field || group;
+          target?.focus();
+          target?.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+
+        function syncProfileMode() {
+          if (!existingProfile) {
+            profileExistingInput.disabled = true;
+            profileNewInput.checked = true;
+            profileStatus.textContent = "保存した基本の命式プロフィールがない。新しい入力で続ける。";
+          } else {
+            profileExistingInput.disabled = false;
+            profileStatus.textContent = "保存した基本の四柱推命プロフィールを使える。別の基準で見るときだけ新しく入力して。";
+          }
+          ownerFields.hidden = getRadioValue("guardian_profile_mode") === "existing_profile";
+          updateSummary();
+        }
+
+        function syncTimeMode() {
+          birthTimeInput.disabled = timeUnknownInput.checked;
+          if (timeUnknownInput.checked) {
+            birthTimeInput.value = "";
+            birthTimeInput.removeAttribute("aria-invalid");
+          }
+        }
+
+        function syncCatBirthMode() {
+          const known = getRadioValue("cat_birth_known") === "yes";
+          catBirthWrap.hidden = !known;
+          catAgeWrap.hidden = known;
+        }
+
+        function formState() {
+          return {
+            guardian_profile_mode: getRadioValue("guardian_profile_mode"),
+            guardian_nickname: form.guardian_nickname.value.trim(),
+            guardian_gender: form.guardian_gender.value,
+            guardian_calendar_type: getRadioValue("guardian_calendar_type"),
+            guardian_birth_date: form.guardian_birth_date.value,
+            guardian_birth_time: form.guardian_birth_time.value,
+            guardian_birth_time_unknown: form.guardian_birth_time_unknown.checked,
+            guardian_birth_region: form.guardian_birth_region.value.trim(),
+            cat_nickname: form.cat_nickname.value.trim(),
+            cat_household: form.cat_household.value,
+            cat_birth_known: getRadioValue("cat_birth_known"),
+            cat_birth_date: form.cat_birth_date.value,
+            cat_age_band: form.cat_age_band.value,
+            cat_behavior_tags: getCheckedValues("cat_behavior_tags"),
+            cat_touch_style: getRadioValue("cat_touch_style"),
+            cat_play_energy: form.cat_play_energy.value,
+            routine_flags: getCheckedValues("routine_flags"),
+            focus_area: form.focus_area.value,
+            upcoming_event: form.upcoming_event.value,
+            preferred_period: form.preferred_period.value,
+            free_note: form.free_note.value.trim()
+          };
+        }
+
+        function setRadio(name, value) {
+          const target = form.querySelector(`input[name="${name}"][value="${value}"]`);
+          if (target && !target.disabled) target.checked = true;
+        }
+
+        function setCheckboxes(name, values = []) {
+          const valueSet = new Set(values);
+          form.querySelectorAll(`input[name="${name}"]`).forEach((item) => {
+            item.checked = valueSet.has(item.value);
+          });
+        }
+
+        function applyDraft(draft) {
+          if (!draft || typeof draft !== "object") return;
+          setRadio("guardian_profile_mode", draft.guardian_profile_mode || "new_profile");
+          form.guardian_nickname.value = draft.guardian_nickname || "";
+          form.guardian_gender.value = draft.guardian_gender || "";
+          setRadio("guardian_calendar_type", draft.guardian_calendar_type || "solar");
+          form.guardian_birth_date.value = draft.guardian_birth_date || "";
+          form.guardian_birth_time.value = draft.guardian_birth_time || "";
+          form.guardian_birth_time_unknown.checked = Boolean(draft.guardian_birth_time_unknown);
+          form.guardian_birth_region.value = draft.guardian_birth_region || "";
+          form.cat_nickname.value = draft.cat_nickname || "";
+          form.cat_household.value = draft.cat_household || "";
+          setRadio("cat_birth_known", draft.cat_birth_known || "no");
+          form.cat_birth_date.value = draft.cat_birth_date || "";
+          form.cat_age_band.value = draft.cat_age_band || "";
+          setCheckboxes("cat_behavior_tags", draft.cat_behavior_tags || []);
+          setRadio("cat_touch_style", draft.cat_touch_style || "");
+          form.cat_play_energy.value = draft.cat_play_energy || "";
+          setCheckboxes("routine_flags", draft.routine_flags || []);
+          form.focus_area.value = draft.focus_area || "";
+          form.upcoming_event.value = draft.upcoming_event || "none";
+          form.preferred_period.value = draft.preferred_period || "";
+          form.free_note.value = draft.free_note || "";
+        }
+
+        function saveDraft() {
+          writeSessionJson(DRAFT_KEY, {
+            ...formState(),
+            saved_at: new Date().toISOString(),
+            storage_policy: "session_only"
+          });
+        }
+
+        function updateSummary() {
+          const state = formState();
+          const guardianLabel =
+            state.guardian_profile_mode === "existing_profile"
+              ? "既存の命式プロフィールを使う"
+              : state.guardian_nickname
+                ? `${state.guardian_nickname} · ${state.guardian_birth_date || "生年月日を待機中"}`
+                : "新しい入力待ち";
+          const tags = state.cat_behavior_tags.map((item) => labelMap[item] || item).slice(0, 3).join(", ");
+          const focus = labelMap[state.focus_area] || "見たい点を待機中";
+          summaryGuardian.textContent = guardianLabel;
+          summaryCat.textContent = `${state.cat_nickname || "猫"} · ${tags || "行動タグ待ち"} · ${focus}`;
+        }
+
+        function validate() {
+          clearErrors();
+          const state = formState();
+          const errors = [];
+          const add = (key, message) => {
+            errors.push({ key, message });
+            setFieldError(key, message);
+          };
+
+          if (state.guardian_profile_mode === "existing_profile" && !existingProfile) {
+            add("guardian_profile_mode", "使える既存プロフィールがない。新規入力を選んで。");
+          }
+
+          if (state.guardian_profile_mode !== "existing_profile") {
+            if (!state.guardian_nickname) add("guardian_nickname", "レポートで呼ぶ飼い主のニックネームを入力してください。");
+            if (!state.guardian_gender || state.guardian_gender === "not_disclosed") add("guardian_gender", "新しく命式を計算するには、保護者の性別を選んでください。");
+            if (!state.guardian_birth_date) add("guardian_birth_date", "保護者の生年月日を入力して。");
+            if (!state.guardian_calendar_type) add("guardian_calendar_type", "陽暦か陰暦を選んでください。");
+            if (!state.guardian_birth_time_unknown && !state.guardian_birth_time) {
+              add("guardian_birth_time", "出生時刻を入れるか「出生時刻不明」にチェックしてください。");
+            }
+          }
+
+          if (!state.cat_nickname) add("cat_nickname", "猫の名前や愛称を入力してください。");
+          if (!state.cat_household) add("cat_household", "1匹・多頭飼い・迎える予定から今の状況を選んでください。");
+          if (!state.cat_birth_known) add("cat_birth_known", "猫の誕生日を知っているか選んでください。");
+          if (state.cat_birth_known === "yes" && !state.cat_birth_date) {
+            add("cat_birth_date", "分かる猫の生年月日を入力してください。");
+          }
+          if (state.cat_birth_known === "no" && !state.cat_age_band) {
+            add("cat_age_band", "誕生日が曖昧なら、大まかな年齢層を選んでください。");
+          }
+          if (state.cat_behavior_tags.length < 2) {
+            add("cat_behavior_tags", "猫の傾向のタグを、最低2個選んでね。");
+          }
+          if (!state.cat_touch_style) add("cat_touch_style", "撫でられる許容度を選んでください。");
+          if (!state.cat_play_energy) add("cat_play_energy", "遊びのエネルギーに近い項目を選ぼう。");
+          if (state.routine_flags.length < 1) add("routine_flags", "最近の衝突点を最低1つ選んでください。なければ「大きな問題なし」を選べます。");
+          if (!state.focus_area) add("focus_area", "このレポートでいちばん見たいポイントを選んで。");
+
+          if (errors.length) {
+            formError.textContent = errors[0].message;
+            formError.classList.add("is-visible");
+            focusField(errors[0].key);
+            return false;
+          }
+
+          return true;
+        }
+
+        function buildPayload() {
+          const state = formState();
+          const guardian =
+            state.guardian_profile_mode === "existing_profile"
+              ? {
+                  profile_mode: "existing_profile",
+                  profile_id: existingProfile.profile_id,
+                  profile_complete: true,
+                  birth_profile_reused: true
+                }
+              : {
+                  profile_mode: "new_profile",
+                  nickname: state.guardian_nickname,
+                  gender: state.guardian_gender,
+                  birth: {
+                    date: state.guardian_birth_date,
+                    calendar_type: state.guardian_calendar_type,
+                    time_known: !state.guardian_birth_time_unknown,
+                    time: state.guardian_birth_time_unknown ? null : state.guardian_birth_time,
+                    region: state.guardian_birth_region || null
+                  }
+                };
+
+          return {
+            service: SERVICE,
+            input_schema_version: INPUT_SCHEMA_VERSION,
+            subject_mode: "custom",
+            created_at: new Date().toISOString(),
+            guardian,
+            cat: {
+              nickname: state.cat_nickname,
+              household: state.cat_household,
+              birth_known: state.cat_birth_known === "yes",
+              birth_date: state.cat_birth_known === "yes" ? state.cat_birth_date : null,
+              age_band: state.cat_birth_known === "no" ? state.cat_age_band : null,
+              behavior_tags: state.cat_behavior_tags,
+              touch_style: state.cat_touch_style,
+              play_energy: state.cat_play_energy,
+              routine_flags: state.routine_flags,
+              focus_area: state.focus_area,
+              upcoming_event: state.upcoming_event,
+              preferred_period: state.preferred_period || null,
+              note: state.free_note || null
+            },
+            interpretation_index_source: interpretationIndex.source,
+            report_version: SERVICE.report_version,
+            safety: {
+              cat_birth_unknown_policy: "behavior_tags_only",
+              guardian_birth_time_unknown_policy: "skip_time_dependent_details",
+              health_disease_lifespan_excluded: true,
+              client_price_is_not_authority: true
+            }
+          };
+        }
+
+        function nextReportUrl() {
+          const url = new URL("../04-step-4-report/index.html", location.href);
+          url.searchParams.set("service_key", SERVICE.service_key);
+          url.searchParams.set("service_slug", SERVICE.service_slug);
+          url.searchParams.set("input_schema_version", INPUT_SCHEMA_VERSION);
+          url.searchParams.set("report_version", SERVICE.report_version);
+          url.searchParams.set("entry", "step2_submit");
+          url.hash = "step-4-report";
+          return window.CatDisplayLocale?.withPilotUrl(url.toString()) || url.toString();
+        }
+
+        async function handleSubmit(event) {
+          event.preventDefault();
+          if (!validate()) return;
+
+          const payload = buildPayload();
+          writeSessionJson(PAYLOAD_KEY, payload);
+          writeSessionJson(INDEX_KEY, interpretationIndex);
+          writeSessionJson(RETURN_STATE_KEY, {
+            service_key: SERVICE.service_key,
+            service_slug: SERVICE.service_slug,
+            input_schema_version: INPUT_SCHEMA_VERSION,
+            report_version: SERVICE.report_version,
+            return_step: "step-2-saju-input",
+            next_route: "../04-step-4-report/index.html#step-4-report",
+            entry: "step2_submit",
+            personal_data_policy: "not_in_url_or_local_storage"
+          });
+
+          submitButton.setAttribute("aria-busy", "true");
+          submitButton.textContent = "無料の解釈を用意している";
+          const loading = document.querySelector("#loadingPanel");
+          loading?.classList.add("is-visible");
+          loading?.setAttribute("aria-hidden", "false");
+          if (window.UMSHCatService?.createPreviewFromPayload) {
+            try {
+              await window.UMSHCatService.createPreviewFromPayload(payload);
+              return;
+            } catch (error) {
+              loading?.classList.remove("is-visible");
+              loading?.setAttribute("aria-hidden", "true");
+              submitButton.removeAttribute("aria-busy");
+              submitButton.textContent = "距離と習慣を確認";
+              formError.textContent = error?.message || "無料の解釈を準備できなかった。少し後でもう一度押して。";
+              formError.classList.add("is-visible");
+              return;
+            }
+          }
+          window.setTimeout(() => {
+            location.assign(nextReportUrl());
+          }, 360);
+        }
+
+        function handleClearDraft() {
+          try {
+            sessionStore?.removeItem(DRAFT_KEY);
+            sessionStore?.removeItem(PAYLOAD_KEY);
+          } catch (_error) {
+            // Ignore storage cleanup failures in restricted modes.
+          }
+          form.reset();
+          profileNewInput.checked = true;
+          syncProfileMode();
+          syncTimeMode();
+          syncCatBirthMode();
+          clearErrors();
+          updateSummary();
+          sessionNote.textContent = "一時的な入力を消した。アドレス欄や長期の保存先には残さない。";
+        }
+
+        const savedDraft = readJsonFrom(sessionStore, DRAFT_KEY);
+        applyDraft(savedDraft);
+        syncProfileMode();
+        syncTimeMode();
+        syncCatBirthMode();
+
+        const params = new URLSearchParams(location.search);
+        if (params.get("authReturn") === "1" || readJsonFrom(sessionStore, RETURN_STATE_KEY)) {
+          sessionNote.textContent = "ログインからの復帰を確認した。このブラウザーのセッションにある一時入力で続けられる。";
+        }
+
+        form.addEventListener("input", () => {
+          saveDraft();
+          updateSummary();
+        });
+
+        form.addEventListener("change", (event) => {
+          if (event.target.name === "guardian_profile_mode") syncProfileMode();
+          if (event.target.name === "guardian_birth_time_unknown") syncTimeMode();
+          if (event.target.name === "cat_birth_known") syncCatBirthMode();
+          saveDraft();
+          updateSummary();
+        });
+
+        form.addEventListener("submit", handleSubmit);
+        form.addEventListener("click", (event) => {
+          const action = event.target.closest("[data-action]")?.dataset.action;
+          if (action === "clear-draft") handleClearDraft();
+        });
+
+        updateSummary();
+      })();
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/cat-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

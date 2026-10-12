@@ -22,6 +22,9 @@ export interface BirthInput {
   calendar: CalendarType
   isLeapMonth?: boolean
   dayBoundaryRule?: DayBoundaryRule
+  /** IANA zone of the birthplace civil clock. Omitted means Asia/Seoul, so Korean readings stay unchanged. */
+  birthTimeZone?: string
+  birthTimeDisambiguation?: 'earlier' | 'later'
 }
 
 export interface Pillar {
@@ -42,6 +45,8 @@ export interface ResolvedBirthDate {
   lunarYear?: number
   lunarMonth?: number
   lunarDay?: number
+  birthTimeZone?: string
+  birthTimeDisambiguation?: 'earlier' | 'later'
 }
 
 export interface FourPillars {
