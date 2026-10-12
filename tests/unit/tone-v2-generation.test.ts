@@ -8,7 +8,7 @@ import type { BirthInput, RagChunk, SajuReportContext, SajuReportSection } from 
 test('review enforces assigned speech while allowing quoted customer words and neutral labels', () => {
   assert.equal(reviewToneCopy('오답부터 다시 봐. “괜찮아요”라고 넘기지 마.', 'pass_angle').passed, true)
   assert.equal(reviewToneCopy('오답부터 다시 보세요.', 'pass_angle').passed, false)
-  assert.equal(reviewToneCopy('기준부터 확인합니다.', 'saju_master').passed, true)
+  assert.equal(reviewToneCopy('기준부터 확인해.', 'saju_master').passed, true)
   assert.equal(reviewToneCopy('자네부터 보게.', 'saju_master').passed, false)
   assert.equal(reviewToneCopy('지금은 보류. 조건을 먼저 확인해요.', 'quit_fortune').passed, true)
   assert.equal(reviewToneCopy('먼저 확인합니다.', 'quit_fortune').passed, false)
@@ -1068,7 +1068,7 @@ test('ZIP common 5 rejects generic interchangeable copy and production headings'
 })
 
 test('ZIP common 6 keeps the final service voice assignments and allows nominal verdicts', () => {
-  assert.equal(reviewToneCopy('조건을 확인합니다.', 'saju_master').passed, true)
+  assert.equal(reviewToneCopy('조건을 확인해.', 'saju_master').passed, true)
   assert.equal(reviewToneCopy('조건을 확인합니다.', 'job_choice').passed, true)
   assert.equal(reviewToneCopy('조건을 확인합니다.', 'love_mind').passed, false)
   assert.equal(reviewToneCopy('조건을 확인하네.', 'saju_master').passed, false)

@@ -52,7 +52,7 @@ describe('service-system prompt wiring', () => {
     assert.ok(loadServiceBlock('money_save').includes('해요체'))
 
     const master = loadServiceSystemPrompt('saju_master')
-    assert.ok(master.includes('최종 말투: 격식체'))
+    assert.ok(master.includes('최종 말투: 반말체'))
     assert.ok(master.includes('천명사주'))
   })
 
@@ -67,13 +67,13 @@ describe('service-system prompt wiring', () => {
     assert.ok(block.includes('해요체'))
   })
 
-  it('saju_master uses the final formal voice and explicitly retires old address', () => {
+  it('saju_master uses direct informal voice and retires classic endings', () => {
     clearServiceSystemPromptCache()
     const block = loadServiceBlock('saju_master')
-    assert.ok(block.includes('최종 말투: 격식체'))
-    assert.ok(block.includes('`자네`·`~일세` 금지'))
+    assert.ok(block.includes('최종 말투: 반말체'))
+    assert.ok(block.includes('격식체·하게체 금지'))
     assert.doesNotMatch(block, /35자 이상|장문/)
-    assert.match(block, /짧은 문장/)
+    assert.match(block, /짧은 관찰/)
   })
 
   it('all 20 manifest service files exist, including new year and wedding', () => {

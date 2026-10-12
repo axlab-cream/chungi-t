@@ -414,7 +414,7 @@ test('a generic permalink boots from its path identity and trusts only the serve
   assert.equal(h.calls[0].path,'/api/auth/config')
   assert.equal(h.calls[1].path,'/api/report/shared-uuid')
   assert.equal(h.location.searchParams.get('reportId'),'shared-uuid')
-  assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/서버가 반환한 저장 결과입니다/)
+  assert.match(h.nodes.get('umsh-verified-reading').innerHTML,/서버가 반환한 저장 결과야/)
 })
 
 test('an old account response arriving after logout cannot repopulate private content',async()=>{

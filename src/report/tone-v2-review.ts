@@ -1118,7 +1118,7 @@ export function reviewToneCopy(text: string, serviceKey?: string | null, options
   if (/(?:일세|하네|보게|알겠네|아닐세|하게나)(?=[.!?。\s]|$)|자네/.test(prose)) {
     issues.push('폐지된 하게체와 자네 호칭을 쓰지 마세요.')
   }
-  if (/(?:^|[\s,.!?])(?:당신|고객님|니가|너는|너의|너를|야)(?=[\s,.!?]|$)/.test(prose)) {
+  if ((normalizeServiceKey(serviceKey) === 'saju_master' ? /(?:^|[\s,.!?])(?:당신|고객님|니가)(?=[\s,.!?]|$)/ : /(?:^|[\s,.!?])(?:당신|고객님|니가|너는|너의|너를|야)(?=[\s,.!?]|$)/).test(prose)) {
     issues.push('고객을 호명하지 말고 주어를 생략하세요.')
   }
   if (/킹받|어쩔티비|중꺾마|갑분싸|야옹/.test(prose)) issues.push('밈과 애교 말투를 쓰지 마세요.')
