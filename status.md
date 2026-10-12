@@ -3020,3 +3020,9 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 ## 2026-10-12 SEARCH-BANNERS
 - PRD/plan: search-only presentation; CMDG uses current home hero poster, money uses approved mask artwork, cat excluded from all search/category results while routes/API/admin/saved readings stay available. Remove cat search hint. Existing dark/gold grid, price, title and links preserved.
 - Acceptance: production search images loaded, cat absent for all/category/query, money matches portal, original service links valid. Build and browser verification pending.
+- SEARCH-BANNERS final:193af9d2 / dpl_GChbDJF17S1GMmR3QSCwSopVvdBR production Ready. Mobile browser confirms updated CMDG/money art loaded without crop, cat query empty.3 directory tests/build/typecheck PASS. KMS notes/search-banners-20261012.md saved/read; external reviewer still pending, direct scoped review complete.
+
+## 2026-10-12 CMDG trilogy
+- Goal/plan: append supplied third20s clip after existing15s+25s in single optimized faststart file. Preserve CTA/layout/reduced-motion/loop; source URLs only in canonical and mirror.
+- Media: originals re-encoded once to406x720 H264/AAC24fps;60.192s/3023944bytes vs originals9282519bytes,67% smaller. Full decode and39s/43s/58s frames verified. Blob cmdg/entry-trilogy-20261012.mp4; immutable1year cache. Rollback previous entry-sequence URL.
+- Build/tests/review/production pending.
