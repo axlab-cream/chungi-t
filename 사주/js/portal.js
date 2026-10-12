@@ -1247,10 +1247,11 @@
      * plays it - the others hold their poster frame, which keeps the home screen calm
      * and stops the rail downloading video nobody is looking at.
      */
+    let railVisible = false;
     function syncPosterVideo() {
       slides.forEach((poster, position) => {
         poster.querySelectorAll('video').forEach((video) => {
-          if (position === slide && !prefersReducedMotion() && !document.hidden) {
+          if (position === slide && railVisible && !prefersReducedMotion() && !navigator.connection?.saveData && !document.hidden) {
             if (video.preload === 'none') video.preload = 'auto';
             const played = video.play();
             // Autoplay can still be refused; the poster frame is the fallback.
@@ -1362,6 +1363,12 @@
 
     // Category filtering hides posters, so the dots and clones rebuild to match.
     document.addEventListener('umsh:filter-changed', build);
+    if (typeof IntersectionObserver === 'function') {
+      new IntersectionObserver((entries) => {
+        railVisible = entries.some((entry) => entry.isIntersecting);
+        syncPosterVideo();
+      }, { threshold: 0.1 }).observe(rail);
+    }
     build();
   }
 
