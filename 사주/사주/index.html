@@ -25,6 +25,11 @@
         padding: 0;
         overflow: hidden;
       }
+      body.umsh-has-chrome .phone[data-scene="landing"] .stage:has(.cmdg-video-entry) {
+        top: var(--umsh-chrome-appbar-h, var(--topbar-height));
+        bottom: var(--umsh-chrome-bottom-h, 74px);
+        height: auto;
+      }
       .cmdg-video-entry {
         height: 100%;
         display: flex;
@@ -36,12 +41,13 @@
         width: 100%;
         flex: 1 1 0;
         min-height: 0;
-        object-fit: contain;
+        object-fit: cover;
+        object-position: center;
         background: #000;
       }
       .cmdg-entry-action {
         flex: 0 0 auto;
-        padding: 14px 20px max(18px, env(safe-area-inset-bottom));
+        padding: 10px 16px;
       }
       .cmdg-entry-action .primary-cta { width: 100%; min-height: 54px; }
     </style>
