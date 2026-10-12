@@ -683,7 +683,7 @@ test('cmdg without optional real-world notes does not redirect readers to profil
     report:{title:'검토용 풀이',sections:[{id:'career-transition',order:1,status:'complete',category:'일',classification:'선택',hook:'조건을 비교합니다.',interpretation:'실제 조건은 확인되지 않았습니다.'}]},
   })
   const html=h.nodes.get('umsh-verified-reading').innerHTML
-  assert.match(html,/아직 입력하지 않았습니다/)
+  assert.match(html,/아직 네 상황을 듣지 못했어/)
   assert.doesNotMatch(html,/umsh-flow-line/)
   assert.doesNotMatch(html,/MY에서 한 번 등록|MY에서 실제 조건 확인하기|\/profile/)
   assert.doesNotMatch(html,/내가 저장한 현실 기준/)

@@ -32,19 +32,19 @@ function loadFunction(name: string) {
   return runInNewContext(`(${source.slice(start, end + 1)})`)
 }
 
-test('천명사주 랜딩은 남부대공 존댓말 퍼소나를 유지한다', () => {
-  const landing = sliceBetween('function sampleIntroMarkup', 'function renderImmersion')
-  const landingText = landing.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
-
-  assert.doesNotMatch(landing, /자네|허허|일세|보겠네|하네|다르네|풀어보게|보이는군/)
-  assert.doesNotMatch(landing, /선택의 결|선택의 기준|타고난 결|필요한 기준|모이는 자리|새는 자리|선택의 이유|선택의 뿌리|선택 기준/)
-  assert.match(landingText, /사주는 당신을 단정하지 않습니다/)
-  assert.match(landingText, /오래 써온 방식이 이제 맞지 않을 수 있습니다/)
-  assert.match(landingText, /내 삶을 다시 읽는\s*한 권의 기록/)
+test('천명사주 영상 랜딩은 기존 사주 등록 진입과 별도 서비스 분기를 유지한다', () => {
+  const landing = sliceBetween('function renderLanding()', 'function renderImmersion')
+  assert.match(landing, /isLoveThisYearService\(\)/)
+  assert.match(landing, /renderLoveThisYearLanding\(\)/)
+  assert.match(landing, /<video[^>]+autoplay muted loop playsinline/)
+  assert.match(landing, /data-action="enter">내 사주 확인하기/)
+  assert.doesNotMatch(landing, /sampleSourceSections\(/)
+  const actions = sliceBetween('if (action === "enter")', 'if (action === "look")')
+  assert.match(actions, /startStandardReading\(\)/)
 })
 
-test('천명사주 랜딩은 고민에서 자기 이해로 이어지는 한 편의 서사를 만든다', () => {
-  const landing = sliceBetween('function sampleIntroMarkup', 'function renderImmersion')
+test('보관된 천명사주 스토리 헬퍼는 기존 서사 순서를 유지한다 (현재 영상 랜딩과 별개)', () => {
+  const landing = sliceBetween('function sampleIntroMarkup', 'function renderLanding')
   const landingText = landing.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
   const beats = [
     '그 질문이 생긴 곳부터 따라가 보겠습니다',

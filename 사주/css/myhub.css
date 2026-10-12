@@ -557,3 +557,19 @@ body.umsh-has-chrome .payment-page {
 .payment-form [aria-invalid="true"] { border-color: var(--payment-danger) !important; box-shadow: 0 0 0 3px rgba(238, 141, 124, .12) !important; }
 .field-error { margin: 2px 0 0; color: var(--payment-danger); font-size: 12.5px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
 .error-code { display: inline-block; margin-left: 2px; padding: 0 6px; border: 1px solid rgba(238, 141, 124, .45); border-radius: 999px; color: var(--payment-danger); font-size: 10.5px; font-weight: 800; letter-spacing: .02em; font-variant-numeric: tabular-nums; vertical-align: 1px; white-space: nowrap; }
+
+/* 로그인 상태를 확인하는 짧은 동안 회원 카드 자리를 채운다. */
+.myhub-skeleton { min-height: 118px; align-content: start; }
+.myhub-skeleton span {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.14) 50%, rgba(255, 255, 255, 0.06) 100%);
+  background-size: 200% 100%;
+  animation: myhub-skeleton-shine 1.2s ease-in-out infinite;
+}
+.myhub-skeleton span:nth-child(1) { width: 38%; height: 20px; }
+.myhub-skeleton span:nth-child(2) { width: 62%; }
+.myhub-skeleton span:nth-child(3) { width: 100%; height: 40px; }
+@keyframes myhub-skeleton-shine { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .myhub-skeleton span { animation: none; } }

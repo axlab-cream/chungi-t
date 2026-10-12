@@ -3,7 +3,12 @@
 
 Source geometry matches 사주/favicon.svg: dark rounded square, gold disk,
 thin orbit, short gold bar. CreamWIKI AIOS-AST-06: symbol-only favicon,
-identifiable at 16px, ICO 16/32/48, app icons 192/512.
+identifiable at 16px, ICO 16/32/48.
+
+Home-screen icons (apple-touch 180, icon 192/512, maskable 512) use the gold
+운명상회 wordmark so an installed web app looks like the Android app. They are
+resized from android/app-shell/assets (built by android/app-shell/scripts/
+build_icon.py); four characters do not read at 16px, so favicons keep the mark.
 """
 
 from __future__ import annotations
@@ -90,6 +95,25 @@ def render_mark(size: int, *, maskable: bool = False, orbit: bool | None = None)
     return img.resize((size, size), Image.Resampling.LANCZOS)
 
 
+APP_ICONS = ROOT / "android" / "app-shell" / "assets"
+APP_BG = (10, 9, 8, 255)
+
+
+def render_wordmark(size: int, *, maskable: bool = False) -> Image.Image:
+    if maskable:
+        # icon-foreground.png keeps the lettering inside the 80% safe circle
+        fg = Image.open(APP_ICONS / "icon-foreground.png").convert("RGBA")
+        img = Image.new("RGBA", fg.size, APP_BG)
+        img.alpha_composite(fg)
+    else:
+        img = Image.open(APP_ICONS / "icon.png").convert("RGBA")
+    return img.convert("RGB").resize((size, size), Image.Resampling.LANCZOS)
+
+
+def write_wordmark(path: Path, size: int, **kwargs: bool) -> None:
+    render_wordmark(size, **kwargs).save(path, format="PNG", optimize=True)
+
+
 def write_png(path: Path, size: int, **kwargs: object) -> None:
     render_mark(size, **kwargs).save(path, format="PNG", optimize=True)
 
@@ -146,10 +170,10 @@ def main() -> None:
     write_png(SAJU / "favicon-16x16.png", 16, orbit=False)
     write_png(SAJU / "favicon-32x32.png", 32)
     write_png(SAJU / "favicon-48x48.png", 48)
-    write_png(SAJU / "apple-touch-icon.png", 180)
-    write_png(SAJU / "icon-192.png", 192)
-    write_png(SAJU / "icon-512.png", 512)
-    write_png(SAJU / "icon-512-maskable.png", 512, maskable=True)
+    write_wordmark(SAJU / "apple-touch-icon.png", 180)
+    write_wordmark(SAJU / "icon-192.png", 192)
+    write_wordmark(SAJU / "icon-512.png", 512)
+    write_wordmark(SAJU / "icon-512-maskable.png", 512, maskable=True)
     write_ico(SAJU / "favicon.ico")
     changed = rewrite_html()
     print(f"wrote icons under {SAJU}")

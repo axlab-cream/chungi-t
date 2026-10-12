@@ -152,7 +152,6 @@
     }
     var copy=fields(report,['subtitle']);
     copy.verdict=fields(report.verdict,['statement']);
-    if (copy.verdict && copy.verdict.statement && /(?:니다|십시오)(?=[.!?。\s]|$)/.test(report.verdict.statement) && !/^야[,，\s]/.test(copy.verdict.statement)) copy.verdict.statement='야, 너 — '+copy.verdict.statement;
     copy.summary=fields(report.summary,['text']);
     copy.highlights=Array.isArray(report.highlights)?report.highlights.map(function(item){return fields(item,['text']);}):report.highlights;
     copy.sections=Array.isArray(report.sections)?report.sections.map(function(item){

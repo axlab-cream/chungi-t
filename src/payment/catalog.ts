@@ -42,7 +42,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     key: 'cmdg',
     title: '천명사주',
     eyebrow: 'SIGNATURE · 종합사주',
-    amount: 49900,
+    amount: 29000,
     returnPath: '/cmdg/',
     summary: '기질, 돈, 일, 관계, 큰 흐름을 한 번에 봅니다.',
   },

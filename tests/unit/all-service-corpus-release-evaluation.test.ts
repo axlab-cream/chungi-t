@@ -63,7 +63,11 @@ describe('[TASK P05] all-service corpus release evaluation', () => {
     for (const service of aggregate.services) {
       assert.equal(service.prompt.serviceKey, service.serviceKey)
       assert.equal(service.prompt.sourcePath, `tone-v2/generated/services/${service.serviceKey}.md`)
-      assert.equal(service.prompt.sha256, hash(service.prompt.sourcePath))
+      // Historical evaluation must stay pinned when the live persona evolves.
+      const evidencePath = service.serviceKey === 'saju_master'
+        ? 'tone-v2/releases/prompt-snapshots/all-service-corpus-2.1.0/saju_master.md'
+        : service.prompt.sourcePath
+      assert.equal(service.prompt.sha256, hash(evidencePath))
       assert.equal(existsSync(join(root, service.prompt.sourcePath)), true)
     }
   })

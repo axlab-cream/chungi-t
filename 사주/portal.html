@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <!-- Optimized supplied home video: hf_20261012_020358; public Blob CDN, not the legacy story asset. -->
+    <link rel="preconnect" href="https://lcdlszuyicytaexy.public.blob.vercel-storage.com" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>운명상회 - 운명을 팝니다.</title>
@@ -78,31 +80,6 @@
         "publisher": { "@id": "https://umsh.kr/#organization" }
       }
     </script>
-    <script>
-      (() => {
-        const splashSessionKey = 'umsh_splash_seen_v1';
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const standalone = window.matchMedia('(display-mode: standalone)').matches
-          || window.matchMedia('(display-mode: window-controls-overlay)').matches
-          || Boolean(window.navigator.standalone);
-        let fromOwnSite = false;
-        try {
-          fromOwnSite = Boolean(document.referrer) && new URL(document.referrer).origin === location.origin;
-        } catch (_error) {
-          fromOwnSite = false;
-        }
-        let shouldShowSplash = !reducedMotion;
-        if (fromOwnSite && !standalone) {
-          try {
-            shouldShowSplash = shouldShowSplash && sessionStorage.getItem(splashSessionKey) !== '1';
-          } catch (_error) {
-            // Keep the splash available when storage is blocked.
-          }
-        }
-
-        document.documentElement.classList.add(shouldShowSplash ? 'splash-pending' : 'splash-disabled');
-      })();
-    </script>
     <meta name="theme-color" content="#0C0B0A" />
     <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
@@ -110,12 +87,11 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
-    <link rel="preload" as="video" href="/assets/umsh-splash.mp4?v=20260903" type="video/mp4" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="stylesheet" href="/css/portal.css?v=20261006-slim-header" />
+    <link rel="stylesheet" href="/css/portal.css?v=20261012-no-splash" />
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
@@ -133,19 +109,6 @@
         }
       })();
     </script>
-    <div class="splash-screen" id="splashScreen" aria-hidden="false">
-      <video
-        class="splash-video"
-        id="splashVideo"
-        src="/assets/umsh-splash.mp4?v=20260903"
-        autoplay
-        muted
-        playsinline
-        preload="auto"
-      ></video>
-      <button class="splash-skip" type="button" data-splash-skip>건너뛰기</button>
-    </div>
-
     <div class="stage">
       <main class="phone" aria-label="운명상회 메인">
         <header class="appbar">
@@ -188,8 +151,8 @@
             <a class="poster service-card is-cmdg" href="/cmdg/" data-category="종합" data-glyph="命">
               <video
                 class="poster-video"
-                poster="/assets/umsh-cmdg-card-bg.webp"
-                src="/assets/chungi-landing-story.mp4"
+                poster="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/home/cmdg-hero-20261012.webp"
+                src="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/home/cmdg-hero-20261012.mp4"
                 muted
                 loop
                 playsinline
@@ -202,7 +165,7 @@
               <strong>천명사주</strong>
               <em>내 인생, 원래 이런 팔자야?</em>
               <span class="scope-line">기질 · 돈 · 일 · 관계 · 큰 흐름</span>
-              <span class="price-line"><b>49,900원</b><span>보기</span></span>
+              <span class="price-line"><b>29,000원</b><span>보기</span></span>
             </a>
 
             <a class="poster service-card is-live is-love" href="/love/this-year" data-category="연애" data-glyph="戀">
@@ -261,11 +224,13 @@
             </div>
             <div class="consultation-rail" role="region" aria-roledescription="캐러셀" aria-label="이번 주 테스트와 천명상담">
               <div class="consultation-rail-slides">
+            <!-- 메인 노출만 보류: 솔로나라 직접 URL 접근은 유지
             <a data-rail-slide aria-roledescription="슬라이드" class="weekly-free-card service-card is-live solo-nara-card" href="/play/solo-nara/?src=home" data-action="solo-nara-open" data-track-target="solo_nara:home" data-category="연애" aria-label="솔로나라에서 나는 누구? · 8문항, 약 1분 · 무료로 해보기">
               <img src="/play/solo-nara/share-banner-v1.jpg" alt="솔로나라에서 나는 누구? 연애 예능에 나간다면 나는 어떤 캐릭터일까?" width="1200" height="630" loading="lazy" />
               <span class="weekly-free-caption"><strong>솔로나라 캐릭터 테스트</strong><span>무료로 해보기 ↗</span></span>
             </a>
-            <a data-rail-slide aria-roledescription="슬라이드" class="weekly-free-card service-card is-live" href="/play/love-speed/?src=home" data-action="love-speed-open" data-track-target="love_speed:home" data-category="연애" aria-label="금사빠·금사식 테스트 · 5문항, 30초 · 무료로 해보기" hidden>
+            -->
+            <a data-rail-slide aria-roledescription="슬라이드" class="weekly-free-card service-card is-live" href="/play/love-speed/?src=home" data-action="love-speed-open" data-track-target="love_speed:home" data-category="연애" aria-label="금사빠·금사식 테스트 · 5문항, 30초 · 무료로 해보기">
               <img src="/play/love-speed/share-banner-v2.png" alt="시작은 풀악셀, 마음은 급정거? 나 금사빠야, 금사식이야?" width="1200" height="630" loading="lazy" />
               <span class="weekly-free-caption"><strong>금사빠·금사식 테스트</strong><span>무료로 해보기 ↗</span></span>
             </a>
@@ -276,10 +241,9 @@
               </div>
               <div class="consultation-rail-controls">
                 <button type="button" data-rail-prev aria-label="이전 배너">‹</button>
-                <button type="button" data-slide-to="0" aria-label="솔로나라 캐릭터 테스트 보기" aria-current="true">1</button>
-                <button type="button" data-slide-to="1" aria-label="금사빠·금사식 테스트 보기" aria-current="false">2</button>
-                <button type="button" data-slide-to="2" aria-label="천명상담 보기" aria-current="false">3</button>
-                <span data-rail-position aria-live="off" style="font-size:11px;color:#b7aa8d">1 / 3</span>
+                <button type="button" data-slide-to="0" aria-label="금사빠·금사식 테스트 보기" aria-current="true">1</button>
+                <button type="button" data-slide-to="1" aria-label="천명상담 보기" aria-current="false">2</button>
+                <span data-rail-position aria-live="off" style="font-size:11px;color:#b7aa8d">1 / 2</span>
                 <button type="button" data-rail-next aria-label="다음 배너">›</button>
                 <button type="button" data-rail-pause aria-pressed="false">자동 넘김 멈춤</button>
               </div>
@@ -317,6 +281,7 @@
               </a>
               -->
 
+              <!-- 2026-10-12: 퇴사운 메인 배너 임시 비노출. 복구 시 주석 해제.
               <a
                 class="coming-card service-card is-live"
                 href="/work/quit"
@@ -326,7 +291,9 @@
                 <img class="coming-card-img" src="/assets/umsh-quit-card-bg.png" alt="" loading="lazy" />
                 <strong class="coming-card-name">나, 지금 그만둬도 될까?</strong>
               </a>
+              -->
 
+              <!-- 2026-10-12: 반려묘 궁합 메인 배너 임시 비노출. 복구 시 이 주석만 해제.
               <a
                 class="coming-card service-card is-live"
                 href="/match/cat"
@@ -336,7 +303,29 @@
                 <img class="coming-card-img" src="/assets/umsh-petmatch-card-bg.webp" alt="" loading="lazy" />
                 <strong class="coming-card-name">내 고양이랑 나, 진짜 궁합 맞아?</strong>
               </a>
+              -->
             </div>
+
+            <a class="match-banner service-card is-live" href="/match/couple" data-category="궁합" data-glyph="緣" aria-label="MATCH · 대표 궁합 우리 둘, 진짜 잘 맞아? 명리궁합 · 오행 · 일지 19,900원 · 보러 가기">
+              <span class="match-banner-visual has-image" aria-hidden="true">
+                <video
+                  poster="/assets/umsh-match-banner-visual.png"
+                  src="/match/couple/assets/couple/01-hero.mp4"
+                  muted
+                  loop
+                  playsinline
+                  preload="none"
+                  data-lazy-play
+                ></video>
+              </span>
+              <span class="match-banner-copy">
+                <small>MATCH · 대표 궁합</small>
+                <strong>우리 둘,<br />진짜 잘 맞아?</strong>
+                <span>끌림, 갈등, 오래 가는 방식까지. 두 사람의 사주를 나란히 놓고 봅니다.</span>
+                <b>19,900원 · 보러 가기</b>
+                <em>명리궁합 · 오행 · 일지</em>
+              </span>
+            </a>
           </section>
 
           <section class="section-block">
@@ -363,7 +352,7 @@
                 data-glyph="財"
                 aria-label="PREMIUM · 재물 나는 왜 돈이 안 모일까? 재성 · 대운 · 소비 흐름 9,900원 · 이 풀이 보기"
               >
-                <img class="product-card-img" src="/assets/umsh-money-card-bg.png" alt="" />
+                <img class="product-card-img" src="/assets/umsh-money-mask-card-20261012.webp" alt="" />
               </a>
 
               <a
@@ -389,34 +378,7 @@
             </div>
           </section>
 
-          <section class="section-block">
-            <div class="section-title">
-              <span>LOVE · 연애 · 썸</span>
-              <h2>말 못 한 마음이 있다면</h2>
-            </div>
 
-            <a class="match-banner service-card is-live" href="/match/couple" data-category="궁합" data-glyph="緣" aria-label="MATCH · 대표 궁합 우리 둘, 진짜 잘 맞아? 명리궁합 · 오행 · 일지 19,900원 · 보러 가기">
-              <span class="match-banner-visual has-image" aria-hidden="true">
-                <video
-                  poster="/assets/umsh-match-banner-visual.png"
-                  src="/match/couple/assets/couple/01-hero.mp4"
-                  muted
-                  loop
-                  playsinline
-                  preload="none"
-                  data-lazy-play
-                ></video>
-              </span>
-              <span class="match-banner-copy">
-                <small>MATCH · 대표 궁합</small>
-                <strong>우리 둘,<br />진짜 잘 맞아?</strong>
-                <span>끌림, 갈등, 오래 가는 방식까지. 두 사람의 사주를 나란히 놓고 봅니다.</span>
-                <b>19,900원 · 보러 가기</b>
-                <em>명리궁합 · 오행 · 일지</em>
-              </span>
-            </a>
-
-          </section>
 
           <!-- 고객 화면 보류: 곧 다가올 운명(신년운·결혼택일)
           <section class="section-block">
@@ -511,6 +473,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20260918-today"></script>
+    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261012-no-splash"></script>
   </body>
 </html>

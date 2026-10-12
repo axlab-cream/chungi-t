@@ -5,6 +5,77 @@
 <script src="/js/umsh-chrome.js?v=20260922c" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* MY·운명록·보관함으로 가는 로그인 중계 화면. 로그인에서 돌아왔거나 이미 로그인된 채로 이 주소에
+         들어오면, 목적지로 넘어가기 전까지 로그인 시트·사주 입력이 잠깐 비치지 않게 덮어 둔다. */
+      html.umsh-auth-handoff, html.umsh-auth-handoff body { background: #0a0908; }
+      html.umsh-auth-handoff body > * { visibility: hidden !important; }
+      html.umsh-auth-handoff::after {
+        content: "로그인 정보를 확인하고 있어요";
+        position: fixed; inset: 0; z-index: 2147483647;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(240, 214, 160, 0.82); font: 500 14px/1.5 system-ui, sans-serif; letter-spacing: 0.02em;
+        animation: umsh-auth-handoff-pulse 1.2s ease-in-out infinite alternate;
+      }
+      @keyframes umsh-auth-handoff-pulse { from { opacity: 0.45; } to { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { html.umsh-auth-handoff::after { animation: none; } }
+
+      /* Video entry only; keep other service landings and registration scenes intact. */
+      .phone[data-scene="landing"] .stage:has(.cmdg-video-entry) {
+        padding: 0;
+        overflow: hidden;
+      }
+      body.umsh-has-chrome .phone[data-scene="landing"] .stage:has(.cmdg-video-entry) {
+        top: var(--umsh-chrome-appbar-h, var(--topbar-height));
+        bottom: var(--umsh-chrome-bottom-h, 74px);
+        height: auto;
+      }
+      .cmdg-video-entry {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #080302;
+      }
+      .cmdg-entry-video {
+        display: block;
+        width: 100%;
+        flex: 1 1 0;
+        min-height: 0;
+        object-fit: cover;
+        object-position: center;
+        background: #000;
+      }
+      .cmdg-entry-action {
+        flex: 0 0 auto;
+        padding: 10px 16px;
+      }
+      .cmdg-entry-action .primary-cta { width: 100%; min-height: 54px; }
+    </style>
+    <script>
+      (function () {
+        try {
+          var query = new URLSearchParams(location.search);
+          var entry = query.get("authEntry") || query.get("entry") || "";
+          if (!/^(my|destiny|vault)$/.test(entry)) return;
+          var returning = query.get("signupReturn") === "1" || query.get("authReturn") === "1" || query.has("code") || /access_token=/.test(location.hash);
+          var signedIn = false;
+          for (var index = 0; index < localStorage.length; index += 1) {
+            if (/^sb-.+-auth-token$/.test(localStorage.key(index) || "")) { signedIn = true; break; }
+          }
+          if (!returning && !signedIn) return;
+          document.documentElement.classList.add("umsh-auth-handoff");
+          // 로그인을 마친 뒤 뒤로 가기로 이 로그인 시트에 되돌아온 경우다. 시트를 다시 보이지 않고
+          // 로그인 전에 있던 화면까지 한 칸 더 물러난다.
+          var navigation = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+          if (signedIn && !returning && navigation && navigation.type === "back_forward" && history.length > 1) {
+            history.back();
+            return;
+          }
+          // 어떤 이유로든 목적지 판단이 멈추면 원래 화면을 돌려준다.
+          setTimeout(function () { document.documentElement.classList.remove("umsh-auth-handoff"); }, 10000);
+        } catch (_error) { /* 저장소를 못 읽으면 덮지 않는다. */ }
+      })();
+    </script>
     <title>운명상회 - 운명을 팝니다.</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
@@ -3651,7 +3722,7 @@
         }
       }
     </style>
-  </head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012a"><script src="/js/cmdg-master-teaser.js?v=20261012a"></script></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -4069,6 +4140,11 @@
         return "해당 메뉴";
       }
 
+      /** 이 페이지에 머물기로 정해지면 중계 화면 덮개를 걷는다. 다른 곳으로 넘어갈 때는 부르지 않는다. */
+      function endAuthHandoff() {
+        document.documentElement.classList.remove("umsh-auth-handoff");
+      }
+
       function protectedEntryTarget() {
         if (initialAuthEntry === "destiny") return "/destiny";
         if (initialAuthEntry === "vault") return "/vault";
@@ -4392,7 +4468,8 @@
           await saveCurrentUserProfile();
           const target = protectedEntryTarget();
           if (target) {
-            location.href = target;
+            // 뒤로 가기에 로그인·입력 화면이 남지 않게 기록을 덮어쓴다.
+            location.replace(target);
             return;
           }
           clearSignupQuery();
@@ -4410,10 +4487,12 @@
         try {
           session = await currentAuthSession();
         } catch (err) {
+          endAuthHandoff();
           showAuthGate(err.message || `${label} 접근 상태를 확인하지 못했습니다.`);
           return;
         }
         if (!session?.access_token) {
+          endAuthHandoff();
           showAuthGate(`${label}${topicParticle(label)} 로그인과 사주등록 후 열 수 있습니다.`);
           return;
         }
@@ -4429,6 +4508,7 @@
         }
 
         if (!profile?.name || !applyUserProfile(profile)) {
+          endAuthHandoff();
           go("name", false);
           showNudge(`${label}${objectParticle(label)} 열려면 사주 프로필을 먼저 등록해주세요.`);
           return;
@@ -4436,9 +4516,11 @@
 
         const target = protectedEntryTarget();
         if (target) {
-          location.href = target;
+          // 뒤로 가기에 로그인 화면이 남지 않게 기록을 덮어쓴다.
+          location.replace(target);
           return;
         }
+        endAuthHandoff();
         clearSignupQuery();
         go("my", false);
       }
@@ -6640,80 +6722,29 @@
         `;
       }
 
+      // Previous story landing: docs/archive/cmdg-landing-before-video-20261012.js
       function renderLanding() {
         if (isLoveThisYearService()) {
           renderLoveThisYearLanding();
           return;
         }
         stage.innerHTML = `
-          <article class="sample-story">
-            ${storyTopNavMarkup()}
-            ${sampleVideoMarkup(landingSampleVideo, "sample-upload-blend")}
-            ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "", "")}
-            ${sampleSourceSections(
-              "고객",
-              "직장 운",
-              "기운",
-              landingSourceAssets.heroCharacter,
-              false,
-              '<span class="red">사주</span>는 당신을 단정하지 않습니다.<br />지금까지 어떻게 버텨왔는지부터 읽습니다.',
-              false,
-              landingSourceAssets.worryBg,
-              '<p class="landing-worry-copy">겉으로는 괜찮아 보여도<br /><span class="red">말하지 못한 부담</span>이 남아 있습니다.</p>',
-              '<p>그동안 지나친 장면들을 모으면,<br />익숙한 <span class="red">반응</span>이 드러납니다.</p>',
-              false,
-              false,
-              landingSourceAssets.palzaBg,
-              landingSourceAssets.assetOne,
-              false,
-              '<p><span class="red">일</span> 때문에 마음이 걸렸군요.<br />잘해야 한다는 압박이 먼저 앞섰는지 살펴보겠습니다.</p>',
-              '<h2>먼저 견디고<br />나중에 나를 챙겨온 건 아닌가요?</h2>',
-              landingSourceAssets.previewTwo,
-              "",
-              landingSourceAssets.assetTwo,
-              false,
-              '<h2>태어날 때부터 가진 성향과 지금의 생활을 나란히 놓으면<br />왜 이 시점에 흔들리는지 보입니다.</h2>',
-              landingSourceAssets.manseryeokBg,
-              false,
-              landingSourceAssets.characterA,
-              true,
-              '<h2>당신이 잘못한 게 아닙니다.<br /><span class="red">오래 써온 방식</span>이 이제 맞지 않을 수 있습니다.</h2>',
-              "top",
-              "landing-character-a",
-              true,
-              false,
-              landingSourceAssets.characterC,
-              "landing-wealth-transition",
-              "source-img",
-              "대분석 전환 배경",
-              landingSourceAssets.wealthBg,
-              false,
-              landingSourceAssets.datePreviewOne,
-              '<p>지금 마음에 걸린 질문은<br /><span class="red">무엇을 바꾸고 지킬지</span> 알려주는 출발점입니다.</p>',
-              landingSourceAssets.characterD,
-              '<h2>처음 끌리는 감정과<br /><span class="red">오래 편안한 관계</span>는 다르게 움직입니다.</h2>',
-              "",
-              landingSourceAssets.romanceCloseup,
-              landingSourceAssets.handBells,
-              '<p><span class="red">일, 돈, 사람</span>의 이야기를<br />하나로 이어보겠습니다.</p>',
-              landingSourceAssets.destinyCardBg,
-              '<h2>누구와 있을 때<br /><span class="red">나답게 편안해지는지</span> 보입니다.</h2>',
-              landingSourceAssets.characterOutro,
-              '<h2>이제 당신의 이야기가<br />왜 같은 곳에서 멈췄는지 읽어보겠습니다.</h2>',
-              landingSourceAssets.priceCharacter,
-              "",
-              false,
-              false,
-              landingSourceAssets.handReach,
-              '<h2>오래된 해석에 머물지 않고<br /><span class="red">지금 당신의 생활</span>까지 함께 읽는<br />나만의 <span class="red">깊은 풀이</span></h2>'
-            )}
-            <div class="sample-enter">
-              <button class="primary-cta" type="button" data-action="enter">내 사주 흐름 확인하기</button>
-              <p class="fineprint">생년월일과 지금 마음에 걸린 질문을 바탕으로 풀이를 시작합니다.</p>
+          <article class="cmdg-video-entry">
+            <video class="cmdg-entry-video" autoplay muted loop playsinline controls preload="metadata"
+              poster="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-20261012.webp"
+              aria-label="천명사주 소개 영상">
+              <source src="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-20261012.mp4" type="video/mp4" />
+            </video>
+            <div class="cmdg-entry-action">
+              <button class="primary-cta" type="button" data-action="enter">내 사주 확인하기</button>
             </div>
-            ${businessFooterMarkup()}
           </article>
         `;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          const video = stage.querySelector("video");
+          video.autoplay = false;
+          video.pause();
+        }
       }
 
       function renderImmersion() {
@@ -7708,6 +7739,10 @@
       }
 
       function renderResult() {
+        if (!isLoveThisYearService() && window.UmshMasterTeaser) {
+          stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
+          return;
+        }
         if (isLoveThisYearService()) {
           renderLoveThisYearResult();
           return;
@@ -7941,8 +7976,8 @@
                 </ul>
                 <div class="price-slate" aria-label="복채 안내">
                   <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
-                  <div class="price-line"><span>천명사주 상담 연결</span><span>-13,100원</span></div>
-                  <div class="price-line final"><span>지금 열기</span><span>49,900원</span></div>
+                  <div class="price-line"><span>천명사주 상담 연결</span><span>-34,000원</span></div>
+                  <div class="price-line final"><span>지금 열기</span><span>29,000원</span></div>
                 </div>
               </div>
             </section>
@@ -8128,7 +8163,7 @@
           return;
         }
         const plans = [
-          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,900원" },
+          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "약 54%", origin: "63,000원", price: "29,000원" },
         ];
         // Show the amount checkout will actually charge for every plan the catalog sells.
         plans.forEach((plan) => {
@@ -8288,6 +8323,8 @@
           beginProtectedEntryAfterAuth();
           return;
         }
+        // 로그인되지 않았거나 다른 흐름이면 이 페이지를 그대로 보여 준다.
+        endAuthHandoff();
         if (isLifelongTeaserEntry) {
           clearTodayEntryPending();
           if (!initialReportId) beginLifelongTeaserAfterAuth();
@@ -8301,6 +8338,7 @@
           beginAnalysisAfterAuth();
         }
       }).catch((err) => {
+        endAuthHandoff();
         if (isLifelongTeaserEntry || wantsTodayEntry() || isAuthReturn || sessionStorage.getItem(AUTH_PENDING_KEY) === "1") {
           showAuthGate(err.message || "회원 인증을 확인하지 못했습니다.");
         }
