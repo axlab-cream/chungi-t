@@ -31,6 +31,15 @@ npm run doctor       # 설치 상태 점검
 npm run assets       # assets/ 의 아이콘·스플래시를 안드로이드 리소스로 다시 생성
 ```
 
+앱 아이콘(`assets/icon.png`, `icon-foreground.png`, `play-store-icon-512.png`)은
+`사주/assets/umsh-brand-logo.png`(2048px 가로 로고)를 두 줄로 나눠 만든다.
+다시 만들 때는 저장소 루트에서 아래를 실행한 뒤 `npm run assets` 를 돌린다.
+(Python + Pillow + numpy 필요. `npm run assets` 가 `AndroidManifest.xml` 줄바꿈을 바꾸면 되돌린다.)
+
+```bash
+python android/app-shell/scripts/build_icon.py . android/app-shell/assets
+```
+
 AAB 만들기 (Play 업로드용):
 
 ```bash
