@@ -76,90 +76,6 @@
   let authSession = null;
   let authInitPromise = null;
 
-  const splashScreen = document.querySelector('#splashScreen');
-  const splashVideo = document.querySelector('#splashVideo');
-  const splashSkip = document.querySelector('[data-splash-skip]');
-  const SPLASH_SESSION_KEY = 'umsh_splash_seen_v1';
-  let splashFallbackTimer = 0;
-
-  function hasSeenSplash() {
-    try {
-      return sessionStorage.getItem(SPLASH_SESSION_KEY) === '1';
-    } catch (_error) {
-      return false;
-    }
-  }
-
-  function isStandaloneLaunch() {
-    return window.matchMedia('(display-mode: standalone)').matches
-      || window.matchMedia('(display-mode: window-controls-overlay)').matches
-      || Boolean(window.navigator.standalone);
-  }
-
-  function isOwnSiteReferrer() {
-    if (!document.referrer) return false;
-    try {
-      return new URL(document.referrer).origin === location.origin;
-    } catch (_error) {
-      return false;
-    }
-  }
-
-  function shouldSkipSplashBySession() {
-    return isOwnSiteReferrer() && !isStandaloneLaunch() && hasSeenSplash();
-  }
-
-  function markSplashSeen() {
-    try {
-      sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
-    } catch (_error) {
-      // Storage can be unavailable in privacy-restricted browser contexts.
-    }
-  }
-
-  function disableSplash() {
-    if (splashScreen) {
-      splashScreen.hidden = true;
-      splashScreen.setAttribute('aria-hidden', 'true');
-    }
-    document.documentElement.classList.remove('splash-pending');
-    document.documentElement.classList.add('splash-disabled');
-    phone.inert = false;
-  }
-
-  function finishSplash() {
-    if (!splashScreen || splashScreen.hidden || splashScreen.classList.contains('is-closing')) return;
-    window.clearTimeout(splashFallbackTimer);
-    splashVideo?.pause();
-    document.documentElement.classList.remove('splash-pending');
-    splashScreen.classList.add('is-closing');
-    window.setTimeout(() => {
-      splashScreen.hidden = true;
-      splashScreen.classList.remove('is-closing');
-      splashScreen.setAttribute('aria-hidden', 'true');
-      document.documentElement.classList.add('splash-disabled');
-      phone.inert = false;
-    }, 280);
-  }
-
-  function startSplash() {
-    const splashPending = document.documentElement.classList.contains('splash-pending');
-    if (!splashScreen || !splashVideo || !splashPending || shouldSkipSplashBySession() || prefersReducedMotion()) {
-      disableSplash();
-      return;
-    }
-    markSplashSeen();
-    phone.inert = true;
-    splashScreen.setAttribute('aria-hidden', 'false');
-    splashVideo.addEventListener('ended', finishSplash, { once: true });
-    splashVideo.addEventListener('error', finishSplash, { once: true });
-    splashFallbackTimer = window.setTimeout(finishSplash, 6500);
-    splashVideo.play().catch(finishSplash);
-  }
-
-  splashSkip?.addEventListener('click', finishSplash);
-  startSplash();
-
   const protectedMenuIds = new Set(['destiny']);
   const protectedDestinations = {
     destiny: {
@@ -1247,10 +1163,11 @@
      * plays it - the others hold their poster frame, which keeps the home screen calm
      * and stops the rail downloading video nobody is looking at.
      */
+    let railVisible = false;
     function syncPosterVideo() {
       slides.forEach((poster, position) => {
         poster.querySelectorAll('video').forEach((video) => {
-          if (position === slide && !prefersReducedMotion() && !document.hidden) {
+          if (position === slide && railVisible && !prefersReducedMotion() && !navigator.connection?.saveData && !document.hidden) {
             if (video.preload === 'none') video.preload = 'auto';
             const played = video.play();
             // Autoplay can still be refused; the poster frame is the fallback.
@@ -1362,6 +1279,12 @@
 
     // Category filtering hides posters, so the dots and clones rebuild to match.
     document.addEventListener('umsh:filter-changed', build);
+    if (typeof IntersectionObserver === 'function') {
+      new IntersectionObserver((entries) => {
+        railVisible = entries.some((entry) => entry.isIntersecting);
+        syncPosterVideo();
+      }, { threshold: 0.1 }).observe(rail);
+    }
     build();
   }
 

@@ -27,7 +27,7 @@ describe('프로필 입력 간소화', () => {
 
   it('현실 정보가 없으면 프로필 등록을 요구하지 않고 사실 확인 질문만 제공한다', () => {
     assert.doesNotMatch(reportScript, /MY에서 한 번 등록|MY에서 실제 조건 확인하기|추가 정보 입력 전/)
-    assert.match(reportScript, /아직 입력하지 않았습니다/)
-    assert.match(reportScript, /이 장 아래에 궁금한 상황을 적어 주세요/)
+    assert.match(reportScript, /아직 네 상황을 듣지 못했어/)
+    assert.match(reportScript, /이 장 아래에 궁금한 일을 적어 줘/)
   })
 })

@@ -1,3 +1,4 @@
+import { getPaymentProduct } from '../../src/payment/catalog.js'
 import { test, beforeEach, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { createCampaign, listCampaigns, claimCoupon, listWallet, disableCampaign, bindFreeCoupon, hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listConsultationCoupons, configureCouponStorageForTests, createMemoryCouponStorageForTests } from '../../src/coupons/store.js'
@@ -29,9 +30,9 @@ test('free binding has one winner, owner isolation, and permanent entitlement', 
 test('discount reservation is immutable and retry reuses its original order', async () => {
   await createCampaign(input({ kind: 'percent_off', value: 100 }), 'admin', 'create-1')
   const w = await claimCoupon('a', 'WELCOME1')
-  const first = await reserveDiscount('a', w.id, 'cmdg', 49900, 'order-1')
+  const first = await reserveDiscount('a', w.id, 'cmdg', getPaymentProduct('cmdg')!.amount, 'order-1')
   assert.equal(first.payableAmount, 1)
-  assert.equal((await reserveDiscount('a', w.id, 'cmdg', 49900, 'order-2')).orderId, 'order-1')
+  assert.equal((await reserveDiscount('a', w.id, 'cmdg', getPaymentProduct('cmdg')!.amount, 'order-2')).orderId, 'order-1')
   await assert.rejects(reserveDiscount('a', w.id, 'cmdg', 500, 'order-2'), /COUPON_ORDER_CONFLICT/)
   assert.equal(await getDiscountForOrder('b', 'order-1'), null)
   assert.equal((await getDiscountForOrder('a', 'order-1'))?.payableAmount, 1)

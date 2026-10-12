@@ -28,7 +28,9 @@ test('paused coming-soon and lucky/pass-angle cards are commented out of the liv
 
 test('released now keeps the remaining live cards', () => {
   const hrefs=cards(released[0] || '').map(card=>card.match(/\bhref="([^"]+)"/)?.[1])
-  assert.deepEqual(hrefs, ['/work/quit','/match/cat'])
+  assert.deepEqual(hrefs, ['/match/couple'])
+  assert.doesNotMatch(visible, /href="\/work\/quit"|href="\/match\/cat"/)
+  assert.doesNotMatch(visible, /말 못 한 마음이 있다면/)
   for(const href of ['/cmdg/','/today/free','/love/this-year','/work/job-choice','/work/move','/money/save','/match/marry','/love/signal','/match/couple']) {
     assert.ok(visible.includes('href="'+href+'"'), 'unrelated home link missing: '+href)
   }
