@@ -6510,7 +6510,10 @@
       // (운영 /cmdg/ 는 이 파일이다. 사주/cmdg/index.html 사본이 아니다.)
       const FUNNEL_SCENES = { birth: "02-input", result: "04-report" };
       const funnelScenesSent = {};
+      // 입력을 마치고 로딩으로 넘어가면 입력 완료, 구매 장면은 구매 버튼 클릭으로 센다.
+      const FUNNEL_MARKS = { loading: "input_done", purchase: "buy_click" };
       function trackFunnelScene(scene) {
+        if (FUNNEL_MARKS[scene]) { try { window.UMSHTrack?.mark?.(FUNNEL_MARKS[scene]); } catch (_) { /* 측정 실패 무시 */ } }
         const step = FUNNEL_SCENES[scene];
         if (!step || funnelScenesSent[step]) return;
         funnelScenesSent[step] = true;

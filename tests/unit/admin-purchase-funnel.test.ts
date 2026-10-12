@@ -37,9 +37,9 @@ test('stages count distinct visits, not page views', () => {
     view('e', 'solo_nara', 'entry'), view('f', 'love_speed', 'entry'),
   ]
   const { purchase } = summarizeFunnelRows(rows, 'day', '2026-10-06T00:00:00.000Z')
-  assert.deepEqual(purchase.stages, { intro: 3, input: 2, teaser: 1, checkout: 1 })
-  assert.deepEqual(purchase.services[0], { serviceKey: 'couple_signal', intro: 2, input: 2, teaser: 1 })
-  assert.deepEqual(purchase.services[1], { serviceKey: 'cat_compatibility', intro: 1, input: 0, teaser: 0 })
+  assert.deepEqual(purchase.stages, { intro: 3, input: 2, teaser: 1, checkout: 1, inputDone: 0, locked: 0, buy: 0, payOpen: 0 })
+  assert.deepEqual(purchase.services[0], { serviceKey: 'couple_signal', intro: 2, input: 2, teaser: 1, checkout: 0, inputDone: 0, locked: 0, buy: 0, payOpen: 0 })
+  assert.deepEqual(purchase.services[1], { serviceKey: 'cat_compatibility', intro: 1, input: 0, teaser: 0, checkout: 0, inputDone: 0, locked: 0, buy: 0, payOpen: 0 })
   assert.equal(purchase.paid, undefined, 'paid orders are attached by the server only with order scope')
 })
 
@@ -94,4 +94,25 @@ test('signups count accounts created in the period by provider, naver merged', a
     user('2026-10-04T00:00:00.000Z', 'custom:naver'), user('2026-10-04T00:00:00.000Z'), user('2026-09-01T00:00:00.000Z', 'kakao'), user('', 'kakao'),
   ], '2026-10-01T00:00:00.000Z')
   assert.deepEqual(result, { signups: 5, byProvider: { kakao: 2, google: 1, naver: 1, unknown: 1 } })
+})
+
+test('every summary card and block explains its source and rule in a tooltip', () => {
+  const admin = readFileSync(new URL('../../admin-ui/index.html', import.meta.url), 'utf8')
+  // 2026-10-08 사용자 요청: 숫자마다 어디서, 어떤 기준으로 가져오는지 ⓘ 로 보인다.
+  for (const key of ['visits', 'signups', 'signupRate', 'firstBuyers', 'buyers', 'buyRate', 'revenue', 'perBuyer']) {
+    assert.ok(admin.includes('KPI_TIPS.' + key + ']'), key)
+  }
+  assert.ok(admin.includes("if (item[3]) label.appendChild(adminTip(item[3]));"))
+  assert.ok(admin.includes("tipTitle('구매 퍼널', FUNNEL_TIP)") && admin.includes("tipTitle('가입 방식'"))
+  // 환불은 주문 상태로 나뉘지 않는다. 빠진다고 쓰면 안 된다.
+  assert.ok(!admin.includes('환불 처리된 주문은 빠집니다'))
+})
+
+test('funnel stages show which screen addresses they count', () => {
+  const admin = readFileSync(new URL('../../admin-ui/index.html', import.meta.url), 'utf8')
+  // 2026-10-08 사용자 요청: 단계 이름 옆에 (주소). 수집기의 서비스 주소 규칙과 같은 표를 쓴다.
+  assert.ok(admin.includes("where.textContent = '(' + row.path + ')'"))
+  assert.ok(admin.includes("couple_signal: '/love/signal'") && admin.includes("cmdg: '/cmdg'"))
+  const track = readFileSync(new URL('../../사주/js/umsh-track.js', import.meta.url), 'utf8')
+  assert.ok(track.includes(String.raw`[/^\/love\/signal/, 'couple_signal']`))
 })
