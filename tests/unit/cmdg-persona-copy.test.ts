@@ -43,8 +43,8 @@ test('천명사주 영상 랜딩은 기존 사주 등록 진입과 별도 서비
   assert.match(actions, /startStandardReading\(\)/)
 })
 
-test('천명사주 랜딩은 고민에서 자기 이해로 이어지는 한 편의 서사를 만든다', () => {
-  const landing = sliceBetween('function sampleIntroMarkup', 'function renderImmersion')
+test('보관된 천명사주 스토리 헬퍼는 기존 서사 순서를 유지한다 (현재 영상 랜딩과 별개)', () => {
+  const landing = sliceBetween('function sampleIntroMarkup', 'function renderLanding')
   const landingText = landing.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
   const beats = [
     '그 질문이 생긴 곳부터 따라가 보겠습니다',
