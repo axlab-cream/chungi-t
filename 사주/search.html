@@ -159,6 +159,12 @@
         object-position: center top;
       }
 
+      /* 메인의 세로 배너는 얼굴과 문구를 자르지 않고 전체를 표시한다. */
+      .card img[src*="cmdg-hero-20261012"],
+      .card img[src*="umsh-money-mask-card-20261012"] {
+        object-fit: contain;
+      }
+
       .card .body {
         display: grid;
         gap: 4px;
