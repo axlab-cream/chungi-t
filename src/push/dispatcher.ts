@@ -105,8 +105,20 @@ export async function runPushDispatcher(deps: DispatchDeps, budgetMs: number): P
       // 보내는 도중 관리자가 취소했으면 남은 기기에는 보내지 않는다.
       const current = await store.getNotification(notification.id)
       if (current?.status !== 'sending') { stopped = true; break }
-      const pending = await store.nextPendingDeliveries(notification.id, BATCH)
+      let pending = await store.nextPendingDeliveries(notification.id, BATCH)
       if (!pending.length) break
+      // 광고성은 보내기 직전에 동의를 다시 확인한다. 실패분 재발송이나 긴 발송 도중에 동의를 끈 회원에게 가지 않게.
+      if (notification.isMarketing) {
+        const userIds = pending.map((delivery) => delivery.userId).filter((id): id is string => !!id)
+        const consented = deps.marketingConsented && userIds.length ? await deps.marketingConsented(userIds) : new Set<string>()
+        const withdrawn = pending.filter((delivery) => !delivery.userId || !consented.has(delivery.userId))
+        for (const delivery of withdrawn) {
+          await store.updateDelivery(delivery.id, { status: 'failed', attempts: delivery.attempts, errorCode: 'MARKETING_NOT_CONSENTED' })
+          outcome.failed += 1
+        }
+        pending = pending.filter((delivery) => !withdrawn.includes(delivery))
+        if (!pending.length) { await store.refreshCounts(notification.id); continue }
+      }
       let retryable = 0
       let authFailure: string | null = null
       for (let i = 0; i < pending.length; i += CONCURRENCY) {

@@ -1,265 +1,143 @@
-export const SOLO_AXES = ['direct', 'express', 'stability', 'independence'] as const
-export type SoloAxis = typeof SOLO_AXES[number]
-export type SoloGender = 'female' | 'male'
-export type AxisVector = Record<SoloAxis, number>
-
-export const SOLO_NAMES: Record<SoloGender, readonly string[]> = {
-  female: ['영숙', '정숙', '순자', '영자', '옥순', '현숙', '정희'],
-  male: ['영수', '영호', '영식', '영철', '광수', '상철', '경수'],
-}
+// 솔로나라 v3: "사람들 사이에서, 나는 어떤 패를 쥐고 있을까?"
+// 3개 축(주도/관망, 드러냄/감춤, 감정/계산)의 다수결로 8개 유형 중 하나를 고른다.
+// 엔터테인먼트용 캐릭터 분류이며 심리 진단이 아니다.
 export const SOLO_QUESTION_COUNT = 10
+export const SOLO_TYPE_COUNT = 8
 export const SOLO_FORTUNE_URL = 'https://umsh.kr/love/this-year/01-step-1-story/index.html'
 
-export interface SoloCharacter {
+export type SoloPole = 'a' | 'b'
+export interface SoloAxisDef { id: string; a: string; b: string }
+export interface SoloAnswer { id: string; text: string; pick: Record<string, SoloPole> }
+export interface SoloQuestion { questionId: string; scene: string; sceneLine?: string; question: string; axes: string[]; answers: SoloAnswer[] }
+export interface SoloMatch { type: string; reason: string }
+export interface SoloType {
   typeId: string
+  /** 축 순서대로 a/b. 예: 'aab' = 주도·드러냄·계산 */
+  code: string
   name: string
-  gender: SoloGender
-  vector: AxisVector
-  primaryAxis: SoloAxis
-  oneLiner: string
-  keywords: string[]
-  title: string
-  description: string
-  strength: string
-  weakness: string
-  tip: string
+  hook: string
+  surface: string
+  weapon: { name: string; text: string }
+  weaponWhen: string
+  strengths: string[]
+  weaknesses: string[]
+  weak: SoloMatch
+  danger: SoloMatch
+  move: string
   shareText: string
-  best: string
-  bestReason: string
-  danger: string
-  dangerReason: string
 }
-export interface SoloAnswer { id: string; text: string; emoji: string; scores: AxisVector }
-export interface SoloQuestion { questionId: string; scene: string; sceneLine?: string; question: string; primaryAxes: SoloAxis[]; answers: SoloAnswer[] }
 export interface SoloSpec {
   version: string
-  axes: SoloAxis[]
-  axisRange: Record<SoloAxis, { min: number; max: number }>
-  tieBreak: { epsilon: number; order: string[] }
-  characters: SoloCharacter[]
+  axes: SoloAxisDef[]
+  /** 축 문항 수가 짝수라 동점이 날 수 있을 때 이 문항에서 고른 쪽을 따른다. */
+  tieBreak: Record<string, string>
+  types: SoloType[]
   questions: SoloQuestion[]
   copy: Record<string, unknown>
 }
+export type SoloScores = Record<string, number>
 
-const isInt = (v: unknown, lo: number, hi: number) => Number.isInteger(v) && (v as number) >= lo && (v as number) <= hi
-const round1 = (n: number) => Math.round(n * 10) / 10
-const distance = (a: AxisVector, b: AxisVector) => Math.sqrt(SOLO_AXES.reduce((sum, axis) => sum + (a[axis] - b[axis]) ** 2, 0))
-
-/** Actual min/max raw totals per axis, derived from the answer table rather than trusted from the spec. */
-export function computeAxisRange(questions: SoloQuestion[]) {
-  return Object.fromEntries(SOLO_AXES.map(axis => [axis, {
-    min: questions.reduce((s, q) => s + Math.min(...q.answers.map(a => a.scores[axis])), 0),
-    max: questions.reduce((s, q) => s + Math.max(...q.answers.map(a => a.scores[axis])), 0),
-  }])) as Record<SoloAxis, { min: number; max: number }>
-}
+const isPole = (v: unknown): v is SoloPole => v === 'a' || v === 'b'
 
 /** Structural errors make the spec unusable; the engine refuses to run on them. */
 export function structureErrors(spec: SoloSpec): string[] {
   const errors: string[] = []
-  const chars = Array.isArray(spec?.characters) ? spec.characters : []
+  const axes = Array.isArray(spec?.axes) ? spec.axes : []
+  const types = Array.isArray(spec?.types) ? spec.types : []
   const questions = Array.isArray(spec?.questions) ? spec.questions : []
-  if (chars.length !== 14) errors.push(`characters must be 14 (got ${chars.length})`)
+  const axisIds = axes.map(a => a.id)
+  if (axes.length !== 3 || new Set(axisIds).size !== 3) errors.push('axes must be 3 unique axes')
+  if (types.length !== SOLO_TYPE_COUNT) errors.push(`types must be ${SOLO_TYPE_COUNT} (got ${types.length})`)
   if (questions.length !== SOLO_QUESTION_COUNT) errors.push(`questions must be ${SOLO_QUESTION_COUNT} (got ${questions.length})`)
-  const ids = new Set<string>()
-  for (const c of chars) {
-    if (!c.typeId || ids.has(c.typeId)) errors.push(`duplicate or empty typeId: ${c.typeId}`)
-    ids.add(c.typeId)
-    if (c.gender !== 'female' && c.gender !== 'male') errors.push(`${c.typeId}: invalid gender`)
-    if (!SOLO_AXES.every(axis => isInt(c.vector?.[axis], 0, 100))) errors.push(`${c.typeId}: vector must be integers 0~100`)
-    if (!SOLO_AXES.includes(c.primaryAxis)) errors.push(`${c.typeId}: invalid primaryAxis`)
+  const ids = new Set<string>(), codes = new Set<string>()
+  for (const t of types) {
+    if (!/^[a-z]{2,20}$/.test(t.typeId || '') || ids.has(t.typeId)) errors.push(`duplicate or invalid typeId: ${t.typeId}`)
+    ids.add(t.typeId)
+    if (!/^[ab]{3}$/.test(t.code || '') || codes.has(t.code)) errors.push(`${t.typeId}: code must be a unique 3-letter a/b combination`)
+    codes.add(t.code)
+    if (!Array.isArray(t.strengths) || !t.strengths.length || !Array.isArray(t.weaknesses) || !t.weaknesses.length) errors.push(`${t.typeId}: needs strengths and weaknesses`)
   }
-  for (const gender of ['female', 'male'] as const) {
-    const names = chars.filter(c => c.gender === gender).map(c => c.name).sort()
-    if (names.join() !== [...SOLO_NAMES[gender]].sort().join()) errors.push(`${gender} names must be ${SOLO_NAMES[gender].join(',')} (got ${names.join(',')})`)
+  for (const t of types) for (const key of ['weak', 'danger'] as const) {
+    if (!ids.has(t[key]?.type)) errors.push(`${t.typeId}.${key} points to unknown ${t[key]?.type}`)
+    if (t[key]?.type === t.typeId) errors.push(`${t.typeId}.${key} points to itself`)
   }
-  for (const c of chars) for (const key of ['best', 'danger'] as const) if (!ids.has(c[key])) errors.push(`${c.typeId}.${key} points to unknown ${c[key]}`)
   const qids = new Set<string>()
-  const questionErrorsBefore = errors.length
   for (const q of questions) {
     if (!q.questionId || qids.has(q.questionId)) errors.push(`duplicate or empty questionId: ${q.questionId}`)
     qids.add(q.questionId)
+    if (!Array.isArray(q.axes) || q.axes.length !== 2 || q.axes.some(a => !axisIds.includes(a)) || q.axes[0] === q.axes[1]) { errors.push(`${q.questionId}: axes must be 2 known axes`); continue }
     if (!Array.isArray(q.answers) || q.answers.length !== 4) { errors.push(`${q.questionId}: needs 4 answers`); continue }
-    for (const a of q.answers) if (!SOLO_AXES.every(axis => isInt(a.scores?.[axis], 0, 3))) errors.push(`${q.questionId}.${a.id}: scores must be integers 0~3`)
+    const combos = new Set<string>()
+    for (const a of q.answers) {
+      const keys = Object.keys(a.pick || {})
+      if (keys.length !== 2 || !q.axes.every(x => isPole(a.pick[x]))) errors.push(`${q.questionId}.${a.id}: pick must set exactly the question axes`)
+      combos.add(q.axes.map(x => a.pick?.[x]).join(''))
+    }
+    if (combos.size !== 4) errors.push(`${q.questionId}: the 4 answers must cover the 4 pole combinations`)
   }
-  // Range comparison needs a well-formed answer table, but not well-formed characters.
-  if (questions.length === SOLO_QUESTION_COUNT && errors.length === questionErrorsBefore) {
-    const range = computeAxisRange(questions)
-    for (const axis of SOLO_AXES) {
-      if (range[axis].max === range[axis].min) errors.push(`${axis}: no spread across answers`)
-      if (spec.axisRange?.[axis]?.min !== range[axis].min || spec.axisRange?.[axis]?.max !== range[axis].max) errors.push(`axisRange.${axis} says ${JSON.stringify(spec.axisRange?.[axis])} but table gives ${JSON.stringify(range[axis])}`)
+  for (const axis of axisIds) {
+    const touching = questions.filter(q => q.axes?.includes(axis))
+    if (touching.length < 3) errors.push(`${axis}: asked in fewer than 3 questions`)
+    if (touching.length % 2 === 0) {
+      const tb = spec.tieBreak?.[axis]
+      if (!tb || !touching.some(q => q.questionId === tb)) errors.push(`${axis}: even question count needs tieBreak pointing to one of its questions`)
     }
   }
-  if (typeof spec?.tieBreak?.epsilon !== 'number' || spec.tieBreak.epsilon < 0) errors.push('tieBreak.epsilon must be a non-negative number')
-  const order = spec?.tieBreak?.order ?? []
-  if (order.length !== 14 || new Set(order).size !== 14 || order.some(id => !ids.has(id))) errors.push('tieBreak.order must list all 14 typeIds once')
   return errors
 }
 
-/** Design rules from the planning prompt. Violations are reported, not fatal. */
-export function designIssues(spec: SoloSpec): string[] {
-  const issues: string[] = []
-  const byId = new Map(spec.characters.map(c => [c.typeId, c]))
-  for (const c of spec.characters) {
-    if (!SOLO_AXES.every(axis => c.vector[axis] >= 20 && c.vector[axis] <= 80)) issues.push(`${c.name}: vector outside 20~80`)
-    for (const key of ['best', 'danger'] as const) {
-      const other = byId.get(c[key])!
-      if (other.gender === c.gender) issues.push(`${c.name}.${key} is same gender`)
-      if (other[key] !== c.typeId) issues.push(`${c.name}.${key}=${other.name} is not symmetric`)
-    }
-    if (c.best === c.danger) issues.push(`${c.name}: best and danger are the same`)
-  }
-  for (const gender of ['female', 'male'] as const) {
-    const group = spec.characters.filter(c => c.gender === gender)
-    for (const key of ['best', 'danger'] as const) if (new Set(group.map(c => c[key])).size !== group.length) issues.push(`${gender} ${key} pairs are not one-to-one`)
-    for (const axis of SOLO_AXES) {
-      if (group.filter(c => c.vector[axis] <= 35).length < 2) issues.push(`${gender} ${axis}: fewer than 2 characters at <=35`)
-      if (group.filter(c => c.vector[axis] >= 65).length < 2) issues.push(`${gender} ${axis}: fewer than 2 characters at >=65`)
-    }
-    for (let i = 0; i < group.length; i++) for (let j = i + 1; j < group.length; j++) {
-      const d = distance(group[i].vector, group[j].vector)
-      if (d < 25) issues.push(`${group[i].name}-${group[j].name} distance ${round1(d)} < 25`)
-    }
-  }
-  const range = computeAxisRange(spec.questions)
-  const spans = SOLO_AXES.map(axis => range[axis].max - range[axis].min)
-  if (Math.max(...spans) - Math.min(...spans) > 4) issues.push(`axis spans differ by more than 4: ${SOLO_AXES.map((a, i) => `${a}=${spans[i]}`).join(', ')}`)
-  for (const axis of SOLO_AXES) if (spec.questions.filter(q => q.primaryAxes.includes(axis)).length < 3) issues.push(`${axis} is primary in fewer than 3 questions`)
-  for (const q of spec.questions) {
-    if (q.primaryAxes.length < 1 || q.primaryAxes.length > 2) issues.push(`${q.questionId}: primaryAxes must have 1~2 axes`)
-    for (const axis of SOLO_AXES) {
-      const values = q.answers.map(a => a.scores[axis])
-      if (q.primaryAxes.includes(axis) && !(values.includes(0) && values.includes(3))) issues.push(`${q.questionId}: primary ${axis} needs both 0 and 3`)
-      if (!q.primaryAxes.includes(axis) && values.some(v => v > 1)) issues.push(`${q.questionId}: non-primary ${axis} exceeds 1`)
-    }
-  }
-  return issues
+export function parseSoloInput(input: unknown): { answers: number[] } {
+  const answers = (input as { answers?: unknown })?.answers
+  if (!Array.isArray(answers) || answers.length !== SOLO_QUESTION_COUNT || !answers.every(a => Number.isInteger(a) && a >= 0 && a <= 3)) throw new Error('invalid answers')
+  return { answers: answers as number[] }
 }
 
-export function parseSoloInput(input: unknown): { gender: SoloGender; answers: number[] } {
-  const body = input as { gender?: unknown; answers?: unknown } | null
-  if (!body || (body.gender !== 'female' && body.gender !== 'male')) throw new Error('이름을 받을 성별을 선택해주세요.')
-  if (!Array.isArray(body.answers) || body.answers.length !== SOLO_QUESTION_COUNT || body.answers.some(a => !isInt(a, 0, 3))) throw new Error('열 문항의 답변을 모두 선택해주세요.')
-  return { gender: body.gender, answers: [...body.answers] }
-}
-
-export function normalizedScores(spec: SoloSpec, answers: number[]): AxisVector {
-  return scoresFromRaw(spec, Object.fromEntries(SOLO_AXES.map(axis => [axis, answers.reduce((s, a, i) => s + spec.questions[i].answers[a].scores[axis], 0)])) as AxisVector)
-}
-
-function scoresFromRaw(spec: SoloSpec, raw: AxisVector): AxisVector {
-  return Object.fromEntries(SOLO_AXES.map(axis => {
-    const { min, max } = spec.axisRange[axis]
-    return [axis, round1((raw[axis] - min) / (max - min) * 100)]
-  })) as AxisVector
-}
-
-/** Nearest character by Euclidean distance; near-ties fall back to the primary axis, then the fixed order. */
-export function rankCandidates(spec: SoloSpec, gender: SoloGender, scores: AxisVector) {
-  const order = spec.tieBreak.order
-  const ranked = spec.characters.filter(c => c.gender === gender)
-    .map(c => ({ character: c, distance: distance(scores, c.vector), axisGap: Math.abs(scores[c.primaryAxis] - c.vector[c.primaryAxis]) }))
-    .sort((a, b) => a.distance - b.distance)
-  const [first, second] = ranked
-  const tied = second.distance - first.distance <= spec.tieBreak.epsilon
-  if (tied && (second.axisGap < first.axisGap || (second.axisGap === first.axisGap && order.indexOf(second.character.typeId) < order.indexOf(first.character.typeId)))) {
-    ranked[0] = second
-    ranked[1] = first
+/** 축마다 'a' 쪽을 고른 비율(0~100)과 최종 극. */
+export function axisResult(spec: SoloSpec, answers: number[]) {
+  const scores: SoloScores = {}, poles: Record<string, SoloPole> = {}
+  for (const axis of spec.axes) {
+    let a = 0, n = 0
+    spec.questions.forEach((q, i) => { if (q.axes.includes(axis.id)) { n++; if (q.answers[answers[i]].pick[axis.id] === 'a') a++ } })
+    scores[axis.id] = Math.round(a / n * 100)
+    if (a * 2 !== n) poles[axis.id] = a * 2 > n ? 'a' : 'b'
+    else {
+      const i = spec.questions.findIndex(q => q.questionId === spec.tieBreak[axis.id])
+      poles[axis.id] = spec.questions[i].answers[answers[i]].pick[axis.id]
+    }
   }
-  return { ranked, tied }
+  return { scores, poles }
 }
 
 export function calculateSoloResult(spec: SoloSpec, input: unknown) {
-  const { gender, answers } = parseSoloInput(input)
-  const scores = normalizedScores(spec, answers)
-  const c = rankCandidates(spec, gender, scores).ranked[0].character
-  const byId = new Map(spec.characters.map(x => [x.typeId, x]))
-  return {
-    version: spec.version, type: c.typeId, name: c.name, scores,
-    oneLiner: c.oneLiner, keywords: c.keywords, title: c.title, description: c.description,
-    strength: c.strength, weakness: c.weakness, tip: c.tip, shareText: c.shareText,
-    best: { type: c.best, name: byId.get(c.best)!.name, reason: c.bestReason },
-    danger: { type: c.danger, name: byId.get(c.danger)!.name, reason: c.dangerReason },
+  const { answers } = parseSoloInput(input)
+  const { scores, poles } = axisResult(spec, answers)
+  const code = spec.axes.map(a => poles[a.id]).join('')
+  const t = spec.types.find(x => x.code === code)!
+  return { version: spec.version, type: t.typeId, code, scores }
+}
+
+/** 4^10 답 조합 전부를 돌려 유형별 비율을 센다(답을 무작위로 고른다고 가정). */
+export function simulate(spec: SoloSpec) {
+  const counts: Record<string, number> = Object.fromEntries(spec.types.map(t => [t.typeId, 0]))
+  const answers = new Array(SOLO_QUESTION_COUNT).fill(0)
+  const total = 4 ** SOLO_QUESTION_COUNT
+  for (let k = 0; k < total; k++) {
+    let x = k
+    for (let i = 0; i < SOLO_QUESTION_COUNT; i++) { answers[i] = x & 3; x >>= 2 }
+    counts[calculateSoloResult(spec, { answers }).type]++
   }
+  return { total, counts, shares: Object.fromEntries(Object.entries(counts).map(([id, n]) => [id, n / total])) }
 }
 
-// Raw axis totals packed into one integer (each total < 64) so equal score sums share one map entry.
-const pack = (v: AxisVector) => v.direct + v.express * 64 + v.stability * 4096 + v.independence * 262144
-const unpack = (k: number): AxisVector => ({ direct: k % 64, express: Math.floor(k / 64) % 64, stability: Math.floor(k / 4096) % 64, independence: Math.floor(k / 262144) })
-
-/** How many answer combinations reach each raw total, skipping one question when asked to. */
-function totalsCount(spec: SoloSpec, skip = -1) {
-  let dist = new Map<number, number>([[0, 1]])
-  spec.questions.forEach((q, i) => {
-    if (i === skip) return
-    const next = new Map<number, number>()
-    for (const [key, count] of dist) for (const a of q.answers) {
-      const k = key + pack(a.scores)
-      next.set(k, (next.get(k) || 0) + count)
-    }
-    dist = next
-  })
-  return dist
-}
-
-/**
- * Exhaustive count over all 4^N answer combinations per gender, treating every combination equally.
- * Results depend only on the raw totals, so combinations are grouped by total instead of enumerated one by one.
- */
-export function simulate(spec: SoloSpec, gender: SoloGender, opts: { dominance?: boolean } = {}) {
-  const total = 4 ** spec.questions.length
-  const blank = () => Object.fromEntries(spec.characters.filter(c => c.gender === gender).map(c => [c.typeId, 0])) as Record<string, number>
-  const verdicts = new Map<number, { id: string; tied: boolean }>()
-  const verdict = (key: number) => {
-    let v = verdicts.get(key)
-    if (!v) {
-      const { ranked, tied } = rankCandidates(spec, gender, scoresFromRaw(spec, unpack(key)))
-      v = { id: ranked[0].character.typeId, tied }
-      verdicts.set(key, v)
-    }
-    return v
-  }
-  const counts = blank()
-  let ties = 0
-  for (const [key, n] of totalsCount(spec)) { const v = verdict(key); counts[v.id] += n; if (v.tied) ties += n }
-  const perAnswer = total / 4
-  // Per-answer dominance needs one extra pass per question; tuning loops can skip it.
-  const dominance = opts.dominance === false ? [] : spec.questions.flatMap((q, qi) => {
-    const others = totalsCount(spec, qi)
-    return q.answers.map(answer => {
-      const c = blank(), shift = pack(answer.scores)
-      for (const [key, n] of others) c[verdict(key + shift).id] += n
-      const [typeId, count] = Object.entries(c).sort((x, y) => y[1] - x[1])[0]
-      return { questionId: q.questionId, answer: answer.id, typeId, share: count / perAnswer }
-    })
-  }).sort((a, b) => b.share - a.share)
-  return { total, counts, shares: Object.fromEntries(Object.entries(counts).map(([id, c]) => [id, c / total])), tieRate: ties / total, dominance }
-}
-
-export const SOLO_CRITERIA = { minShare: 0.07, maxShare: 0.25, maxTieRate: 0.05, maxDominance: 0.5 }
-
-export function distributionIssues(spec: SoloSpec, gender: SoloGender, result = simulate(spec, gender)): string[] {
-  const name = (id: string) => spec.characters.find(c => c.typeId === id)!.name
-  const pct = (n: number) => `${round1(n * 100)}%`
-  const issues: string[] = []
-  for (const [id, share] of Object.entries(result.shares)) {
-    if (share < SOLO_CRITERIA.minShare) issues.push(`${gender} ${name(id)} ${pct(share)} < ${pct(SOLO_CRITERIA.minShare)}`)
-    if (share > SOLO_CRITERIA.maxShare) issues.push(`${gender} ${name(id)} ${pct(share)} > ${pct(SOLO_CRITERIA.maxShare)}`)
-  }
-  if (result.tieRate > SOLO_CRITERIA.maxTieRate) issues.push(`${gender} tie rate ${pct(result.tieRate)} > ${pct(SOLO_CRITERIA.maxTieRate)}`)
-  const top = result.dominance[0]
-  if (top && top.share > SOLO_CRITERIA.maxDominance) issues.push(`${gender} ${top.questionId}=${top.answer} gives ${name(top.typeId)} ${pct(top.share)} > ${pct(SOLO_CRITERIA.maxDominance)}`)
-  return issues
-}
-
-/** Browser copy only: no character vectors or answer scores, so the page cannot be steered by reading the rubric. */
+/** Browser copy only: no answer picks or type codes, so the page cannot be steered by reading the rubric. */
 export function publicContent(spec: SoloSpec) {
   return {
     version: spec.version,
-    questions: spec.questions.map(q => ({ id: q.questionId, scene: q.scene, sceneLine: q.sceneLine ?? '', question: q.question, answers: q.answers.map(a => ({ text: a.text, emoji: a.emoji })) })),
-    characters: Object.fromEntries(spec.characters.map(c => [c.typeId, {
-      name: c.name, gender: c.gender, oneLiner: c.oneLiner, keywords: c.keywords, title: c.title, description: c.description,
-      strength: c.strength, weakness: c.weakness, tip: c.tip, shareText: c.shareText,
-      best: c.best, bestReason: c.bestReason, danger: c.danger, dangerReason: c.dangerReason,
+    axes: spec.axes,
+    questions: spec.questions.map(q => ({ id: q.questionId, scene: q.scene, sceneLine: q.sceneLine ?? '', question: q.question, answers: q.answers.map(a => ({ text: a.text })) })),
+    types: Object.fromEntries(spec.types.map(t => [t.typeId, {
+      name: t.name, hook: t.hook, surface: t.surface, weapon: t.weapon, weaponWhen: t.weaponWhen,
+      strengths: t.strengths, weaknesses: t.weaknesses, weak: t.weak, danger: t.danger, move: t.move, shareText: t.shareText,
     }])),
     copy: spec.copy,
   }
@@ -267,5 +145,5 @@ export function publicContent(spec: SoloSpec) {
 
 export function publicContentScript(spec: SoloSpec) {
   // Escape "<" so copy can never close the script element it is embedded in.
-  return `// Generated by scripts/build-solo-nara-content.ts from data/solo-nara-spec.json. Do not edit.\nwindow.UMSHSoloNaraContent = ${JSON.stringify(publicContent(spec)).replace(/</g, '\u003c')};\n`
+  return `// Generated by scripts/build-solo-nara-content.ts from data/solo-nara-spec.json. Do not edit.\nwindow.UMSHSoloNaraContent = ${JSON.stringify(publicContent(spec)).replace(/</g, '\\u003c')};\n`
 }

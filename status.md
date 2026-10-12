@@ -2927,3 +2927,102 @@ Galaxy Z Flip6(Android 16, WebView 154)에 디버그 APK 설치. 셸 결함 5개
 ## 2026-10-02 [INCIDENT] DEPLOY-SOURCE-UPLOAD (Claude)
 16:05 `16145abc`(origin/main과 동일, clean)를 README 절차만 보고 `vercel deploy --prod`(소스 업로드)로 배포 → `dpl_HyeEZLKAmRiSd1GtGP3xwy9B9MfN`. 운영 전체 이미지·영상·아이콘 404(`/assets/*`, `/favicon.svg`, `/icon-192.png`). CSS·JS·API는 200. 약 4분 뒤 `vercel rollback`으로 직전 정상 배포 `dpl_Gn9MfcjFcRbz3KKjXjG2ChqxJ3xh`(사용자 리디플로이) 복구, 자산 200·내부 파일 404 재확인. 상단 [DEPLOY POLICY](prebuilt 전용)를 읽지 않은 것이 원인. 같은 창에서 앱 구글 로그인(OAuth 리다이렉트) 실기기 성공은 확인.
 이후 정책대로 `vercel build --prod`를 로컬(Windows, CLI 60.1.3, uv 0.12.22 신규 설치)에서 실행했으나 `.vercel/output/static`이 `public/`이 아닌 저장소 루트 전체(AGENTS.md·status.md·docs·src·*.sql 포함)로 잡혀 배포 중단·산출물 삭제. 장애 창 동안 원격 소스 빌드도 같은 구성이었다면 내부 문서·소스가 약 4분 공개됐을 수 있음(추정, 미확인). 비밀값 파일(.env*)은 .vercelignore로 제외. 운영은 현재 구글 앱 수정 미반영, main(16145abc)이 운영보다 앞섬. [GATE] 재배포는 prebuilt 산출물 구성 원인 확인 후.
+
+## 2026-10-09 LOCAL-SYNC — DONE
+- main synced to origin/main 97b24cbb; matches Vercel production dpl_J9XXrvN3mmHYKvcXQMGVM5nh8STL gitSource.sha.
+- Vercel development/production settings pulled into ignored .vercel; original root .env preserved.
+- Original commits: codex/local-backup-20261009; WIP: stash local-sync-20261009-preserve-original-work. Recovery report: C:/Users/user/.codex/backups/chungi-t-sync-20261009/sync-report.md.
+- npm ci --ignore-scripts and npm run vercel-build PASS. No remote mutation. Existing npm audit: 3 moderate, 1 critical; remediation not in sync scope.
+
+
+2026-10-09 CMDG-IMAGES-20261009: deployed 18 approved report illustrations as versioned WebP (4.65 MB). Existing-report client overrides and new-report mappings updated; shared thumbnails preserved. Commit 99b69f4a, production dpl_EJCMraqBVRfzNyM8qSTdhVFtJGUL READY on umsh.kr. QA: 89 affected tests, strengthened mapping 5/5, build/typecheck, 18 live asset byte comparisons PASS; Codex browser desktop/mobile visual checks PASS. KMS: personal/carrotcap/notes/cmdg-images-production-20261009.md.
+CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer stopped after >5 minutes without a report and repeated MCP initialization errors; external review NOT_RUN.
+
+## 2026-10-12 CMDG direct informal tone production
+- Request: apply direct second-person informal Korean to saju_master interpretations; preserve individual evidence and existing report content.
+- Commit: 1574bb30e9f023ac51649dc74f211b2076e6be1c; pushed main; production dpl_HDjMkdL21HCPVr6LUuHAtLzzR7a6 READY, umsh.kr alias verified.
+- Runtime persona/voice contract/reviewer exception and legacy display-only adaptation updated. Other services and stored DB prose unchanged.
+- QA: 174 tests PASS, vercel-build PASS, manual scoped diff review; live desktop and 390px mobile direct tone visible, 18 image nodes retained, no horizontal overflow. Screenshot: output/cmdg-tone-production.jpg (local ignored).
+- External Grok review incomplete: repeated MCP handshake errors; stopped without review result. New model-generated report not end-to-end exercised.
+- KMS saved and re-read: personal/carrotcap/notes/cmdg-direct-tone-20261012.md. No customer prose/secrets included.
+
+## 2026-10-12 CMDG natural narrator correction — DONE
+- User rejected forced vocative and suffix-only tone. Removed injected address; updated generation persona sources and shared contract for natural observational prose. Commits 3e630047 and 5da79866 pushed to main.
+- One requested existing report was backed up privately and edited only in narrator fields (48 paths); CAS revision 120 -> 121. DB readback matches candidate. User inputs, analysis and images preserved.
+- QA: 94 tests PASS, vercel-build/typecheck PASS; manual scoped review. External Grok review NOT_RUN after repeated MCP initialization failures.
+- Production dpl_4TgNMjXszqJQpjcYa2xG9GmMw6fN READY, umsh.kr alias. Codex browser verified 16 revised sections, 2 replies, 18 image nodes and mobile/desktop no horizontal overflow. New generated report not exercised end-to-end.
+- KMS saved/re-read/search verified: personal/carrotcap/notes/cmdg-full-tone-20261012.md. Private screenshot/backup/candidate remain ignored under output/.
+
+## 2026-10-12 CMDG master teaser production
+- fcadc6fd pushed to main, Vercel production READY on umsh.kr.
+- Supplied artwork/layout integrated with analysis-based personal teaser; base 63000, sale 29000; existing orders untouched.
+- Focused 88 tests and build passed. Live personalized DOM, 19 panels and mobile overflow checked; screenshot output/cmdg-master-production.png.
+- Broad regression: 1998 pass / 8 fail; full suite not green. External reviewer unavailable (MCP initialization), manual scoped review completed.
+
+
+## 2026-10-12 Home CMDG Blob video
+- 52487411 implemented; 7c73f9c1 integrates upstream login/icons without reverting them. Production dpl_7UqL6sMBn8UdrAjRKrWFcY82XtvW READY.
+- 1229209 -> 475295 bytes, WebP poster 29750 bytes; Seoul public Blob, versioned one-year caching, OIDC connection.
+- Build/typecheck and 3 focused tests PASS; media HTTP200/Range206/cache HIT. Real browser desktop/mobile playback and offscreen pause PASS. Manual scoped review completed. Cost reduction amount not measured.
+
+
+## 2026-10-12 Hide selected cat banner
+- 8e3459e4: commented only home RELEASED NOW cat card; service retained.
+- Production READY, live DOM card count 0; scoped diff check and visual verification. Screenshot output/home-cat-hidden.png.
+
+
+## 2026-10-12 Couple banner relocation
+- 45f9ba43: moved existing couple banner into RELEASED NOW after quit card; removed old LOVE section. Price/link unchanged.
+- Production READY and browser DOM/visual PASS; one banner under requested heading, old heading absent, cat remains hidden.
+
+
+## 2026-10-12 Direct home entry + quit banner hidden
+- e39f7a83 removes splash DOM/preload/gating/JS/CSS; regression and build PASS.
+- 42aa28d3 comments quit banner only. Production READY; immediate main visibility and no splash/quit banner verified in Codex browser.
+
+
+## 2026-10-12 CMDG video entry
+- d2061fe2: default landing replaced with supplied optimized Blob video and existing enter CTA; prior renderer archived.
+- PASS build/typecheck, production desktop/mobile playback and saved-profile CTA flow. KMS: personal/carrotcap/notes/cmdg-video-entry-20261012.md.
+
+
+## 2026-10-12 Home production restoration
+- 080b35de restores current main deployment; Blob hero verified playing/offscreen paused; 2 focused tests and build PASS.
+- Production confirms couple under RELEASED NOW, quit/cat commented out, old LOVE title removed. KMS: personal/carrotcap/notes/home-hero-restore-20261012.md.
+
+
+## 2026-10-12 Solo Nara home banner
+- 48d2d167: home-only commented banner, remaining carousel dots aligned. Build and production DOM verified; direct service accessible. KMS personal/carrotcap/notes/solo-home-hide-20261012.md.
+
+
+## 2026-10-12 Approved money mask card
+- aa6ce1a0: approved masked artwork replaces only home money card. Build PASS; production image and link verified. KMS personal/carrotcap/notes/money-mask-banner-20261012.md.
+
+
+## 2026-10-12 MAIN-CI recovery
+- 162ae7a1 + a67a6542: current tone/price/landing expectations, synchronized reader cache, immutable historical prompt snapshot. No skips; coupon safeguards retained.
+- GitHub CI 38208764690 SUCCESS; service checks/20-service QA/build PASS. Independent review comment fixed.
+- KMS personal/carrotcap/notes/main-ci-recovery-20261012.md. Existing PRs need latest main integration/recheck; not changed here.
+
+
+## 2026-10-12 CMDG video spacing
+- 98329a8f: measured chrome bounds and cover-fit video; CTA stays visible. Build + 8 tests PASS, 390x844 and 375x667 production verified. KMS personal/carrotcap/notes/cmdg-video-spacing-20261012.md.
+
+
+## 2026-10-12 CMDG video continuation
+- Request: append supplied 25s movie after existing 15s entrance; preserve registration CTA and mobile fit.
+- Normalize originals to H264/AAC 406x720/24fps and concatenate to one faststart MP4 (40.128s, 2,158,179 bytes vs 7,448,791 originals; 71% smaller). Avoid player/source handoff at the join.
+- Public Blob: cmdg/entry-sequence-20261012.mp4. Range206 and 1-year cache confirmed; old object retained for rollback.
+- Canonical and mirror changed only video URL. Full media decode, boundary/end frames, 8 focused tests, typecheck/build PASS. Local browser duration40.128/readyState4 and mobile CTA visible confirmed.
+- Reviewer and production verification pending. KMS target: personal/carrotcap/notes/cmdg-video-continuation-20261012.md.
+- Production verification complete: 6898214c / dpl_CafmNKFAdyTTKKKBiq5ciA53uofE Ready, umsh.kr alias. Browser reached continuation at18.89s readyState4 and CTA entered existing saved-profile concern form (no submission). Grok approved, no major/critical findings. KMS saved/read/searched.
+
+## 2026-10-12 SEARCH-BANNERS
+- PRD/plan: search-only presentation; CMDG uses current home hero poster, money uses approved mask artwork, cat excluded from all search/category results while routes/API/admin/saved readings stay available. Remove cat search hint. Existing dark/gold grid, price, title and links preserved.
+- Acceptance: production search images loaded, cat absent for all/category/query, money matches portal, original service links valid. Build and browser verification pending.
+- SEARCH-BANNERS final:193af9d2 / dpl_GChbDJF17S1GMmR3QSCwSopVvdBR production Ready. Mobile browser confirms updated CMDG/money art loaded without crop, cat query empty.3 directory tests/build/typecheck PASS. KMS notes/search-banners-20261012.md saved/read; external reviewer still pending, direct scoped review complete.
+
+## 2026-10-12 CMDG trilogy
+- Goal/plan: append supplied third20s clip after existing15s+25s in single optimized faststart file. Preserve CTA/layout/reduced-motion/loop; source URLs only in canonical and mirror.
+- Media: originals re-encoded once to406x720 H264/AAC24fps;60.192s/3023944bytes vs originals9282519bytes,67% smaller. Full decode and39s/43s/58s frames verified. Blob cmdg/entry-trilogy-20261012.mp4; immutable1year cache. Rollback previous entry-sequence URL.
+- Build/tests/review/production pending.

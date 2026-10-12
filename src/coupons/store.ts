@@ -137,5 +137,19 @@ export async function reserveDiscount(ownerId: string, walletId: string, product
 export async function getDiscountForOrder(ownerId: string, orderId: string): Promise<WalletCoupon | null> { return (await listWallet(ownerId)).find(w => w.orderId === orderId && ['amount_off', 'percent_off'].includes(w.kind)) ?? null }
 export async function listConsultationCoupons(ownerId: string): Promise<WalletCoupon[]> { const s = (await read()).data; return s.wallets.filter(w => w.ownerId === ownerId && w.kind === 'consultation_questions' && active(s.campaigns.find(c => c.id === w.campaignId))).map(w => project(s, w)) }
 
+/**
+ * 회원 탈퇴(src/user/account-deletion.ts): 그 회원의 쿠폰함을 비운다.
+ * 결제 주문에 할인으로 쓰인 쿠폰(orderId 가 있는 것)은 결제 금액의 근거라 결제 기록과 함께 남긴다.
+ * 이미 비웠으면 아무것도 바꾸지 않고 0 을 돌려준다(다시 불러도 안전하다).
+ */
+export async function removeWalletsForDeletedMember(ownerId: string): Promise<number> {
+  if (!identifier(ownerId)) return fail('COUPON_INPUT_INVALID', 400)
+  return mutate(s => {
+    const before = s.wallets.length
+    s.wallets = s.wallets.filter(w => w.ownerId !== ownerId || !!w.orderId)
+    return before - s.wallets.length
+  })
+}
+
 /** Server-only entitlement snapshot for completion recovery; no payment rows are fabricated. */
 export async function listCouponReportBindings(): Promise<WalletCoupon[]> { const s = (await read()).data; return s.wallets.filter(w => w.kind === 'service_free' && !!w.reportId).map(w => project(s, w)) }

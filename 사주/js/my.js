@@ -162,7 +162,7 @@
       lock(false);
     }
     function setNote(text) { if (note) note.textContent = text; }
-    if (!isNativeApp()) setNote('알림은 운명상회 앱에서 받습니다. 여기서 바꾼 설정은 앱에도 그대로 적용됩니다.');
+    if (!isNativeApp()) setNote('알림은 운명상회 앱으로만 보내요. 여기서 바꾼 설정은 같은 계정으로 로그인한 앱에도 그대로 적용돼요.');
 
     getJson('/api/user/notification-prefs', session)
       .then(function (payload) { render(payload.prefs || {}); })

@@ -90,7 +90,8 @@
    * 마이페이지 자체는 하단 탭의 첫 화면이라 넣지 않는다.
    */
   function mountInlineBack() {
-    const shell = document.querySelector('main .payment-shell');
+    // 본문 틀(.payment-shell)이 없는 화면은 data-inline-back-host 로 자리를 정한다(자주 묻는 질문).
+    const shell = document.querySelector('main .payment-shell') || document.querySelector('main [data-inline-back-host]');
     if (!shell || shell.querySelector('[data-inline-back]')) return;
     if (backTrail.keyOf({ pathname: window.location.pathname, search: '' }) === '/my') return;
     const target = backTrail.target(window.location);

@@ -1,0 +1,62 @@
+/*
+ * 자주 묻는 질문을 마이페이지 화면과 같은 모바일 틀로(2026-10-12).
+ * 내용·검색·분류는 scripts/build-public-faq.mjs 가 만든 그대로 두고 겉모습만 맞춘다:
+ * 같은 검정 배경, 폰 폭(430px) 한 줄, PC 용 큰 사진은 숨김, 제목 위 본문 뒤로 가기.
+ */
+/* 마이페이지(payment.css)처럼 바깥은 검정, 가운데 폰 폭 칸만 #070706. */
+body {
+  background: #000;
+}
+
+.knowledge-page {
+  min-height: 100svh;
+  background: #070706;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 0 16px calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.knowledge-page .knowledge-hero-art {
+  display: none;
+}
+
+.knowledge-page .knowledge-intro {
+  border-top: 0;
+  padding: 16px 0 18px;
+}
+
+.knowledge-page h1 {
+  margin: 4px 0 0;
+  font-family: Georgia, serif;
+  font-size: clamp(26px, 8vw, 32px);
+  line-height: 1.2;
+}
+
+.knowledge-page .knowledge-intro > p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.knowledge-page .knowledge-results {
+  grid-template-columns: 1fr;
+}
+
+.knowledge-page .knowledge-search {
+  padding: 16px;
+}
+
+.knowledge-page .knowledge-answer summary {
+  padding: 16px;
+}
+
+.knowledge-page .knowledge-answer summary h2 {
+  font-size: 16px;
+}
+
+.knowledge-page .knowledge-answer-body {
+  padding: 16px;
+}
+
+.knowledge-page .knowledge-answer-body p {
+  font-size: 15px;
+}

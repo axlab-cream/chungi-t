@@ -172,6 +172,17 @@ export function deliveredText(record: Pick<PushNotificationRecord, 'title' | 'bo
   return { title: MARKETING_TITLE_PREFIX + record.title, body: record.body + MARKETING_OPT_OUT_NOTICE }
 }
 
+/**
+ * 광고로 읽히는 낱말(2026-10-12). 관리자가 "광고성 알림" 체크를 빼먹으면 수신을 거부한 회원에게도
+ * 광고가 간다. 일반 알림인데 이 낱말이 있으면 "광고가 아닙니다"를 따로 확인받는다.
+ * 관리자 화면(admin-ui/index.html 의 MARKETING_WORDS)도 같은 목록을 쓴다 — 테스트가 둘을 맞춰 본다.
+ */
+export const MARKETING_WORDS = ['이벤트', '할인', '쿠폰', '혜택', '특가', '세일', '프로모션', '증정', '적립', '선착순', '한정', '기념', '무료', '오픈', '%']
+
+export function marketingWordsIn(text: string): string[] {
+  return MARKETING_WORDS.filter((word) => text.includes(word))
+}
+
 /** 예약은 지금부터 1분 뒤 ~ 90일 안. 지난 시각으로 예약하면 즉시 발송과 구분이 안 된다. */
 export const PUSH_SCHEDULE_MIN_LEAD_MS = 60_000
 export const PUSH_SCHEDULE_MAX_DAYS = 90
@@ -189,6 +200,8 @@ export function parseDraft(value: unknown, now = Date.now()): PushDraftInput {
   const target = parseTarget(raw.target)
   const schedule = (raw.schedule && typeof raw.schedule === 'object' ? raw.schedule : {}) as Record<string, unknown>
   const marketing = raw.marketing === true
+  // 광고 낱말이 있는 일반 알림은 관리자가 "광고가 아닙니다"를 확인했을 때만 받는다.
+  if (!marketing && raw.notMarketingConfirmed !== true && marketingWordsIn(`${title} ${body}`).length) throw new PushError('PUSH_LOOKS_LIKE_MARKETING')
   // 로그인하지 않은 기기는 수신 동의를 받을 방법이 없다.
   if (marketing && target.type === 'guests') throw new PushError('PUSH_MARKETING_GUESTS')
   if (marketing && schedule.mode === 'now' && isMarketingQuietHour(now)) throw new PushError('PUSH_MARKETING_QUIET_HOURS')
@@ -219,6 +232,7 @@ export function parseDevice(value: unknown, userId: string | null): PushDeviceIn
 }
 
 export const PUSH_ERROR_MESSAGES: Record<string, string> = {
+  PUSH_LOOKS_LIKE_MARKETING: '제목이나 메시지에 광고로 보이는 낱말(할인·쿠폰·이벤트 등)이 있습니다. 광고성 알림이면 "광고성 알림입니다"에 체크하고, 서비스 안내라면 "광고가 아닙니다"를 확인해 주세요.',
   PUSH_MARKETING_GUESTS: '광고성 알림은 수신에 동의한 회원에게만 보낼 수 있습니다. 로그인하지 않은 기기는 고를 수 없습니다.',
   PUSH_MARKETING_QUIET_HOURS: '광고성 알림은 밤 9시부터 아침 8시까지 보낼 수 없습니다. 야간 발송에는 별도 동의가 필요한데, 운명상회는 그 동의를 받지 않습니다. 아침 8시~밤 9시로 예약해 주세요.',
   PUSH_TITLE_REQUIRED: '제목을 입력해 주세요.',

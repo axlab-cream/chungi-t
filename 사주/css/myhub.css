@@ -573,3 +573,29 @@ body.umsh-has-chrome .payment-page {
 .myhub-skeleton span:nth-child(3) { width: 100%; height: 40px; }
 @keyframes myhub-skeleton-shine { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 @media (prefers-reduced-motion: reduce) { .myhub-skeleton span { animation: none; } }
+
+/* ── 내 쿠폰(2026-10-12): 다른 마이페이지와 같은 틀. 카드 마크업은 coupons.js 가 만든다(.coupon …) ── */
+.myhub-coupon-claim { display: grid; gap: 10px; margin-bottom: 26px; }
+.myhub-coupon-title { margin: 0 0 2px; color: var(--payment-cream); font-size: 15px; font-weight: 900; }
+.myhub-coupon-row { display: flex; gap: 8px; }
+.myhub-coupon-row input { flex: 1; min-width: 0; height: 52px; padding: 0 14px; border: 1px solid rgba(255, 247, 223, .14); border-radius: 8px; outline: 0; background: #080807; color: var(--payment-cream); font-size: 16px; text-transform: uppercase; }
+.myhub-coupon-row input::placeholder { text-transform: none; color: rgba(170, 162, 148, .6); }
+.myhub-coupon-row input:focus { border-color: var(--payment-gold); box-shadow: 0 0 0 3px rgba(216, 186, 114, .1); }
+.myhub-coupon-row .payment-submit { flex: none; min-width: 76px; min-height: 52px; padding: 0 16px; font-size: 15px; }
+.myhub-coupon-login { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+.myhub-coupon-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.myhub-coupon-heading .myhub-group-title { margin: 0; }
+.myhub-text-button { min-height: 44px; padding: 0 10px; border: 0; background: none; color: var(--payment-gold); font-size: 13px; font-weight: 800; cursor: pointer; }
+.myhub-text-button:disabled { color: var(--payment-muted); cursor: wait; }
+.myhub-coupon-state { margin: 0 2px 10px; color: var(--payment-muted); font-size: 12.5px; line-height: 1.6; }
+.myhub-coupons { display: grid; gap: 10px; margin-bottom: 26px; }
+.myhub-coupons .coupon { display: grid; gap: 6px; padding: 16px; border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); }
+.myhub-coupons .coupon[data-state="used"], .myhub-coupons .coupon[data-state="expired"], .myhub-coupons .coupon[data-state="disabled"] { opacity: .6; }
+.myhub-coupons .coupon-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.myhub-coupons .coupon-top h3 { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.45; word-break: keep-all; }
+.myhub-coupons .coupon-badge { flex: none; padding: 2px 9px; border: 1px solid var(--payment-line); border-radius: 999px; color: var(--payment-muted); font-size: 11px; font-weight: 800; white-space: nowrap; }
+.myhub-coupons .coupon[data-state="usable"] .coupon-badge { border-color: var(--payment-gold); background: var(--payment-gold); color: #17130b; }
+.myhub-coupons .coupon-benefit { margin: 0; color: var(--payment-gold); font-size: 18px; font-weight: 900; }
+.myhub-coupons .coupon-meta { margin: 0; color: var(--payment-muted); font-size: 12px; line-height: 1.6; word-break: keep-all; }
+.myhub-coupons .coupon-action { display: flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 4px; border: 1px solid var(--payment-gold); border-radius: 8px; color: var(--payment-gold); font-size: 13.5px; font-weight: 800; text-decoration: none; }
+.myhub-notes { display: grid; gap: 8px; margin: 0 0 18px; padding: 16px 16px 16px 30px; border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); color: var(--payment-muted); font-size: 12.5px; line-height: 1.65; word-break: keep-all; }

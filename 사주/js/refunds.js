@@ -36,7 +36,7 @@
         '<span>' + Number(order.amount).toLocaleString('ko-KR') + '원 · ' + helper.escapeHtml(helper.orderStatusLabel(order.status)) + '</span>' +
         '<span>' + helper.escapeHtml(helper.formatDate(order.createdAt)) + ' · 주문번호 ' + helper.escapeHtml(order.orderId) + '</span>' +
         (canAsk
-          ? '<a href="' + mailtoFor(order) + '">환불 문의 메일 보내기</a> · <a href="/support#inquiry">고객센터 문의</a>'
+          ? '<a href="' + mailtoFor(order) + '">환불 문의 메일 보내기</a> · <a href="/inquiries">1:1 문의</a>'
           : '<span>현재 상태에서는 환불 문의 대상이 아닐 수 있습니다. 정책과 고객센터를 확인해 주세요.</span>') +
         '</article>'
       );

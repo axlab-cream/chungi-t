@@ -36,7 +36,7 @@
   }
 
   function productPath(key) {
-    return ({ cmdg: '/cmdg/', love_this_year: '/love/this-year', home_pungsu: '/place/home', work_move: '/work/move', work_job: '/work/job', money_save: '/money/save', marry_match: '/match/marry', match_couple: '/match/couple', love_mind: '/love/mind', love_again: '/love/again', love_spouse: '/love/spouse' })[key] || '/';
+    return ({ cmdg: '/cmdg/', love_this_year: '/love/this-year', home_pungsu: '/place/home', work_move: '/work/move', work_job: '/work/job', money_save: '/money/save', marry_match: '/match/marry', match_couple: '/match/couple', love_mind: '/love/mind', love_again: '/love/again', love_spouse: '/love/spouse', cheonmyeong_consultation: '/consultation', cat_compatibility: '/match/cat', couple_signal: '/love/signal', job_choice: '/work/job-choice', quit_fortune: '/work/quit', lucky_color: '/me/lucky', pass_angle: '/me/pass-angle', newyear_flow: '/flow/newyear', wedding_day: '/day/wedding' })[key] || '/';
   }
 
   init().catch((error) => setStatus(error.message || '결제 내역을 불러오지 못했습니다.'));
