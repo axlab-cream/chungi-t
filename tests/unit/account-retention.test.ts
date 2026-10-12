@@ -34,7 +34,7 @@ function seed() {
   const owned = (id: string) => [
     { table: 'cheongi_user_profiles', row: { user_id: id, name: '회원' } },
     { table: 'cheongi_reports', row: { report_id: `rep-${id.slice(0, 4)}`, user_id: id } },
-    { table: 'cheongi_reports', row: { report_id: `consultation-${id.slice(0, 4)}`, user_id: id, user_email: `${id.slice(0, 4)}@example.com`, payload: { revision: 3, owner: { id }, auxiliary: { consultation: { credits: { freeUsed: true, usedByOrder: { 'ord-paid-1': 2 } }, checkoutOrderId: 'ord-paid-1', sessions: [{ id: 's1', history: [{ role: 'user', text: '헤어진 사람과 다시 만날까요' }] }], attempts: { r1: { hash: 'h', session: 's1', status: 'complete', charged: true } }, day: '', count: 0 } } } } },
+    { table: 'cheongi_reports', row: { report_id: `consultation-${id.slice(0, 4)}`, user_id: id, user_email: `${id.slice(0, 4)}@example.com`, payload: { revision: 3, owner: { id }, birth: { year: 1991, month: 7, day: 23, hour: 14, minute: 5, gender: 'male', calendar: 'solar', isLeapMonth: false }, auxiliary: { consultation: { credits: { freeUsed: true, usedByOrder: { 'ord-paid-1': 2 } }, checkoutOrderId: 'ord-paid-1', sessions: [{ id: 's1', history: [{ role: 'user', text: '헤어진 사람과 다시 만날까요' }] }], attempts: { r1: { hash: 'h', session: 's1', status: 'complete', charged: true } }, day: '', count: 0 } } } } },
     { table: 'support_cases', row: { id: `case-${id.slice(0, 4)}`, member_id: id, order_id: null, category: 'other' } },
     { table: 'support_cases', row: { id: `paycase-${id.slice(0, 4)}`, member_id: id, order_id: 'ord-paid-1', category: 'payment' } },
     { table: 'support_notes', row: { id: `note-${id.slice(0, 4)}`, case_id: `case-${id.slice(0, 4)}`, kind: 'customer_message', text: '문의 내용' } },
@@ -168,7 +168,7 @@ describe('탈퇴 후 결제 기록 보관', () => {
     assert.equal(db.umsh_funnel_events.find((r) => r.id === 'ev-aaaa')?.user_id, null)
     assert.equal(db.push_delivery_logs.find((r) => r.id === 'log-aaaa')?.user_id, null)
 
-    // 상담 이용권 행: 이용권 숫자는 남고 대화 내용과 이메일은 지워진다.
+    // 상담 이용권 행: 이용권 숫자는 남고 대화 내용·생년월일·이메일은 지워진다.
     const ledger = db.cheongi_reports.find((r) => r.report_id === 'consultation-aaaa')!
     assert.deepEqual(ledger.payload.auxiliary.consultation.sessions, [])
     assert.deepEqual(ledger.payload.auxiliary.consultation.credits, { freeUsed: true, usedByOrder: { 'ord-paid-1': 2 } })
@@ -176,6 +176,9 @@ describe('탈퇴 후 결제 기록 보관', () => {
     assert.equal(ledger.payload.revision, 4)
     assert.equal(ledger.user_email, null)
     assert.equal(JSON.stringify(ledger).includes('헤어진 사람'), false, '대화 내용이 남음')
+    assert.equal(ledger.payload.birth.year, 1900, '생년월일이 남음')
+    assert.equal(JSON.stringify(ledger).includes('1991'), false, '생년월일이 남음')
+    assert.ok(ledger.payload.anonymizedAt)
 
     // 쿠폰: 결제에 쓴 할인 쿠폰만 남는다.
     assert.deepEqual(coupon.data.wallets.filter((w) => w.ownerId === PAID).map((w) => w.id), ['wd-aaaa'])

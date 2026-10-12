@@ -12,7 +12,7 @@ import { removeWalletsForDeletedMember } from '../coupons/store.js'
  *   - 1:1 문의 글과 답변(support_cases·support_notes, 결제 관련 문의 제외)
  *   - 쿠폰함(coupon_state 의 wallets, 결제에 쓴 할인 쿠폰 제외)
  *   - 푸시 기기 연결(push_devices), 알림 설정(umsh_notification_prefs), 무료 미리보기 사용 기록
- *   - 상담 이용권 행 안의 대화 내용(sessions)과 이메일 — 이용권 사용 숫자만 남긴다
+ *   - 상담 이용권 행 안의 대화 내용(sessions)·생년월일·이메일 — 이용권 사용 숫자만 남긴다
  *   - 로그인 계정의 식별 정보
  * 회원 연결만 끊는 것(통계 행은 남고 누구 것인지는 사라진다)
  *   - 이용 흐름 통계(umsh_funnel_events.user_id), 푸시 발송 결과(push_delivery_logs.user_id)
@@ -35,7 +35,7 @@ export interface AccountDeletionStore {
   deleteRows(table: string, filters: Record<string, string>): Promise<void>
   /** 행은 남기고 칸 값만 바꾼다(회원 연결 끊기). 표가 없으면 아무것도 하지 않는다. */
   updateRows(table: string, filters: Record<string, string>, values: Record<string, unknown>): Promise<void>
-  /** 상담 이용권 행에서 대화 내용과 이메일을 지우고 이용권 숫자만 남긴다. */
+  /** 상담 이용권 행에서 대화 내용·생년월일·이메일을 지우고 이용권 숫자만 남긴다. */
   scrubConsultationLedger(userId: string): Promise<void>
   /** 쿠폰함에서 이 회원의 쿠폰을 지운다(결제에 쓴 할인 쿠폰은 남긴다). */
   deleteCouponWallets(userId: string): Promise<void>
@@ -67,6 +67,9 @@ const OWNED_ROWS: Array<{ table: string; filters: (userId: string) => Record<str
   { table: 'job_choice_free_preview_claims', filters: (userId) => ({ user_id: `eq.${userId}` }) },
   { table: 'umsh_notification_prefs', filters: (userId) => ({ user_id: `eq.${userId}` }) },
 ]
+
+/** 탈퇴한 회원의 상담 이용권 행에 넣는 자리표시 생년월일. 실제 생년월일은 남기지 않는다. */
+export const ANONYMIZED_BIRTH = { year: 1900, month: 1, day: 1, hour: 0, minute: 0, gender: 'female', calendar: 'solar', isLeapMonth: false } as const
 
 /** 행은 통계로 남기고 회원 id 만 비우는 표. 남은 행으로는 누구였는지 알 수 없다. */
 const UNLINKED_ROWS = ['umsh_funnel_events', 'push_delivery_logs']
@@ -175,7 +178,7 @@ export function restAccountDeletionStore(): AccountDeletionStore {
           const payload: LedgerPayload = row.payload ?? {}
           const ledger = payload.auxiliary?.consultation
           const hasConversation = Array.isArray(ledger?.sessions) && ledger.sessions.length > 0
-          if (!hasConversation && !row.user_email && !payload.owner?.email) continue
+          if (!hasConversation && !row.user_email && !payload.owner?.email && payload.anonymizedAt) continue
           const revision = payload.revision
           const next = structuredClone(payload)
           if (next.auxiliary?.consultation) {
@@ -183,6 +186,10 @@ export function restAccountDeletionStore(): AccountDeletionStore {
             delete next.auxiliary.consultation.lease
           }
           next.owner = { id: userId }
+          // 생년월일도 지운다(2026-10-12 사용자 결정). 보관함·관리자 화면의 공용 코드가 birth 모양을 기대하므로
+          // 칸을 없애지 않고 누구의 것도 아닌 고정값으로 바꾸고, 바꿨다는 표시(anonymizedAt)를 남긴다.
+          next.birth = ANONYMIZED_BIRTH
+          next.anonymizedAt = next.anonymizedAt ?? new Date().toISOString()
           next.revision = (typeof revision === 'number' ? revision : 0) + 1
           next.updatedAt = new Date().toISOString()
           const url = tableUrl('cheongi_reports', {
