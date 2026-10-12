@@ -122,18 +122,23 @@
       '커집니다':'커져', '흐려집니다':'흐려져', '보았습니다':'봤어',
       '않았습니다':'않았어', '풀었습니다':'풀었어', '하겠습니다':'할게',
       '나누세요':'나눠', '이어가세요':'이어가', '주세요':'줘',
-      '해요':'해', '돼요':'돼', '봐요':'봐', '두세요':'둬', '마세요':'마'
+      '해요':'해', '돼요':'돼', '봐요':'봐', '두세요':'둬', '마세요':'마',
+      '만들어요':'만들어', '살펴봅니다':'살펴봐', '열립니다':'열려',
+      '무엇인가요':'무엇이야', '인가요':'이야', '일까요':'일까', '할까요':'할까',
+      '보입니다만':'보이지만'
     };
     var suffix = new RegExp('(' + Object.keys(endings).sort(function(a,b){return b.length-a.length;}).join('|') + ')(?=[.!?。…]|\\s*$)', 'gm');
     // Quotes, code and URLs are source evidence, not the narrator's voice.
-    return raw.split(/(“[^”]*”|「[^」]*」|"[^"\n]*"|'[^'\n]*'|`[^`]*`|https?:\/\/\S+)/g).map(function(part,index) {
+    return raw.split(/(“[^”]*”|‘[^’]*’|「[^」]*」|&quot;[\s\S]*?&quot;|&#39;[\s\S]*?&#39;|"[^"\n]*"|'[^'\n]*'|`[^`]*`|https?:\/\/\S+)/g).map(function(part,index) {
       if (index % 2) return part;
       return part.replace(suffix,function(whole){return endings[whole];})
         .replace(/([가-힣])(?:입니다|이에요|예요)(?=[.!?。…]|\s*$)/gm,function(whole,last){
           return last + ((last.charCodeAt(0)-44032)%28 ? '이야' : '야');
         })
         .replace(/자네의/g,'네').replace(/자네는/g,'넌').replace(/자네가/g,'네가')
-        .replace(/자네를/g,'너를').replace(/자네에게/g,'너에게');
+        .replace(/자네를/g,'너를').replace(/자네에게/g,'너에게')
+        .replace(/당신의/g,'네').replace(/당신이/g,'네가').replace(/당신은/g,'넌')
+        .replace(/당신에게/g,'너에게').replace(/당신을/g,'너를');
     }).join('');
   }
 
@@ -807,7 +812,7 @@
     var member = payload && payload.memberContext && typeof payload.memberContext === 'object' ? payload.memberContext : {};
     var contextRows = Object.keys(labels).map(function (field) {
       var value = typeof member[field] === 'string' ? member[field].trim() : '';
-      return value ? '<li><strong>' + labels[field] + '</strong><span>' + escapeHtml(value) + '</span></li>' : '';
+      return value ? '<li><strong>' + labels[field] + '</strong><span data-cmdg-user>' + escapeHtml(value) + '</span></li>' : '';
     }).filter(Boolean).join('');
     var serviceKey = canonical((payload && payload.context && payload.context.serviceKey) || (payload && payload.report && payload.report.serviceKey) || key);
     var canShowCurve = Boolean(currentSegment && payload && payload.analysis);
@@ -860,7 +865,10 @@
     });
   }
   function cmdgExplainHtml(html) {
-    return html.replace('class="umsh-reading-guide"','class="umsh-reading-guide cmdg-plain-guide"').replace(/>([^<]+)</g,function(all,text){return '>'+cmdgPlainText(text)+'<';});
+    // Preserve the member's own words; only narrator text is adapted.
+    return html.replace('class="umsh-reading-guide"','class="umsh-reading-guide cmdg-plain-guide"').split(/(<(?:span|td) data-cmdg-user[^>]*>[\s\S]*?<\/(?:span|td)>)/g).map(function(part,index){
+      return index % 2 ? part : part.replace(/>([^<]+)</g,function(all,text){return '>'+cmdgDirectVoice(cmdgPlainText(text))+'<';});
+    }).join('');
   }
 
   function cmdgVisualSpec(section, payload) {
@@ -886,7 +894,7 @@
     } else if (['future-flow','sewoon-detail'].indexOf(section.id) >= 0) {
       put('현재 대운',cmdgKoreanPillar(f.currentDaewoon)); put('올해 기운',cmdgKoreanPillar(f.yearPillar)); put('기준 연도',Number.isFinite(f.currentYear)?String(f.currentYear)+'년':''); put('직접 세운 계획',m.planning);
     } else {put('내가 적은 고민',c.concern);put('일과 생활',m.work);put('관계',m.relationship);put('계획',m.planning);pillar('day','나를 읽는 날 기둥');}
-    return {type:'table',caption:'이 장에 연결된 나의 사주와 실제 상황',headers:['구분','나의 정보'],rows:rows.length?rows:[['추가 상황','아직 입력하지 않았습니다. 이 장 아래에 궁금한 상황을 적어 주세요.']]};
+    return {type:'table',caption:'이 장에 연결된 나의 사주와 실제 상황',headers:['구분','나의 정보'],rows:rows.length?rows:[['추가 상황','아직 네 상황을 듣지 못했어. 이 장 아래에 궁금한 일을 적어 줘.']]};
   }
 
   function cmdgElementText(value) {
@@ -905,12 +913,12 @@
   function cmdgPeriodMeaning(value, payload) {
     var name=cmdgKoreanPillar(value), pair=name.split(' 조합')[0].split('·');
     var meanings={나무:'배우고 시도하며 할 수 있는 일을 넓히는 힘',불:'생각과 감정을 밖으로 표현하는 힘',흙:'생활을 안정시키고 꾸준히 이어가는 힘',쇠:'해야 할 일과 그만둘 일을 구분하고 정리하는 힘',물:'상황을 살피고 유연하게 방법을 찾는 힘'};
-    var actions={나무:'작은 도전 하나를 꾸준히 이어가세요',불:'생각만 하지 말고 말이나 결과물로 표현해 보세요',흙:'지킬 수 있는 약속과 생활 습관부터 만들어요',쇠:'맡을 일과 거절할 일을 분명히 나누세요',물:'서두르기 전에 정보를 모으고 쉴 시간도 남겨두세요'};
+    var actions={나무:'작은 도전 하나를 정해 꾸준히 이어가 봐',불:'생각만 품고 있지 말고, 말이나 결과물로 꺼내 봐',흙:'거창한 다짐보다 네가 지킬 약속과 생활 습관부터 만들어',쇠:'네가 맡을 일과 거절할 일부터 분명히 나눠',물:'바로 뛰어들기 전에 정보를 모아. 네가 쉴 시간도 남겨 둬'};
     if(!meanings[pair[0]] || !meanings[pair[1]]) return '';
     var topic=function(e){return e+(['나무','쇠'].indexOf(e)>=0?'는 ':'은 ');};
-    var text=topic(pair[0])+meanings[pair[0]]+'을 뜻합니다. '+(pair[0]===pair[1]?'이 구간에는 같은 기운이 두 번 놓여 이 주제를 중심으로 살펴봅니다. ':topic(pair[1])+meanings[pair[1]]+'을 뜻합니다. ');
+    var text='이 시기에 네가 살필 건 '+meanings[pair[0]]+'이야. '+topic(pair[0])+'그 힘을 뜻하거든. '+(pair[0]===pair[1]?'같은 기운이 두 번 놓여 있으니, 이 주제를 중심으로 봐. ':topic(pair[1])+meanings[pair[1]]+'을 뜻해. 두 기운을 같이 봐야 해. ');
     var a=payload && payload.analysis || {}, personal=cmdgElementText(a.dayMaster && a.dayMaster.element || a.dayMasterElement);
-    if(meanings[personal]) text+='나의 기본 기운인 '+personal+' 기운과 이 두 기운을 함께 읽는 시기입니다. ';
+    if(meanings[personal]) text+='네 기본 기운은 '+personal+(['나무','쇠'].indexOf(personal)>=0?'야. ':'이야. ')+'이 두 기운이 네 바탕과 어떻게 맞물리는지 살펴봐. ';
     return text+'생활에서는 '+actions[pair[1]]+'.';
   }
 
@@ -941,7 +949,7 @@
     }).join('') + '</ol>';
     if (spec.type === 'check') html = '<ul class="umsh-cmdg-checks">' + spec.items.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul>';
     if (spec.type === 'table') html = '<div class="umsh-cmdg-table-scroll"><table><thead><tr>' + spec.headers.map(function (item) { return '<th scope="col">' + escapeHtml(item) + '</th>'; }).join('') + '</tr></thead><tbody>'
-      + spec.rows.map(function (row) { return '<tr>' + row.map(function (cell, index) { return '<' + (index ? 'td' : 'th scope="row"') + '>' + escapeHtml(cell) + '</' + (index ? 'td' : 'th') + '>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+      + spec.rows.map(function (row) { return '<tr>' + row.map(function (cell, index) { return '<' + (index ? 'td data-cmdg-user' : 'th scope="row"') + '>' + escapeHtml(cell) + '</' + (index ? 'td' : 'th') + '>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
     return '<figure class="umsh-cmdg-visual"><figcaption>' + escapeHtml(spec.caption) + '</figcaption>' + html + '</figure>';
   }
 
@@ -2714,14 +2722,14 @@
       if (epoch !== ownerEpoch || !global.UMSHCmdgReaderTools) return;
       global.UMSHCmdgReaderTools.mount(payload, function (path, options) {
         return rawFetch(path, Object.assign({}, options, { headers: Object.assign({ 'Content-Type': 'application/json' }, headerCache || {}) }));
-      }, function(text){return richText(cmdgPlainText(text));}, function () { return epoch === ownerEpoch; });
+      }, function(text){return richText(cmdgDirectVoice(cmdgPlainText(text)));}, function () { return epoch === ownerEpoch; }, cmdgDirectVoice);
     }
     if (global.UMSHCmdgReaderTools) { mount(); return; }
     var script = document.getElementById('cmdg-reader-tools-script');
     if (script) { script.addEventListener('load', mount, { once: true }); return; }
     script = document.createElement('script');
     script.id = 'cmdg-reader-tools-script';
-    script.src = '/js/umsh-cmdg-reader-tools.js?v=20260930d';
+    script.src = '/js/umsh-cmdg-reader-tools.js?v=20261012-full-tone';
     script.addEventListener('load', mount, { once: true });
     document.head.appendChild(script);
   }

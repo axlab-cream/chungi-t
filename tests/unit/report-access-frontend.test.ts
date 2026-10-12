@@ -625,7 +625,7 @@ test('saved report renders only the API-calculated daewoon timeline and shared m
   const html=h.nodes.get('umsh-verified-reading').innerHTML
   assert.match(html,/나이별로 살펴보는 나의 삶/)
   assert.match(html,/cmdg-period-explanation/)
-  assert.match(html,/쇠는 해야 할 일과 그만둘 일을 구분하고 정리하는 힘/)
+  assert.match(html,/네가 살필 건 해야 할 일과 그만둘 일을 구분하고 정리하는 힘/)
   assert.doesNotMatch(html,/庚辰|己卯/)
   assert.match(html,/나이별 시기를 자세히 읽기/)
   assert.match(html,/32~41세/)

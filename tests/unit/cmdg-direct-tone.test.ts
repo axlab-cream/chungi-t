@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 import { loadServiceSystemPrompt } from '../../src/prompt/service-system.js'
 import { reviewToneCopy } from '../../src/report/tone-v2-review.js'
+import { CMDG_READING_CONTRACT } from '../../src/report/cmdg-reading-contract.js'
 const source=readFileSync('사주/js/umsh-report-access.js','utf8')
 const start=source.indexOf('  function cmdgDirectVoice(')
 const end=source.indexOf('  function withCmdgTemplateImages(',start)
@@ -47,4 +48,32 @@ test('opening is added only to legacy formal verdicts and never accumulates',()=
  assert.equal(once.verdict.statement,'야, 너 — 권한을 확인해.')
  assert.equal(api.report(once,'saju_master').verdict.statement,once.verdict.statement)
  assert.equal(api.report({verdict:{statement:'네 기준부터 봐.'}},'saju_master').verdict.statement,'네 기준부터 봐.')
+})
+
+test('generated period and guide HTML use direct voice while user evidence is preserved',()=>{
+ const plain=source.slice(source.indexOf('  function cmdgPlainText('),source.indexOf('  function cmdgVisualSpec('))
+ const period=source.slice(source.indexOf('  function cmdgElementText('),source.indexOf('  function cmdgVisualHtml('))
+ const functions=runInNewContext(source.slice(start,end)+plain+period+';({html:cmdgExplainHtml,period:cmdgPeriodMeaning,stages:cmdgLifeStagesHtml})')
+ for(const pillar of ['계미','임오','신사','경진','갑자','갑인']) {
+  const text=functions.period(pillar,{analysis:{dayMaster:{element:'wood'}}})
+  assert.match(text,/네가 살필 건/)
+  assert.doesNotMatch(text,/니다|세요|어요|아요/)
+ }
+ const html=functions.html('<p>기운을 뜻합니다. <strong>확인하세요.</strong></p><span data-cmdg-user>저는 이직하고 싶어요.</span><td data-cmdg-user>질문입니다.</td>')
+ assert.match(html,/<p>기운을 뜻해/)
+ assert.match(html,/<strong>확인해\.<\/strong>/)
+ assert.match(html,/<span data-cmdg-user>저는 이직하고 싶어요\.<\/span>/)
+ assert.match(html,/<td data-cmdg-user>질문입니다\.<\/td>/)
+ assert.doesNotMatch(functions.html(functions.stages({analysis:{fortune:{daewoon:[]}}})),/습니다|입니다/)
+})
+
+test('additional readings use informal answer and follow-up while keeping the original question',()=>{
+ const reader=readFileSync('사주/js/umsh-cmdg-reader-tools.js','utf8')
+ const render=runInNewContext(reader.slice(reader.indexOf('  function esc('),reader.indexOf('  function styles('))+reader.slice(reader.indexOf('  function answerHtml('),reader.indexOf('  function historyHtml('))+';answerHtml')
+ const html=render({input:'왜 그런가요?',answer:{answer:'당신이 확인해야 합니다.',basis:'근거입니다.',turn:'확정은 아닙니다.',action:'적으십시오.',question:'무엇인가요?'}},api.voice,api.voice)
+ assert.match(html,/왜 그런가요\?/)
+ assert.match(html,/네가 확인해야 해/)
+ assert.match(html,/무엇이야\?/)
+ assert.doesNotMatch(html,/합니다|입니다|아닙니다|십시오/)
+ assert.match(CMDG_READING_CONTRACT,/추가 풀이와 자미두수에도 같은 말투/)
 })

@@ -5,7 +5,9 @@ import vm from 'node:vm'
 import { calculateZiwei, ziweiPalaceReading } from '../../src/saju/ziwei.js'
 const source=readFileSync('사주/js/umsh-report-access.js','utf8')
 const start=source.indexOf('  function cmdgPlainText('), end=source.indexOf('  function cmdgVisualSpec(',start)
+const voiceStart=source.indexOf('  function cmdgDirectVoice('), voiceEnd=source.indexOf('  function withCmdgDirectVoice(',voiceStart)
 const context=vm.createContext({})
+vm.runInContext(source.slice(voiceStart,voiceEnd),context)
 vm.runInContext(source.slice(start,end)+';this.plain=cmdgPlainText;this.html=cmdgExplainHtml;',context)
 test('천이의 실제 두 별은 쉬운 설명 두 개로 연결되고 위치 이름은 필요하지 않다',()=>{
  const r=ziweiPalaceReading('천이',[{name:'염정'},{name:'천상'}])
