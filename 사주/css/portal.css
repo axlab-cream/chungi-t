@@ -108,7 +108,7 @@ a:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 14px 20px 9px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--line-soft);
   background: rgba(8, 8, 7, 0.96);
 }

@@ -32,12 +32,18 @@ body::-webkit-scrollbar,
   display: none;
 }
 
+/*
+ * 세로 배치는 자식 개수에 기대지 않는다.
+ * grid-template-rows 로 "세 번째 칸이 1fr" 처럼 자리로 정해 두면,
+ * 가운데 요소 하나만 빠져도 엉뚱한 칸이 늘어난다(상담 입력창이 화면을 다 먹었다).
+ * flex 로 바꾸고 "대화 로그만 늘어난다"를 그 요소에 직접 적는다.
+ */
 .phone {
   width: min(100%, 440px);
   height: 100svh;
   max-height: none;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   background: #080302;
   color: var(--ink);
   box-shadow: 0 24px 80px rgba(13, 21, 35, 0.24);
@@ -52,7 +58,12 @@ body::-webkit-scrollbar,
   overflow: hidden;
 }
 
-.icon-button {
+/*
+ * 이 규칙은 이 화면이 직접 띄우는 뒤로 버튼(#btn-back)용이다.
+ * 공용 상단바의 뒤로 버튼도 같은 class 를 달고 있어서, 범위를 좁히지 않으면
+ * top/left 가 그쪽까지 밀어 메뉴 버튼과 어긋나고 겹친다.
+ */
+.icon-button:not(.umsh-chrome-back) {
   position: absolute;
   top: 12px;
   left: 17px;
@@ -120,14 +131,9 @@ body::-webkit-scrollbar,
   letter-spacing: 0.08em;
 }
 
-.saju-chip {
-  margin: 0;
-  padding: 0 20px 8px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .chat-log {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: none;
   padding: 8px 16px 12px;

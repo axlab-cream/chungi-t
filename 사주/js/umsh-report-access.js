@@ -1450,9 +1450,11 @@
   }
 
   function ensurePdfDock(host) {
-    // 06-1 상세 화면이 없는 서비스는 공용 리더(`/r/:id`)로 떨어진다. 보관함에서 여는 화면이
-    // 거기라서, 고유 주소도 상세 화면과 같이 PDF 를 받을 수 있어야 한다. 티저(04)는 제외 —
-    // 아직 열지 않은 본문의 PDF 를 권할 자리가 아니다.
+    // 2026-10-12: PDF 저장은 보관함(`/vault`) 카드 한 곳에서만 받는다.
+    // 결과 화면마다 따로 두면 같은 기능이 서비스별로 다른 자리에 생기고,
+    // 보관함 카드가 이미 "전부 생성됐을 때만" 이라는 조건을 쥐고 있다.
+    return;
+    /* eslint-disable no-unreachable */
     if (!isDetailPage() && !isPermalink()) return;
     ensurePrintStyles();
     if (document.querySelector('[data-umsh-pdf], #btn-pdf')) return;
@@ -1494,8 +1496,7 @@
     actions.setAttribute('data-umsh-reader-actions', '');
     actions.setAttribute('aria-label', '리포트 도구');
     actions.innerHTML = '<button type="button" data-umsh-report-share="' + escapeHtml(id) + '">링크 공유하기</button>'
-      + '<span role="status" aria-live="polite"></span>'
-      + '<button type="button" data-umsh-pdf>PDF 저장</button>';
+      + '<span role="status" aria-live="polite"></span>';
     anchor.appendChild(actions);
     return true;
   }

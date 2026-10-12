@@ -62,7 +62,7 @@ test('cmdg editorial review preserves full original interpretation while adding 
 })
 
 test('cmdg review has no PDF download control in the design review scope', () => {
-  assert.doesNotMatch(review, /data-review-pdf|PDF 다운받기/)
+  assert.doesNotMatch(review, /data-review-pdf|PDF 저장|PDF 다운받기/)
   assert.doesNotMatch(editorial, /beforeprint|afterprint|window\.print/)
   assert.doesNotMatch(styles, /review-pdf-dock/)
 })
