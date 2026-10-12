@@ -3008,3 +3008,10 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 ## 2026-10-12 CMDG video spacing
 - 98329a8f: measured chrome bounds and cover-fit video; CTA stays visible. Build + 8 tests PASS, 390x844 and 375x667 production verified. KMS personal/carrotcap/notes/cmdg-video-spacing-20261012.md.
 
+
+## 2026-10-12 CMDG video continuation
+- Request: append supplied 25s movie after existing 15s entrance; preserve registration CTA and mobile fit.
+- Normalize originals to H264/AAC 406x720/24fps and concatenate to one faststart MP4 (40.128s, 2,158,179 bytes vs 7,448,791 originals; 71% smaller). Avoid player/source handoff at the join.
+- Public Blob: cmdg/entry-sequence-20261012.mp4. Range206 and 1-year cache confirmed; old object retained for rollback.
+- Canonical and mirror changed only video URL. Full media decode, boundary/end frames, 8 focused tests, typecheck/build PASS. Local browser duration40.128/readyState4 and mobile CTA visible confirmed.
+- Reviewer and production verification pending. KMS target: personal/carrotcap/notes/cmdg-video-continuation-20261012.md.
