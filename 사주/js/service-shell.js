@@ -194,7 +194,7 @@
       desc: '궁금한 주제나 상품 분류로 빠르게 좁혀보세요.',
       items: [
         { label: '전체 상품', meta: '모든 운세 메뉴 보기', href: '/', status: '전체' },
-        { label: '종합사주', meta: '내 인생 전체 흐름', href: '/cmdg/', status: '49,900원' },
+        { label: '종합사주', meta: '내 인생 전체 흐름', href: '/cmdg/', status: '29,000원' },
         { label: '연애', meta: '도화와 관계 타이밍', href: '/love/this-year', status: '보기' },
         { label: '직업', meta: '일과 적성의 방향', href: '/work/job-choice', status: '보기' },
       ],

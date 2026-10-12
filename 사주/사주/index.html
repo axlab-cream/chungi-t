@@ -3651,7 +3651,7 @@
         }
       }
     </style>
-  </head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012a"><script src="/js/cmdg-master-teaser.js?v=20261012a"></script></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -7708,6 +7708,10 @@
       }
 
       function renderResult() {
+        if (!isLoveThisYearService() && window.UmshMasterTeaser) {
+          stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
+          return;
+        }
         if (isLoveThisYearService()) {
           renderLoveThisYearResult();
           return;
@@ -7941,8 +7945,8 @@
                 </ul>
                 <div class="price-slate" aria-label="복채 안내">
                   <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
-                  <div class="price-line"><span>천명사주 상담 연결</span><span>-13,100원</span></div>
-                  <div class="price-line final"><span>지금 열기</span><span>49,900원</span></div>
+                  <div class="price-line"><span>천명사주 상담 연결</span><span>-34,000원</span></div>
+                  <div class="price-line final"><span>지금 열기</span><span>29,000원</span></div>
                 </div>
               </div>
             </section>
@@ -8128,7 +8132,7 @@
           return;
         }
         const plans = [
-          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "21%", origin: "63,000원", price: "49,900원" },
+          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "약 54%", origin: "63,000원", price: "29,000원" },
         ];
         // Show the amount checkout will actually charge for every plan the catalog sells.
         plans.forEach((plan) => {

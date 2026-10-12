@@ -1,0 +1,497 @@
+/* Artwork and composition supplied in master-result.html. Scoped to CMDG teaser. */
+.cmdg-master-teaser p, .cmdg-master-teaser li { word-break:keep-all; overflow-wrap:anywhere; }
+.cmdg-master-teaser .price-slate { display:grid; gap:12px; margin-top:24px; padding-top:18px; border-top:1px solid #715631; }
+.cmdg-master-teaser .price-line { display:flex; justify-content:space-between; gap:12px; font-size:15px; }
+.cmdg-master-teaser .price-line:first-child span:last-child { text-decoration:line-through; }
+.cmdg-master-teaser .price-line.final { color:#f2bf6b; font-size:25px; font-weight:800; }
+.cmdg-master-teaser .primary-cta .cta-label { font-size: clamp(17px, 5vw, 22px); white-space: normal; }
+.cmdg-master-teaser button:focus-visible { outline: 3px solid #f2bf6b; outline-offset: 4px; }
+.cmdg-master-teaser .intro-pillars { display:flex; justify-content:space-between; gap:8px; padding:0; list-style:none; }
+.cmdg-master-teaser .intro-pillars li { min-width:0; text-align:center; }
+.cmdg-master-teaser .intro-pillars strong { display:block; color:#f2bf6b; font-size:22px; }
+@media (prefers-reduced-motion: reduce) { .cmdg-master-teaser *, .cmdg-master-teaser *::before, .cmdg-master-teaser *::after { animation:none!important; transition:none!important; } }
+.cmdg-master-teaser .story-section.sub-result-pillar-band {
+        padding: 22px 24px 64px;
+        background: #050202;
+      }
+.cmdg-master-teaser .story-section.sub-result-name-band {
+        padding: 30px 24px 34px;
+        background: #050202;
+        text-align: center;
+      }
+.cmdg-master-teaser .story-section.sub-result-quote-band {
+        display: grid;
+        gap: 18px;
+        padding: 30px 24px 34px;
+        background: #050202;
+        text-align: center;
+      }
+.cmdg-master-teaser .story-section.sub-result-quote-band[data-sample-section="palja-bridge"] {
+        padding: 64px 24px 68px;
+      }
+.cmdg-master-teaser .sub-result-quote-band p.ember-line {
+        position: relative;
+        isolation: isolate;
+        /* 덮개를 걷어낸 만큼 글자는 그림자로 배경에서 떼어 놓는다. */
+        text-shadow: 0 2px 10px rgba(5, 2, 2, 0.95), 0 0 24px rgba(5, 2, 2, 0.8);
+      }
+.cmdg-master-teaser .sub-result-quote-band p.ember-line::before,
+.cmdg-master-teaser .sub-result-quote-band p.ember-line::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        inset: -36px -24px;
+        pointer-events: none;
+      }
+.cmdg-master-teaser .sub-result-quote-band p.ember-line::before {
+        background: url("/assets/cmdg-teaser-20261012/b90485b72f05.webp") center / cover no-repeat;
+        filter: brightness(1.55) saturate(1.4);
+      }
+.cmdg-master-teaser .sub-result-quote-band p.ember-line::after {
+        background:
+          linear-gradient(to bottom, #050202 0%, rgba(5, 2, 2, 0.55) 16%, rgba(5, 2, 2, 0) 38%, rgba(5, 2, 2, 0) 62%, rgba(5, 2, 2, 0.55) 84%, #050202 100%),
+          radial-gradient(circle at center, rgba(5, 2, 2, 0) 24%, rgba(5, 2, 2, 0.62) 62%, #050202 86%);
+      }
+.cmdg-master-teaser .story-section.sub-result-quote-band[data-sample-section="flow-quote"],
+.cmdg-master-teaser .story-section.sub-result-quote-band[data-sample-section="wealth-quote-tail"] {
+        gap: 74px;
+        padding: 48px 24px 54px;
+      }
+.cmdg-master-teaser .story-section.sub-result-quote-band p {
+        margin: 0;
+        font-family: "Noto Serif KR", serif;
+        font-size: 24px;
+        font-weight: 400;
+        line-height: 1.55;
+        color: #f6e6c8;
+      }
+.cmdg-master-teaser .story-section.sub-result-quote-band p.quote-break {
+        margin-top: 44px;
+      }
+.cmdg-master-teaser .story-section.sub-result-quote-band p.quote-hanja::before {
+        content: "";
+        display: block;
+        width: min(268px, 74%);
+        height: 15px;
+        margin: 48px auto 34px;
+        background-image:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='15' viewBox='0 0 30 15'%3E %3Cpath d='M15 1.6 20.9 7.5 15 13.4 9.1 7.5z' fill='%230a0505' stroke='%23c9a063' stroke-opacity='.85' stroke-width='1'/%3E %3Cpath d='M15 4.1 18.4 7.5 15 10.9 11.6 7.5z' fill='%239c1b2c'/%3E %3C/svg%3E"),
+          linear-gradient(to right, transparent, rgba(201, 160, 99, 0.45) 18%, rgba(201, 160, 99, 0.45) 82%, transparent);
+        background-size: 30px 15px, 100% 1px;
+        background-position: center, center;
+        background-repeat: no-repeat;
+      }
+.cmdg-master-teaser .story-section.sub-result-quote-band p.quote-hanja {
+        margin-bottom: 14px;
+        font-size: 40px;
+        letter-spacing: 0.22em;
+        text-indent: 0.22em;
+        color: #f2bf6b;
+      }
+.cmdg-master-teaser .story-section.sub-result-name-band h2 {
+        margin: 0;
+        font-family: "Noto Serif KR", serif;
+        font-size: 40px;
+        font-weight: 400;
+        line-height: 1.15;
+        letter-spacing: 0.02em;
+      }
+.cmdg-master-teaser .intro-pillars {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px 20px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+.cmdg-master-teaser .intro-pillars li {
+        font-family: "Noto Serif KR", serif;
+        font-size: 26px;
+        font-weight: 400;
+        color: #f6e6c8;
+      }
+.cmdg-master-teaser .intro-pillars strong {
+        font-weight: 400;
+        color: inherit;
+      }
+.cmdg-master-teaser .source-copy .red,
+.cmdg-master-teaser .story-caption .red,
+.cmdg-master-teaser .story-visual .red,
+.cmdg-master-teaser .story-section .red,
+.cmdg-master-teaser .story-callout .red,
+.cmdg-master-teaser .story-list-item .red {
+        color: #ff3b35;
+        text-shadow:
+          0 0 7px rgba(255, 0, 0, 0.8),
+          0 0 22px rgba(255, 0, 0, 0.36);
+      }
+.cmdg-master-teaser .story-visual {
+        --panel-image: url("/assets/cmdg-teaser-20261012/90ccd2e7a3e8.webp");
+        position: relative;
+        min-height: 720px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 90px 22px 230px;
+        overflow: hidden;
+        background:
+          linear-gradient(to bottom, #050202 0%, rgba(5, 2, 2, 0.72) 9%, rgba(5, 2, 2, 0) 24%, rgba(5, 2, 2, 0) 68%, rgba(5, 2, 2, 0.78) 88%, #050202 100%),
+          var(--panel-image) center top / cover no-repeat;
+      }
+.cmdg-master-teaser .story-visual.tall {
+        min-height: 780px;
+      }
+.cmdg-master-teaser .story-visual.compact {
+        min-height: 560px;
+        padding: 118px 22px 150px;
+        background-position: center center;
+      }
+.cmdg-master-teaser .story-visual.statement {
+        min-height: 640px;
+        align-items: center;
+        padding: 118px 24px;
+      }
+.cmdg-master-teaser .story-visual.visual-intro {
+        --panel-image: url("/assets/cmdg-teaser-20261012/3d70a3c7f7bc.webp");
+      }
+.cmdg-master-teaser .story-visual.visual-intro .story-caption {
+        padding: 0 12px 54px;
+      }
+.cmdg-master-teaser .story-visual.visual-intro .story-caption h1 {
+        font-size: clamp(26px, 8vw, 38px);
+      }
+.cmdg-master-teaser .story-visual.visual-intro .bubble-cluster.right-low {
+        bottom: 310px;
+      }
+.cmdg-master-teaser .story-visual.visual-fan {
+        --panel-image: url("/assets/cmdg-teaser-20261012/3d70a3c7f7bc.webp");
+      }
+.cmdg-master-teaser .story-visual.visual-saju {
+        --panel-image: url("/assets/cmdg-teaser-20261012/7b69204c24b2.webp");
+      }
+.cmdg-master-teaser .story-visual.visual-wealth {
+        --panel-image: url("/assets/cmdg-teaser-20261012/c4005ada0c18.webp");
+      }
+.cmdg-master-teaser .story-visual.visual-romance {
+        --panel-image: url("/assets/cmdg-teaser-20261012/5cb0cdc3c5c4.webp");
+      }
+.cmdg-master-teaser .story-visual.visual-outro {
+        --panel-image: url("/assets/cmdg-teaser-20261012/7b69204c24b2.webp");
+      }
+.cmdg-master-teaser .bubble-layer {
+        pointer-events: none;
+      }
+.cmdg-master-teaser .story-visual {
+        min-height: 600px;
+        padding: 70px 22px 96px;
+      }
+.cmdg-master-teaser .story-visual.tall {
+        min-height: 600px;
+      }
+.cmdg-master-teaser .story-visual.compact {
+        min-height: 500px;
+        padding: 64px 22px 76px;
+      }
+.cmdg-master-teaser .story-visual.statement {
+        min-height: 530px;
+        padding: 64px 22px 76px;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="intro"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/844c81942209.webp");
+        min-height: 560px;
+        background-position: center 62%;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="personality-hero"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/9c9b85a4477d.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1024 / 1470;
+        background-position: center bottom;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="name-hero"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/c2d7b1509764.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1482 / 1062;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="romance-hero"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/ca1861b593e0.webp");
+        min-height: 0;
+        height: auto;
+        margin-top: 40px;
+        aspect-ratio: 1084 / 1451;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="romance-hands"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/86f317e2f23f.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 941 / 1672;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="romance-hush"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/469b686649ba.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1024 / 1536;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="romance-intro"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/c8e9c55b4561.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1024 / 1536;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="palja-portrait"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/ad617519110a.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1024 / 1536;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="palja-coldmage"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/2758a89846c9.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1024 / 1536;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="palja-a"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/92058fd076a4.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 941 / 1672;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="concern-rune"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/7ddee86281fb.webp");
+        min-height: 0;
+        height: auto;
+        margin-top: 36px;
+        aspect-ratio: 1024 / 1535;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="lastcall-crow"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/5457ac58e7ee.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1024 / 1536;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="lastcall-study"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/5abc31d1af2b.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 943 / 1667;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="wealth-coins"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/4969e226d162.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1374 / 1145;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="lastcall-ice"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/2ca69bf11d1a.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1774 / 887;
+        background-size: auto, 150%;
+        background-position: 0% 0%, 50% 70%;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="saju-evidence"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/5b248c99e11b.webp");
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="warning"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/edb28f9b7a3f.webp");
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="deal-portrait"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/abab2a9cd017.webp");
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 1081 / 1455;
+        background-size: auto, 126%;
+        background-position: center top, center 44%;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="flow-path"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/30348c8341f6.webp");
+        min-height: 0;
+        height: auto;
+        /* 위아래 빈 하늘이 넓어 틀을 줄이고 가운데를 기준으로 잘라 쓴다. */
+        aspect-ratio: 1536 / 2020;
+        background-position: center center;
+        opacity: 0.7;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="wealth-teaser"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/e4130d4cfb4f.webp");
+        opacity: 0.7;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="romance-teaser"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/923f2477d17a.webp");
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="outro"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/3763bfe761a9.webp");
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="hesitation"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/f7605fb6debb.webp");
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="last-saju-book"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/f362c6cefdf2.webp");
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="final-proof"] {
+        --panel-image: url("/assets/cmdg-teaser-20261012/3ea2e2ea9887.webp");
+      }
+.cmdg-master-teaser .image-only .bubble-layer,
+.cmdg-master-teaser .image-only .story-caption {
+        display: none;
+      }
+.cmdg-master-teaser .story-visual.quote-over {
+        align-items: center;
+        padding: 40px 26px;
+      }
+.cmdg-master-teaser .story-visual .visual-quote {
+        position: relative;
+        z-index: 2;
+        margin: 0;
+        font-family: "Noto Serif KR", serif;
+        font-size: 24px;
+        font-weight: 400;
+        line-height: 1.55;
+        color: #f6e6c8;
+        text-align: center;
+        text-shadow: 0 2px 12px rgba(5, 2, 2, 0.95), 0 0 30px rgba(5, 2, 2, 0.85);
+      }
+.cmdg-master-teaser .sub-result-text-band {
+        min-height: auto;
+        padding: 34px 22px 36px;
+        background:
+          radial-gradient(circle at 50% 0, rgba(154, 38, 31, 0.24), transparent 42%),
+          linear-gradient(180deg, #050202, #0d0504 52%, #050202);
+        text-align: center;
+      }
+.cmdg-master-teaser .sub-result-text-band .chapter {
+        margin-bottom: 10px;
+      }
+.cmdg-master-teaser .sub-result-text-band h2 {
+        margin: 0;
+        font-size: 29px;
+        line-height: 1.28;
+      }
+.cmdg-master-teaser .sub-result-text-band p {
+        max-width: 340px;
+        margin: 10px auto 0;
+        color: #f0d8bf;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.65;
+      }
+.cmdg-master-teaser .sub-result-meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 16px;
+      }
+.cmdg-master-teaser .sub-result-meta span {
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 226, 175, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.045);
+        color: #eac784;
+        font-size: 12px;
+        font-weight: 900;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="worry"] {
+        min-height: auto;
+        padding: 56px 22px;
+        background:
+          radial-gradient(circle at 50% 0, rgba(146, 32, 26, 0.28), transparent 48%),
+          linear-gradient(180deg, #050202, #100605 52%, #050202);
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="worry"] .hero-line {
+        margin-bottom: 14px;
+      }
+.cmdg-master-teaser .sub-result-summary {
+        display: grid;
+        gap: 10px;
+        width: 100%;
+        margin: 20px 0 16px;
+      }
+.cmdg-master-teaser .sub-result-card {
+        display: grid;
+        grid-template-columns: 86px 1fr;
+        gap: 12px;
+        align-items: center;
+        min-height: 70px;
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 226, 175, 0.16);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(127, 25, 18, 0.3), rgba(0, 0, 0, 0.22)),
+          rgba(255, 255, 255, 0.035);
+        text-align: left;
+      }
+.cmdg-master-teaser .sub-result-card strong {
+        color: var(--gold);
+        font-size: 13px;
+        font-weight: 900;
+      }
+.cmdg-master-teaser .sub-result-card span {
+        color: #f5dfc7;
+        font-size: 15px;
+        font-weight: 760;
+        line-height: 1.45;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="personality-story"] {
+        background:
+          linear-gradient(180deg, #050202, #120706 48%, #050202);
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="personality-story"] .story-copy,
+.cmdg-master-teaser.sub-result [data-sample-section="wealth-section"] .story-copy,
+.cmdg-master-teaser.sub-result [data-sample-section="destiny-card"] .story-copy,
+.cmdg-master-teaser.sub-result [data-sample-section="future-flow"] .story-copy {
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(255, 226, 175, 0.14);
+        border-radius: 10px;
+        background-color: rgba(8, 4, 4, 0.56);
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="personality-story"] .story-copy p,
+.cmdg-master-teaser.sub-result [data-sample-section="wealth-section"] .story-copy p,
+.cmdg-master-teaser.sub-result [data-sample-section="destiny-card"] .story-copy p,
+.cmdg-master-teaser.sub-result [data-sample-section="future-flow"] .story-copy p {
+        margin: 0;
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="future-flow"] .story-copy strong {
+        color: #f2bf6b;
+      }
+.cmdg-master-teaser .story-section.tall {
+        min-height: auto;
+        padding-top: 48px;
+        padding-bottom: 48px;
+      }
+.cmdg-master-teaser .story-visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 24%, transparent 0 24%, rgba(0, 0, 0, 0.32) 72%);
+      }
+.cmdg-master-teaser.sub-result [data-sample-section="personality-story"] .story-copy,
+.cmdg-master-teaser.sub-result [data-sample-section="wealth-section"] .story-copy,
+.cmdg-master-teaser.sub-result [data-sample-section="destiny-card"] .story-copy,
+.cmdg-master-teaser.sub-result [data-sample-section="future-flow"] .story-copy,
+.cmdg-master-teaser .package-card {
+        padding: 32px 26px;
+        border: 0;
+        border-radius: 0;
+        background-image:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='15' viewBox='0 0 30 15'%3E %3Cpath d='M1 7.5h9.5M19.5 7.5H29' stroke='%23c9a063' stroke-opacity='.55' stroke-width='1' shape-rendering='crispEdges'/%3E %3Cpath d='M15 1.6 20.9 7.5 15 13.4 9.1 7.5z' fill='%230a0505' stroke='%23c9a063' stroke-opacity='.85' stroke-width='1'/%3E %3Cpath d='M15 4.1 18.4 7.5 15 10.9 11.6 7.5z' fill='%239c1b2c'/%3E %3C/svg%3E"),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='15' viewBox='0 0 30 15'%3E%3Cg transform='rotate(180 15 7.5)'%3E %3Cpath d='M1 7.5h9.5M19.5 7.5H29' stroke='%23c9a063' stroke-opacity='.55' stroke-width='1' shape-rendering='crispEdges'/%3E %3Cpath d='M15 1.6 20.9 7.5 15 13.4 9.1 7.5z' fill='%230a0505' stroke='%23c9a063' stroke-opacity='.85' stroke-width='1'/%3E %3Cpath d='M15 4.1 18.4 7.5 15 10.9 11.6 7.5z' fill='%239c1b2c'/%3E %3C/g%3E%3C/svg%3E"),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E %3Cg fill='none' stroke='%23c9a063' stroke-width='1' shape-rendering='crispEdges'%3E %3Cpath d='M0.5 0.5H44M0.5 0.5V44' stroke-opacity='.6'/%3E %3Cpath d='M44 7.5H7.5V44' stroke-opacity='.26'/%3E %3Cpath d='M7.5 17.5H17.5V7.5' stroke-opacity='.42'/%3E %3C/g%3E %3Cpath d='M4 0.2 7.8 4 4 7.8 0.2 4z' fill='%230a0505' stroke='%23c9a063' stroke-opacity='.9' stroke-width='1'/%3E %3Cpath d='M17.5 12.5h5M12.5 17.5v5' stroke='%23c9a063' stroke-opacity='.3' stroke-width='1' shape-rendering='crispEdges'/%3E %3C/svg%3E"),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(90 22 22)'%3E %3Cg fill='none' stroke='%23c9a063' stroke-width='1' shape-rendering='crispEdges'%3E %3Cpath d='M0.5 0.5H44M0.5 0.5V44' stroke-opacity='.6'/%3E %3Cpath d='M44 7.5H7.5V44' stroke-opacity='.26'/%3E %3Cpath d='M7.5 17.5H17.5V7.5' stroke-opacity='.42'/%3E %3C/g%3E %3Cpath d='M4 0.2 7.8 4 4 7.8 0.2 4z' fill='%230a0505' stroke='%23c9a063' stroke-opacity='.9' stroke-width='1'/%3E %3Cpath d='M17.5 12.5h5M12.5 17.5v5' stroke='%23c9a063' stroke-opacity='.3' stroke-width='1' shape-rendering='crispEdges'/%3E %3C/g%3E%3C/svg%3E"),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(180 22 22)'%3E %3Cg fill='none' stroke='%23c9a063' stroke-width='1' shape-rendering='crispEdges'%3E %3Cpath d='M0.5 0.5H44M0.5 0.5V44' stroke-opacity='.6'/%3E %3Cpath d='M44 7.5H7.5V44' stroke-opacity='.26'/%3E %3Cpath d='M7.5 17.5H17.5V7.5' stroke-opacity='.42'/%3E %3C/g%3E %3Cpath d='M4 0.2 7.8 4 4 7.8 0.2 4z' fill='%230a0505' stroke='%23c9a063' stroke-opacity='.9' stroke-width='1'/%3E %3Cpath d='M17.5 12.5h5M12.5 17.5v5' stroke='%23c9a063' stroke-opacity='.3' stroke-width='1' shape-rendering='crispEdges'/%3E %3C/g%3E%3C/svg%3E"),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg transform='rotate(270 22 22)'%3E %3Cg fill='none' stroke='%23c9a063' stroke-width='1' shape-rendering='crispEdges'%3E %3Cpath d='M0.5 0.5H44M0.5 0.5V44' stroke-opacity='.6'/%3E %3Cpath d='M44 7.5H7.5V44' stroke-opacity='.26'/%3E %3Cpath d='M7.5 17.5H17.5V7.5' stroke-opacity='.42'/%3E %3C/g%3E %3Cpath d='M4 0.2 7.8 4 4 7.8 0.2 4z' fill='%230a0505' stroke='%23c9a063' stroke-opacity='.9' stroke-width='1'/%3E %3Cpath d='M17.5 12.5h5M12.5 17.5v5' stroke='%23c9a063' stroke-opacity='.3' stroke-width='1' shape-rendering='crispEdges'/%3E %3C/g%3E%3C/svg%3E"),
+          linear-gradient(to bottom, rgba(201,160,99,.6) 0 1px, transparent 1px 7px, rgba(201,160,99,.26) 7px 8px, transparent 8px),
+          linear-gradient(to top, rgba(201,160,99,.6) 0 1px, transparent 1px 7px, rgba(201,160,99,.26) 7px 8px, transparent 8px),
+          linear-gradient(to right, rgba(201,160,99,.6) 0 1px, transparent 1px 7px, rgba(201,160,99,.26) 7px 8px, transparent 8px),
+          linear-gradient(to left, rgba(201,160,99,.6) 0 1px, transparent 1px 7px, rgba(201,160,99,.26) 7px 8px, transparent 8px);
+        background-position: top center, bottom center, top left, top right, bottom right, bottom left, top left, bottom left, top left, top right;
+        background-size: 30px 15px, 30px 15px, 44px 44px, 44px 44px, 44px 44px, 44px 44px, 100% 8px, 100% 8px, 8px 100%, 8px 100%;
+        background-repeat: no-repeat;
+      }
+.cmdg-master-teaser .package-card {
+        background-color: transparent;
+        box-shadow: none;
+      }
