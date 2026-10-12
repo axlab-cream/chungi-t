@@ -10,8 +10,9 @@
       "accent": "gold",
       "thumbnail": "/assets/umsh-cmdg-card-bg.webp",
       "guide": ["타고난 결에서 먼저 드러나는 강점", "지금 대운에서 속도를 조절할 지점", "반복되는 선택을 바꾸는 한 가지"],
-      "cutA": "/assets/umsh-cmdg-card-bg.webp",
-      "cutB": "/assets/cmdg-wood-path-highlight-v2.webp",
+      "summaryImage": "/assets/cmdg-report-20261009/00-summary.webp",
+      "cutA": "/assets/cmdg-report-20261009/00-summary.webp",
+      "cutB": "/assets/cmdg-report-20261009/01-highlight.webp",
       "highlights": [
         { "title": "타고난 그릇과 쓰는 법", "shape": "타고난 축을 한 문단으로 짚고, 지금 그것을 어떻게 쓰고 있는지 한 문단으로 잇는다" },
         { "title": "지금 대운의 위치", "shape": "들어온 대운과 남은 구간을 한 문단씩 놓고, 마지막 문단에서 지금 위치를 못 박는다" },

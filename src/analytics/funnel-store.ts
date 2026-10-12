@@ -144,7 +144,9 @@ export interface FunnelSummary {
   truncated: boolean
 }
 
-export const PURCHASE_STAGES = ['intro', 'input', 'teaser', 'checkout'] as const
+// 2026-10-08: 9단계로 세분화(소개 → 입력 시작 → 입력 완료 → 무료 결과 → 잠긴 목차 → 구매 버튼 → 결제 화면 → 결제창 → 결제 완료).
+// 결제 완료는 주문 저장소에서 센다. 입력 완료~결제창은 수집기가 남기는 `funnel:` 표시로 센다.
+export const PURCHASE_STAGES = ['intro', 'input', 'inputDone', 'teaser', 'locked', 'buy', 'checkout', 'payOpen'] as const
 export type PurchaseStage = (typeof PURCHASE_STAGES)[number]
 
 /**
@@ -154,13 +156,17 @@ export type PurchaseStage = (typeof PURCHASE_STAGES)[number]
  */
 export interface PurchaseFunnel {
   stages: Record<PurchaseStage, number>
-  services: Array<{ serviceKey: string } & Record<Exclude<PurchaseStage, 'checkout'>, number>>
+  services: Array<{ serviceKey: string } & Record<PurchaseStage, number>>
   /** 결제 완료. 주문 조회 권한이 있을 때만 서버가 붙인다. */
   paid?: { orders: number; amount: number; byProduct: Array<{ productKey: string; orders: number; amount: number }> }
 }
 
 // 무료 서비스: 결제 상품이 아니다(무료 테스트 2종, 오늘운).
 const FREE_PLAY_SERVICES = new Set(['love_speed', 'solo_nara', 'today_fortune'])
+
+/** 수집기 표시(`funnel:<이름>`) → 구매 퍼널 단계. */
+const FUNNEL_MARKERS: Record<string, PurchaseStage> = { input_done: 'inputDone', locked_view: 'locked', buy_click: 'buy', checkout: 'checkout', pay_open: 'payOpen' }
+const emptyStageSets = () => Object.fromEntries(PURCHASE_STAGES.map((stage) => [stage, new Set<string>()])) as Record<PurchaseStage, Set<string>>
 
 /** 결제 결과·테스트 화면을 빼고 실제 결제 화면만. */
 const CHECKOUT_ROUTE = /^\/payment(\/|\/index\.html)?$/
@@ -320,8 +326,15 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod | 'c
   const ctaClicks = new Map<string, { serviceKey: string | null; target: string | null; clicks: number }>()
   const sessions = new Set<string>()
   const signedInUsers = new Set<string>()
-  const stageSessions = Object.fromEntries(PURCHASE_STAGES.map((stage) => [stage, new Set<string>()])) as Record<PurchaseStage, Set<string>>
-  const serviceStages = new Map<string, Record<Exclude<PurchaseStage, 'checkout'>, Set<string>>>()
+  const stageSessions = emptyStageSets()
+  const serviceStages = new Map<string, Record<PurchaseStage, Set<string>>>()
+  const addStage = (stage: PurchaseStage, row: FunnelRow) => {
+    stageSessions[stage].add(row.session_id)
+    if (!row.service_key) return
+    const entry = serviceStages.get(row.service_key) ?? emptyStageSets()
+    entry[stage].add(row.session_id)
+    serviceStages.set(row.service_key, entry)
+  }
   const sessionChannel = new Map<string, string>()
   const signupSessions = { wall: new Set<string>(), click: new Set<string>(), complete: new Set<string>() }
   const methodClicks = new Map<string, Set<string>>()
@@ -332,14 +345,9 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod | 'c
     if (row.event === 'step_view') {
       // 무료 테스트(금사빠·솔로나라)는 결제 상품이 아니다. 구매 퍼널 소개 단계를 부풀리지 않게 뺀다.
       const stage = FREE_PLAY_SERVICES.has(row.service_key ?? '') ? null : purchaseStageOf(row)
-      if (stage) {
-        stageSessions[stage].add(row.session_id)
-        if (stage !== 'checkout' && row.service_key) {
-          const entry = serviceStages.get(row.service_key) ?? { intro: new Set<string>(), input: new Set<string>(), teaser: new Set<string>() }
-          entry[stage].add(row.session_id)
-          serviceStages.set(row.service_key, entry)
-        }
-      }
+      // 결제 화면 주소(/payment)에는 서비스가 없어 전체 수에만 더한다. 서비스별 결제 화면은 결제 화면이 남긴 표시로 센다.
+      if (stage === 'checkout') stageSessions.checkout.add(row.session_id)
+      else if (stage) addStage(stage, row)
       sessions.add(row.session_id)
       if (row.user_id) signedInUsers.add(row.user_id)
 
@@ -356,6 +364,9 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod | 'c
       const step = row.step ?? 'other'
       serviceEntry.steps[step] = (serviceEntry.steps[step] ?? 0) + 1
       serviceViews.set(serviceKey, serviceEntry)
+    } else if (row.event === 'cta_click' && (row.target ?? '').startsWith('funnel:')) {
+      const stage = FUNNEL_MARKERS[(row.target as string).slice('funnel:'.length)]
+      if (stage && !FREE_PLAY_SERVICES.has(row.service_key ?? '')) addStage(stage, row)
     } else if (row.event === 'cta_click' && (row.target ?? '').startsWith('source:')) {
       // 행은 최신순으로 온다. 덮어쓰면 그 방문의 가장 이른 채널이 남는다.
       sessionChannel.set(row.session_id, (row.target as string).slice('source:'.length) || 'other')
@@ -397,7 +408,7 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod | 'c
     purchase: {
       stages: Object.fromEntries(PURCHASE_STAGES.map((stage) => [stage, stageSessions[stage].size])) as Record<PurchaseStage, number>,
       services: [...serviceStages]
-        .map(([serviceKey, entry]) => ({ serviceKey, intro: entry.intro.size, input: entry.input.size, teaser: entry.teaser.size }))
+        .map(([serviceKey, entry]) => ({ serviceKey, ...(Object.fromEntries(PURCHASE_STAGES.map((stage) => [stage, entry[stage].size])) as Record<PurchaseStage, number>) }))
         .sort((a, b) => b.intro - a.intro || b.teaser - a.teaser),
     },
     acquisition: summarizeChannels(sessionChannel, stageSessions, signupSessions.complete),
@@ -424,7 +435,7 @@ export function summarizeFunnelRows(rows: FunnelRow[], period: FunnelPeriod | 'c
 export async function summarizeFunnel(period: FunnelPeriod | 'custom', limit = 5000, range?: { since: string; until: string }): Promise<FunnelSummary> {
   const since = range?.since ?? periodStart(period === 'custom' ? 'day' : period)
   const until = range?.until
-  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), soloNara: summarizeSoloNaraRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], purchase: { stages: { intro: 0, input: 0, teaser: 0, checkout: 0 }, services: [] }, acquisition: [], signupFunnel: { wall: 0, click: 0, complete: 0, methods: [] }, ctas: [], sampled: 0, truncated: false }
+  const empty: FunnelSummary = { period, since, available: false, loveSpeed: summarizeLoveSpeedRows([]), soloNara: summarizeSoloNaraRows([]), overview: { views: 0, sessions: 0, signedInUsers: 0 }, services: [], steps: [], purchase: { stages: { intro: 0, input: 0, inputDone: 0, teaser: 0, locked: 0, buy: 0, checkout: 0, payOpen: 0 }, services: [] }, acquisition: [], signupFunnel: { wall: 0, click: 0, complete: 0, methods: [] }, ctas: [], sampled: 0, truncated: false }
   if (!opsStoreAvailable()) return empty
 
   const safeLimit = Math.min(Math.max(limit, 1), 20000)

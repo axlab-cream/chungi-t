@@ -30,17 +30,21 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
-    <link rel="stylesheet" href="/css/myhub.css?v=20260922-profile-simple" /><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20261008-field-error" /><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3" />
   </head>
   <body class="umsh-fields">
     <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
       <header class="appbar topbar"></header>
       <section class="payment-shell" aria-labelledby="page-title">
-        <p class="payment-eyebrow">MY · PROFILE</p>
+        <p class="payment-eyebrow">MY</p>
         <h1 id="page-title">개인정보 수정</h1>
         <p class="payment-intro">사주 기본 정보만 저장하세요. 직장·관계 조건을 미리 적을 필요는 없어요.</p>
-        <form class="payment-form profile-form" id="profile-form">
-          <label class="payment-label">이름<input name="name" type="text" required maxlength="20" autocomplete="name" /></label>
+        <form class="payment-form profile-form" id="profile-form" novalidate>
+          <div class="profile-field">
+            <label class="payment-label" for="profile-name">이름 <span class="field-required" aria-hidden="true">필수</span></label>
+            <input id="profile-name" name="name" type="text" required aria-required="true" maxlength="20" autocomplete="name" placeholder="한글 이름 (예: 김운명)" aria-describedby="error-name" />
+            <p class="field-error" id="error-name" data-error-for="name" hidden></p>
+          </div>
           <div class="profile-row">
             <label class="payment-label">성별
               <select name="gender" required>
@@ -56,7 +60,8 @@
             </label>
           </div>
           <div>
-            <label class="payment-label">생년월일<input name="birth" type="date" min="1900-01-01" autocomplete="bday" required /></label>
+            <label class="payment-label">생년월일<input name="birth" type="date" min="1900-01-01" autocomplete="bday" required aria-required="true" aria-describedby="error-birth" /></label>
+            <p class="field-error" id="error-birth" data-error-for="birth" hidden></p>
           </div>
           <div class="profile-time-choice">
             <span class="payment-label">태어난 시간</span>
@@ -66,7 +71,8 @@
             </div>
           </div>
           <div class="profile-row profile-time-fields" data-time-fields>
-            <label class="payment-label">태어난 시각<input name="time" type="time" step="60" value="12:00" /></label>
+            <label class="payment-label">태어난 시각<input name="time" type="time" step="60" value="12:00" aria-describedby="error-time" /></label>
+            <p class="field-error" id="error-time" data-error-for="time" hidden></p>
           </div>
           <button class="payment-submit" type="submit">프로필 저장</button>
           <p class="payment-status" data-profile-status role="status" aria-live="polite"></p>
@@ -78,6 +84,6 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-account-pages.js?v=20260901-myhub"></script>
-    <script src="/js/profile.js?v=20260922-profile-simple"></script>
+    <script src="/js/profile.js?v=20261008-save-error"></script>
   </body>
 </html>

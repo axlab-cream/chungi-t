@@ -37,11 +37,16 @@ test('결제 화면은 모바일 키트와 같은 430·52px 터치를 쓴다', (
   assert.doesNotMatch(css, /680px/)
 })
 
-test('작은 화면에서 공용 상단바 패딩이 줄어든다', () => {
+// 2026-10-08: 하단 탭 화면의 공용 상단바는 홈(portal.css)과 같은 여백·로고 크기를 쓴다.
+test('공용 상단바가 홈과 같은 크기를 쓴다(PC·520px·360px)', () => {
   const shell = readFileSync(join(CSS, 'service-shell.css'), 'utf8')
-  assert.match(shell, /@media \(max-width:\s*430px\)/)
-  assert.match(shell, /width:\s*112px/)
-  assert.match(shell, /width:\s*100px/)
+  const portal = readFileSync(join(CSS, 'portal.css'), 'utf8')
+  for (const value of ['padding: 14px 20px 9px', 'padding: 7px 14px 6px', 'width: 106px', 'width: 90px', 'width: 80px']) {
+    assert.ok(portal.includes(value), `홈에 ${value} 없음`)
+    assert.ok(shell.includes(value), `공용 상단바에 ${value} 없음`)
+  }
+  assert.match(shell, /@media \(max-width:\s*520px\)/)
+  assert.match(shell, /@media \(max-width:\s*360px\)/)
 })
 
 test('고객 HTML 레이아웃은 100vw 대신 퍼센트 폭을 쓴다', () => {

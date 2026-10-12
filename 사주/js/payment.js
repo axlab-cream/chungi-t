@@ -170,6 +170,7 @@
     if (selectedCoupon?.kind === 'service_free') { setStatus('무료 이용권으로 풀이 열기 버튼을 눌러 주세요.'); return; }
     const paymentOwnerId = session.user.id;
     global.UMSHAnalytics?.addPaymentInfo?.(product, couponAmount(selectedCoupon));
+    trackFunnel('pay_open');
     const testPopup = paymentConfig.testMode ? openTestPopup() : null;
     if (paymentConfig.testMode && !testPopup) {
       setStatus('브라우저에서 팝업을 허용한 뒤 다시 시도해 주세요.');
@@ -236,6 +237,14 @@
   const couponStatus = document.querySelector('[data-coupon-status]');
   const freeCouponButton = document.querySelector('[data-free-coupon]');
   let couponItems = [];
+  /** 관리자 구매 퍼널: 결제 화면·결제창 열기를 상품(서비스)과 함께 남긴다. 수집기가 늦게 실리면 줄을 세워 둔다. */
+  function trackFunnel(name) {
+    const item = { target: 'funnel:' + name, serviceKey: product?.key };
+    try {
+      if (global.UMSHTrack?.push) global.UMSHTrack.push('cta_click', item);
+      else (global.__umshTrackQueue = global.__umshTrackQueue || []).push(item);
+    } catch (_error) { /* 측정 실패가 결제를 막지 않는다. */ }
+  }
   /** 화면에 보이는 금액. 실제 청구액은 서버가 쿠폰을 다시 확인해 정한다. */
   function couponAmount(item) {
     let amount = product.amount;
@@ -343,6 +352,7 @@
     setProduct(product);
     applyAppPrice().catch(() => {});
     global.UMSHAnalytics?.beginCheckout?.(product);
+    trackFunnel('checkout');
     if (!paymentConfig.checkoutEnabled) {
       setStatus(paymentConfig.setupMessage || '결제 모듈 준비 중입니다.');
       return;

@@ -18,10 +18,10 @@
   var LEGACY = {newyear_flow:['umsh_newyear_report_v1'],love_this_year:['umsh:report:love_this_year'],job_choice:['umsh:report:job_choice'],quit_fortune:['umsh_quit_report_v1'],money_save:['umsh_save_report_v1'],cat_compatibility:['umsh:report:cat_compatibility'],lucky_color:['umsh:report:lucky_color'],match_couple:['umsh:couple-match:report-v1'],marry_match:['umsh_marry_report_v1'],couple_signal:['umsh:report:couple_signal'],pass_angle:['umsh_pass_angle_report_v1'],work_move:['umsh_work_move_report_v1','umsh_work_move_analysis_v1'],home_fit:['umsh_home_fit_report_v1'],saju_master:['cheongi_analysis']};
   var NESTED = {work_move:['umsh_work_move_input_payload_v1','umsh:work_move:form_v1'],home_fit:['umsh_home_fit_step2_payload_v1','umsh_home_fit_input_payload_v1']};
   var CMDG_TEMPLATE_IMAGES = {
-    profile: '01-core-strength.png', 'day-master-strength': '02-resilience.png', 'hidden-personality': '03-private-presence.png', balance: '04-energy-focus.png',
-    'useful-god-eokbu': '05-restoration.png', 'concern-loop': '06-priority.png', 'career-money': '07-work-money.png', 'career-transition': '08-stay-or-move.png',
-    'wealth-flow': '09-value-created.png', 'love-loop': '10-relationship-pattern.png', 'destiny-partner': '11-relationship-atmosphere.png', 'avoid-relationship': '12-boundary.png',
-    'love-timing': '13-relationship-timing.png', 'future-flow': '14-long-current.png', 'sewoon-detail': '15-yearly-change.png', 'action-guide': '16-next-signal.png'
+    profile: '02-core-strength.webp', 'day-master-strength': '03-resilience.webp', 'hidden-personality': '04-criteria.webp', balance: '05-energy-focus.webp',
+    'useful-god-eokbu': '06-restoration.webp', 'concern-loop': '07-priority.webp', 'career-money': '08-work-money.webp', 'career-transition': '09-stay-move.webp',
+    'wealth-flow': '10-value.webp', 'love-loop': '11-pattern.webp', 'destiny-partner': '12-comfort.webp', 'avoid-relationship': '13-boundary.webp',
+    'love-timing': '14-timing.webp', 'future-flow': '15-long-flow.webp', 'sewoon-detail': '16-year-change.webp', 'action-guide': '17-next-signal.webp'
   };
   var CMDG_CARD_TITLES = {
     profile: '타고난 강점을 쓰는 법', 'day-master-strength': '힘들 때 버티는 방식', 'hidden-personality': '선택할 때 드러나는 기준', balance: '내 힘이 집중되는 곳',
@@ -89,6 +89,78 @@
   function usesSummaryOnlyImages(serviceKey, config) {
     return Boolean((config && config.sectionImageMode === 'summary-only') || SUMMARY_ONLY_SERVICE_KEYS[canonical(serviceKey || key)]);
   }
+  // Legacy narrator copy only. Keep records, user inputs, quotations and facts intact.
+  function cmdgDirectVoice(raw) {
+    if (typeof raw !== 'string') return raw;
+    var endings = {
+      '해야 합니다':'해야 해', '봐야 합니다':'봐야 해', '보아야 합니다':'봐야 해',
+      '보아서는 안 됩니다':'보면 안 돼', '해서는 안 됩니다':'하면 안 돼',
+      '않아야 합니다':'않아야 해', '할 수 있습니다':'할 수 있어', '수 없습니다':'수 없어',
+      '뜻은 아닙니다':'뜻은 아니야', '것이 아닙니다':'게 아니야', '아닙니다':'아니야',
+      '보십시오':'봐', '하십시오':'해', '마십시오':'마', '두십시오':'둬',
+      '기록하십시오':'기록해', '물으십시오':'물어봐', '고르십시오':'골라',
+      '확인하세요':'확인해', '살펴보세요':'살펴봐', '보세요':'봐', '하세요':'해',
+      '있습니다':'있어', '없습니다':'없어', '있어요':'있어', '없어요':'없어',
+      '있겠죠':'있겠지', '됩니다':'돼', '합니다':'해', '했습니다':'했어',
+      '않습니다':'않아', '같습니다':'같아', '많습니다':'많아', '적습니다':'적어',
+      '높습니다':'높아', '낮습니다':'낮아', '좁습니다':'좁아', '넓습니다':'넓어',
+      '깊습니다':'깊어', '읽힙니다':'읽혀', '보입니다':'보여', '잡힙니다':'잡혀',
+      '놓입니다':'놓여', '놓여 있습니다':'놓여 있어', '드러납니다':'드러나',
+      '나타납니다':'나타나', '뜻합니다':'뜻해', '필요합니다':'필요해',
+      '중요합니다':'중요해', '반복됩니다':'반복돼', '정해집니다':'정해져',
+      '달라집니다':'달라져', '어렵습니다':'어려워', '쉽습니다':'쉬워',
+      '가깝습니다':'가까워', '다릅니다':'달라', '빠릅니다':'빨라',
+      '큽니다':'커', '바뀝니다':'바뀌어', '남습니다':'남아', '생깁니다':'생겨',
+      '이어집니다':'이어져', '받습니다':'받아', '쌓입니다':'쌓여',
+      '거예요':'거야', '것입니다':'거야', '것이에요':'거야',
+      '수 있습니다':'수 있어', '때문입니다':'때문이야', '약합니다':'약해',
+      '남기십시오':'남겨', '미루십시오':'미뤄', '읽으십시오':'읽어', '쓰십시오':'써',
+      '적으십시오':'적어', '삼으십시오':'삼아', '움직이십시오':'움직여',
+      '어울립니다':'어울려', '읽습니다':'읽어', '좋습니다':'좋아', '맞습니다':'맞아',
+      '갑니다':'가', '봅니다':'봐', '불러옵니다':'불러와', '놓였습니다':'놓였어',
+      '살아납니다':'살아나', '끊깁니다':'끊겨', '소모시킵니다':'소모시켜', '중요해집니다':'중요해져',
+      '커집니다':'커져', '흐려집니다':'흐려져', '보았습니다':'봤어',
+      '않았습니다':'않았어', '풀었습니다':'풀었어', '하겠습니다':'할게',
+      '나누세요':'나눠', '이어가세요':'이어가', '주세요':'줘',
+      '해요':'해', '돼요':'돼', '봐요':'봐', '두세요':'둬', '마세요':'마'
+    };
+    var suffix = new RegExp('(' + Object.keys(endings).sort(function(a,b){return b.length-a.length;}).join('|') + ')(?=[.!?。…]|\\s*$)', 'gm');
+    // Quotes, code and URLs are source evidence, not the narrator's voice.
+    return raw.split(/(“[^”]*”|「[^」]*」|"[^"\n]*"|'[^'\n]*'|`[^`]*`|https?:\/\/\S+)/g).map(function(part,index) {
+      if (index % 2) return part;
+      return part.replace(suffix,function(whole){return endings[whole];})
+        .replace(/([가-힣])(?:입니다|이에요|예요)(?=[.!?。…]|\s*$)/gm,function(whole,last){
+          return last + ((last.charCodeAt(0)-44032)%28 ? '이야' : '야');
+        })
+        .replace(/자네의/g,'네').replace(/자네는/g,'넌').replace(/자네가/g,'네가')
+        .replace(/자네를/g,'너를').replace(/자네에게/g,'너에게');
+    }).join('');
+  }
+
+  function withCmdgDirectVoice(report, serviceKey) {
+    if (serviceKey !== 'saju_master' || !report) return report;
+    function fields(value,names) {
+      if (!value) return value;
+      var copy=Object.assign({},value);
+      names.forEach(function(name){if(typeof copy[name]==='string')copy[name]=cmdgDirectVoice(copy[name]);});
+      return copy;
+    }
+    var copy=fields(report,['subtitle']);
+    copy.verdict=fields(report.verdict,['statement']);
+    if (copy.verdict && copy.verdict.statement && /(?:니다|십시오)(?=[.!?。\s]|$)/.test(report.verdict.statement) && !/^야[,，\s]/.test(copy.verdict.statement)) copy.verdict.statement='야, 너 — '+copy.verdict.statement;
+    copy.summary=fields(report.summary,['text']);
+    copy.highlights=Array.isArray(report.highlights)?report.highlights.map(function(item){return fields(item,['text']);}):report.highlights;
+    copy.sections=Array.isArray(report.sections)?report.sections.map(function(item){
+      var section=fields(item,['hook','interpretation','action','summary']);
+      if(item.storytelling){
+        section.storytelling=fields(item.storytelling,['feel','softBridge','scene','tableCaption','chartCaption','flowCaption']);
+        if(Array.isArray(item.storytelling.actions))section.storytelling.actions=item.storytelling.actions.map(cmdgDirectVoice);
+      }
+      return section;
+    }):report.sections;
+    return copy;
+  }
+
   function withCmdgTemplateImages(report, serviceKey) {
     if (serviceKey !== 'saju_master' || !report || !Array.isArray(report.sections)) return report;
     return Object.assign({}, report, { sections: report.sections.map(function (section) {
@@ -96,7 +168,7 @@
       if (!filename) return section;
       return Object.assign({}, section, {
         imageKey: 'cmdg-review-' + String(section.order || ''),
-        imageSrc: '/assets/cmdg-review/' + filename,
+        imageSrc: '/assets/cmdg-report-20261009/' + filename,
         imageAlt: String(section.category || '천명사주') + ' 풀이 이미지'
       });
     }) });
@@ -390,7 +462,7 @@
   function loadLongformConfig() {
     if (longform.config || longform.failed) return Promise.resolve(longform.config);
     if (longform.loading) return longform.loading;
-    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20260926-money-summary-v2', { credentials: 'same-origin' })
+    longform.loading = rawFetch('/data/longform-blocks.json?v=lf-20261009-cmdg-images', { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
         longform.config = data && data.services ? data.services : null;
@@ -885,7 +957,7 @@
       cautions += 1;
       return '<p class="cmdg-caution"><strong class="cmdg-caution-label">놓치지 말아야 할 조건</strong>' + text + '</p>';
     });
-    var lead = '<p class="umsh-cmdg-lead"><strong>' + escapeHtml(CMDG_CARD_LEADS[section.id]) + '</strong></p>';
+    var lead = '<p class="umsh-cmdg-lead"><strong>' + escapeHtml(cmdgDirectVoice(CMDG_CARD_LEADS[section.id])) + '</strong></p>';
     var visual = cmdgVisualHtml(cmdgVisualSpec(section, payload)) + cmdgDomainFlowHtml(section, payload);
     var image = renderSectionImage(section, reportServiceKey(payload));
     var answer = section.hook ? readingBlock('answer', '한 줄 답', [String(section.hook).trim()]) : '';
@@ -2606,7 +2678,7 @@
       });
       return;
     }
-    report = withCmdgTemplateImages(report, serverKey);
+    report = withCmdgDirectVoice(withCmdgTemplateImages(report, serverKey), serverKey);
     payload = Object.assign({}, payload, { report: report });
     authorized = report;
     if (document.documentElement) document.documentElement.removeAttribute('data-umsh-toc-check');

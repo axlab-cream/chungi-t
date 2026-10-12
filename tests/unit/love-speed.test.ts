@@ -44,11 +44,12 @@ test('browser result resolution explains unavailable, expired, denied and failed
 
 test('sharing sends only the public type; cancellation never falls back to clipboard', async () => {
   const source = readFileSync(new URL('../../사주/play/love-speed/app.js', import.meta.url), 'utf8')
-  const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function sampleResult'))
+  const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function openSheet'))
   let payload: any
   let copied = 0
-  const context: any = { track() {}, types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data }, clipboard: { writeText: async () => { copied++ } } }, notice() {} }
+  const context: any = { track() {}, types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data }, clipboard: { writeText: async () => { copied++ } } }, notice() {}, window: {}, opened: 0 }
   runInNewContext(shareSource, context)
+  context.openSheet = () => { context.opened++ }
   await context.share({ type: 'spark', name: 'PRIVATE', mbti: 'ENFP', answers: [0,1,2,3,0], birth: 'PRIVATE' })
   assert.equal(payload.url, 'https://umsh.kr/play/love-speed/?type=spark&src=share')
   assert.deepEqual(Object.keys(payload), ['title','text','url'])
@@ -59,15 +60,19 @@ test('sharing sends only the public type; cancellation never falls back to clipb
   assert.equal(copied, 0)
   delete context.navigator.share
   await context.share({ type: 'spark' })
+  assert.equal(copied, 0, 'without a phone share sheet the choice sheet opens instead of a silent copy')
+  assert.equal(context.opened, 1)
+  await context.share({ type: 'spark' }, true)
   assert.equal(copied, 1)
 })
 
 test('friend invitation always shares the public test URL and supports copy/manual fallbacks', async () => {
   const source = readFileSync(new URL('../../사주/play/love-speed/app.js', import.meta.url), 'utf8')
-  const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function sampleResult'))
+  const shareSource = source.slice(source.indexOf('  async function share(data,'), source.indexOf('  function openSheet'))
   let payload: any; let copied = ''; let html = ''; let message = ''
-  const context: any = { track() {}, types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data } }, notice: (text: string) => { message = text }, esc: (value: string) => value, document: { getElementById: () => ({ set innerHTML(value: string) { html = value } }) } }
+  const context: any = { track() {}, types: { spark: { name: '불꽃급랭형' } }, navigator: { share: async (data: unknown) => { payload = data } }, notice: (text: string) => { message = text }, esc: (value: string) => value, document: { getElementById: () => ({ set innerHTML(value: string) { html = value } }) }, window: {}, opened: 0 }
   runInNewContext(shareSource, context)
+  context.openSheet = () => { context.opened++ }
   await context.share()
   assert.equal(payload.url, 'https://umsh.kr/play/love-speed/?src=share')
   assert.ok(payload.text.includes('같이'))
@@ -80,6 +85,14 @@ test('friend invitation always shares the public test URL and supports copy/manu
   delete context.navigator.share
   context.navigator.clipboard = { writeText: async (text: string) => { copied = text } }
   await context.share()
+  assert.equal(copied, '', 'no phone share sheet: open the choice sheet, never copy silently')
+  assert.equal(context.opened, 1)
+  context.window.Capacitor = { Plugins: { Share: { share: async (data: any) => { payload = data } } } }
+  payload = null
+  await context.share()
+  assert.equal(payload.url, 'https://umsh.kr/play/love-speed/?src=share', 'the app uses its native share plugin')
+  delete context.window.Capacitor
+  await context.share(undefined, true)
   assert.equal(copied, 'https://umsh.kr/play/love-speed/?src=share')
   assert.ok(message.includes('친구'))
   let nativeCalls = 0
@@ -89,7 +102,7 @@ test('friend invitation always shares the public test URL and supports copy/manu
   assert.equal(copied, 'https://umsh.kr/play/love-speed/?src=share')
   delete context.navigator.share
   context.navigator.clipboard.writeText = async () => { throw Error('denied') }
-  await context.share()
+  await context.share(undefined, true)
   assert.ok(html.includes('readonly'))
   assert.ok(html.includes('https://umsh.kr/play/love-speed/'))
 })

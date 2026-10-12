@@ -12,9 +12,104 @@
     (document.head || document.documentElement).appendChild(loadingScript);
   }
 
+  /**
+   * 상단 뒤로 가기 경로(2026-10-08).
+   *
+   * 예전에는 버튼이 무조건 홈으로 갔다. 마이페이지 → 결제 내역에서 뒤로 가면 홈으로 떨어졌다.
+   * 이제 같은 탭에서 지나온 화면을 sessionStorage 에 쌓아 두고 바로 앞 화면으로 돌아간다.
+   *
+   * - 화면이 열릴 때 기록한다. 바로 앞 화면으로 다시 열렸으면(뒤로 간 것) 맨 위를 뺀다.
+   * - 로그인·결제 진행 화면은 거쳐 가는 곳이라 기록하지 않는다. 결제 결과에서 뒤로 가도
+   *   결제창이 아니라 결제를 시작한 서비스 화면으로 간다.
+   * - 앞 화면을 모르면(공유 링크·푸시·즐겨찾기로 바로 들어옴, 저장소를 못 씀) 상위 화면으로
+   *   간다: 마이페이지에서 들어가는 화면은 마이페이지, 나머지는 홈.
+   */
+  const BACK_TRAIL_KEY = 'umsh-back-trail';
+  const BACK_TRAIL_MAX = 20;
+  const BACK_TRAIL_SKIP = [/^\/signup(\/|$)/, /^\/login(\/|$)/, /^\/auth(\/|$)/, /^\/payment(\/|$)/];
+  const MY_CHILD_PATHS = new Set(['/profile', '/vault', '/destiny', '/coupons', '/orders', '/refunds', '/notices', '/inquiries', '/faq', '/support', '/about', '/terms', '/privacy', '/refund', '/leave']);
+
+  function createBackTrail(storage) {
+    const pathKey = (pathname) => {
+      const clean = String(pathname || '/').replace(/\/index\.html$/, '/').replace(/\.html$/, '').replace(/\/+$/, '');
+      return clean || '/';
+    };
+    const keyOf = (loc) => pathKey(loc.pathname) + (loc.search || '');
+    const skipped = (loc) => BACK_TRAIL_SKIP.some((pattern) => pattern.test(pathKey(loc.pathname)));
+    const parentOf = (loc) => (MY_CHILD_PATHS.has(pathKey(loc.pathname)) ? '/my' : '/');
+    function read() {
+      try {
+        const value = JSON.parse(storage.getItem(BACK_TRAIL_KEY) || '[]');
+        return Array.isArray(value) ? value.filter((item) => typeof item === 'string' && item.startsWith('/')) : [];
+      } catch (error) {
+        return null;
+      }
+    }
+    function write(list) {
+      try { storage.setItem(BACK_TRAIL_KEY, JSON.stringify(list.slice(-BACK_TRAIL_MAX))); } catch (error) { /* 저장소를 못 쓰면 상위 화면 규칙만 쓴다. */ }
+    }
+    return {
+      keyOf,
+      parentOf,
+      record(loc) {
+        if (skipped(loc)) return;
+        const list = read();
+        if (!list) return;
+        const here = keyOf(loc);
+        if (list[list.length - 1] === here) return; // 새로고침
+        if (list[list.length - 2] === here) list.pop(); // 뒤로 돌아옴
+        else list.push(here);
+        write(list);
+      },
+      target(loc) {
+        const list = read();
+        const here = keyOf(loc);
+        if (!list || !list.length) return parentOf(loc);
+        const last = list[list.length - 1];
+        if (last !== here) return last; // 지금 화면이 거쳐 가는 화면이라 기록되지 않았다.
+        return list.length >= 2 ? list[list.length - 2] : parentOf(loc);
+      },
+    };
+  }
+
+  let sessionStore = null;
+  try { sessionStore = window.sessionStorage; } catch (error) { sessionStore = null; }
+  const backTrail = createBackTrail(sessionStore || { getItem() { return null; }, setItem() {} });
+  window.UMSHBackTrail = { create: createBackTrail, current: backTrail };
+
   const topHost = document.querySelector('[data-umsh-service-top]');
   const bottomHost = document.querySelector('[data-umsh-service-bottom]');
   if (!topHost && !bottomHost) return;
+
+  backTrail.record(window.location);
+
+  /**
+   * 본문 뒤로 가기(2026-10-08 요청). 마이페이지 하위 화면처럼 본문 틀(.payment-shell)을 쓰는 화면은
+   * 뒤로 가기를 헤더가 아니라 본문 맨 위(제목 위)에 둔다 — "이 화면에서 뒤로 간다"는 느낌을 주려고.
+   * 그 화면에서는 헤더의 뒤로 버튼을 숨긴다. 버튼 이름은 돌아갈 곳을 말한다.
+   * 마이페이지 자체는 하단 탭의 첫 화면이라 넣지 않는다.
+   */
+  function mountInlineBack() {
+    const shell = document.querySelector('main .payment-shell');
+    if (!shell || shell.querySelector('[data-inline-back]')) return;
+    if (backTrail.keyOf({ pathname: window.location.pathname, search: '' }) === '/my') return;
+    const target = backTrail.target(window.location);
+    const label = target === '/my' ? '마이페이지' : target === '/' ? '홈' : '이전 화면';
+    const link = document.createElement('a');
+    link.className = 'umsh-inline-back';
+    link.href = target;
+    link.setAttribute('data-inline-back', '');
+    link.setAttribute('aria-label', { 마이페이지: '마이페이지로 돌아가기', 홈: '홈으로 돌아가기' }[label] || '이전 화면으로 돌아가기');
+    link.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const text = document.createElement('span');
+    text.textContent = label;
+    link.appendChild(text);
+    shell.insertBefore(link, shell.firstChild);
+    document.body.classList.add('has-inline-back');
+  }
+  mountInlineBack();
+  // 브라우저가 이전 화면을 메모리에서 그대로 되살리면(bfcache) 스크립트가 다시 돌지 않는다.
+  window.addEventListener('pageshow', (event) => { if (event.persisted) backTrail.record(window.location); });
 
   document.body.classList.add('has-umsh-service-shell');
   if (document.querySelector('.chat-input')) {
@@ -219,7 +314,7 @@
             <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
           </a>
           <div class="app-actions topbar-actions">
-            <button class="app-back umsh-chrome-back icon-button" type="button" data-back data-shell-back aria-label="홈으로">
+            <button class="app-back umsh-chrome-back icon-button" type="button" data-back data-shell-back aria-label="뒤로 가기">
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
@@ -303,17 +398,27 @@
   setBottomMenuOpen(false);
 
   /**
-   * The shell's back button goes home. It ran the capture phase on purpose: several
-   * pages still listen for `[data-back]` and call `history.back()`, which on a page
+   * The shell's back button follows the trail above. It runs in the capture phase on purpose:
+   * several pages still listen for `[data-back]` and call `history.back()`, which on a page
    * opened from a link or a redirect either did nothing or bounced somewhere unrelated.
-   * Stopping here keeps the button doing one predictable thing everywhere.
+   *
+   * 바로 앞 화면이 브라우저 기록의 직전 화면과 같으면 history.back() 으로 돌아간다 — 스크롤 위치가
+   * 남고, 폰의 뒤로 가기 버튼과 같은 기록을 쓴다. 다르면(로그인·결제를 거쳐 왔거나 바로 들어옴)
+   * 그 주소로 이동한다.
    */
   document.addEventListener('click', (event) => {
-    const shellBack = event.target.closest?.('[data-shell-back]');
+    const shellBack = event.target.closest?.('[data-shell-back], [data-inline-back]');
     if (!shellBack) return;
     event.preventDefault();
     event.stopPropagation();
-    navigate('/');
+    const target = backTrail.target(window.location);
+    let previous = null;
+    try {
+      const referrer = document.referrer ? new URL(document.referrer) : null;
+      if (referrer && referrer.origin === window.location.origin) previous = backTrail.keyOf(referrer);
+    } catch (error) { previous = null; }
+    if (previous === target && window.history.length > 1) window.history.back();
+    else navigate(target);
   }, true);
 
   document.addEventListener('click', (event) => {
