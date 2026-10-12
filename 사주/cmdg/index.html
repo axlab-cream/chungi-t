@@ -3389,6 +3389,31 @@
           box-shadow: none;
         }
       }
+
+      /* Video entry only; keep other service landings and registration scenes intact. */
+      .phone[data-scene="landing"] .stage:has(.cmdg-video-entry) {
+        padding: 0;
+        overflow: hidden;
+      }
+      .cmdg-video-entry {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #080302;
+      }
+      .cmdg-entry-video {
+        display: block;
+        width: 100%;
+        flex: 1 1 0;
+        min-height: 0;
+        object-fit: contain;
+        background: #000;
+      }
+      .cmdg-entry-action {
+        flex: 0 0 auto;
+        padding: 14px 20px max(18px, env(safe-area-inset-bottom));
+      }
+      .cmdg-entry-action .primary-cta { width: 100%; min-height: 54px; }
     </style>
   <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012a"><script src="/js/cmdg-master-teaser.js?v=20261012a"></script></head>
   <body>
@@ -5948,80 +5973,29 @@
         `;
       }
 
+      // Previous story landing: docs/archive/cmdg-landing-before-video-20261012.js
       function renderLanding() {
         if (isLoveThisYearService()) {
           renderLoveThisYearLanding();
           return;
         }
         stage.innerHTML = `
-          <article class="sample-story">
-            ${storyTopNavMarkup()}
-            ${sampleVideoMarkup(landingSampleVideo, "sample-upload-blend")}
-            ${sampleIntroMarkup(landingIntroAssets.introBg, "sample-upload-image-blend", "", "")}
-            ${sampleSourceSections(
-              "자네",
-              "직장 운",
-              "기운",
-              landingSourceAssets.heroCharacter,
-              false,
-              '<span class="red">사주</span>는 한 줄로 끝나지 않네.<br />숨은 <span class="red">결</span>부터 보겠네.',
-              false,
-              landingSourceAssets.worryBg,
-              '<p class="landing-worry-copy">지금 흔들리는 건<br /><span class="red">기운</span>이 움직인다는 뜻일세.</p>',
-              '<p>반복된 선택과 놓친 신호,<br />그 안의 <span class="red">실마리</span>가 보이는군.</p>',
-              false,
-              false,
-              landingSourceAssets.palzaBg,
-              landingSourceAssets.assetOne,
-              false,
-              '<p><span class="red">직장</span> 운 때문에 여기까지 나를 찾았나?<br />그 흐름은 여러 가지 <span class="red">기운</span>이 얽혀 움직이는군.</p>',
-              '<h2>과거로부터 이어온<br />자네의 <span class="red">팔자</span>가 보이는군.</h2>',
-              landingSourceAssets.previewTwo,
-              "",
-              landingSourceAssets.assetTwo,
-              false,
-              '<h2><span class="red">시간</span>, <span class="red">공간</span>, 선택이<br />한 점에서 얽힐 때<br /><span class="red">운명</span>은 방향을 바꾸는군.</h2>',
-              landingSourceAssets.manseryeokBg,
-              false,
-              landingSourceAssets.characterA,
-              true,
-              '<h2>좋은 말보다 먼저<br /><span class="red">진짜 흐름</span>을 보겠네.</h2>',
-              "top",
-              "landing-character-a",
-              true,
-              false,
-              landingSourceAssets.characterC,
-              "landing-wealth-transition",
-              "source-img",
-              "대분석 전환 배경",
-              landingSourceAssets.wealthBg,
-              false,
-              landingSourceAssets.datePreviewOne,
-              '<p>지금 나를 만난 것도 <span class="red">운명</span>일세.<br /><span class="red">인생</span>을 바꿀 때가 되었군.</p>',
-              landingSourceAssets.characterD,
-              '<h2><span class="red">인연</span>은 우연처럼 오지만<br />남는 <span class="red">관계</span>는 결이 다르네.</h2>',
-              "",
-              landingSourceAssets.romanceCloseup,
-              landingSourceAssets.handBells,
-              '<p>흩어진 <span class="red">실타래</span>를<br />이제 하나씩 풀어보게.</p>',
-              landingSourceAssets.destinyCardBg,
-              '<h2>자네 앞에 놓인<br /><span class="red">사람</span>의 기운이 보이는군.</h2>',
-              landingSourceAssets.characterOutro,
-              '<h2>이제 자네의 <span class="red">사주</span> 속에<br />숨겨진 <span class="red">진실</span>이 펼쳐지는군.</h2>',
-              landingSourceAssets.priceCharacter,
-              "",
-              false,
-              false,
-              landingSourceAssets.handReach,
-              '<h2>수많은 <span class="red">고서</span>와 명사들의<br />해석으로 풀어낸<br />자네만의 <span class="red">대분석</span></h2>'
-            )}
-            <div class="sample-enter">
-              <button class="primary-cta" type="button" data-action="enter">입장하기</button>
-              <p class="fineprint">천명사주의 대분석 흐름을 확인한 뒤, 입력 단계로 이어집니다.</p>
+          <article class="cmdg-video-entry">
+            <video class="cmdg-entry-video" autoplay muted loop playsinline controls preload="metadata"
+              poster="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-20261012.webp"
+              aria-label="천명사주 소개 영상">
+              <source src="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-20261012.mp4" type="video/mp4" />
+            </video>
+            <div class="cmdg-entry-action">
+              <button class="primary-cta" type="button" data-action="enter">내 사주 확인하기</button>
             </div>
-            ${businessFooterMarkup()}
           </article>
         `;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          const video = stage.querySelector("video");
+          video.autoplay = false;
+          video.pause();
+        }
       }
 
       function renderImmersion() {
