@@ -4409,8 +4409,8 @@
        * 해석이 시작되지 못한 채 고민 화면으로 되돌아온다(2026-09-14 운영 확인).
        */
       function isUsableProfileName(value) {
-        const name = String(value ?? "").trim();
-        return /^[가-힣]{2,20}$/.test(name);
+        const name = String(value ?? "").trim().normalize("NFC");
+        return Array.from(name).length >= 2 && Array.from(name).length <= 20 && /^[\p{L}\p{M}][\p{L}\p{M} .'’\-]*$/u.test(name);
       }
 
       /** 분석에 들어가도 되는 상태인지. 이름과 생년월일이 모두 있어야 한다. */
@@ -5985,12 +5985,7 @@
       }
 
       function validateName(value) {
-        const name = String(value || "").trim();
-        if (!name) return "이름을 입력해주세요.";
-        if (name.length < 2) return "이름은 한글 2자 이상 입력해주세요.";
-        if (name.length > 5) return "이름은 한글 5자까지만 입력해주세요.";
-        if (!/^[가-힣]+$/.test(name)) return "이름은 한글만 입력해주세요. 영어, 숫자, 특수기호는 사용할 수 없습니다.";
-        return "";
+        return isUsableProfileName(value) ? "" : "이름은 문자 2자 이상 20자 이하로 입력해 주세요.";
       }
 
       function validateBirth(value) {
@@ -6915,7 +6910,7 @@
             <video class="cmdg-entry-video" autoplay muted loop playsinline preload="metadata"
               poster="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-20261012.webp"
               aria-label="천명사주 소개 영상">
-              <source src="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-sequence-20261012.mp4" type="video/mp4" />
+              <source src="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-trilogy-20261012.mp4" type="video/mp4" />
             </video>
             <div class="cmdg-entry-action">
               <button class="primary-cta" type="button" data-action="enter"><span class="cta-label">내 사주 확인하기</span></button>

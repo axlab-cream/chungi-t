@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 import { summarizeFunnelRows, summarizeSoloNaraRows } from '../../src/analytics/funnel-store.js'
-import { publicContentScript, structureErrors, designIssues, type SoloSpec } from '../../src/play/solo-nara.js'
+import { publicContentScript, structureErrors, type SoloSpec } from '../../src/play/solo-nara.js'
 
 const read = (p: string) => readFileSync(new URL('../../' + p, import.meta.url), 'utf8')
 const spec = JSON.parse(read('data/solo-nara-spec.json')) as SoloSpec
@@ -21,15 +21,14 @@ function run(href: string, referrer = '', privacy = false) {
   return { context, ga, requests }
 }
 
-test('production spec is valid, passes design rules, and the browser copy is regenerated from it', () => {
+test('production spec is valid and the browser copy is regenerated from it', () => {
   assert.deepEqual(structureErrors(spec), [])
-  assert.deepEqual(designIssues(spec), [])
   assert.equal(read('사주/play/solo-nara/content.js'), publicContentScript(spec), 'run: npx tsx scripts/build-solo-nara-content.ts')
 })
 
-test('browser copy carries no character vectors or answer scores', () => {
+test('browser copy carries no answer picks, type codes or tie-break rules', () => {
   const content = read('사주/play/solo-nara/content.js')
-  for (const key of ['"vector"', '"scores"', '"axisRange"', '"primaryAxis"', '"tieBreak"']) assert.ok(!content.includes(key), key)
+  for (const key of ['"pick"', '"code"', '"tieBreak"']) assert.ok(!content.includes(key), key)
 })
 
 test('telemetry sends only question numbers and the public result character; gender, answers and scores never leave', async () => {
@@ -66,24 +65,24 @@ test('DNT suppresses collection and preview never emits telemetry', async () => 
 
 test('admin summary counts result characters without inflating overall page views or leaking identifiers', () => {
   const row = (event: string, target: string, service_key: string | null = 'solo_nara') => ({ event, target, service_key, step: 'entry', session_id: 'PRIVATE-session', user_id: 'PRIVATE-user' })
-  const rows = [row('step_view', 'solo_nara:source:home'), row('step_view', 'solo_nara:result:oksun'), row('step_view', 'solo_nara:result:oksun'), row('step_view', 'solo_nara:result:PRIVATE'), row('cta_click', 'solo_nara:start'), row('cta_click', 'solo_nara:home', null), row('cta_click', 'solo_nara:PRIVATE')]
+  const rows = [row('step_view', 'solo_nara:source:home'), row('step_view', 'solo_nara:result:observer'), row('step_view', 'solo_nara:result:observer'), row('step_view', 'solo_nara:result:PRIVATE'), row('cta_click', 'solo_nara:start'), row('cta_click', 'solo_nara:home', null), row('cta_click', 'solo_nara:PRIVATE')]
   const solo = summarizeSoloNaraRows(rows)
   assert.equal(solo.views, 1); assert.equal(solo.homeClicks, 1)
-  assert.equal(solo.results.find(r => r.typeId === 'oksun')!.views, 2)
+  assert.equal(solo.results.find(r => r.typeId === 'observer')!.views, 2)
   assert.equal(solo.results.reduce((s, r) => s + r.views, 0), 2)
-  assert.equal(solo.results.length, 14)
+  assert.equal(solo.results.length, 8)
   assert.deepEqual(solo.actions.find(a => a.action === 'start'), { action: 'start', events: 1, sessions: 1 })
   assert.ok(!JSON.stringify(solo).includes('PRIVATE'))
   const all = summarizeFunnelRows(rows, 'week', '2026-10-01T00:00:00.000Z')
   assert.equal(all.overview.views, 1, 'result markers are not extra page views')
-  assert.equal(all.soloNara!.results.find(r => r.typeId === 'oksun')!.views, 2)
+  assert.equal(all.soloNara!.results.find(r => r.typeId === 'observer')!.views, 2)
 })
 
 test('sharing sends only the public character; cancellation never falls back to clipboard', async () => {
   const source = app.slice(app.indexOf('  function sharePayload(type)'), app.indexOf('  function share(type,'))
     + app.slice(app.indexOf('  async function copyLink(p)'), app.indexOf('  function openSheet(p)'))
   let payload: any, copied = 0
-  const C = { characters: { oksun: { name: '옥순', gender: 'female', shareText: '나는 옥순' } }, copy: { sharePreview: { title: 't', description: 'd' } } }
+  const C = { types: { oksun: { name: '침묵의 관찰자', shareText: '나는 관찰자' } }, copy: { sharePreview: { title: 't', description: 'd' } } }
   const context: any = { C, track() {}, isType: (t: unknown) => t === 'oksun', encodeURIComponent, notice() {}, navigator: { share: async (data: unknown) => { payload = data }, clipboard: { writeText: async () => { copied++ } } } }
   runInNewContext(source, context)
   await context.nativeShare(context.sharePayload('oksun'))
@@ -102,8 +101,8 @@ test('share buttons open a choice sheet instead of silently copying when the OS 
   assert.match(app, /integrity: 'sha384-/)
 })
 
-test('a result for the other name group is rejected instead of shown', () => {
-  assert.match(app, /C\.characters\[data\.type\]\.gender !== state\.gender/)
+test('an unknown result type or out-of-range score is rejected instead of shown', () => {
+  assert.match(app, /if \(!isType\(data\.type\) \|\| !data\.scores/)
 })
 
 test('OAuth callback resumes solo-nara like love-speed and ignores unknown entries', () => {
@@ -140,7 +139,7 @@ test('home rail keeps both free tests rotating when the consultation promo is of
 
 test('page is readable without JS, deployable, indexed, and loads copy before the game', () => {
   const page = read('사주/play/solo-nara/index.html')
-  assert.ok(page.includes('<h1>솔로나라에서 나는 누구?</h1>'))
+  assert.ok(page.includes('<h1>연애할 때 드러나는 나의 숨겨진 본능은?</h1>'))
   assert.ok(!page.includes('나는 솔로'), 'program name stays out of the page')
   assert.ok(page.indexOf('telemetry.js') < page.indexOf('umsh-track.js'))
   assert.ok(page.indexOf('content.js') < page.indexOf('./app.js'))

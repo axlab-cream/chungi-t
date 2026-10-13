@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Can I change companies? | Fortune Shop</title>
+  <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+       og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Fortune Shop" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="Fortune Shop - We sell fate." />
+  <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+  <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Fortune Shop - We sell fate." />
+  <meta name="twitter:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+  <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+  <meta name="description" content="A job-change service examining readiness and real conditions through major cycles, annual cycles, and authority-star flow.">
+  <style>
+    :root {
+      --bg: #130b0c;
+      --bg-2: #241012;
+      --ink: #fff8ef;
+      --muted: #d9c6b7;
+      --soft: #b99477;
+      --red: #8e171b;
+      --red-2: #c8322e;
+      --gold: #d8a94f;
+      --mint: #8bb6a8;
+      --panel: #211416;
+      --line: rgba(255, 230, 188, .18);
+      --shadow: 0 24px 60px rgba(0, 0, 0, .42);
+      color-scheme: dark;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(200, 50, 46, .18), transparent 34rem), var(--bg);
+      color: var(--ink);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      width: min(100%, 440px);
+      margin: 0 auto;
+      min-height: 100svh;
+      background: linear-gradient(180deg, rgba(36, 16, 18, .94), rgba(19, 11, 12, 1) 52%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 88svh;
+      padding: 24px 22px calc(92px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(19, 11, 12, .06) 0%, rgba(19, 11, 12, .18) 38%, rgba(19, 11, 12, .78) 72%, rgba(19, 11, 12, .94) 100%);
+      z-index: -2;
+    }
+
+    /* The hero art is a 7s loop now; the still it replaced stays as the poster, so the
+       header looks identical before playback and if a browser refuses to autoplay. */
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 25%;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 22px 22px 22px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(216, 169, 79, .64), transparent);
+      z-index: -1;
+    }
+
+    .hero-copy {
+      margin-top: auto;
+      padding-top: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 9em;
+      font-size: 40px;
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    .lead {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.72;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .meta-pill {
+      min-height: 58px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(19, 11, 12, .56);
+    }
+
+    .meta-pill span {
+      display: block;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .meta-pill strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .scroll-cue {
+      margin-top: 20px;
+      color: rgba(255, 248, 239, .74);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    main {
+      background: var(--bg);
+    }
+
+    .story {
+      padding: 0 18px 8px;
+    }
+
+    .story-block {
+      position: relative;
+      padding: 0 0 48px;
+      overflow: hidden;
+    }
+
+    .story-block:first-child {
+      padding-top: 0;
+    }
+
+    /* 장면은 이제 <video> 이고 정지컷은 poster 로 남는다. 두 요소가 같은 상자를 쓴다. */
+    .scene-media {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      border-radius: 0;
+      object-fit: cover;
+      object-position: 50% 25%;
+      display: block;
+      background: #12090a;
+      border: 0;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 76%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 76%, transparent 100%);
+    }
+
+    .scene-copy {
+      position: relative;
+      z-index: 1;
+      margin-top: -112px;
+      padding: 0 2px;
+    }
+
+    .scene-kicker {
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .scene-copy h2 {
+      margin-top: 8px;
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-wrap: pretty;
+    }
+
+    .scene-copy p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.75;
+      text-wrap: pretty;
+    }
+
+    .quote-line {
+      margin-top: 16px;
+      padding: 14px 15px;
+      border-left: 3px solid var(--red-2);
+      background: rgba(255, 248, 239, .055);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.55;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .decision-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 7px;
+      margin-top: 16px;
+    }
+
+    .decision-row span {
+      min-height: 48px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 7px 4px;
+      border: 1px solid rgba(216, 169, 79, .24);
+      border-radius: 8px;
+      background: rgba(36, 16, 18, .86);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.28;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .signal {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(33, 20, 22, .78);
+    }
+
+    .signal-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--bg);
+      background: var(--gold);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .signal strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .signal span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .index-section {
+      padding: 26px 18px 34px;
+      background: linear-gradient(180deg, var(--bg), #1a0d0e);
+      border-top: 1px solid var(--line);
+    }
+
+    .index-head {
+      margin-bottom: 16px;
+    }
+
+    .index-head h2 {
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .index-head p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .index-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .index-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 248, 239, .045);
+    }
+
+    .index-card h3 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 900;
+    }
+
+    .index-card h3 span {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .chips span {
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(139, 182, 168, .12);
+      color: #d8f0e7;
+      border: 1px solid rgba(139, 182, 168, .22);
+      font-size: 12px;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+
+    .cta {
+      padding: 24px 18px 34px;
+      background: linear-gradient(180deg, #1a0d0e, #2b1114);
+    }
+
+    .cta-panel {
+      border: 1px solid rgba(216, 169, 79, .28);
+      border-radius: 8px;
+      background: rgba(19, 11, 12, .68);
+      overflow: hidden;
+    }
+
+    .cta-panel img {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      object-fit: cover;
+      object-position: 50% 25%;
+      display: block;
+      border: 0;
+      border-radius: 0;
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 76%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, #000 76%, transparent 100%);
+    }
+
+    .cta-copy {
+      position: relative;
+      z-index: 1;
+      margin-top: -92px;
+      padding: 0 18px 18px;
+    }
+
+    .cta-copy h2 {
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .cta-copy p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .cta-button {
+      margin-top: 18px;
+      min-height: 54px;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      color: #1a0d0e;
+      background: linear-gradient(135deg, #f1c96d, #c8322e);
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 900;
+      box-shadow: 0 16px 34px rgba(200, 50, 46, .24);
+      cursor: pointer;
+    }
+
+    .fine-print {
+      margin-top: 14px;
+      color: rgba(217, 198, 183, .82);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 380px) {
+      .decision-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 481px) {
+      body {
+        padding: 18px 0;
+      }
+
+      .page {
+        border-radius: 14px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/css/service-shell.css?v=20260916-mobile" />
+  <link rel="stylesheet" href="/css/work-move-service.css?v=20260902-work-move" />
+</head>
+<body class="work-move-page">
+  <div class="page">
+    <div data-umsh-service-top data-umsh-service-category="직업"></div>
+    <header class="hero" id="top">
+      <video
+        class="hero-video"
+        poster="../assets/generated/move/01-scene-01-question.webp"
+        src="../assets/generated/move/01-hero.mp4"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+        tabindex="-1"
+      ></video>
+      <div class="hero-copy">
+        <p class="eyebrow">Career-transition decision report</p>
+        <h1>Can I change companies?</h1>
+        <p class="lead">Don&#39;t press the quit button first. Let&#39;s separate moving potential from preparation first.</p>
+        <div class="hero-meta" aria-label="Reading basis">
+          <div class="meta-pill">
+            <span>Flow to consider</span>
+            <strong>The big picture · this year · workplace responsibilities</strong>
+          </div>
+          <div class="meta-pill">
+            <span>Conclusion type</span>
+            <strong>From time to move to time to wait</strong>
+          </div>
+        </div>
+        <p class="scroll-cue">Organize your situation first, then check conditions too.</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="story" aria-label="Service story">
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-question" poster="../assets/generated/move/01-scene-01-question.webp" src="../assets/generated/move/01-scene-01-question.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="An office worker checks their phone after overtime on the way home, considering a job change"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 01</p>
+            <h2>A sudden thought on the way home: can I change jobs now?</h2>
+            <p>Not sure whether the company is poor, you are tired, or a new company is the answer? Do not stop at one emotional sentence; look at the flow and conditions together.</p>
+            <div class="quote-line">“Now may be time to prepare rather than run straight out.”</div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-pressure" poster="../assets/generated/move/01-scene-02-pressure.webp" src="../assets/generated/move/01-scene-02-pressure.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="Work materials and traces of concern on an office desk late at night"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 02</p>
+            <h2>The role, rather than the company, may be the problem.</h2>
+            <p>Is your role unclear while your responsibilities keep growing? Pressure may increase even when decision-making authority stays vague. Look separately at your manager, colleagues, need for recognition, and signs of burnout.</p>
+            <div class="quote-line">“Clarify roles first at your current company. Pause emotion-driven quitting for a moment.”</div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-crossroad" poster="../assets/generated/move/01-scene-03-crossroad.webp" src="../assets/generated/move/01-scene-03-crossroad.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="A career-choice scene weighing a familiar door against a new one"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 03</p>
+            <h2>Let us break the conclusion into five clear points.</h2>
+            <p>This does not simply encourage or discourage a career move. Let us distinguish whether it is time to move, check the conditions first, or build a buffer first.</p>
+            <div class="decision-row" aria-label="Final conclusion type">
+              <span>Job-change likelihood</span>
+              <span>Hold steady</span>
+              <span>Time to prepare</span>
+              <span>Reasons to pause</span>
+              <span>A conditional transfer angle</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-basis" poster="../assets/generated/move/01-scene-04-basis.webp" src="../assets/generated/move/01-scene-04-basis.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="A career consultation scene analyzing the bigger flow alongside this year&#39;s flow"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 04</p>
+            <h2>The larger flow, this year&#39;s flow, and work responsibility. Look at all three together.</h2>
+            <p>The major cycle is the broad career landscape, the annual cycle is this year’s atmosphere, and authority stars are your roles and pressure within an organization. Start by seeing whether all three point the same way or diverge.</p>
+            <div class="signal-list">
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">大</div>
+                <div><strong>Bigger flow</strong><span>Changes in the landscape over 10-year periods, and directions you can handle</span></div>
+              </div>
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">年</div>
+                <div><strong>This year’s flow</strong><span>This year’s opportunities, pressure, and contract timing</span></div>
+              </div>
+              <div class="signal">
+                <div class="signal-icon" aria-hidden="true">官</div>
+                <div><strong>Workplace responsibility</strong><span>Roles, bosses, organization, and how you receive pressure</span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-block">
+          <video class="scene-media" data-asset="scene-index" poster="../assets/generated/move/01-scene-05-index.webp" src="../assets/generated/move/01-scene-05-index.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="A report preview with eleven result cards spread across a table"></video>
+          <div class="scene-copy">
+            <p class="scene-kicker">Scene 05</p>
+            <h2>The report opens on this item.</h2>
+            <p>I will not throw a conclusion and stop. I will continue from career temperament to money terms, risk brakes, and real actions.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="index-section" aria-label="Main and subcategories of the reading">
+        <div class="index-head">
+          <h2>Main reading categories</h2>
+          <p>The main categories and sections are organized around the review criteria. The actual results will explore the relevant sections more deeply based on your entered birth date and time.</p>
+        </div>
+
+        <div class="index-grid">
+          <article class="index-card">
+            <h3>Final conclusion type <span>01</span></h3>
+            <div class="chips"><span>Job-change likelihood</span><span>Hold steady</span><span>Time to prepare</span><span>Reasons to pause</span><span>A conditional transfer angle</span></div>
+          </article>
+          <article class="index-card">
+            <h3>My career disposition <span>02</span></h3>
+            <div class="chips"><span>Work styles by day master</span><span>Five Elements balance</span><span>Capacity of strong and weak day masters</span><span>Direction for complementing the balancing element</span></div>
+          </article>
+          <article class="index-card">
+            <h3>Role-fit analysis <span>03</span></h3>
+            <div class="chips"><span>Peer and Rob Wealth</span><span>Eating God · Hurting Officer</span><span>Indirect Wealth and Direct Wealth</span><span>Indirect and direct authority stars</span><span>Indirect Resource and Direct Resource</span></div>
+          </article>
+          <article class="index-card">
+            <h3>Reading of your current company situation <span>04</span></h3>
+            <div class="chips"><span>Unclear role</span><span>Unclear decision authority</span><span>Pressure from your boss</span><span>Competitive stress</span><span>Burnout signals</span></div>
+          </article>
+          <article class="index-card">
+            <h3>New-company compatibility reading <span>05</span></h3>
+            <div class="chips"><span>Work and career palace</span><span>Movement and external environment</span><span>Salary and income patterns</span><span>How you keep going</span></div>
+          </article>
+          <article class="index-card">
+            <h3>Money-conditions reading <span>06</span></h3>
+            <div class="chips"><span>Salary-rise potential</span><span>Income stability</span><span>Contract check</span><span>Spending risks</span><span>Pre-quitting buffer</span></div>
+          </article>
+          <article class="index-card">
+            <h3>Timing reading <span>07</span></h3>
+            <div class="chips"><span>Early, middle, and late major fortune cycle</span><span>Major-luck transition</span><span>Flow of the annual cycle</span><span>Monthly fortune</span><span>Date selection and day cycle</span></div>
+          </article>
+          <article class="index-card">
+            <h3>Risk brake <span>08</span></h3>
+            <div class="chips"><span>Empty branch</span><span>Clash</span><span>Punishment</span><span>Break</span><span>Harm</span><span>Fire and heat</span></div>
+          </article>
+          <article class="index-card">
+            <h3>Practical action guide <span>09</span></h3>
+            <div class="chips"><span>90-day test</span><span>Organize your portfolio</span><span>Interview timing</span><span>Resignation conversation</span><span>Salary checklist</span></div>
+          </article>
+          <article class="index-card">
+            <h3>MZ-tone result cards <span>10</span></h3>
+            <div class="chips"><span>Prepare before you run</span><span>No jumping ahead</span><span>Role sorting first</span><span>The contract is what counts</span><span>Recovery first</span></div>
+          </article>
+          <article class="index-card">
+            <h3>Safety and operating criteria <span>11</span></h3>
+            <div class="chips"><span>Do not definitively tell someone to quit</span><span>Separate evidence from inference</span><span>Internal note before review</span><span>No absolute wording</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="cta" id="start" aria-label="Go to input step">
+        <div class="cta-panel">
+          <video class="scene-media" data-asset="scene-cta" poster="../assets/generated/move/01-scene-06-cta.webp" src="../assets/generated/move/01-scene-06-cta.mp4" muted loop playsinline preload="none" data-lazy-play aria-label="A mobile service screen entering the career report input step"></video>
+          <div class="cta-copy">
+            <h2>Catch the feel with the free teaser first. When you judge, check the conditions too.</h2>
+            <p>Enter your birth date, birth time, and current concern. We will look together at whether this is a time to consider a job change and what to prepare first in practice.</p>
+            <a class="cta-button" data-action="enter" href="../02-step-2-saju-input/index.html#step-2-saju-input" aria-label="Check my job-change fortune">
+              Check my job-change fortune
+            </a>
+            <p class="fine-print">Saju does not guarantee resignation, hiring, or profit. Results are references for decisions; your final choice requires actual contract terms and your circumstances.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="application/json" id="PROMPT_INPUT">
+{
+  "service_title": "Can I change companies?",
+  "service_category": "Job-change fortune",
+  "service_price_krw": 14900,
+  "service_url": "https://work.umsh.kr/move",
+  "service_slug": "move",
+  "service_key": "work_move",
+  "analysis_basis": ["Major cycle", "Annual cycle", "Authority stars"],
+  "target_question": "Can I change companies?",
+  "target_audience": "Office workers in their 20~30s who want to feel sure before changing jobs, quitting, accepting an offer, or staying at their current company",
+  "source_priority": [
+    "RAG classification README",
+    "RAG LLM contract",
+    "Purple Star KMS job-change rule: Career Palace + Travel Palace + Wealth Palace",
+    "Approved CSV corpus for luck pillars, annual luck, date selection, goal setting, emotional care, ten stars, strong or weak Day Master, and the favorable element"
+  ],
+  "stage": "01-step-1-story"
+}
+  </script>
+
+  <script type="application/json" id="INTERPRETATION_INDEX">
+{
+  "source": "user_seed_preserved",
+  "groups": [
+    {
+      "id": "decision_type",
+      "order": 1,
+      "major": "Final conclusion type",
+      "middle": ["Job-change likelihood", "Hold steady", "Time to prepare", "Reasons to pause", "A conditional transfer angle"],
+      "tone_examples": ["Still the preparation stage, rather than running right now", "Changing jobs is possible if conditions fit."]
+    },
+    {
+      "id": "career_constitution",
+      "order": 2,
+      "major": "My career disposition",
+      "middle": ["Work styles by day master", "Five-element balance", "Capacity of strong and weak day masters", "Supplement direction based on the useful element"]
+    },
+    {
+      "id": "role_fit",
+      "order": 3,
+      "major": "Role-fit analysis",
+      "middle": [
+        "Peer star: agency",
+        "Competing Peers: contests and competition",
+        "Eating God: steady output",
+        "Hurting Officer: improvement and planning",
+        "Indirect Wealth: expansion and sales",
+        "Direct Wealth: contracts and settlement",
+        "Seven Killings: breakthroughs and crisis response",
+        "Direct Authority: formal roles and organization",
+        "Indirect resource: research and ideas",
+        "Structured Support: documents, education, and support"
+      ]
+    },
+    {
+      "id": "current_company",
+      "order": 4,
+      "major": "Reading of your current company situation",
+      "middle": ["Unclear role", "Unclear decision authority", "Pressure from a manager", "Coworker and competition stress", "Need for recognition", "Burnout signals"]
+    },
+    {
+      "id": "new_company_fit",
+      "order": 5,
+      "major": "New-company compatibility reading",
+      "middle": ["Career Palace: work and occupation palace", "Travel Palace: movement and external environment", "Wealth Palace: salary and income flow", "Life and Body Palaces: ways I can actually endure"]
+    },
+    {
+      "id": "money_terms",
+      "order": 6,
+      "major": "Money-conditions reading",
+      "middle": ["Salary-rise potential", "Stability of income structure", "Contract check", "Risk of increased spending", "Need for a pre-quitting buffer"]
+    },
+    {
+      "id": "timing",
+      "order": 7,
+      "major": "Timing reading",
+      "middle": ["Early, middle, and late major-cycle stages", "Major luck-cycle transition", "Annual fortune and yearly flow", "Monthly luck", "Date selection and day cycle", "Beginning of Spring and new-start flow"]
+    },
+    {
+      "id": "risk_brake",
+      "order": 8,
+      "major": "Risk brake",
+      "middle": ["Empty branch: hold off on settling it", "Clash: watch for conflict", "Punishment: recurring friction", "Break: review existing promises", "Harm: a loose check", "Hua Ji: role confusion and money worries"]
+    },
+    {
+      "id": "action_guide",
+      "order": 9,
+      "major": "Practical action guide",
+      "middle": ["90-day test", "Resume and portfolio cleanup", "Interview timing", "Quitting-conversation script", "Salary and work-scope checklist"]
+    },
+    {
+      "id": "mz_result_cards",
+      "order": 10,
+      "major": "MZ-tone result cards",
+      "middle": [
+        "Still the preparation stage, rather than running right now",
+        "No premature celebration before checking money terms",
+        "At the current company, sort roles first",
+        "With a new company, the contract is what counts more than fit",
+        "If mentally drained, recovery comes before fortune"
+      ]
+    },
+    {
+      "id": "safety_operation",
+      "order": 11,
+      "major": "Safety and operating criteria",
+      "middle": ["Saju does not confirm quitting, hiring, or income", "Separating basis from personal inference", "Pre-review material is for internal reference", "Do not use expressions of guaranteed success or failure"]
+    }
+  ]
+}
+  </script>
+
+
+
+  <script type="application/json" id="IMAGE_MANIFEST">
+{
+  "reference_image": "IMAGE/umsh-signature-card-bg.png",
+  "reference_usage": "style_reference_only_text_removed_in_generated_assets",
+  "html_delivery_mode": "single_file_embedded_data_uri",
+  "character_style_lock": {
+    "character": "Korean professional woman, black blazer, white shirt, red scarf accent",
+    "mood": "premium fortune consultation, career decision, cinematic red and gold lighting",
+    "constraints": [
+      "no readable text inside image",
+      "no logo recreation",
+      "consistent character styling across scenes"
+    ]
+  },
+  "assets": [
+    {
+      "asset_key": "scene-question",
+      "filename": "assets/generated/move/01-scene-01-question.webp",
+      "role": "hero_and_scene_01",
+      "aspect_ratio": "9:16",
+      "alt": "An office worker checks their phone after overtime on the way home, considering a job change",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-question']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-pressure",
+      "filename": "assets/generated/move/01-scene-02-pressure.webp",
+      "role": "scene_02_current_company_pressure",
+      "aspect_ratio": "9:16",
+      "alt": "Work materials and traces of concern on an office desk late at night",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-pressure']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-crossroad",
+      "filename": "assets/generated/move/01-scene-03-crossroad.webp",
+      "role": "scene_03_decision_type",
+      "aspect_ratio": "9:16",
+      "alt": "A career-choice scene weighing a familiar door against a new one",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-crossroad']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-basis",
+      "filename": "assets/generated/move/01-scene-04-basis.webp",
+      "role": "scene_04_analysis_basis",
+      "aspect_ratio": "9:16",
+      "alt": "A career consultation scene analyzing the bigger flow alongside this year's flow",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-basis']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-index",
+      "filename": "assets/generated/move/01-scene-05-index.webp",
+      "role": "scene_05_interpretation_index",
+      "aspect_ratio": "9:16",
+      "alt": "A report preview with eleven result cards spread across a table",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-index']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    },
+    {
+      "asset_key": "scene-cta",
+      "filename": "assets/generated/move/01-scene-06-cta.webp",
+      "role": "scene_06_next_step_cta",
+      "aspect_ratio": "9:16",
+      "alt": "A mobile service screen entering the career report input step",
+      "text_in_image": false,
+      "generation_status": "generated",
+      "file_exists": true,
+      "html_usage_selector": ".scene-media[data-asset='scene-cta']",
+      "embedded_in_html": true,
+      "delivery_note": "Visible image is embedded as a data:image/webp URI in index.html; filename is retained for source traceability."
+    }
+  ]
+}
+  </script>
+
+  <div data-umsh-service-bottom></div>
+  <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/work-move-service.js?v=20261008-three-voice-v1"></script>
+  <script src="/js/service-shell.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-lazy-video.js?v=20260904"></script>
+</body>
+</html>

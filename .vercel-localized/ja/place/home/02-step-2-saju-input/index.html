@@ -1,0 +1,1709 @@
+<!DOCTYPE html><html lang="ko"><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>入力する | 今の家は自分に合う？</title>
+    <meta name="description" content="風水と個人の四柱推命で、今の家と生活リズムの相性を見るための最小入力画面">
+    <meta property="og:title" content="運命商会 - 運命を売ります。">
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://place.umsh.kr/home">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0d1110;
+        --surface: #151917;
+        --surface-2: #1e231f;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.48);
+        --sage: #9fb7a1;
+        --mint: #d6ead5;
+        --brass: #e4c36f;
+        --clay: #b35a3a;
+        --danger: #ffb4a4;
+        --line: rgba(214, 234, 213, 0.18);
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #060706;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #060706 0%, #101310 48%, #060706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(13, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .step-badge,
+      .kicker {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .step-badge {
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .intro {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .intro-copy {
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      p,
+      fieldset {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 29px;
+        line-height: 1.16;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.24;
+      }
+
+      h3,
+      legend {
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.4;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+      }
+
+      .visual-card {
+        position: relative;
+        align-self: start;
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(214, 234, 213, 0.24);
+        border-radius: 8px;
+        background: #e8dfcf;
+      }
+
+      .visual-card img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .privacy-note {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(179, 90, 58, 0.08);
+      }
+
+      form {
+        display: grid;
+        gap: 0;
+      }
+
+      .form-section {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 13px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .address-control {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 92px;
+        gap: 8px;
+      }
+
+      .address-search-button,
+      .postcode-close {
+        display: grid;
+        min-height: 48px;
+        place-items: center;
+        border: 1px solid rgba(228, 195, 111, 0.48);
+        border-radius: 8px;
+        background: rgba(228, 195, 111, 0.1);
+        color: var(--brass);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      label,
+      .field-label {
+        color: rgba(255, 248, 239, 0.88);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid rgba(214, 234, 213, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        outline: none;
+      }
+
+      input,
+      select {
+        min-height: 48px;
+        padding: 0 13px;
+      }
+
+      select {
+        appearance: none;
+        color-scheme: dark;
+        background-image: linear-gradient(45deg, transparent 50%, var(--brass) 50%), linear-gradient(135deg, var(--brass) 50%, transparent 50%);
+        background-position: calc(100% - 17px) 20px, calc(100% - 12px) 20px;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+      }
+
+      select option {
+        background-color: #151917 !important;
+        color: var(--ink) !important;
+      }
+
+      select option:checked,
+      select option:hover {
+        background-color: #263026 !important;
+        color: var(--ink) !important;
+      }
+
+      .postcode-layer {
+        display: grid;
+        gap: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(228, 195, 111, 0.28);
+        border-radius: 8px;
+        background: #111513;
+      }
+
+      .postcode-layer[hidden] {
+        display: none;
+      }
+
+      .postcode-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 10px 0;
+      }
+
+      .postcode-toolbar strong {
+        color: var(--mint);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .postcode-close {
+        min-height: 32px;
+        padding: 0 10px;
+      }
+
+      .postcode-frame {
+        width: 100%;
+        height: 430px;
+        background: #fff;
+      }
+
+      textarea {
+        min-height: 88px;
+        resize: vertical;
+        padding: 12px 13px;
+        line-height: 1.55;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 248, 239, 0.34);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus,
+      button:focus-visible,
+      a:focus-visible {
+        border-color: rgba(228, 195, 111, 0.75);
+        box-shadow: 0 0 0 3px rgba(228, 195, 111, 0.13);
+      }
+
+      .help {
+        color: var(--dim);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      .error {
+        min-height: 16px;
+        color: var(--danger);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      [aria-invalid="true"] {
+        border-color: rgba(255, 180, 164, 0.82);
+      }
+
+      .choice-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .choice,
+      .check {
+        position: relative;
+      }
+
+      .choice input,
+      .check input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+      }
+
+      .choice span,
+      .check span {
+        display: grid;
+        min-height: 46px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid rgba(214, 234, 213, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      .choice input:checked + span,
+      .check input:checked + span {
+        border-color: rgba(228, 195, 111, 0.62);
+        background: rgba(228, 195, 111, 0.14);
+        color: var(--ink);
+      }
+
+      .choice input:focus-visible + span,
+      .check input:focus-visible + span {
+        outline: 2px solid var(--brass);
+        outline-offset: 2px;
+      }
+
+      .check-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .profile-summary {
+        display: none;
+        gap: 8px;
+        padding: 14px;
+        border: 1px solid rgba(214, 234, 213, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .profile-summary.is-visible {
+        display: grid;
+      }
+
+      .profile-summary strong {
+        color: var(--mint);
+        font-size: 13px;
+      }
+
+      .conditional[hidden] {
+        display: none;
+      }
+
+      .submit-area {
+        display: grid;
+        gap: 12px;
+        padding: 22px 18px max(28px, env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(179, 90, 58, 0.1), transparent 58%), #0f1110;
+      }
+
+      .primary-cta,
+      .secondary-link {
+        display: inline-flex;
+        min-height: 52px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        padding: 13px 16px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .primary-cta {
+        border: 1px solid rgba(228, 195, 111, 0.55);
+        background: var(--clay);
+        color: #fffaf0;
+      }
+
+      .secondary-link {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--mint);
+      }
+
+      .status {
+        min-height: 18px;
+        color: var(--mint);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.5;
+      }
+
+      .fineprint,
+      .footer {
+        color: var(--dim);
+        font-size: 11px;
+        line-height: 1.6;
+      }
+
+      .footer {
+        padding: 18px 18px 26px;
+      }
+
+      @media (max-width: 372px) {
+        .intro {
+          grid-template-columns: 1fr;
+        }
+
+        .visual-card {
+          min-height: 0;
+        }
+
+        .two-col,
+        .address-control,
+        .choice-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 24px 0;
+        }
+
+        .app {
+          min-height: calc(100vh - 48px);
+          border: 1px solid rgba(214, 234, 213, 0.12);
+        }
+      }
+    </style><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell">
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907">
+  </head>
+  <body class="umsh-fields">
+    <main class="app" id="step-2-saju-input">
+      <div data-umsh-service-top=""></div>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <span class="kicker">必要なことだけ · 約2分</span>
+          <h1 id="page-title">家と自分のリズムがどこでずれるか見よう</h1>
+          <p>命式の基本値と、家で感じる点が両方必要だ。人が良いと言う家ではなく、自分に合う家を見るためだ。</p>
+          <div class="chips" aria-label="入力の要約">
+            <span class="chip">基本の四柱推命</span>
+            <span class="chip">家の状態</span>
+            <span class="chip">不快のサイン</span>
+          </div>
+        </div>
+        <figure class="visual-card" data-asset-key="home-02-form-guide">
+          <img src="assets/generated/home/02-form-guide.webp" alt="家の模型と空の入力画面の隣で案内する運命商会のガイド">
+        </figure>
+      </section>
+
+      <div class="privacy-note">
+        <p>名前・生年月日・住所はURLに付けません。この検討画面は入力を今のブラウザーセッション内だけに一時保存します。</p>
+      </div>
+
+      <form id="home-fit-form" novalidate="">
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>誰の家との相性から見る？</legend>
+            <p>保存した四柱があれば、そのまま続けます。別の四柱で見るなら、新しく入力してください。</p>
+          </div>
+
+          <div class="choice-grid" role="radiogroup" aria-label="命式プロフィールを選ぶ">
+            <label class="choice">
+              <input type="radio" name="profile_mode" value="saved" checked="">
+              <span>保存したプロフィールで見る</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="profile_mode" value="new">
+              <span>新しい四柱推命で見る</span>
+            </label>
+          </div>
+
+          <div class="profile-summary" id="saved-profile-summary" aria-live="polite">
+            <strong>保存済みのプロフィールを確認中</strong>
+            <p>基本の命式情報がそろえば、この段階は飛ばす。</p>
+          </div>
+
+          <div class="conditional field-grid" id="new-profile-fields" hidden="">
+            <div class="field">
+              <label for="nickname">呼び方</label>
+              <input id="nickname" name="nickname" autocomplete="off" placeholder="例: ミンジ" aria-describedby="nickname-help nickname-error">
+              <p class="help" id="nickname-help">レポートで呼ぶ名前だ。本名でなくてよい。</p>
+              <div class="error" id="nickname-error" aria-live="polite"></div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="gender">性別</label>
+                <select id="gender" name="gender" aria-describedby="gender-error">
+                  <option value="">選択</option>
+                  <option value="female">女性</option>
+                  <option value="male">男性</option>
+                  <option value="unknown">未選択</option>
+                </select>
+                <div class="error" id="gender-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="calendar">誕生日を基準に</label>
+                <select id="calendar" name="calendar" aria-describedby="calendar-error">
+                  <option value="">選択</option>
+                  <option value="solar">陽暦</option>
+                  <option value="lunar">陰暦</option>
+                </select>
+                <div class="error" id="calendar-error" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="birth_date">生年月日</label>
+                <input id="birth_date" name="birth_date" type="date" autocomplete="bday" min="1900-01-01" aria-describedby="birth_date-error">
+                <div class="error" id="birth_date-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="birth_time">生まれた時刻</label>
+                <input id="birth_time" name="birth_time" type="time" step="60" aria-describedby="birth-time-help birth_time-error">
+                <p class="help" id="birth-time-help">覚えていなければ、下のチェックを入れよう。</p>
+                <div class="error" id="birth_time-error" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <label class="check">
+              <input type="checkbox" id="birth_time_unknown" name="birth_time_unknown">
+              <span>正確な出生時刻は分からない</span>
+            </label>
+
+            <div class="field">
+              <label for="birth_place">生まれた地域</label>
+              <input id="birth_place" name="birth_place" autocomplete="off" placeholder="例：ソウル、釜山、大田" aria-describedby="birth-place-help">
+              <p class="help" id="birth-place-help">時刻の補正が必要なときの参考にします。分からなければ空欄でも構いません。</p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>今の家の基本値</legend>
+            <p>正確な住所より先に、生活が届く範囲と住まいの使い方を見ます。</p>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="home_address">住所または建物名</label>
+              <div class="address-control">
+                <input id="home_address" name="home_address" autocomplete="street-address" placeholder="住所検索で道路名または地番の住所を選択" aria-describedby="home-address-help home_address-error" readonly="">
+                <button class="address-search-button" type="button" id="address-search-button">住所を探す</button>
+              </div>
+              <input type="hidden" id="home_road_address" name="home_road_address">
+              <input type="hidden" id="home_jibun_address" name="home_jibun_address">
+              <input type="hidden" id="home_zonecode" name="home_zonecode">
+              <input type="hidden" id="home_sido" name="home_sido">
+              <input type="hidden" id="home_sigungu" name="home_sigungu">
+              <input type="hidden" id="home_bname" name="home_bname">
+              <input type="hidden" id="home_building_name" name="home_building_name">
+              <input type="hidden" id="home_address_type" name="home_address_type">
+              <div class="postcode-layer" id="postcode-layer" hidden="">
+                <div class="postcode-toolbar">
+                  <strong>道路名・地番の住所を検索</strong>
+                  <button class="postcode-close" type="button" id="postcode-close">閉じる</button>
+                </div>
+                <div class="postcode-frame" id="postcode-frame"></div>
+              </div>
+              <p class="help" id="home-address-help">住所検索から選んで。部屋番号は書かなくていい。</p>
+              <div class="error" id="home_address-error" aria-live="polite"></div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="building_type">家の形</label>
+                <select id="building_type" name="building_type" aria-describedby="building_type-error">
+                  <option value="">選択</option>
+                  <option value="apartment">マンション</option>
+                  <option value="officetel">オフィステル</option>
+                  <option value="villa">低層集合住宅・連棟住宅</option>
+                  <option value="studio">ワンルーム</option>
+                  <option value="house">一戸建て・多世帯</option>
+                  <option value="other">その他</option>
+                </select>
+                <div class="error" id="building_type-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="living_period">住んでいる期間</label>
+                <select id="living_period" name="living_period">
+                  <option value="">未選択</option>
+                  <option value="under_3m">3か月未満</option>
+                  <option value="3m_1y">3か月~1年</option>
+                  <option value="1y_3y">1~3年</option>
+                  <option value="over_3y">3年以上</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="main_purpose">家で最も大切なこと</label>
+                <select id="main_purpose" name="main_purpose" aria-describedby="main_purpose-error">
+                  <option value="">選択</option>
+                  <option value="rest">睡眠・回復</option>
+                  <option value="work">在宅・勉強の集中</option>
+                  <option value="money">お金・暮らしの安定</option>
+                  <option value="relationship">同居・家族・関係</option>
+                  <option value="move">契約を続けるか、引っ越すか</option>
+                </select>
+                <div class="error" id="main_purpose-error" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="stay_decision">今の悩み</label>
+                <select id="stay_decision" name="stay_decision" aria-describedby="stay_decision-error">
+                  <option value="">選択</option>
+                  <option value="stay">住み続ける角度か</option>
+                  <option value="fix">手直しで良くなるか</option>
+                  <option value="compare">引っ越し候補と比べるか</option>
+                  <option value="unknown">まず理由が気になる</option>
+                </select>
+                <div class="error" id="stay_decision-error" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>家で一番気になるサイン</legend>
+            <p>一つ以上選んで。選んだサインから、無料ティザーと有料の目次で整理する。</p>
+          </div>
+
+          <div class="check-list" aria-describedby="pain_points-error">
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="sleep">
+              <span>眠りが浅いか、家での回復が遅い</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="entrance">
+              <span>玄関・廊下・宅配のあたりがいつも混雑しています</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="focus">
+              <span>在宅や勉強に集中しにくいです</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="money">
+              <span>お金や家事の習慣が、不思議と漏れる</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="relationship">
+              <span>家族・同居・近所のストレスがあります</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="pain_points" value="move">
+              <span>契約を続けるか、引っ越すかで悩んでいます</span>
+            </label>
+          </div>
+          <div class="error" id="pain_points-error" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <div class="section-head">
+            <legend>空間の確認</legend>
+            <p>分からないことは飛ばそう。知っている分だけ入れると、04の無料の方向も大まかになりにくい。</p>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="entrance_flow">玄関から寝室が直接見えますか？</label>
+              <select id="entrance_flow" name="entrance_flow">
+                <option value="">不明・スキップ</option>
+                <option value="direct">ほぼ一行で見えます</option>
+                <option value="bent">途中で失速する</option>
+                <option value="blocked">ドア・家具で隠れている</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="bedroom_feel">寝室の体感</label>
+              <select id="bedroom_feel" name="bedroom_feel">
+                <option value="">不明・スキップ</option>
+                <option value="quiet">奥側で静かなほう</option>
+                <option value="window_road">窓の外からの音・視線がある</option>
+                <option value="door_line">ドア・廊下からの刺激がある</option>
+                <option value="too_bright">光が強い、または休みにくい</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="desk_position">机、または主な作業席</label>
+              <select id="desk_position" name="desk_position">
+                <option value="">不明・スキップ</option>
+                <option value="back_wall">背中の後ろが壁で安定している</option>
+                <option value="back_window">背後が窓で落ち着かない</option>
+                <option value="face_door">扉を正面に見る</option>
+                <option value="mixed_rest">休む場所と混ざっている</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="outside_flow">窓の外・周辺の流れ</label>
+              <select id="outside_flow" name="outside_flow">
+                <option value="">不明・スキップ</option>
+                <option value="open">前が開けている</option>
+                <option value="pressed">建物の圧迫感がある</option>
+                <option value="road_noise">大通り・路地の騒音がある</option>
+                <option value="balanced">無難で安定的</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="extra_note">一行メモ</label>
+              <textarea id="extra_note" name="extra_note" placeholder="例：家では休むけれど、朝は体が重い。"></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <section class="submit-area" aria-label="入力完了">
+          <button class="primary-cta" type="submit">家との相性を確認</button>
+
+          <p class="fineprint">
+            ここでは無料の方向に必要な入力だけ整理する。支払いの権限と最終のレポートは、次の段階で別に確認する。
+          </p>
+          <div class="status" id="form-status" aria-live="polite"></div>
+        </section>
+      </form>
+
+      <footer class="footer">
+        運命商会 PLACE · 入力値は確定的な判定ではなく、生活を点検する家の相性レポートの材料として使います。
+      </footer>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "今の家、自分と合う？",
+        "service_category": "家の風水",
+        "service_subcategory": "住まいと生活の適合性",
+        "service_price_krw": 19900,
+        "service_url_hint": "place.umsh.kr/home",
+        "service_key": "home_fit",
+        "service_slug": "home",
+        "target_question": "この家、本当に自分に合う？",
+        "analysis_basis": ["風水", "個人の命理", "日干", "五行", "日干の強弱", "用神"],
+        "stage": "02-step-2-saju-input"
+      }
+    </script>
+
+    <script type="application/json" id="INPUT_SCHEMA">
+      {
+        "subject_mode": "place",
+        "schema_version": "home-fit-input-v1",
+        "fields": [
+          {
+            "key": "profile_mode",
+            "label": "命式プロフィールを選ぶ",
+            "type": "radio",
+            "required": true,
+            "condition": "",
+            "why_needed": "既存の四柱推命プロフィールが完全なら、生年月日を聞き直さないために必要。",
+            "error_message": "保存されたプロフィールか、新しい四柱入力のどちらかを選んでください。"
+          },
+          {
+            "key": "nickname",
+            "label": "呼び方",
+            "type": "text",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "リポートでユーザーを呼ぶための名前です。",
+            "error_message": "新しい命式で見るときは、呼び名を入力してください。"
+          },
+          {
+            "key": "gender",
+            "label": "性別",
+            "type": "select",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "四柱推命プロフィールの計算に必要な基本情報。",
+            "error_message": "新しい命式で見るときは、性別を選んでください。"
+          },
+          {
+            "key": "calendar",
+            "label": "誕生日を基準に",
+            "type": "select",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "陽暦と陰暦の基準を区別するために必要。",
+            "error_message": "陽暦か陰暦を選んでください。"
+          },
+          {
+            "key": "birth_date",
+            "label": "生年月日",
+            "type": "date",
+            "required": true,
+            "condition": "profile_mode=new",
+            "why_needed": "日干、五行、身強・身弱、用神の計算に使う基本情報です。",
+            "error_message": "生年月日は数字8桁で入力してください。"
+          },
+          {
+            "key": "birth_time",
+            "label": "生まれた時刻",
+            "type": "time",
+            "required": false,
+            "condition": "profile_mode=new and birth_time_unknown=false",
+            "why_needed": "時刻もあれば、個人のリズムをより細かく見られる。",
+            "error_message": "生まれた時間は13:30のように入力するか、不明を選択してください。"
+          },
+          {
+            "key": "birth_place",
+            "label": "生まれた地域",
+            "type": "text",
+            "required": false,
+            "condition": "profile_mode=new",
+            "why_needed": "時刻の補正が必要な場合の参考です。",
+            "error_message": ""
+          },
+          {
+            "key": "home_address",
+            "label": "住所または建物名",
+            "type": "address",
+            "required": true,
+            "condition": "",
+            "why_needed": "道路、路地、周囲の圧迫、開いた前方など、空間の流れを見るために必要です。",
+            "error_message": "町や建物名程度は入力してください。"
+          },
+          {
+            "key": "building_type",
+            "label": "家の形",
+            "type": "select",
+            "required": true,
+            "condition": "",
+            "why_needed": "マンション、オフィステル、ワンルームなど、構造ごとに動線の実感が違うから。",
+            "error_message": "家の種類を選んでください。"
+          },
+          {
+            "key": "main_purpose",
+            "label": "家で最も大切なこと",
+            "type": "select",
+            "required": true,
+            "condition": "",
+            "why_needed": "住む目的によって安定・集中・関係・お金の流れの優先順位が変わります。",
+            "error_message": "家でいちばん大切な目的を選んでください。"
+          },
+          {
+            "key": "stay_decision",
+            "label": "今の悩み",
+            "type": "select",
+            "required": true,
+            "condition": "",
+            "why_needed": "このまま住む、手を入れる、ほかと比較する、という選択を分けるために必要。",
+            "error_message": "今の悩みを一つ選んでください。"
+          },
+          {
+            "key": "pain_points",
+            "label": "気になるサイン",
+            "type": "checkbox",
+            "required": true,
+            "condition": "",
+            "why_needed": "無料ティーザーと全レポートの優先順を決めます。",
+            "error_message": "一番気になる合図を一つ以上選んでください。"
+          },
+          {
+            "key": "entrance_flow",
+            "label": "玄関から寝室が直接見えますか？",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "玄関・居間・寝室の直線の流れと外の刺激を見るために使う。",
+            "error_message": ""
+          },
+          {
+            "key": "bedroom_feel",
+            "label": "寝室の実感",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "睡眠、回復、目の疲れを考えるための補助情報です。",
+            "error_message": ""
+          },
+          {
+            "key": "desk_position",
+            "label": "机、または主な作業席",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "在宅、勉強、仕事の集中力について、空間のフィットを見るために使います。",
+            "error_message": ""
+          },
+          {
+            "key": "outside_flow",
+            "label": "窓の外・周辺の流れ",
+            "type": "select",
+            "required": false,
+            "condition": "",
+            "why_needed": "前の開き、建物の圧迫、道路・路地の刺激を見るために使います。",
+            "error_message": ""
+          },
+          {
+            "key": "extra_note",
+            "label": "一行メモ",
+            "type": "text",
+            "required": false,
+            "condition": "",
+            "why_needed": "数値の入力では捉えられない生活の実感を補います。",
+            "error_message": ""
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX_PAYLOAD">
+      {
+        "source": "user_seed",
+        "persist_keys": ["service_key", "service_slug", "schema_version", "report_version", "copy_version", "interpretation_index_version"],
+        "interpretation_index_version": "home-fit-index-v3-12",
+        "groups": [
+          { "group_id": "home-fit-overall", "title": "この家、本当に自分に合う？", "items": ["全体の判断", "8軸の点数表", "主な強み", "優先して見るリスク"] },
+          { "group_id": "terrain-support", "title": "土地は、自分を支える？ 遠ざける？", "items": ["土地の類似度", "支えの感覚", "移動の負担", "似た土地の生活パターン"] },
+          { "group_id": "external-flow", "title": "水路、道路、風、何が入ってくる？", "items": ["水系", "道路", "風", "外の音"] },
+          { "group_id": "light-air-noise", "title": "光は薬か、アラームの爆弾か", "items": ["方位・日照", "換気", "騒音", "時間帯の刺激"] },
+          { "group_id": "building-unit", "title": "建物と世帯の基本体力", "items": ["階数・竣工", "共用施設", "平面", "住戸の条件"] },
+          { "group_id": "entrance-flow", "title": "玄関でもう力が抜ける？", "items": ["最初の動線", "扉の前の停滞", "靴・荷物", "出入りのリズム"] },
+          { "group_id": "sleep-recovery", "title": "寝室は休む部屋か、残業の2回戦か", "items": ["睡眠の刺激", "回復感", "夜間の光・音", "7日間の実験"] },
+          { "group_id": "remote-focus", "title": "机は集中席か、通知のコロッセオか", "items": ["後ろの支え", "視野", "通知・音", "開始・締切"] },
+          { "group_id": "money-living", "title": "お金が漏れる？動線が漏れる？", "items": ["重複購入", "収納", "返品・定期購入", "家事の動線"] },
+          { "group_id": "relationship-cohabitation", "title": "一緒に暮らせば相性、それとも騒音の協定", "items": ["共用空間", "私生活", "使用時間", "関係の距離"] },
+          { "group_id": "saju-house-ohaeng", "title": "自分の四柱推命 × 家の五行との相性", "items": ["個人の五行", "家の象徴", "目的の五行", "年間の流れ"] },
+          { "group_id": "reality-action", "title": "それで何をすればいい？", "items": ["今日", "7日", "30日", "引っ越しの比較の基準"] }
+        ]
+      }
+    </script>
+
+
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-02-form-guide",
+            "filename": "assets/generated/home/02-form-guide.webp",
+            "role": "scene",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["丸眼鏡", "整えた濃い色の髪", "ベージュのニットの羽織り", "セージ色", "暖かな室内照明"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "家の模型と空の入力画面のそばで、四柱プロフィールと家の情報を案内する場面。画像内のテキストは禁止。",
+            "alt": "家の模型と空の入力画面の隣で案内する運命商会のガイド",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-card[data-asset-key='home-02-form-guide'] img"
+          }
+        ]
+      }
+    </script>
+
+    <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        schema_version: "home-fit-input-v1",
+        report_version: "home-fit-v1.0",
+        copy_version: "mz-home-pungsu-v1",
+        next_route: "../04-step-4-report/index.html#step-4-report"
+      };
+
+      const form = document.querySelector("#home-fit-form");
+      const statusEl = document.querySelector("#form-status");
+      const newProfileFields = document.querySelector("#new-profile-fields");
+      const savedProfileSummary = document.querySelector("#saved-profile-summary");
+      const birthTime = document.querySelector("#birth_time");
+      const birthTimeUnknown = document.querySelector("#birth_time_unknown");
+      const addressInput = document.querySelector("#home_address");
+      const addressSearchButton = document.querySelector("#address-search-button");
+      const postcodeLayer = document.querySelector("#postcode-layer");
+      const postcodeFrame = document.querySelector("#postcode-frame");
+      const postcodeClose = document.querySelector("#postcode-close");
+      let selectedAddress = null;
+
+      function readJsonBlock(id) {
+        return JSON.parse(document.querySelector(`#${id}`).textContent);
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+
+      function pad2(value) {
+        return String(Number(value || 0)).padStart(2, "0");
+      }
+
+
+      /**
+       * 저장된 사주를 localStorage 캐시에서만 읽던 자리다. 계정에는 사주가 있어도 이 기기에
+       * 캐시가 없으면 다시 입력하게 되므로, 로그인 상태면 계정 값을 캐시에 채워 넣는다.
+       */
+      /**
+       * 로그인 세션. /api/saju/analyze 는 회원만 받으므로 분석 요청과 프로필 조회가
+       * 같은 토큰을 쓴다. 한 번 읽어 캐시한다.
+       */
+      let authSessionPromise = null;
+      function getAuthSession() {
+        if (authSessionPromise) return authSessionPromise;
+        authSessionPromise = (async () => {
+          if (!window.supabase || !window.UMSHAuthSession) return null;
+          try {
+            const config = await fetch("/api/auth/config").then((res) => res.json());
+            if (!config || !config.enabled) return null;
+            const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
+            const { data } = await client.auth.getSession();
+            return await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+          } catch (error) {
+            return null;
+          }
+        })();
+        return authSessionPromise;
+      }
+
+      function loginUrl() {
+        const returnTo = `${location.pathname}${location.search}${location.hash}`;
+        return window.UMSHCommonAuth?.commonLoginUrl("home-pungsu", returnTo)
+          || `/signup?entry=home-pungsu&returnTo=${encodeURIComponent(returnTo)}#login`;
+      }
+
+      async function seedProfileFromAccount() {
+        if (getSavedProfileState().complete) return false;
+        try {
+          const session = await getAuthSession();
+          if (!session || !session.access_token) return false;
+          const payload = await fetch("/api/user/profile", {
+            headers: { Authorization: "Bearer " + session.access_token }
+          }).then((res) => res.json());
+          const profile = payload && payload.profile;
+          if (!profile || !profile.birth || !profile.name) return false;
+          localStorage.setItem("cheongi_user_birth_profile_v1", JSON.stringify(profile));
+          return getSavedProfileState().complete;
+        } catch (error) {
+          return false;
+        }
+      }
+      function getSavedProfileState() {
+        try {
+          const raw = localStorage.getItem("cheongi_user_birth_profile_v1");
+          if (!raw) return { complete: false, label: "保存したプロフィールはまだありません。", profile: null };
+          const profile = safeParse(raw);
+          const birth = profile?.birth || {};
+          const gender = birth.gender === "female" ? "female" : birth.gender === "male" ? "male" : "";
+          const calendar = birth.calendar === "lunar" ? "lunar" : birth.calendar === "solar" ? "solar" : "";
+          const birthTimeKnown = profile?.birthTimeKnown !== false && Number.isFinite(Number(birth.hour));
+          const normalized = {
+            ...profile,
+            name: profile?.name || "",
+            birthTimeKnown,
+            birth: {
+              year: Number(birth.year),
+              month: Number(birth.month),
+              day: Number(birth.day),
+              hour: birthTimeKnown ? Number(birth.hour) : 12,
+              minute: Number(birth.minute || 0),
+              gender,
+              calendar
+            }
+          };
+          const complete = Boolean(normalized.name && normalized.birth.year && normalized.birth.month && normalized.birth.day && gender && calendar);
+          const timeLabel = birthTimeKnown ? `${pad2(normalized.birth.hour)}:${pad2(normalized.birth.minute)}` : "時刻が不明";
+          return {
+            complete,
+            profile: complete ? normalized : null,
+            label: complete
+              ? `${normalized.name} · ${calendar === "lunar" ? "陰暦" : "陽暦"} ${normalized.birth.year}.${pad2(normalized.birth.month)}.${pad2(normalized.birth.day)} · ${timeLabel}`
+              : "保存したプロフィールに必要な値が足りないです。"
+          };
+        } catch {
+          return { complete: false, label: "保存したプロフィールを読み取れなかった。新しい命式を入力してください。", profile: null };
+        }
+      }
+
+      function setProfileMode(mode) {
+        const saved = getSavedProfileState();
+        const mustUseNew = mode === "saved" && !saved.complete;
+        const nextMode = mustUseNew ? "new" : mode;
+        document.querySelector(`input[name="profile_mode"][value="${nextMode}"]`).checked = true;
+        newProfileFields.hidden = nextMode !== "new";
+        savedProfileSummary.classList.toggle("is-visible", nextMode === "saved" || mustUseNew);
+        savedProfileSummary.querySelector("strong").textContent = saved.complete ? "기존 프로필 사용" : "새 입력이 필요해요";
+        savedProfileSummary.querySelector("p").textContent = mustUseNew ? saved.label : `${saved.label} · 生年月日を聞き直さず、家の情報入力へ続けます。`;
+      }
+
+      function setBirthTimeMode() {
+        birthTime.disabled = birthTimeUnknown.checked;
+        birthTime.value = birthTimeUnknown.checked ? "" : birthTime.value;
+      }
+
+      function clearErrors() {
+        document.querySelectorAll(".error").forEach((node) => {
+          node.textContent = "";
+        });
+        document.querySelectorAll("[aria-invalid='true']").forEach((node) => {
+          node.removeAttribute("aria-invalid");
+        });
+      }
+
+      function setError(id, message) {
+        const input = document.querySelector(`#${id}`);
+        const error = document.querySelector(`#${id}-error`);
+        if (input && message) input.setAttribute("aria-invalid", "true");
+        if (input && !message) input.removeAttribute("aria-invalid");
+        if (error) error.textContent = message;
+      }
+
+      /** 날짜 피커는 1998-02-14 를, 예전 입력은 19980214 를 준다. 숫자만 남기면 같아진다. */
+      function birthDigits(value) {
+        return String(value || "").replace(/[^0-9]/g, "");
+      }
+
+      function validateBirthDate(value) {
+        const raw = birthDigits(value);
+        if (!raw) return "生年月日を入力してください。";
+        if (!/^\d{8}$/.test(raw)) return "生年月日を選択してください。";
+        const year = Number(raw.slice(0, 4));
+        const month = Number(raw.slice(4, 6));
+        const day = Number(raw.slice(6, 8));
+        const date = new Date(year, month - 1, day);
+        const valid = date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+        if (!valid) return "存在しない日付です。生年月日を確認してください。";
+        if (year < 1900 || year > new Date().getFullYear()) return "生年月日の年を確認してください。";
+        return "";
+      }
+
+      function validateTime(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(raw)) return "出生時刻を再確認してください。";
+        return "";
+      }
+
+      function formValue(name) {
+        return new FormData(form).get(name)?.toString().trim() || "";
+      }
+
+      function checkedValues(name) {
+        return Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map((input) => input.value);
+      }
+
+      function setHiddenValue(id, value) {
+        const field = document.querySelector(`#${id}`);
+        if (field) field.value = value || "";
+      }
+
+      function compactAddressData(data) {
+        const roadAddress = data?.roadAddress || "";
+        const jibunAddress = data?.jibunAddress || data?.autoJibunAddress || "";
+        const baseAddress = roadAddress || jibunAddress || data?.address || "";
+        const buildingName = data?.buildingName || "";
+        const displayAddress = buildingName && !baseAddress.includes(buildingName) ? `${baseAddress} (${buildingName})` : baseAddress;
+        return {
+          displayAddress,
+          roadAddress,
+          jibunAddress,
+          zonecode: data?.zonecode || "",
+          sido: data?.sido || "",
+          sigungu: data?.sigungu || "",
+          bname: data?.bname || "",
+          buildingName,
+          addressType: data?.userSelectedType || data?.addressType || ""
+        };
+      }
+
+      function applyAddressData(data) {
+        selectedAddress = compactAddressData(data);
+        addressInput.value = selectedAddress.displayAddress;
+        addressInput.dataset.addressSelected = "true";
+        setHiddenValue("home_road_address", selectedAddress.roadAddress);
+        setHiddenValue("home_jibun_address", selectedAddress.jibunAddress);
+        setHiddenValue("home_zonecode", selectedAddress.zonecode);
+        setHiddenValue("home_sido", selectedAddress.sido);
+        setHiddenValue("home_sigungu", selectedAddress.sigungu);
+        setHiddenValue("home_bname", selectedAddress.bname);
+        setHiddenValue("home_building_name", selectedAddress.buildingName);
+        setHiddenValue("home_address_type", selectedAddress.addressType);
+        setError("home_address", "");
+      }
+
+      function closeAddressSearch() {
+        postcodeLayer.hidden = true;
+        postcodeFrame.innerHTML = "";
+      }
+
+      function openAddressSearch() {
+        if (!window.kakao?.Postcode) {
+          addressInput.readOnly = false;
+          addressInput.dataset.addressApiUnavailable = "true";
+          setError("home_address", "住所検索APIを読み込めなかった。直接入力して進んでください。");
+          addressInput.focus();
+          return;
+        }
+
+        postcodeLayer.hidden = false;
+        postcodeFrame.innerHTML = "";
+        new kakao.Postcode({
+          width: "100%",
+          height: "100%",
+          oncomplete(data) {
+            applyAddressData(data);
+            closeAddressSearch();
+          }
+        }).embed(postcodeFrame, {
+          q: addressInput.value || "",
+          autoClose: true
+        });
+      }
+
+      function validate() {
+        clearErrors();
+        const profileMode = formValue("profile_mode");
+        let valid = true;
+
+        if (profileMode === "new") {
+          if (!formValue("nickname")) {
+            setError("nickname", "レポートで呼ぶ名前を入力してください。");
+            valid = false;
+          }
+          if (!["female", "male"].includes(formValue("gender"))) {
+            setError("gender", "性別を選択してください。");
+            valid = false;
+          }
+          if (!formValue("calendar")) {
+            setError("calendar", "陽暦か陰暦を選んでください。");
+            valid = false;
+          }
+          const birthError = validateBirthDate(formValue("birth_date"));
+          if (birthError) {
+            setError("birth_date", birthError);
+            valid = false;
+          }
+          const birthTimeValue = formValue("birth_time");
+          const timeError = validateTime(birthTimeValue);
+          if (!birthTimeUnknown.checked && !birthTimeValue) {
+            setError("birth_time", "出生時刻を選ぶか不明にチェックしてください。");
+            valid = false;
+          } else if (!birthTimeUnknown.checked && timeError) {
+            setError("birth_time", timeError);
+            valid = false;
+          }
+        }
+
+        if (!formValue("home_address")) {
+          setError("home_address", "住所検索で道路名または地番の住所を選択してください。");
+          valid = false;
+        } else if (addressInput.dataset.addressSelected !== "true" && addressInput.dataset.addressApiUnavailable !== "true") {
+          setError("home_address", "正確に入力するため、住所検索の結果から選んでください。");
+          valid = false;
+        }
+        if (!formValue("building_type")) {
+          setError("building_type", "住まいの形態を選択してください。");
+          valid = false;
+        }
+        if (!formValue("main_purpose")) {
+          setError("main_purpose", "家でいちばん大切な目的を選んでください。");
+          valid = false;
+        }
+        if (!formValue("stay_decision")) {
+          setError("stay_decision", "今の悩みを一つ選んでください。");
+          valid = false;
+        }
+        if (checkedValues("pain_points").length === 0) {
+          document.querySelector("#pain_points-error").textContent = "一番気になる合図を一つ以上選んでください。";
+          valid = false;
+        }
+
+        return valid;
+      }
+
+      const LABELS = {
+        buildingType: {
+          apartment: "マンション",
+          officetel: "オフィステル",
+          villa: "低層集合住宅・連棟住宅",
+          studio: "ワンルーム",
+          house: "一戸建て・多世帯",
+          other: "その他"
+        },
+        livingPeriod: {
+          under_3m: "3か月未満",
+          "3m_1y": "3か月~1年",
+          "1y_3y": "1~3年",
+          over_3y: "3年以上"
+        },
+        mainPurpose: {
+          rest: "睡眠・回復",
+          work: "在宅・勉強の集中",
+          money: "お金・暮らしの安定",
+          relationship: "동거·가족·관계",
+          move: "契約を続けるか、引っ越すか"
+        },
+        stayDecision: {
+          stay: "住み続ける角度か",
+          fix: "手直しで良くなるか",
+          compare: "引っ越し候補と比べるか",
+          unknown: "まず理由が気になる"
+        },
+        painPoints: {
+          sleep: "睡眠・疲れ",
+          entrance: "玄関・動線",
+          focus: "集中力",
+          money: "お金・家事",
+          relationship: "관계·동거",
+          move: "引っ越し・契約の判断"
+        }
+      };
+
+      function optionLabel(group, value, fallback = "") {
+        return LABELS[group]?.[value] || fallback || value || "";
+      }
+
+      function parseBirthDateParts(value) {
+        const raw = birthDigits(value);
+        return {
+          year: Number(raw.slice(0, 4)),
+          month: Number(raw.slice(4, 6)),
+          day: Number(raw.slice(6, 8))
+        };
+      }
+
+      function parseBirthTimeParts(value, known) {
+        if (!known) return { hour: 12, minute: 0 };
+        const [hour, minute] = String(value || "12:00").split(":").map(Number);
+        return {
+          hour: Number.isFinite(hour) ? hour : 12,
+          minute: Number.isFinite(minute) ? minute : 0
+        };
+      }
+
+      function buildBirthState(profileMode) {
+        if (profileMode === "saved") {
+          const saved = getSavedProfileState();
+          if (!saved.complete || !saved.profile) throw new Error("保存した命式のプロフィールが見つからなかった。新しい命式を入力してください。");
+          return {
+            name: saved.profile.name,
+            birth: saved.profile.birth,
+            birthTimeKnown: saved.profile.birthTimeKnown !== false,
+            source: "saved"
+          };
+        }
+
+        const birthDate = parseBirthDateParts(formValue("birth_date"));
+        const birthTimeKnown = !birthTimeUnknown.checked;
+        const birthTimeParts = parseBirthTimeParts(formValue("birth_time"), birthTimeKnown);
+        return {
+          name: formValue("nickname"),
+          birth: {
+            ...birthDate,
+            ...birthTimeParts,
+            gender: formValue("gender"),
+            calendar: formValue("calendar")
+          },
+          birthTimeKnown,
+          source: "new"
+        };
+      }
+
+      function buildHomeInput() {
+        const addressMeta = selectedAddress || {
+          displayAddress: formValue("home_address"),
+          roadAddress: formValue("home_road_address"),
+          jibunAddress: formValue("home_jibun_address"),
+          zonecode: formValue("home_zonecode"),
+          sido: formValue("home_sido"),
+          sigungu: formValue("home_sigungu"),
+          bname: formValue("home_bname"),
+          buildingName: formValue("home_building_name"),
+          addressType: formValue("home_address_type")
+        };
+        return {
+          addressOrBuilding: addressMeta.displayAddress || formValue("home_address"),
+          roadAddress: addressMeta.roadAddress,
+          jibunAddress: addressMeta.jibunAddress,
+          zonecode: addressMeta.zonecode,
+          sido: addressMeta.sido,
+          sigungu: addressMeta.sigungu,
+          bname: addressMeta.bname,
+          buildingName: addressMeta.buildingName,
+          addressType: addressMeta.addressType,
+          buildingType: formValue("building_type"),
+          livingPeriod: formValue("living_period"),
+          mainPurpose: formValue("main_purpose"),
+          stayDecision: formValue("stay_decision"),
+          painPoints: checkedValues("pain_points"),
+          entranceFlow: formValue("entrance_flow"),
+          bedroomFeel: formValue("bedroom_feel"),
+          deskPosition: formValue("desk_position"),
+          outsideFlow: formValue("outside_flow"),
+          extraNote: formValue("extra_note")
+        };
+      }
+
+      function snakeHomeInput(home) {
+        return {
+          address_or_building: home.addressOrBuilding,
+          road_address: home.roadAddress,
+          jibun_address: home.jibunAddress,
+          zonecode: home.zonecode,
+          sido: home.sido,
+          sigungu: home.sigungu,
+          bname: home.bname,
+          building_name: home.buildingName,
+          address_type: home.addressType,
+          building_type: home.buildingType,
+          living_period: home.livingPeriod,
+          main_purpose: home.mainPurpose,
+          stay_decision: home.stayDecision,
+          pain_points: home.painPoints,
+          entrance_flow: home.entranceFlow,
+          bedroom_feel: home.bedroomFeel,
+          desk_position: home.deskPosition,
+          outside_flow: home.outsideFlow,
+          extra_note: home.extraNote
+        };
+      }
+
+      function buildPayload() {
+        const profileMode = formValue("profile_mode");
+        const birthState = buildBirthState(profileMode);
+        const home = buildHomeInput();
+        const input = snakeHomeInput(home);
+        const painText = home.painPoints.map((point) => optionLabel("painPoints", point)).filter(Boolean).join(" · ");
+        const context = {
+          serviceKey: SERVICE.service_key,
+          name: birthState.name,
+          target: "本人",
+          relationship: "주거 공간",
+          orientation: "家と自分の空間の相性",
+          work: optionLabel("mainPurpose", home.mainPurpose, "日々の流れ"),
+          concern: [optionLabel("stayDecision", home.stayDecision), painText].filter(Boolean).join(" · "),
+          birthTimeKnown: birthState.birthTimeKnown,
+          home
+        };
+
+        return {
+          service: {
+            ...SERVICE,
+            category: "家の風水",
+            title: "今の家、自分と合う？"
+          },
+          service_key: SERVICE.service_key,
+          service_slug: SERVICE.service_slug,
+          schema_version: SERVICE.schema_version,
+          report_version: SERVICE.report_version,
+          copy_version: SERVICE.copy_version,
+          stage: "02-step-2-saju-input",
+          next_route: SERVICE.next_route,
+          profile: {
+            mode: profileMode,
+            use_saved_profile: profileMode === "saved",
+            saved_profile_applied: profileMode === "saved",
+            nickname: birthState.name,
+            name: birthState.name,
+            gender: birthState.birth.gender,
+            calendar: birthState.birth.calendar,
+            birth_date: `${birthState.birth.year}${pad2(birthState.birth.month)}${pad2(birthState.birth.day)}`,
+            birth_time_known: birthState.birthTimeKnown,
+            birth_time: birthState.birthTimeKnown ? `${pad2(birthState.birth.hour)}:${pad2(birthState.birth.minute)}` : "",
+            birth_place: profileMode === "new" ? formValue("birth_place") : "",
+            source: birthState.source
+          },
+          birth: birthState.birth,
+          birthTimeKnown: birthState.birthTimeKnown,
+          context,
+          input,
+          home,
+          interpretation_index_payload: readJsonBlock("INTERPRETATION_INDEX_PAYLOAD"),
+          privacy: {
+            url_query_contains_personal_data: false,
+            long_term_localstorage_personal_write: false,
+            temporary_storage: "sessionStorage"
+          }
+        };
+      }
+
+      async function requestAnalysis(payload) {
+        const session = await getAuthSession();
+        const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
+          },
+          body: JSON.stringify({
+            ...payload.birth,
+            birth: payload.birth,
+            birthTimeKnown: payload.birthTimeKnown,
+            serviceKey: SERVICE.service_key,
+            service_key: SERVICE.service_key,
+            context: payload.context,
+            home: payload.home,
+            input: payload.input
+          })
+        });
+        const json = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(json.error || "分析レポートを生成できませんでした。");
+          error.status = response.status;
+          throw error;
+        }
+        return json;
+      }
+
+      function saveForNextStep(payload) {
+        sessionStorage.setItem("umsh_home_fit_input_payload_v1", JSON.stringify(payload));
+        if (payload.analysis) {
+          sessionStorage.setItem("umsh_home_fit_report_v1", JSON.stringify(payload.analysis.report || null));
+          sessionStorage.setItem("cheongi_analysis", JSON.stringify(payload.analysis));
+        }
+        sessionStorage.setItem(
+          "umsh_home_fit_auth_return_v1",
+          JSON.stringify({
+            service_key: SERVICE.service_key,
+            service_slug: SERVICE.service_slug,
+            schema_version: SERVICE.schema_version,
+            from_stage: "02-step-2-saju-input",
+            next_route: SERVICE.next_route
+          })
+        );
+      }
+
+      document.querySelectorAll("input[name='profile_mode']").forEach((input) => {
+        input.addEventListener("change", () => setProfileMode(input.value));
+      });
+
+      birthTimeUnknown.addEventListener("change", setBirthTimeMode);
+      addressSearchButton.addEventListener("click", openAddressSearch);
+      addressInput.addEventListener("click", openAddressSearch);
+      postcodeClose.addEventListener("click", closeAddressSearch);
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!validate()) {
+          statusEl.textContent = "抜けた項目を確認してください。";
+          const firstInvalid = form.querySelector("[aria-invalid='true']");
+          firstInvalid?.focus();
+          return;
+        }
+        const submitButton = form.querySelector("button[type='submit']");
+        if (submitButton) submitButton.disabled = true;
+        statusEl.textContent = "入力値に合わせて、無料の味見鑑定を生成しています。";
+        try {
+          const payload = buildPayload();
+          const analysis = await requestAnalysis(payload);
+          payload.analysis = analysis;
+          payload.reportId = analysis.report?.reportId || "";
+          saveForNextStep(payload);
+          statusEl.textContent = "個別の解釈を保存した。04の無料の方向へ移動する。";
+          window.location.href = SERVICE.next_route;
+        } catch (error) {
+          // 로그인이 없어서 막힌 경우에는 문장만 띄우지 말고 로그인 화면을 연다.
+          if (error && (error.status === 401 || error.status === 403)) {
+            statusEl.textContent = "ログイン後に続けて見られます。ログイン画面へ移動します。";
+            location.assign(loginUrl());
+            return;
+          }
+          statusEl.textContent = error instanceof Error ? error.message : "分析レポートを生成できませんでした。";
+          if (submitButton) submitButton.disabled = false;
+        }
+      });
+
+      setProfileMode(getSavedProfileState().complete ? "saved" : "new");
+      if (!getSavedProfileState().complete) {
+        seedProfileFromAccount().then((filled) => {
+          if (filled) setProfileMode("saved");
+        });
+      }
+      setBirthTimeMode();
+    </script>
+    <div data-umsh-service-bottom=""></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/service-shell.js?v=20261008-three-voice-v1"></script>
+
+
+</body></html>

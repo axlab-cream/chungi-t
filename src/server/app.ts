@@ -2,7 +2,8 @@ import { loveSpeedRouter } from '../play/love-speed-route.js'
 import { soloNaraRouter } from '../play/solo-nara-route.js'
 import type { SoloSpec } from '../play/solo-nara.js'
 import soloNaraSpec from '../../data/solo-nara-spec.json' with { type: 'json' }
-import { respondRequestFailure } from './input-error.js'
+import { InputError, respondRequestFailure } from './input-error.js'
+import { storedResultRoute } from '../i18n/stored-result-route.js'
 import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
 import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet } from '../coupons/store.js'
 import { CouponError } from '../coupons/contracts.js'
@@ -13,6 +14,7 @@ import { synthesizeConsultation } from '../consultation/voice.js'
 import { DEFAULT_CONSULTATION_SETTINGS, getConsultationSettings } from '../consultation/settings.js'
 import { getConsultationContentSnapshot } from '../admin/content-store.js'
 import '../env/load.js'
+import { localizedPages } from './localized-pages.js'
 import type { ServerResponse } from 'node:http'
 import express from 'express'
 import cors from 'cors'
@@ -78,7 +80,7 @@ import { checkOpsQueueReadiness, countOpsJobsBefore, countOpsJobsByErrorCode, de
 import { SERVICE_RELEASE_PINS, serviceRelease } from '../release.js'
 import { FUNNEL_BATCH_LIMIT, checkFunnelStoreReadiness, recordFunnelEvents, summarizeBuyers, summarizeFunnel, summarizePaidOrders, toStoredEvent, type FunnelPeriod } from '../analytics/funnel-store.js'
 import { listOpsJobs, runOpsWorker } from '../admin/ops-worker.js'
-import { STAFF_NOTE_KINDS, SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, updateSupportCase } from '../admin/support-store.js'
+import { STAFF_NOTE_KINDS, SUPPORT_CATEGORIES, SUPPORT_NOTE_KINDS, SUPPORT_PRIORITIES, SUPPORT_STATUSES, createSupportCase, createSupportNote, getSupportCase, listSupportCases, listSupportCasesForMember, listSupportNotes, markSupportCaseAnswered, updateSupportCase } from '../admin/support-store.js'
 import { INCIDENT_SEVERITIES, INCIDENT_STATUSES, createIncident, createIncidentUpdate, listIncidentUpdates, listIncidents, updateIncident } from '../admin/incident-store.js'
 import {
   NEW_SERVICE_DRAFT_REVISION,
@@ -1106,6 +1108,7 @@ app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
 // 끝의 파일명을 뗀 `/love/this-year/01-step-1-story/` 를 공유하면 404 였다. 같은
 // index.html 이 이미 파일명으로 공개돼 있으므로 새로 열리는 파일은 없다.
 // `/`·`/payment` 등은 위 명시 라우트가 먼저 처리한다.
+app.use(localizedPages(join(ROOT, '.vercel-localized')))
 app.use(cachedStatic(SAJU_ROOT, { index: 'index.html' }))
 
 function parseBirth(body: Record<string, unknown>): BirthInput {
@@ -1118,7 +1121,25 @@ function parseBirth(body: Record<string, unknown>): BirthInput {
     gender: (body.gender === 'female' ? 'female' : 'male') as BirthInput['gender'],
     calendar: (body.calendar === 'lunar' ? 'lunar' : 'solar') as BirthInput['calendar'],
     isLeapMonth: Boolean(body.isLeapMonth),
+    birthTimeZone: readBirthTimeZone(body.birthTimeZone),
+    birthTimeDisambiguation: readBirthTimeDisambiguation(body.birthTimeDisambiguation),
   }
+}
+
+function readBirthTimeZone(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.trim() || value.trim() === 'Asia/Seoul') return undefined
+  try {
+    Intl.DateTimeFormat('en-US', { timeZone: value.trim() })
+    return value.trim()
+  } catch {
+    throw new InputError('INVALID_BIRTH_TIME_ZONE')
+  }
+}
+
+function readBirthTimeDisambiguation(value: unknown): 'earlier' | 'later' | undefined {
+  if (value === undefined || value === null || value === '') return undefined
+  if (value === 'earlier' || value === 'later') return value
+  throw new InputError('INVALID_BIRTH_TIME_DISAMBIGUATION')
 }
 
 function normalizeServiceKey(value: unknown): string | undefined {
@@ -1270,6 +1291,8 @@ function parseOptionalPartnerContext(source: unknown): SajuReportContext['partne
       minute: Number.isFinite(minute) ? minute : 0,
       gender: gender as BirthInput['gender'],
       calendar: calendar as BirthInput['calendar'],
+      birthTimeZone: readBirthTimeZone(birthSource.birthTimeZone ?? partner.birthTimeZone),
+      birthTimeDisambiguation: readBirthTimeDisambiguation(birthSource.birthTimeDisambiguation ?? partner.birthTimeDisambiguation),
     },
   }
 }
@@ -1503,7 +1526,8 @@ function trimmedString(value: unknown): string {
 }
 
 function isValidProfileName(value: string): boolean {
-  return /^[가-힣]{2,20}$/.test(value)
+  const name = value.trim().normalize('NFC')
+  return Array.from(name).length >= 2 && Array.from(name).length <= 20 && /^[\p{L}\p{M}][\p{L}\p{M} .'’\-]*$/u.test(name)
 }
 
 function validDateParts(year: number, month: number, day: number): boolean {
@@ -1545,7 +1569,7 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
   const calendar = source.calendar
 
   if (!isValidProfileName(name)) {
-    throw new Error('이름은 한글 2자 이상 20자 이하로 입력해 주세요.')
+    throw new Error('이름은 문자 2자 이상 20자 이하로 입력해 주세요.')
   }
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day) || !validDateParts(year, month, day)) {
     throw new Error('생년월일을 다시 확인해 주세요.')
@@ -1577,6 +1601,8 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
       gender,
       calendar,
       isLeapMonth: Boolean(source.isLeapMonth),
+      birthTimeZone: readBirthTimeZone(source.birthTimeZone),
+      birthTimeDisambiguation: readBirthTimeDisambiguation(source.birthTimeDisambiguation),
     },
     birthTimeKnown,
     context: {
@@ -3240,7 +3266,7 @@ app.patch('/api/admin/v1/members/:id', async (req, res) => {
   const isLeapMonth = birthBody.isLeapMonth === true
 
   if (!userId || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '회원 ID와 멱등 키를 확인해 주세요.' }); return }
-  if (!isValidProfileName(name)) { res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '이름은 한글 2자 이상 20자 이하로 입력해 주세요.' }); return }
+  if (!isValidProfileName(name)) { res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '이름은 문자 2자 이상 20자 이하로 입력해 주세요.' }); return }
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day) || !validDateParts(year, month, day) || year < 1900 || year > new Date().getFullYear()) {
     res.status(422).json({ code: 'INVALID_MEMBER_UPDATE', error: '생년월일을 다시 확인해 주세요.' }); return
   }
@@ -3284,7 +3310,7 @@ app.post('/api/admin/v1/members/:id/status', async (req, res) => {
 
 /** 생년월일·이름 검증을 등록과 수정이 같이 쓴다. 문제가 있으면 운영자 문장을, 없으면 null. */
 function memberProfileInputError(name: string, year: number, month: number, day: number, hour: number, minute: number, gender: unknown, calendar: unknown): string | null {
-  if (!isValidProfileName(name)) return '이름은 한글 2자 이상 20자 이하로 입력해 주세요.'
+  if (!isValidProfileName(name)) return '이름은 문자 2자 이상 20자 이하로 입력해 주세요.'
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day) || !validDateParts(year, month, day) || year < 1900 || year > new Date().getFullYear()) return '생년월일을 다시 확인해 주세요.'
   if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) return '태어난 시간을 다시 확인해 주세요.'
   if (gender !== 'male' && gender !== 'female') return '성별을 선택해 주세요.'
@@ -3626,7 +3652,9 @@ app.post('/api/admin/v1/support/:id/notes', async (req, res) => {
   if (!id || !(STAFF_NOTE_KINDS as readonly string[]).includes(kind) || text.length < 1 || text.length > 4000 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_SUPPORT_NOTE_INPUT', error: '메모 종류, 내용, 멱등 키를 확인해 주세요.' }); return }
   try {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'support.note.create', idempotencyKey, body: { id, kind, textLength: text.length }, target: { type: 'support_case', id } }, async () => createSupportNote({ caseId: id, kind: kind as typeof SUPPORT_NOTE_KINDS[number], text, actorEmail: membership.email }))
-    res.status(command.replayed ? 200 : 201).json({ note: command.result, replayed: command.replayed })
+    // 회원에게 보이는 답변이면 문의를 "해결"로 옮긴다. 상태 변경이 실패해도 답변은 이미 저장됐으므로 답변 성공으로 응답한다.
+    const answered = kind === 'customer_reply' ? await markSupportCaseAnswered(id).catch(() => null) : null
+    res.status(command.replayed ? 200 : 201).json({ note: command.result, replayed: command.replayed, supportCase: answered?.supportCase ?? null, statusChanged: answered?.statusChanged === true })
   } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'SUPPORT_NOTE_CREATE_FAILED', error: '케이스 메모를 저장하지 못했습니다.' }) }
 })
 
@@ -5508,6 +5536,26 @@ app.get('/api/report/:reportId/reader/sketch', async (_req, res) => {
     res.send(bytes)
   } catch (error) { res.status(error instanceof ReaderToolError ? error.status : 502).json({ error: '저장된 이미지를 불러오지 못했습니다.' }) }
 })
+
+const localeCopyHandler = storedResultRoute({
+  authenticate: requireSupabaseUser,
+  lookup: async (id, owner) => {
+    const record = await findReportRecord(id, owner)
+    return record && !isConsultationRecord(record) && !isSavedChatRecord(record) ? record : null
+  },
+  entitled: async (req, owner, record) => (await resolvePaidAccess(req, owner, productKeyForContext(record.context), record.reportId)).entitled,
+  project: (record, paid) => {
+    if (!paid) {
+      const preview = savedPreviewResponse(record)
+      return { reportId: record.reportId, status: 'complete', sections: preview.teaserSections ?? [], isPaid: false, paid: false }
+    }
+    const report = toClientReport(record)
+    report.isPaid = report.paid = true
+    return report
+  },
+})
+app.get('/api/report/:reportId/translation/:locale', localeCopyHandler)
+app.post('/api/report/:reportId/translation/:locale', localeCopyHandler)
 
 app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) => {
   try {

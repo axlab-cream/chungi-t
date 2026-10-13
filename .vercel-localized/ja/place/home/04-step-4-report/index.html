@@ -1,0 +1,1311 @@
+<!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/umsh-auth-session.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>無料の方向案内 | 今の家、自分に合っている？</title>
+    <meta name="description" content="風水と個人の命理で、今住む家と自分の生活リズムの無料の方向を確認します。">
+    <meta property="og:title" content="運命商会 - 運命を売ります。">
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://place.umsh.kr/home">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0c1110;
+        --surface: #141a17;
+        --surface-2: #1d2420;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.5);
+        --line: rgba(215, 234, 213, 0.18);
+        --sage: #9fb7a1;
+        --mint: #d8ecd4;
+        --brass: #e4c36f;
+        --clay: #bf6745;
+        --blue: #89a9bd;
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #050706;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% -8%, rgba(159, 183, 161, 0.2), transparent 28rem),
+          linear-gradient(180deg, #050706 0%, #0f1412 42%, #050706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(12, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 1.2;
+      }
+
+      .brand span,
+      .step-badge,
+      .eyebrow {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .step-badge {
+        flex: 0 0 auto;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 29px;
+        line-height: 1.17;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        font-size: 15px;
+        line-height: 1.36;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .hero {
+        display: grid;
+        gap: 16px;
+        align-items: center;
+        padding: 24px 18px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .chips,
+      .micro-grid,
+      .state-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip,
+      .mini-state {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .visual-frame {
+        position: relative;
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(215, 234, 213, 0.24);
+        border-radius: 8px;
+        background: #eadfcb;
+      }
+
+      .visual-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .notice {
+        display: none;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(228, 195, 111, 0.2);
+        background: rgba(191, 103, 69, 0.12);
+      }
+
+      .notice.is-open {
+        display: block;
+      }
+
+      .band {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        gap: 7px;
+      }
+
+      .result-shell {
+        display: grid;
+        gap: 12px;
+      }
+
+      .summary-row,
+      .signal-card,
+      .scope-card,
+      .state-card,
+      .receipt-row,
+      .action-tile {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .summary-row {
+        display: grid;
+        gap: 8px;
+        padding: 16px;
+      }
+
+      .summary-row strong,
+      .signal-card strong,
+      .scope-card strong,
+      .state-card strong,
+      .receipt-row strong {
+        display: block;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .summary-row span,
+      .signal-card span,
+      .scope-card span,
+      .state-card span,
+      .receipt-row span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.5;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .teaser-copy {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        background: rgba(228, 195, 111, 0.07);
+      }
+
+      .teaser-copy strong {
+        color: var(--brass);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .teaser-copy p {
+        margin: 0;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 780;
+        line-height: 1.7;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .verdict-box {
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+        border: 1px solid rgba(228, 195, 111, 0.28);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 88% 0%, rgba(228, 195, 111, 0.18), transparent 12rem),
+          linear-gradient(145deg, rgba(31, 41, 33, 0.96), rgba(18, 22, 19, 0.98));
+      }
+
+      .verdict-label {
+        width: fit-content;
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: rgba(159, 183, 161, 0.14);
+        color: var(--mint);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .verdict-box h2 {
+        font-size: 25px;
+      }
+
+      .signal-layout {
+        display: grid;
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .signal-list,
+      .scope-list,
+      .receipt-list,
+      .action-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal-card {
+        display: grid;
+        gap: 7px;
+        padding: 14px;
+      }
+
+      /* 손볼 곳인지 아닌지를 카드 첫 줄에서 바로 읽히게 한다. 戻る에는 네 카드가
+         모두 같은 톤이라, 자기 답이 문제인지 아닌지 알 수 없었다. */
+      .signal-flag {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 7px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--sage);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 900;
+        letter-spacing: 0;
+        vertical-align: middle;
+      }
+
+      .signal-flag.is-warn {
+        border-color: rgba(191, 103, 69, 0.55);
+        background: rgba(191, 103, 69, 0.16);
+        color: var(--clay);
+      }
+
+      .signal-card .signal-issue {
+        color: var(--ink);
+        font-weight: 800;
+        opacity: 0.9;
+      }
+
+      .signal-card .signal-fix {
+        padding-top: 7px;
+        border-top: 1px solid var(--line);
+        color: var(--mint);
+      }
+
+      .signal-card .signal-fix::before {
+        content: "補う点 ";
+        color: var(--brass);
+        font-weight: 950;
+      }
+
+      .signal-card b,
+      .scope-card b {
+        color: var(--brass);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.04em;
+      }
+
+      .scope-card {
+        display: grid;
+        gap: 7px;
+        padding: 14px;
+      }
+
+      .scope-card ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .scope-card li {
+        padding: 6px 8px;
+        border: 1px solid rgba(215, 234, 213, 0.12);
+        border-radius: 8px;
+        color: rgba(255, 248, 239, 0.72);
+        background: rgba(0, 0, 0, 0.14);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .state-card {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 148px;
+        padding: 12px;
+      }
+
+      .state-card strong {
+        color: var(--mint);
+        font-size: 12px;
+      }
+
+      .paid-band {
+        background:
+          radial-gradient(circle at 18% 0%, rgba(137, 169, 189, 0.18), transparent 13rem),
+          rgba(255, 255, 255, 0.02);
+      }
+
+      .cta-layout {
+        display: grid;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .price {
+        color: var(--brass);
+        font-size: 32px;
+        font-weight: 950;
+        letter-spacing: 0;
+        line-height: 1;
+      }
+
+      .receipt-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+      }
+
+      .receipt-row span {
+        text-align: right;
+      }
+
+      .cta-stack {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        display: grid;
+        gap: 10px;
+        padding: 12px 18px max(16px, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: rgba(12, 17, 16, 0.95);
+        backdrop-filter: blur(16px);
+      }
+
+      .cta-primary,
+      .cta-secondary {
+        display: grid;
+        min-height: 52px;
+        place-items: center;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1.25;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+
+      .cta-primary {
+        border: 1px solid rgba(228, 195, 111, 0.55);
+        background: linear-gradient(135deg, #efd47d, #c8913d);
+        color: #1b1207;
+      }
+
+      .cta-secondary {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+
+      .fallback-link {
+        color: var(--brass);
+        font-weight: 900;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      @media (max-width: 374px) {
+        .hero,
+        .signal-layout,
+        .cta-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .visual-frame {
+          width: 100%;
+          min-height: 0;
+          justify-self: center;
+        }
+
+        h1 {
+          font-size: 25px;
+        }
+
+        .verdict-box h2 {
+          font-size: 22px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell">
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907">
+  </head>
+  <body>
+    <main class="app" id="step-4-report">
+      <div data-umsh-service-top=""></div>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <span class="eyebrow">今の家、自分と合う？</span>
+          <h1 id="page-title">家の肩書きより、今の自分のリズムに合うかから見よう</h1>
+          <p id="hero-summary">
+            吉地・凶地と決めず、この家が睡眠・仕事・お金・関係を支えるか無料の方向性から確かめます。
+          </p>
+          <div class="chips" aria-label="分析の基準">
+            <span class="chip">風水</span>
+            <span class="chip">個人の命理</span>
+            <span class="chip">生活のリズム</span>
+          </div>
+        </div>
+        <figure class="visual-frame" data-asset-key="home-04-free-report-hero">
+          <img src="assets/generated/home/04-free-report-hero.webp" alt="家の図面と模型を見て無料の方向性を準備する運命商会のガイド">
+        </figure>
+      </section>
+
+      <section class="notice" id="missing-input">
+        <p>
+          いま入れた家の情報が、このブラウザにありません。入力からもう一度確認してください。
+
+        </p>
+      </section>
+
+      <section class="band">
+        <div class="section-head">
+          <span class="eyebrow">無料で先に見える方向</span>
+          <h2>結論は隠さず、範囲は軽く</h2>
+          <p>ここは全体の解説の試し読みだ。一行の方向と強い合図までを先に見られる。</p>
+        </div>
+
+        <div class="verdict-box" aria-live="polite">
+          <span class="verdict-label" id="verdict-label">家との相性の仮判定</span>
+          <h2 id="verdict-title">入力値をもとに、住み続ける角度、手を入れる角度、比べる角度に分けます</h2>
+          <p id="verdict-summary">
+            家の良し悪しより、この家で揺れが少なく、よく回復するかを先に見ます。
+          </p>
+        </div>
+
+        <div class="result-shell" id="snapshot-list" aria-label="入力の要約">
+          <div class="summary-row">
+            <strong>入力の要約を待機中</strong>
+            <span>02段階の入力値があれば、ここに家の形、目的、悩みのポイントを整理する。</span>
+          </div>
+        </div>
+
+        <div class="result-shell" aria-label="個別化された無料のお試し">
+          <div class="teaser-copy" id="personal-teaser">
+            <strong>個別の試し読みを待機中</strong>
+            <p>命式と家の入力がつながると今の家で先に見える導入の鑑定が表示されます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="signals-title">
+        <div class="section-head">
+          <span class="eyebrow">強いサイン4つ</span>
+          <h2 id="signals-title">今まず確認するポイント</h2>
+          <p>玄関、寝室、机、窓の外の流れだけでも、家が自分を生かすか疲れさせるかの輪郭が分かる。</p>
+        </div>
+
+        <div class="signal-layout">
+          <figure class="visual-frame" data-asset-key="home-04-key-signal">
+            <img src="assets/generated/home/04-key-signal.webp" alt="玄関の動線と目隠しを見る運命商店のガイド">
+          </figure>
+          <div class="signal-list" id="signal-list">
+            <article class="signal-card">
+              <b>玄関</b>
+              <strong>入った気がすぐ抜けないか</strong>
+              <span>玄関から寝室や大きな窓が直接見えるなら、目隠しと整理が先に必要かもしれない。</span>
+            </article>
+            <article class="signal-card">
+              <b>寝室</b>
+              <strong>眠りが深くなる場所か</strong>
+              <span>道路の騒音、人の視線、ドアの向きの影響が強いと、回復しにくいと感じることがある。</span>
+            </article>
+            <article class="signal-card">
+              <b>机</b>
+              <strong>背後に支えがあるか</strong>
+              <span>仕事や勉強の席は、背後が空く感じより壁や安定した面を背にする方がよいです。</span>
+            </article>
+            <article class="signal-card">
+              <b>窓の外</b>
+              <strong>前が開け、圧迫が少ないか</strong>
+              <span>開くことと支えの均衡を見る。良い悪いより、自分の生活の速さに合うかが要点だ。</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band paid-band" aria-labelledby="paid-title">
+        <div class="section-head">
+          <span class="eyebrow">支払い後に開く全体の範囲</span>
+          <h2 id="paid-title">19,900ウォンのレポートは12章の流れまで続けて見られる</h2>
+          <p>無料の方向性で止まらず、命式と家の五行の相性・場所ごとの手入れ・7日の行動までつなぎます。</p>
+        </div>
+
+        <div class="cta-layout">
+          <div class="receipt-list">
+            <div class="receipt-row">
+              <strong>商品</strong>
+              <span>今の家、自分と合う？</span>
+            </div>
+            <div class="receipt-row">
+              <strong>提供する範囲</strong>
+              <span>12章の鑑定、8つの軸のスコア表、現実での行動</span>
+            </div>
+            <div class="receipt-row">
+              <strong>決済金額</strong>
+              <span class="price">19,900ウォン</span>
+            </div>
+          </div>
+          <figure class="visual-frame" data-asset-key="home-04-paid-preview">
+            <img src="assets/generated/home/04-paid-preview.webp" alt="家の模型と空のレポートカードを整理する、運命商会のガイド">
+          </figure>
+        </div></section>
+
+      <section class="band" aria-labelledby="scope-title">
+        <div class="section-head">
+          <span class="eyebrow">全体のレポートの目次</span>
+          <h2 id="scope-title">ここまで続けて見る</h2>
+
+        </div>
+        <div class="scope-list" id="scope-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="action-title">
+        <div class="section-head">
+          <span class="eyebrow">今できること</span>
+          <h2 id="action-title">無料の方向の案内だけでも、今日確認できること</h2>
+          <p>全体のレポートの前でも、朝と夕方の体感の違いはすぐ確認できる。</p>
+        </div>
+        <div class="action-list">
+          <div class="action-tile summary-row">
+            <strong>朝の1分</strong>
+            <span>玄関から居間まで、視線がどこにまっすぐ向かうかを見る。</span>
+          </div>
+          <div class="action-tile summary-row">
+            <strong>夕方の1分</strong>
+            <span>ベッドで横になったとき、ドア・窓・騒音の何が最初に気になるか見ます。</span>
+          </div>
+          <div class="action-tile summary-row">
+            <strong>週末10分</strong>
+            <span>机とベッドの後ろから整え、動かせなければ照明と収納で補います。</span>
+          </div>
+        </div>
+      </section>
+
+      <nav class="cta-stack" aria-label="次の段階">
+        <a class="cta-primary" href="/payment?product=home_pungsu&amp;returnTo=%2Fplace%2Fhome%2F04-step-4-report%2Findex.html" data-action="open-paid">
+          全体を見る（19,900ウォン）
+        </a>
+
+
+      </nav>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "今の家、自分と合う？",
+        "service_category": "家の風水",
+        "rag": ["風水", "個人の命理"],
+        "domain": "place.umsh.kr/home",
+        "price_krw": 19900,
+        "stage": "04-step-4-report"
+      }
+    </script>
+
+    <script type="application/json" id="FREE_REPORT_MODEL">
+      {
+        "teaser_ratio": "10-15%",
+        "free_components": ["一行の方向性", "強い信号が1つ以上", "条件または時期", "妨げになる要因", "有料で開く項目"],
+        "decision_labels": ["住み続ける判断", "手を入れる判断", "比較の見込み", "実感の判断を保留"],
+        "client_authority": "無料画面は、決済の成功や権限を確定しません。"
+      }
+    </script>
+
+    <script type="application/json" id="INTERPRETATION_INDEX_PAYLOAD">
+      {
+        "source": "user_seed",
+        "interpretation_index_version": "home-fit-index-v1",
+        "groups": [
+          {
+            "group_id": "home-fit-overall",
+            "title": "この家、本当に自分に合う？",
+            "items": ["全体の相性の判定", "住み続ける／手を入れる／比べる", "引かれる理由", "妙に疲れるところ", "今の自分の時期との相性", "一行の結論"]
+          },
+          {
+            "group_id": "house-energy",
+            "title": "土地は、自分を支える？ 遠ざける？",
+            "items": ["土地の類似度", "支えの感覚", "移動の負担", "似た土地の生活パターン"]
+          },
+          {
+            "group_id": "saju-house-ohaeng",
+            "title": "自分の四柱推命 × 家の五行との相性",
+            "items": ["日干の生活のリズム", "五行の過剰／不足を補う", "用神と空間の質感", "身強・身弱別の家の速度", "自分に過剰な家", "自分を生かしてくれる家"]
+          },
+          {
+            "group_id": "sleep-recovery",
+            "title": "睡眠・回復・心のリズム",
+            "items": ["寝室の落ち着き", "眠りの深さ", "家で回復する力", "音と視線の疲れ", "休む枠を確保", "退勤後の充電感", "消耗を防ぐポイント"]
+          },
+          {
+            "group_id": "entrance-flow",
+            "title": "玄関・動線の力",
+            "items": ["第一印象", "玄関の整理状態", "玄関・居間・寝室の直線の流れ", "エレベーター・廊下の刺激", "入ってきた気がとどまるか", "荷物・靴の混雑"]
+          },
+          {
+            "group_id": "remote-focus",
+            "title": "在宅・勉強・仕事の集中力",
+            "items": ["机の位置", "背中の支え", "ドア・窓の位置", "集中しやすい隅", "ビデオ会議・通話の適合", "仕事の場所と休む場所を分ける", "生産性の習慣"]
+          },
+          {
+            "group_id": "money-living",
+            "title": "お金・暮らし・消費の流れ",
+            "items": ["お金が集まる仕組み", "お金が流れ出る点", "家賃・管理費の実感", "在宅収入のリズム", "重要書類・金庫の位置", "衝動消費のきっかけ"]
+          },
+          {
+            "group_id": "relationship-cohabitation",
+            "title": "関係・家族・同居の相性",
+            "items": ["一人でいるときの心地よさ", "家族とぶつかる動線", "恋人・友人を招くフィット", "同居人・同棲の相性", "近所・騒音のストレス", "プライバシーが守られる感覚"]
+          },
+          {
+            "group_id": "spatial-fix",
+            "title": "空間ごとの手入れ",
+            "items": ["ベッドの位置", "机の位置", "ソファ・食卓の場所", "鉢植え・鏡・テレビの活用", "カーテン・照明・収納の補足", "色・素材のヒント", "引っ越せないときの代案"]
+          },
+          {
+            "group_id": "reality-action",
+            "title": "現実の確認と行動プラン",
+            "items": ["朝・夜の感じ方を試す", "契約維持／引っ越し比較", "今すぐ直す3つ", "避ける配置", "7日暮らしてみるチェック", "次の行動の提案"]
+          }
+        ]
+      }
+    </script>
+
+
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-04-free-report-hero",
+            "filename": "assets/generated/home/04-free-report-hero.webp",
+            "role": "hero",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["丸眼鏡", "整えた濃い色の髪", "ベージュのニットの羽織り", "セージ色", "暖かな室内照明"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "家の図面と模型を見て無料の方向性を準備する場面。画像内の文字は禁止。",
+            "alt": "家の図面と模型を見て無料の方向性を準備する運命商会のガイド",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-free-report-hero'] img"
+          },
+          {
+            "asset_key": "home-04-key-signal",
+            "filename": "assets/generated/home/04-key-signal.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["丸眼鏡", "整えた濃い色の髪", "ベージュのニットの羽織り", "セージ色", "暖かな室内照明"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "玄関の動線と仕切りを見る場面。画像内の文字は禁止。",
+            "alt": "玄関の動線と目隠しを見る運命商店のガイド",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-key-signal'] img"
+          },
+          {
+            "asset_key": "home-04-paid-preview",
+            "filename": "assets/generated/home/04-paid-preview.webp",
+            "role": "card",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["丸眼鏡", "整えた濃い色の髪", "ベージュのニットの羽織り", "セージ色", "暖かな室内照明"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "家の模型と空のレポートカードを整理する、支払い前の範囲予告シーン。画像内テキスト禁止。",
+            "alt": "家の模型と空のレポートカードを整理する、運命商会のガイド",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-04-paid-preview'] img"
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        service_title: "今住んでいる家は、私と合う？",
+        category: "家の風水",
+        subcategory: "家と生活の相性",
+        price_krw: 19900,
+        report_version: "home-fit-v1.0",
+        copy_version: "mz-home-pungsu-v1",
+        next_route: "../05-step-5-chat/chat.html#step-5-chat"
+      };
+
+      const STORAGE_KEYS = {
+        input: "umsh_home_fit_input_payload_v1",
+        paymentIntent: "umsh_home_fit_payment_intent_v1"
+      };
+
+      const HOME_GUIDE_GROUPS = [
+        { group_id: "home-fit-overall", title: "この家、本当に自分に合う？", items: ["全体の判断", "8軸の点数表", "主な強み", "優先して見るリスク"] },
+        { group_id: "terrain-support", title: "土地は、自分を支える？ 遠ざける？", items: ["土地の類似度", "支えの感覚", "移動の負担", "似た土地の生活パターン"] },
+        { group_id: "external-flow", title: "水路、道路、風、何が入ってくる？", items: ["水系", "道路", "風", "外の音"] },
+        { group_id: "light-air-noise", title: "光は薬か、アラームの爆弾か", items: ["方位・日照", "換気", "騒音", "時間帯の刺激"] },
+        { group_id: "building-unit", title: "建物と世帯の基本体力", items: ["階数・竣工", "共用施設", "平面", "住戸の条件"] },
+        { group_id: "entrance-flow", title: "玄関でもう力が抜ける？", items: ["最初の動線", "扉の前の停滞", "靴・荷物", "出入りのリズム"] },
+        { group_id: "sleep-recovery", title: "寝室は休む部屋？それとも残業の二回戦？", items: ["睡眠の刺激", "回復感", "夜間の光・音", "7日間の実験"] },
+        { group_id: "remote-focus", title: "机は集中席か、通知のコロッセオか", items: ["後ろの支え", "視野", "通知・音", "開始・締切"] },
+        { group_id: "money-living", title: "お金が漏れる？動線が漏れる？", items: ["重複購入", "収納", "返品・定期購入", "家事の動線"] },
+        { group_id: "relationship-cohabitation", title: "一緒に暮らせば相性、それとも騒音の協定", items: ["共用空間", "私生活", "使用時間", "関係の距離"] },
+        { group_id: "saju-house-ohaeng", title: "自分の四柱推命 × 家の五行との相性", items: ["個人の五行", "家の象徴", "目的の五行", "年間の流れ"] },
+        { group_id: "reality-action", title: "それで何をすればいい？", items: ["今日", "7日", "30日", "引っ越しの比較の基準"] }
+      ];
+
+      const LABELS = {
+        building_type: {
+          apartment: "マンション",
+          officetel: "オフィステル",
+          villa: "低層共同住宅",
+          studio: "ワンルーム",
+          house: "一戸建て",
+          other: "その他の住まい"
+        },
+        main_purpose: {
+          recovery: "回復",
+          work_study: "仕事・勉強の集中",
+          money: "お金・暮らしの安定",
+          relationship: "관계·동거",
+          move_decision: "引っ越しの判断"
+        },
+        stay_decision: {
+          stay: "住み続けるか悩んでいます",
+          fix: "手を入れれば大丈夫か悩む",
+          compare: "引っ越し候補と比べる",
+          unknown: "原因から知りたい"
+        },
+        pain_points: {
+          sleep: "眠りが浅い",
+          noise: "騒音が気になります",
+          entrance: "玄関が散らかっている",
+          focus: "集中できない",
+          money: "お金・家事が気になる",
+          spending: "お金が漏れ続ける感じ",
+          relationship: "같이 살 때 부딪힘",
+          move: "引っ越し・契約の判断がかかっている",
+          pressure: "窓の外・建物からの圧迫感"
+        },
+        entrance_flow: {
+          direct: "玄関から内側がほぼ一直線に見える",
+          direct_bedroom: "玄関から寝室がすぐ見える",
+          direct_window: "玄関から大きな窓がすぐ見える",
+          bent: "動線が一度折れる",
+          blocked: "遮るものがある",
+          unknown: "よくわからない"
+        },
+        bedroom_feel: {
+          quiet: "静かで落ち着いている",
+          window_road: "窓の外からの音・視線がある",
+          door_line: "ドアの向きが気になる",
+          too_bright: "光が強い、または休みにくい",
+          cluttered: "物が多く窮屈",
+          unknown: "よくわからない"
+        },
+        desk_position: {
+          back_wall: "背後に壁がある",
+          back_window: "背後が窓か空いた空間",
+          face_door: "扉を正面に見る",
+          mixed_rest: "休む場所と混ざる",
+          none: "決まった場所がない"
+        },
+        outside_flow: {
+          open: "前が開けている方",
+          pressed: "向かいの建物が近い",
+          road_noise: "道路・路地からの刺激がある",
+          balanced: "無難で安定的",
+          unknown: "よく分からない"
+        }
+      };
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        try {
+          return JSON.parse(node.textContent);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function fromSession(key) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function toSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          return false;
+        }
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function label(group, key, fallback = "未入力") {
+        return LABELS[group]?.[key] || fallback;
+      }
+
+      function snakeInputFromHome(home = {}) {
+        return {
+          address_or_building: home.addressOrBuilding,
+          building_type: home.buildingType,
+          living_period: home.livingPeriod,
+          main_purpose: home.mainPurpose,
+          stay_decision: home.stayDecision,
+          pain_points: home.painPoints,
+          entrance_flow: home.entranceFlow,
+          bedroom_feel: home.bedroomFeel,
+          desk_position: home.deskPosition,
+          outside_flow: home.outsideFlow,
+          extra_note: home.extraNote
+        };
+      }
+
+      function inputFromPayload(payload) {
+        return payload?.input || snakeInputFromHome(payload?.home || payload?.context?.home || {});
+      }
+
+      function reportFromPayload(payload) {
+        return payload?.analysis?.report || safeParse(fromSession("umsh_home_fit_report_v1"));
+      }
+
+      function reportSection(payload, ...ids) {
+        const report = reportFromPayload(payload);
+        const sections = Array.isArray(report?.sections) ? report.sections : [];
+        return ids.map((id) => sections.find((section) => section.id === id)).find(Boolean) || sections[0] || null;
+      }
+
+      function teaserParagraphs(section) {
+        const text = String(section?.interpretation || "").trim();
+        if (!text) return [];
+        return text
+          .split(/\n{2,}/)
+          .map((part) => part.replace(/^\[[^\]]+\]\s*/, "").trim())
+          .filter(Boolean)
+          .slice(0, 2);
+      }
+
+      function compactName(payload) {
+        if (payload?.context?.name) return payload.context.name;
+        if (payload?.profile?.name) return payload.profile.name;
+        if (payload?.profile?.nickname) return payload.profile.nickname;
+        return "自分";
+      }
+
+      function deriveVerdict(input) {
+        const pain = new Set(Array.isArray(input.pain_points) ? input.pain_points : []);
+        const hasSleepDrag = pain.has("sleep") || pain.has("noise") || input.bedroom_feel === "window_road" || input.bedroom_feel === "door_line";
+        const hasFlowDrag = pain.has("entrance") || input.entrance_flow === "direct" || input.entrance_flow === "direct_bedroom" || input.entrance_flow === "direct_window";
+        const hasFocusDrag = pain.has("focus") || input.desk_position === "back_window" || input.desk_position === "mixed_rest";
+        const hasPressure = pain.has("pressure") || input.bedroom_feel === "too_bright" || input.outside_flow === "pressed" || input.outside_flow === "road_noise";
+
+        if (input.stay_decision === "compare") {
+          return {
+            label: "比較の見込み",
+            title: "今はすぐ決めず別の候補と一緒に見る方が合います",
+            summary: "窓の外の流れ、眠りの安定感、家賃の体感のように毎日繰り返す条件を並べて比べると、判断がずっと鮮明になります。"
+          };
+        }
+
+        if (input.stay_decision === "fix" || hasFlowDrag || hasSleepDrag || hasFocusDrag || hasPressure) {
+          return {
+            label: "手を入れる判断",
+            title: "この家は、手を入れると良くなる点が先に見える",
+            summary: "引っ越しを決める前に、玄関の目隠し、落ち着ける寝室、机に座ったときの背後の支えなど、小さな配置から整えてみるとよい。"
+          };
+        }
+
+        if (input.stay_decision === "stay") {
+          return {
+            label: "住み続けるか確認",
+            title: "住み続けられる家か、疲れのサインだけを分けて見ます。",
+            summary: "家そのものより、生活の目的に合うかが大切だ。回復、集中、お金の流れのうち、どこが一番弱いかから確認する。"
+          };
+        }
+
+        return {
+          label: "実感の判断を保留",
+          title: "今は結論より実感したサインを集める時です",
+          summary: "朝晩の身体の調子・玄関の第一印象・寝室の視線の疲れを7日見ると方向がより正確になります。"
+        };
+      }
+
+      function signalCards(input) {
+        const cards = [];
+        const entranceMap = {
+          direct: ["玄関", "手を入れる場所", "入ってきた気が奥までまっすぐ通ります", "扉を開けると視線が止まらず奥まで届きます。帰宅してもすぐ休めず、気持ちが先走り続けることがあります。", "玄関と居間のあいだにラグを敷くか、低い収納を置いて、視線を一度止めてください。今日すぐできるのは、玄関の床を空けることです。"],
+          direct_bedroom: ["玄関", "手を入れる場所", "ドアを開けると休む場所がすぐ見える", "外から持ち帰った緊張が、寝室まで直接入り込む。横になったときに玄関の方が気になるなら、この間取りが一因かもしれない。", "寝室のドアを閉めるか、薄いカーテンで視線を区切ろう。家具を動かしにくければ、寝室のドア前のラグ一枚でも境界になります。"],
+          direct_window: ["玄関", "手を入れる場所", "入った気が大きな窓からそのまま出ていく", "ドアと窓が一直線なので、家の中にとどまる感じがうまく生まれません。長くいても、場所を得た感覚が弱いです。", "玄関と窓の間に植木かスタンドを一つ置き、視線がそこで止まるようにしてください。窓側の薄いカーテンを半分閉めるだけでも感じ方が変わります。"],
+          bent: ["玄関", "大丈夫", "動線が一度曲がり、落ち着きがある。", "ここでは、流れが引っかかるところがありません。入ってくる流れが一度落ち着いてから奥へ進む構造なので、そのままにするのがよいです。", "間取りは変えなくていい。靴と荷物を床から片づけるだけで、第一印象はよくなる。"],
+          blocked: ["玄関", "大丈夫", "仕切りがあり、内側がすぐに見えない。", "外からの刺激を一層遮る構造なので、大きな問題はありません。ただし窮屈に感じることはあります。", "玄関に弱い照明を一つ足し、収納だけを整えよう。塞がる感じが減り、刺激を通しにくい良さは残る。"]
+        };
+        const bedroomMap = {
+          quiet: ["寝室", "大丈夫", "回復に無理のない寝室です", "眠る場所で気になる刺激は少ない。今疲れているなら、原因は寝室より別の場所の可能性が高い。", "配置はそのままにして、寝る前の照明だけを一段階下げて保つ。変えるところを探すなら、ほかのカードから見ればよい。"],
+          window_road: ["寝室", "手を入れる場所", "窓の外の音と視線が、眠りを妨げる", "体は横になっても、外の音や光に反応し続けます。睡眠時間に比べ、朝の回復感が低くなりやすい典型的な場所です。", "まず厚いカーテンを付け、ベッドの頭を窓から最も遠い壁へ寄せよう。ベッドを動かせなければ、枕元に低い家具を置いて遮る。"],
+          door_line: ["寝室", "手を入れる場所", "横になると扉が正面に見える", "ドアが視野にあると、体は緊張を完全には解けません。途中で目が覚める回数が増えるか、眠りにつくのに時間がかかることがあります。", "ベッドを扉と斜めになるよう少し回そう。動かせなければ、扉とベッドの間に小さな棚や低い仕切りを置き、視線を切る。"],
+          too_bright: ["寝室", "手を入れる場所", "光が強く、休む場所になりません", "明るい部屋は昼にはよいですが、夜には体のスイッチが入りっぱなしになります。夕方に家での疲れが強まるなら、ここが先です。", "遮光カーテンを付け、天井灯の代わりに低い照明を一つだけつけよう。ベッドからすぐ見える明るい面を一つ減らすことから始める。"],
+          cluttered: ["寝室", "手を入れる場所", "休む場所より物が先に目に入る", "横になるたびに片付けるものが見えると、頭が休めません。家に帰っても休んだ感じがない理由がここかもしれません。", "部屋全部ではなくベッド周り60cmだけ空けて。その範囲の整理でも回復の場所が生きます。"]
+        };
+        const deskMap = {
+          back_wall: ["机", "大丈夫", "背中の後ろが壁なので、集中に有利です", "作業の場所として安定した配置だ。集中が散るなら、場所より机の上の物の数の問題かもしれない。", "位置はそのままにして、机には今の仕事だけを残そう。ドアと窓からの刺激を減らせば十分だ。"],
+          back_window: ["机", "手を入れる場所", "背後が空いて集中が漏れる", "背後が開くと、体はわずかに警戒を続ける。長く座っても、終えた仕事が少なくなる場所だ。", "机を回しにくければ背後に低い棚かカーテンを置き支えにして。背の高い椅子でも同じ効果です。"],
+          face_door: ["机", "手を入れる場所", "扉を正面に見るため緊張が続きます", "扉が見えると覚醒は上がりますが、長く座ると疲れが早くたまります。短い集中には有利で、長い作業には不利です。", "机を扉に対して少し斜めにして。動かせなければ画面の角度を少し変え、扉側の照明を落とします。"],
+          mixed_rest: ["机", "手を入れる場所", "働く場所と休む場所が混ざっています", "同じ場所で仕事と休息をすると、仕事を終えた感覚がなくなる。家にいる時間全体が、なんとなく疲れるものになってしまう。", "ラグや照明で二つの場所を目に見えるように分けて。仕事後にパソコンを閉じて引き出しにしまうだけでも境界になる。"],
+          none: ["机", "手を入れる場所", "決まった作業場所がない", "毎回席を移すと、始めるのに使う力が消耗し続けます。集中できないのではなく、始められない状態です。", "家でいちばん邪魔されない一角を決めて固定してください。小さなテーブルでも、大きさより場所を固定することが大切。"]
+        };
+        const outsideMap = {
+          open: ["窓の外", "大丈夫", "前が開けていて息がしやすい", "活動や気分転換にはよい条件。眠りが敏感なら、同じ開放感が夜には刺激になることもある。", "昼はそのまま、夕方だけカーテンを閉めるなど時間で使い分けて。寝室の窓は別に多く遮ります。"],
+          pressed: ["窓の外", "手を入れる場所", "向かいの建物の圧迫が疲れとしてたまります", "視界が塞がると、毎日少しずつ窮屈さが積もる。家が悪いのではなく、目を休める場所がない状態。", "窓辺に植物や照明を置き、窓の外よりそこに視線がとどまるようにして。半透明のカーテンで向かい側をぼかす方法もあります。"],
+          road_noise: ["窓の外", "手を入れる場所", "大通りと路地の流れが速い", "外の速さが速いと、家の中のリズムも引っ張られる。特に眠るときと集中するときに、大きな違いが出る。", "眠る時間と集中する時間だけ窓を閉め、カーテンを引こう。特につらい時間帯を一週間だけ書くと、答えが見えてくる。"],
+          balanced: ["窓の外", "大丈夫", "外の流れは穏やか。", "窓の外からの問題は比較的少ない。今、気になることがあるなら、外の環境よりも家の中の配置が原因の可能性が高い。", "窓の外には手を付けず、玄関・寝室・机のカードのうち、手を入れる場所と示された席から見てください。"]
+        };
+
+        [entranceMap[input.entrance_flow], bedroomMap[input.bedroom_feel], deskMap[input.desk_position], outsideMap[input.outside_flow]]
+          .filter(Boolean)
+          .forEach(([area, status, title, issue, fix]) => cards.push({ area, status, title, issue, fix }));
+
+        if (cards.length >= 4) return cards.slice(0, 4);
+
+        const fallback = [
+          { area: "玄関", status: "확인 필요", title: "最初の印象が、家全体のリズムを決めます", issue: "玄関の回答がないためまだ判断できません。", fix: "靴、荷物、鏡の位置から見れば、外からの刺激がとどまるか、すぐに抜けるかの感覚をつかめる。" },
+          { area: "寝室", status: "확인 필요", title: "眠りは家との適合の1位です", issue: "寝室の回答がなく、まだ判断できません。", fix: "ベッドが落ち着くか、音と視線が減るかから見てください。" },
+          { area: "机", status: "확인 필요", title: "背後の支えが集中感を作る", issue: "机の回答がないため、まだ判断できていない。", fix: "在宅勤務や勉強が多いなら、まず背後が壁か確かめてください。" },
+          { area: "窓の外", status: "확인 필요", title: "前方の開け方と圧迫を一緒に見る", issue: "窓の外についての回答がないので、まだ判定できません。", fix: "開けた視界と速い道路の流れの感じ方は人で違うため、時間帯ごとに見てください。" }
+        ];
+
+        fallback.forEach((item) => {
+          if (cards.length < 4 && !cards.some((card) => card.area === item.area)) cards.push(item);
+        });
+
+        return cards;
+      }
+
+      function renderSnapshot(payload) {
+        const input = inputFromPayload(payload);
+        const name = compactName(payload);
+        const pain = Array.isArray(input.pain_points) ? input.pain_points : [];
+        const painText = pain.length
+          ? pain.map((key) => label("pain_points", key, key)).join(", ")
+          : "まだ選択なし";
+
+        document.getElementById("snapshot-list").innerHTML = [
+          ["基準", `${escapeHtml(name)}さんの四柱プロフィールと、今の家の体感をあわせて見ます。`],
+          ["家の形", `${label("building_type", input.building_type)} · ${label("main_purpose", input.main_purpose, "目的が未入力")}`],
+          ["今の悩み", label("stay_decision", input.stay_decision, "悩みは未入力")],
+          ["最初に見えるサイン", painText]
+        ]
+          .map(([title, body]) => `<div class="summary-row"><strong>${title}</strong><span>${body}</span></div>`)
+          .join("");
+      }
+
+      function renderPersonalTeaser(payload) {
+        const teaser = document.getElementById("personal-teaser");
+        const mainSection = reportSection(payload, "home-fit-overall", "saju-house-ohaeng");
+        const elementSection = reportSection(payload, "saju-house-ohaeng");
+        const paragraphs = teaserParagraphs(mainSection);
+
+        if (!mainSection || paragraphs.length === 0) {
+          teaser.innerHTML = `
+            \x3cstrong>個別のプレビューを準備中\x3c/strong>
+            \x3cp>入力と命式計算がつながると、今の家が睡眠・仕事・お金・関係のリズムにどう影響するか先に見せます。\x3c/p>
+          `;
+          return;
+        }
+
+        teaser.innerHTML = `
+          \x3cstrong>${escapeHtml(mainSection.category || "個別のプレビュー")} · ${escapeHtml(mainSection.hook || "")}\x3c/strong>
+          ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+          ${elementSection && elementSection.id !== mainSection.id ? `<p>${escapeHtml(elementSection.hook || "")}</p>` : ""}
+        `;
+      }
+
+      function renderSignals(input) {
+        document.getElementById("signal-list").innerHTML = signalCards(input)
+          .map(
+            (card) => `
+              \x3carticle class="signal-card">
+                \x3cb>${escapeHtml(card.area)}\x3ci class="signal-flag${card.status === "손볼 곳" ? " is-warn" : ""}">${escapeHtml(card.status)}\x3c/i>\x3c/b>
+                \x3cstrong>${escapeHtml(card.title)}\x3c/strong>
+                \x3cspan class="signal-issue">${escapeHtml(card.issue)}\x3c/span>
+                \x3cspan class="signal-fix">${escapeHtml(card.fix)}\x3c/span>
+              \x3c/article>
+            `
+          )
+          .join("");
+      }
+
+      function renderScope() {
+        const payload = readJsonBlock("INTERPRETATION_INDEX_PAYLOAD");
+        const groups = HOME_GUIDE_GROUPS.length ? HOME_GUIDE_GROUPS : (payload?.groups || []);
+        document.getElementById("scope-list").innerHTML = groups
+          .map(
+            (group, index) => `
+              <article class="scope-card">
+                <b>${String(index + 1).padStart(2, "0")}</b>
+                <strong>${escapeHtml(group.title)}</strong>
+                <ul>
+                  ${(group.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function applyPayload(payload) {
+        const input = inputFromPayload(payload);
+        const name = compactName(payload);
+        const verdict = deriveVerdict(input);
+        const firstSection = reportSection(payload, "home-fit-overall");
+        document.getElementById("page-title").textContent = `이 집은 지금 ${name}님에게 ${verdict.label}으로 보입니다`;
+        document.getElementById("hero-summary").textContent = firstSection?.hook
+          ? `${firstSection.hook} 無料の方向では最も強い生活のサインだけからつかみます。`
+          : `${verdict.summary} 無料の方向性では、いちばん強い生活サインだけを先に捉える。`;
+        document.getElementById("verdict-label").textContent = verdict.label;
+        document.getElementById("verdict-title").textContent = firstSection?.category || verdict.title;
+        document.getElementById("verdict-summary").textContent = firstSection?.hook || verdict.summary;
+        renderSnapshot(payload);
+        renderPersonalTeaser(payload);
+        renderSignals(input);
+      }
+
+      /**
+       * The catalog is what checkout charges, so every price printed on this step follows
+       * it. Keeps the CTA honest if the operator repricing happens in catalog.ts alone.
+       */
+      async function syncCatalogPrice() {
+        const config = await fetch("/api/payment/config").then((res) => res.json()).catch(() => null);
+        const product = config?.catalog?.find((item) => item.key === "home_pungsu");
+        if (!product) return;
+        const current = `${Number(SERVICE.price_krw).toLocaleString("ko-KR")}ウォン`;
+        const next = `${Number(product.amount).toLocaleString("ko-KR")}ウォン`;
+        if (next === current) return;
+        document
+          .querySelectorAll("#paid-title, .price, [data-action='open-paid']")
+          .forEach((node) => {
+            node.textContent = node.textContent.replace(current, next);
+          });
+        SERVICE.price_krw = product.amount;
+      }
+
+      function init() {
+        renderScope();
+        syncCatalogPrice();
+        const payload = safeParse(fromSession(STORAGE_KEYS.input));
+        if (!payload || payload.service?.service_key !== SERVICE.service_key) {
+          document.getElementById("missing-input").classList.add("is-open");
+          renderSignals({});
+        } else {
+          applyPayload(payload);
+        }
+
+        document.querySelectorAll("[data-action='open-paid']").forEach((link) => {
+          link.addEventListener("click", (event) => {
+            const reportId = payload?.reportId || payload?.analysis?.report?.reportId || "";
+            toSession(STORAGE_KEYS.paymentIntent, {
+              service: SERVICE,
+              requested_at: new Date().toISOString(),
+              from_stage: "04-step-4-report",
+              amount_krw: SERVICE.price_krw,
+              next_route: SERVICE.next_route,
+              report_id: reportId,
+              input_payload_present: Boolean(payload)
+            });
+            if (!window.UMSHCheckout) return;
+            // Hold navigation while checkout answers. The plain-link fallback is the
+            // payment page, never the paid table of contents.
+            const fallbackHref = link.getAttribute("href");
+            event.preventDefault();
+            window.UMSHCheckout
+              .start({
+                productKey: "home_pungsu",
+                reportId,
+                returnTo: "/place/home/04-step-4-report/index.html"
+              })
+              .then((result) => {
+                if (!result.started) window.location.href = fallbackHref;
+              })
+              .catch(() => {
+                window.location.href = fallbackHref;
+              });
+          });
+        });
+      }
+
+      init();
+    </script>
+    <div data-umsh-service-bottom=""></div>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-checkout.js?v=20260916-product-alias"></script>
+    <script src="/js/umsh-home-reading.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/service-shell.js?v=20261008-three-voice-v1"></script>
+      <!-- 2026-09-15: 해석 신고 버튼을 전 화면에서 내렸다. 되살릴 때 주석만 풀 것. <script src="/js/ai-report-flag.js?v=20261008-three-voice-v1" defer=""></script> -->
+
+
+</body></html>

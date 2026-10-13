@@ -92,6 +92,16 @@
         love_mind: '/love/mind',
         love_again: '/love/again',
         love_spouse: '/love/spouse',
+        // 2026-10-12: 아래 상품이 빠져 결제 내역의 "풀이 화면 열기"가 홈으로 갔다. 주소는 src/payment/catalog.ts 와 같다.
+        cheonmyeong_consultation: '/consultation',
+        cat_compatibility: '/match/cat',
+        couple_signal: '/love/signal',
+        job_choice: '/work/job-choice',
+        quit_fortune: '/work/quit',
+        lucky_color: '/me/lucky',
+        pass_angle: '/me/pass-angle',
+        newyear_flow: '/flow/newyear',
+        wedding_day: '/day/wedding',
       }[key] || '/'
     );
   }

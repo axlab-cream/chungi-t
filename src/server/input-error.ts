@@ -28,6 +28,11 @@ export function respondRequestFailure(
   error: unknown,
   fallbackMessage: string,
 ): void {
+  const birthTimeErrors = ['INVALID_BIRTH_TIME_ZONE', 'INVALID_BIRTH_TIME_DISAMBIGUATION', 'INVALID_BIRTH_DATE_TIME', 'NONEXISTENT_BIRTH_LOCAL_TIME', 'AMBIGUOUS_BIRTH_LOCAL_TIME']
+  if (error instanceof Error && birthTimeErrors.includes(error.message)) {
+    res.status(400).json({ code: error.message, error: error.message })
+    return
+  }
   if (isInputError(error)) {
     res.status(400).json({ code: 'INPUT_REQUIRED', error: error.message })
     return

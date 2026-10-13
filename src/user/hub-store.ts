@@ -188,8 +188,10 @@ export async function listInquiries(memberId: string): Promise<Inquiry[]> {
   return Promise.all(cases.map(async (item) => {
     const notes = (await listSupportNotes(item.id)).filter((note) => CUSTOMER_KINDS.has(note.kind))
     const messages = notes.map((note) => ({ from: note.kind === 'customer_reply' ? 'staff' as const : 'member' as const, text: note.text, createdAt: note.createdAt }))
-    const closed = item.status === 'resolved' || item.status === 'closed'
     const answered = messages.some((message) => message.from === 'staff')
+    // 답변을 달면 관리자 쪽 상태가 "해결"로 바뀐다. 그래도 회원에게는 "답변 도착"으로 보여야 하므로,
+    // 답변 없이 해결·종료된 문의와 직원이 직접 종료한 문의만 "처리 완료"로 본다.
+    const closed = item.status === 'closed' || (item.status === 'resolved' && !answered)
     const state = closed ? 'closed' : answered ? 'answered' : 'received'
     return {
       id: item.id,

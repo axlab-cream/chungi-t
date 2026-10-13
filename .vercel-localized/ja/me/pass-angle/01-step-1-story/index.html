@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>私、受かる角度？ | 運命商会</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="運命商会" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="運命商会 - 運命を売ります。" />
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta name="description" content="試験運・勉強戦略・気持ち・勉強環境・試験の時機まで見る合格の見込みレポート" />
+    <meta name="application-name" content="運命商会" />
+    <meta property="og:title" content="受かる見込みはある？" />
+    <meta property="og:description" content="今が受かりやすい時期か、どんな勉強で合格の可能性が上がるかを確認してください。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #030604;
+        --surface: #07120e;
+        --panel: rgba(7, 18, 14, 0.92);
+        --line: rgba(214, 255, 120, 0.22);
+        --ink: #fffdf2;
+        --muted: rgba(255, 253, 242, 0.72);
+        --dim: rgba(255, 253, 242, 0.52);
+        --mint: #4effca;
+        --yellow: #efff4a;
+        --gold: #f1c969;
+        font-family: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { min-width: 320px; background: #000; scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 50% -8%, rgba(78, 255, 202, 0.28), transparent 24rem),
+          radial-gradient(circle at 0% 18%, rgba(239, 255, 74, 0.12), transparent 16rem),
+          #000;
+        color: var(--ink);
+      }
+      a, button { -webkit-tap-highlight-color: transparent; }
+      button { font: inherit; cursor: pointer; }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100svh;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.56);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(3, 6, 4, 0.88);
+        backdrop-filter: blur(16px);
+      }
+      .brand { display: grid; gap: 2px; color: inherit; text-decoration: none; }
+      .brand strong { font-size: 15px; font-weight: 950; letter-spacing: 0; }
+      .brand span { color: var(--dim); font-size: 10px; font-weight: 850; letter-spacing: 0.12em; }
+      .price-chip {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 12px;
+        border: 1px solid rgba(239, 255, 74, 0.4);
+        border-radius: 999px;
+        background: rgba(239, 255, 74, 0.1);
+        color: var(--yellow);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .poster {
+        position: relative;
+        padding: 0;
+        background: #020403;
+      }
+      .poster img { display: block; width: 100%; height: auto; }
+      .poster::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -44px;
+        z-index: 1;
+        height: 45px;
+        background: linear-gradient(to bottom, #020403, var(--surface));
+        pointer-events: none;
+      }
+
+      .story-image {
+        position: relative;
+        min-height: 300px;
+        margin-top: -1px;
+        overflow: hidden;
+        background: #050403;
+      }
+      .story-image.tall { min-height: 430px; }
+      .story-image.deep { min-height: 520px; }
+      .story-image img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .story-image::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(3, 6, 4, 0.78), rgba(3, 6, 4, 0.04) 20%, transparent 48%, rgba(3, 6, 4, 0.9)),
+          linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent 28%, rgba(0, 0, 0, 0.24));
+      }
+
+      .section {
+        position: relative;
+        padding: 30px 20px;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(78, 255, 202, 0.1), transparent 14rem),
+          var(--surface);
+      }
+      .section::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -84px;
+        height: 84px;
+        background: linear-gradient(to bottom, rgba(3, 6, 4, 0), var(--surface));
+        pointer-events: none;
+      }
+      .section.tight {
+        margin-top: 0;
+        padding-top: 60px;
+      }
+      .section.tight::before { display: none; }
+      .story-image + .section,
+      .visual + .section {
+        margin-top: -58px;
+        padding-top: 78px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        color: var(--mint);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.12em;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--mint);
+        box-shadow: 0 0 18px var(--mint);
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      h1, h2, h3 {
+        letter-spacing: 0;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        text-wrap: balance;
+      }
+      h1 {
+        max-width: 10ch;
+        margin-bottom: 14px;
+        font-size: clamp(42px, 13vw, 62px);
+        line-height: 0.98;
+        font-weight: 950;
+      }
+      h2 {
+        margin-bottom: 12px;
+        font-size: clamp(28px, 8vw, 38px);
+        line-height: 1.08;
+        font-weight: 950;
+      }
+      h3 { margin-bottom: 6px; font-size: 17px; line-height: 1.28; }
+      p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.68;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        text-wrap: pretty;
+      }
+      .mint { color: var(--mint); }
+      .yellow { color: var(--yellow); }
+
+      .cta-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 22px; }
+      .button, .ghost {
+        min-height: 54px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 18px;
+        border-radius: 8px;
+        font-weight: 950;
+        text-decoration: none;
+      }
+      .button {
+        border: 1px solid rgba(78, 255, 202, 0.75);
+        background: linear-gradient(135deg, var(--mint), var(--yellow));
+        color: #03120c;
+        box-shadow: 0 16px 46px rgba(78, 255, 202, 0.2);
+      }
+      .ghost {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+      }
+      .button:focus-visible, .ghost:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+
+      .visual {
+        position: relative;
+        min-height: 520px;
+        margin-top: -1px;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        background: #020403;
+      }
+      .visual img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(3, 6, 4, 0.82), rgba(0, 0, 0, 0.18) 24%, rgba(0, 0, 0, 0.28) 46%, rgba(0, 0, 0, 0.94)),
+          linear-gradient(to right, rgba(0, 0, 0, 0.46), transparent 62%);
+      }
+      .visual + .story-image,
+      .story-image + .visual {
+        margin-top: -72px;
+      }
+      .story-image + .story-image {
+        margin-top: -96px;
+      }
+      .visual + .story-image::after,
+      .story-image + .visual::after,
+      .story-image + .story-image::after {
+        background:
+          linear-gradient(to bottom, rgba(3, 6, 4, 0.9), rgba(3, 6, 4, 0.1) 24%, transparent 48%, rgba(3, 6, 4, 0.9)),
+          linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent 28%, rgba(0, 0, 0, 0.24));
+      }
+      .visual-copy {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        padding: 28px 20px max(30px, env(safe-area-inset-bottom));
+      }
+
+      .cards, .proof { display: grid; gap: 10px; margin-top: 18px; }
+      .signal-card, .proof-row {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+      .signal-card { position: relative; overflow: hidden; padding: 15px; }
+      .signal-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: linear-gradient(to bottom, var(--mint), var(--yellow));
+      }
+      .signal-card strong { display: block; margin-bottom: 4px; font-size: 15px; line-height: 1.35; }
+      .signal-card span { display: block; color: var(--muted); font-size: 12px; line-height: 1.55; word-break: keep-all; }
+      .proof-row { display: flex; justify-content: space-between; gap: 12px; padding: 13px 14px; }
+      .proof-row span { color: var(--dim); font-size: 12px; }
+      .proof-row strong { color: var(--ink); font-size: 12px; text-align: right; }
+
+      .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+      .scope {
+        min-height: 112px;
+        padding: 14px;
+        border: 1px solid rgba(239, 255, 74, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+      .scope b { display: block; margin-bottom: 7px; color: var(--yellow); font-size: 14px; }
+      .scope small { display: block; color: var(--muted); font-size: 11px; line-height: 1.48; word-break: keep-all; }
+
+      .footer { padding: 22px 20px 32px; color: var(--dim); font-size: 11px; line-height: 1.7; }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .visual img { animation: slowZoom 12s ease-in-out infinite alternate; }
+        @keyframes slowZoom {
+          from { transform: scale(1.01); }
+          to { transform: scale(1.06); }
+        }
+      }
+      @media (min-width: 720px) {
+        body { padding: 24px 0; }
+        .app { min-height: calc(100svh - 48px); border: 1px solid rgba(255, 255, 255, 0.12); }
+      }
+
+      body.umsh-has-chrome .app{padding-bottom:calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px))}
+      body.umsh-has-chrome .footer{padding-bottom:18px}
+    </style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="app" id="step-1-story" data-umsh-chrome data-service="PASS ANGLE" data-price="9,900 KRW" data-active="home">
+      <header class="appbar topbar" aria-label="サービス上部">
+        <a class="brand" href="/me/pass-angle" aria-label="運命商会ホーム">
+          <strong>運命商会</strong>
+          <span>PASS ANGLE</span>
+        </a>
+        <span class="price-chip">9,900 KRW</span>
+      </header>
+
+      <section class="poster" aria-label="「合格の見込みはある？」の代表画像">
+        <img src="../assets/pass-angle/hero.png" alt="合格チケットと試験のオブジェが弾けるように配置された「私、受かる見込みあります？」の代表画像" />
+      </section>
+
+      <section class="section tight" aria-labelledby="hero-title">
+        <span class="eyebrow">PASS OR HOLD</span>
+        <h1 id="hero-title">受かる見込みはある？</h1>
+        <p>
+          今年は押し進める、戦略を変える、それともやり直す？ 試験運・勉強法・心の状態・環境・当日の体調を一緒に見よう。
+        </p>
+        <div class="cta-row">
+          <a class="button" href="../02-step-2-saju-input/index.html#step-2-saju-input">自分の合格の可能性を確認</a>
+          <a class="ghost" href="#preview">何を見るか先に見る</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">FLOW CHECK</span>
+        <h2>運だけを見るのではなく <span class="mint">つく仕方</span>から押さえよう</h2>
+        <p>
+          同じ試験でも、一気にやるときに力を使う場合と、習慣を積むときに力を使う場合があります。今の流れと自分の勉強タイプを一緒に見ます。
+        </p>
+        <div class="cards">
+          <div class="signal-card"><strong>受かる見込みはある？</strong><span>まずは全体の流れとGO/HOLDを見よう。今挑戦することと、長い目で考えることを分けてみる。</span></div>
+          <div class="signal-card"><strong>自分の頭の使い方</strong><span>暗記型か理解型か、一気に進む型か継続型かから確かめて。</span></div>
+          <div class="signal-card"><strong>耐える体と心</strong><span>燃え尽きの信号と、睡眠・回復のリズムを見ましょう。揺れたときにつかむ文まで整理します。</span></div>
+        </div>
+      </section>
+
+      <section class="story-image" aria-label="引きつける気とつかむ気が分かれる道">
+        <img src="../assets/pass-angle/01-bridge-01-flow-split.webp" alt="黒い気と黄金の気が分かれる、命式の流れの道" />
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">FIRST JUDGEMENT</span>
+        <h2>今は <span class="yellow">押し進める区間</span>どちらかから分けよう</h2>
+        <p>
+          後押しする流れと、足を止める流れが同時に現れることもある。最初の見立ては「できる・できない」の二択ではない。GO、HOLD、立て直しのどれに近いかを見よう。
+        </p>
+      </section>
+
+      <section class="story-image deep" aria-label="試験の準備の流れが続く、黄金色の人生の道">
+        <img src="../assets/pass-angle/01-bridge-06-life-flow.webp" alt="試験準備の長い流れを象徴する金色の運命の道" />
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">ONE SHOT OR LONG GAME</span>
+        <h2>一度で行く角か、 <span class="mint">長く見る見通し</span>どちらか分けよう</h2>
+        <p>
+          ただ長く耐えるだけでも、一気に攻めるだけでも答えにはならない。自分の流れが短期勝負か長期積み上げかからつかもう。そうすれば戦略が揺れにくくなる。
+        </p>
+      </section>
+
+      <section class="visual" aria-labelledby="study-title">
+        <img src="../assets/pass-angle/study.png" alt="勉強の傾向と記憶の仕方を分析する、霊的な試験戦略家" />
+        <div class="visual-copy">
+          <span class="eyebrow">STUDY TYPE</span>
+          <h2 id="study-title">自分の頭に入る勉強法から見よう</h2>
+          <p>
+            暗記・理解・一人学習・勉強会・集中追い込み・継続習慣。合わない方法で耐えて力を漏らしていないか見よう。
+          </p>
+        </div>
+      </section>
+
+      <section class="story-image" aria-label="四柱推命と試験準備の基準を記した運命の文書">
+        <img src="../assets/pass-angle/01-bridge-02-destiny-paper.webp" alt="ろうそくの下に置かれた古い運命の文書と命式" />
+      </section>
+
+      <section class="visual" aria-labelledby="timing-title">
+        <img src="../assets/pass-angle/timing.png" alt="試験合格のタイミングと準備期間を測る戦略家" />
+        <div class="visual-copy">
+          <span class="eyebrow">PASS TIMING</span>
+          <h2 id="timing-title">進めるときと、踏ん張るとき。まず、タイミングを分けよう</h2>
+          <p>
+            今年の流れ、有利な月と不利な月、願書・申込の時期、再挑戦を考える時点を、実際の日程とあわせて確認しよう。
+          </p>
+        </div>
+      </section>
+
+      <section class="story-image tall" aria-label="合格の力が浮かぶ金色の球">
+        <img src="../assets/pass-angle/01-bridge-03-energy-orb.webp" alt="暗闇から金色の力が立ち上がる球" />
+      </section>
+
+      <section class="visual" aria-labelledby="mental-title">
+        <img src="../assets/pass-angle/blockers.png" alt="勉強の妨げとメンタルの揺れを防ぐ試験戦略家" />
+        <div class="visual-copy">
+          <span class="eyebrow">BLOCKER CUT</span>
+          <h2 id="mental-title">集中を壊すパターンも押さえよう</h2>
+          <p>
+            人との比較、SNS、誰かに惹かれること、お金や生活の心配。自分への疑いも含め、集中を妨げるパターンを整理して対処しよう。
+          </p>
+        </div>
+      </section>
+
+      <section class="story-image deep" aria-label="自分を押してくれる人と、助言のつながり">
+        <img src="../assets/pass-angle/01-bridge-07-support-network.webp" alt="支えてくれる人と避ける助言を象徴する金色のつながり" />
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">SUPPORT SIGNAL</span>
+        <h2>自分を後押しする人と <span class="yellow">避ける助言</span>も見よう</h2>
+        <p>
+          勉強会・塾・メンター・家族の期待が全部助けとは限らないです。今力になる助言と、力を奪う助言を分けよう。
+        </p>
+      </section>
+
+      <section class="story-image" aria-label="学びの根拠と解釈の基準が積まれた古書の机">
+        <img src="../assets/pass-angle/01-bridge-04-old-books.webp" alt="古い書物、ろうそく、四柱推命の図が置かれた鑑定用の机" />
+      </section>
+
+      <section class="section" id="preview">
+        <span class="eyebrow">REPORT PREVIEW</span>
+        <h2>決済後は <span class="yellow">合格の見通しの目次</span>が開く</h2>
+        <p>
+          試験運だけでは終えない。勉強戦略と当日の習慣まで使える形で整理する。
+        </p>
+        <div class="scope-grid">
+          <div class="scope"><b>合格につながる流れ</b><small>全体の判断、GO/HOLD、後押しする気と止める気</small></div>
+          <div class="scope"><b>勉強戦略</b><small>暗記型・理解型、集中型・継続型、一人・一緒に学ぶ</small></div>
+          <div class="scope"><b>試験との相性</b><small>選択式、記述式、組織型、専門職、語学、面接・口述</small></div>
+          <div class="scope"><b>心・環境</b><small>燃え尽き、睡眠、机の方向、役立つ色、避ける助言</small></div>
+          <div class="scope"><b>試験日の選定</b><small>良い条件、避けたい条件、前日と当日の体調の習慣</small></div>
+          <div class="scope"><b>行動計画</b><small>D-100、D-30、D-7、手放すこと、再挑戦の基準</small></div>
+        </div>
+      </section>
+
+      <section class="story-image" aria-label="合格の方向へ続く金色の道">
+        <img src="../assets/pass-angle/01-bridge-05-golden-road.webp" alt="遠くの光へと続く、金色の試験の準備の道" />
+      </section>
+
+      <section class="story-image tall" aria-label="揺れる時に軸を保つ香の煙の輪">
+        <img src="../assets/pass-angle/01-bridge-08-incense-ring.webp" alt="揺れるとき心の中心を取る、香の煙と運命の輪" />
+      </section>
+
+      <section class="visual" aria-labelledby="cta-title">
+        <img src="../assets/pass-angle/action.png" alt="試験会場へ向かう道で合格のお守りとプランナーを差し出す戦略家" />
+        <div class="visual-copy">
+          <span class="eyebrow">START CHECK</span>
+          <h2 id="cta-title">不安を繰り返すより、今の見込みを見よう</h2>
+          <p>
+            確定的な予言ではなく、選ぶ基準です。今進むか、習慣を変えるか、再挑戦を見るかを分けて整理します。
+          </p>
+          <div class="cta-row">
+            <a class="button" href="../02-step-2-saju-input/index.html#step-2-saju-input">自分の合格の可能性を確認</a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        本サービスは四柱推命に基づく傾向分析と勉強戦略のコンテンツです。合格、採用、法律、医療の結果を確定しません。重要な決定は、実際の準備状況と合わせて判断してください。
+      </footer>
+    </main>
+
+    <script>
+      const serviceContext = {
+        service_key: "pass_angle_exam",
+        service_slug: "pass-angle",
+        service_title: "受かる見込みはある？",
+        category: "試験運・勉強戦略",
+        price_krw: 9900,
+        service_url_hint: "me.umsh.kr/pass-angle",
+        next_route: "../02-step-2-saju-input/index.html#step-2-saju-input",
+      };
+
+      document.querySelectorAll('a[href*="02-step-2-saju-input"]').forEach((link) => {
+        link.addEventListener("click", () => {
+          sessionStorage.setItem("umsh.pending_service", JSON.stringify({
+            service_key: serviceContext.service_key,
+            service_slug: serviceContext.service_slug,
+            entry_step: "01-step-1-story",
+            interpretation_index_source: "user_seed",
+          }));
+        });
+      });
+    </script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1" defer></script>
+    <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/pass-angle-service.js?v=20260928-funnel-gate" defer></script>
+  </body>
+</html>

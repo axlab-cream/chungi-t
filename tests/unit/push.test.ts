@@ -220,3 +220,44 @@ test('member devices: only that member, newest activity first, no token in the r
   assert.equal(devices[0].isActive, true)
   assert.ok(!JSON.stringify(devices).includes(TOKEN_A), '기기 토큰이 응답에 실리면 안 된다')
 })
+
+test('광고 낱말이 있는 일반 알림은 "광고가 아닙니다" 확인 없이는 막힌다', () => {
+  const base = { title: '추석 할인 쿠폰', body: '지금 받으세요', deepLink: '/coupons.html', target: { type: 'logged_in' }, schedule: { mode: 'draft' } }
+  assert.throws(() => parseDraft(base), (error: unknown) => error instanceof PushError && error.code === 'PUSH_LOOKS_LIKE_MARKETING')
+  assert.equal(parseDraft({ ...base, notMarketingConfirmed: true }).marketing, false)
+  assert.equal(parseDraft({ ...base, marketing: true }).marketing, true)
+  assert.equal(parseDraft({ ...base, title: '풀이가 완성됐어요', body: '보관함에서 확인하세요' }).marketing, false)
+})
+
+test('관리자 화면과 서버의 광고 낱말 목록이 같다', async () => {
+  const { readFileSync } = await import('node:fs')
+  const { MARKETING_WORDS } = await import('../../src/push/contracts.js')
+  const page = readFileSync(new URL('../../admin-ui/index.html', import.meta.url), 'utf8')
+  const listed = /var MARKETING_WORDS = (\[[^\]]*\]);/.exec(page)?.[1]
+  assert.ok(listed, '관리자 화면에 MARKETING_WORDS 가 있어야 한다')
+  assert.deepEqual(JSON.parse(listed!.replace(/'/g, '"')), MARKETING_WORDS)
+})
+
+test('광고성 발송: 보내기 직전에 동의를 다시 확인하고, 대상 수도 동의한 회원만 센다', async () => {
+  const store = seeded()
+  await store.upsertDevice({ token: TOKEN_A, platform: 'android', appVersion: '1.0', deviceName: null, userId: USER })
+  await store.upsertDevice({ token: TOKEN_B, platform: 'android', appVersion: '1.0', deviceName: null, userId: null })
+  const created = await store.createNotification(parseDraft({ title: '이벤트', body: '쿠폰', deepLink: '/', target: { type: 'all' }, schedule: { mode: 'now' }, marketing: true }, Date.parse('2026-10-12T03:00:00Z')), 'ops@example.invalid')
+  // 발송 목록을 만들 때는 동의했지만, 실제로 보내기 전에 철회했다.
+  let consentedNow = new Set([USER])
+  const marketingConsented = async () => { const current = consentedNow; consentedNow = new Set(); return current }
+  const sent: string[] = []
+  await runPushDispatcher({ store, send: async (m: FcmMessage) => { sent.push(m.token); return { ok: true, messageId: 'm' } }, accessToken: async () => 'token', now: () => Date.parse('2026-10-12T03:00:00Z'), marketingConsented }, 60_000)
+  assert.deepEqual(sent, [])
+  assert.deepEqual(await store.failureSummary(created.id), { MARKETING_NOT_CONSENTED: 1 })
+
+  const app = express(); app.use(express.json())
+  app.use('/admin/push', adminPushRouter({ staff: async () => ({ email: 'ops@example.invalid' }), store: () => store, immediateBudgetMs: 0, recipients: { optedOut: async () => new Set(), marketingConsented: async () => new Set() } } as any))
+  const server = app.listen(0, '127.0.0.1'); await new Promise<void>((resolve) => server.once('listening', resolve))
+  const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`
+  const count = async (marketing: boolean) => (await (await fetch(base + '/admin/push/audience', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ target: { type: 'all' }, marketing }) })).json()).count
+  try {
+    assert.equal(await count(false), 2)
+    assert.equal(await count(true), 0)
+  } finally { server.close() }
+})

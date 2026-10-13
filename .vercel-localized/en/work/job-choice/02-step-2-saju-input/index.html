@@ -1,0 +1,296 @@
+<!DOCTYPE html><html lang="ko"><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chart profile and workplace-choice input | Fortune Shop</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Fortune Shop">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="Fortune Shop - We sell fate.">
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility.">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Fortune Shop - We sell fate.">
+    <meta name="twitter:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility.">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="Without asking again for the saved Four Pillars profile, add only the selected company and offer conditions to prepare a workplace-fit reading.">
+    <link rel="stylesheet" href="/css/umsh-chrome.css">
+    <link rel="stylesheet" href="../shared/job-choice.css"><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
+    <script src="../shared/job-choice-data.js?v=20261008-three-voice-v1"></script>
+  </head>
+  <body class="umsh-fields">
+    <main class="phone" data-umsh-chrome="" data-service="Choosing a job" data-price="9,900 KRW" data-active="home" id="step-2-saju-input" aria-label="Enter the workplace-choice reading">
+      <header class="appbar topbar">
+        <a class="brand" href="/" aria-label="Go to the Fortune Shop introduction">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3l7 4v5c0 4.8-3 8.1-7 9-4-0.9-7-4.2-7-9V7l7-4z" stroke="currentColor" stroke-width="1.7"></path>
+              <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          Fortune Shop
+        </a>
+        <button class="icon-button" type="button" aria-label="Go to previous screen" data-back="">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+      </header>
+
+      <section class="stage">
+        <div class="hero-panel">
+          <img class="hero-visual" src="/assets/job-choice-offer-decision-hero-v1.png" alt="An office worker deciding between two offer documents">
+          <span class="kicker">More important than getting accepted is daily life after you join</span>
+          <h1>This offer,<br>Is this a place where I can stay for the long haul?</h1>
+          <p>Enter only company, role, and working conditions. First separate negotiable concerns from warning signs.</p>
+          <div class="jobchoice-hero-flow" aria-label="What to check in the results">
+            <div><b>01</b><span>The work you will actually take on, and<br>Boundaries of authority</span></div>
+            <div><b>02</b><span>Commuting and working pattern<br>My changing daily life</span></div>
+            <div><b>03</b><span>Questions to ask before accepting<br>Decision question</span></div>
+          </div>
+        </div>
+
+        <form class="form-card" id="jobChoiceForm" novalidate="">
+          <div class="profile-status" id="profileStatus">
+            <strong>Finding your saved chart profile.</strong>
+            <span>If your profile is complete, we won&#39;t ask your name, birth date, or birth time again.</span>
+            <button class="text-button" type="button" id="toggleProfile">Read with new chart details</button>
+          </div>
+
+          <section id="profileFields" aria-label="Enter a new chart profile">
+            <span class="eyebrow">Enter only when using new chart details</span>
+            <div class="field-grid two">
+              <label>
+                Name or what to call them
+                <input name="name" autocomplete="name" placeholder="Example: Jimin">
+              </label>
+              <label>
+                Gender
+                <select name="gender">
+                  <option value="unspecified">Not selected</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                </select>
+              </label>
+            </div>
+            <div class="field-grid two">
+              <label>
+                Birth date
+                <input name="birthDate" type="date">
+              </label>
+              <label>
+                Birth hour
+                <input name="birthTime" type="time">
+              </label>
+            </div>
+            <div class="field-grid two">
+              <label>
+                Solar/Lunar calendar
+                <select name="calendarType">
+                  <option value="solar">Solar calendar</option>
+                  <option value="lunar">Lunar calendar</option>
+                </select>
+              </label>
+              <label>
+                Place of birth
+                <input name="birthPlace" autocomplete="off" placeholder="Example: Seoul">
+              </label>
+            </div>
+            <p class="helper">With a member profile, this field closes automatically. Reopen it only for a new Four Pillars chart.</p>
+          </section>
+
+          <section aria-label="Company choice input">
+            <span class="eyebrow">Company to judge this time</span>
+            <div class="field-grid">
+              <label>
+                Selected company or offer name
+                <input name="companyName" autocomplete="off" placeholder="Example: Final offer from Company A" required="">
+              </label>
+              <label>
+                Role
+                <input name="roleName" autocomplete="off" placeholder="Example: content planning, PM, accounting operations" required="">
+              </label>
+            </div>
+            <div class="field-grid two">
+              <label>
+                Work type
+                <select name="workMode" required="">
+                  <option value="">Choice</option>
+                  <option value="onsite">Fully on-site</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="remote">Remote / non-face-to-face centered</option>
+                  <option value="travel">Frequent business trips and travel</option>
+                  <option value="shift">Shift or variable work</option>
+                </select>
+              </label>
+              <label>
+                How salary and conditions feel
+                <select name="salaryFeeling" required="">
+                  <option value="">Choice</option>
+                  <option value="high">On the better side</option>
+                  <option value="acceptable">Manageable</option>
+                  <option value="low">Not quite enough, so negotiation is needed</option>
+                  <option value="unclear">Still unclear</option>
+                </select>
+              </label>
+            </div>
+            <div class="field-grid">
+              <label>
+                Commute / workplace
+                <input name="commute" autocomplete="off" placeholder="Example: 90 minutes round trip, remote work possible 2 times a week" required="">
+              </label>
+              <label>
+                Planned start or decision date
+                <input name="decisionDate" type="date">
+              </label>
+              <label>
+                The most unsettling point
+                <textarea name="concernPoint" placeholder="Example: the manager&#39;s style looks strong, and the role range is vague." required=""></textarea>
+              </label>
+            </div>
+          </section>
+
+          <p class="error" id="formError" role="alert"></p>
+          <button class="primary-button" type="submit">Check this company&#39;s fit</button>
+          <p class="fineprint">Company name, birth date, and birthplace are not added to the URL. Inputs are passed safely only to the next step.</p>
+        </form>
+      </section>
+    </main>
+
+    <script type="application/json" id="PROMPT_INPUT">{}</script>
+    <script type="application/json" id="INTERPRETATION_INDEX">[]</script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">[]</script>
+    <script src="/js/jobchoice-report-store.js"></script>
+    <script>
+      const form = document.getElementById("jobChoiceForm");
+      const profileFields = document.getElementById("profileFields");
+      const profileStatus = document.getElementById("profileStatus");
+      const toggleProfile = document.getElementById("toggleProfile");
+      const formError = document.getElementById("formError");
+      const stored = JobChoice.loadStoredProfile();
+      let useStoredProfile = stored.complete;
+
+      JobChoice.hydrateContracts("02-step-2-saju-input", [
+        { item: "Prevent duplicate saved-profile entry", status: "pass", detail: "A complete Four Pillars profile collapses basic input." },
+        { item: "Personal information kept out of URLs", status: "pass", detail: "Do not put a name, birth date, company name, or birthplace in the submit URL." },
+        { item: "Separate the inputs for judging the workplace", status: "pass", detail: "Company, role, work setup, commute, terms, decision date, and the uneasy point each get their own section." },
+      ]);
+
+      function fillProfile(profile) {
+        for (const [key, value] of Object.entries(profile)) {
+          const field = form.elements[key];
+          if (field && value) field.value = value;
+        }
+      }
+
+      function renderProfileState() {
+        if (stored.complete && useStoredProfile) {
+          profileFields.classList.add("is-hidden");
+          profileStatus.querySelector("strong").textContent = "We will continue with your saved chart profile.";
+          profileStatus.querySelector("span").textContent = JobChoice.profileLabel(stored.profile);
+          toggleProfile.textContent = "Use new chart details";
+          return;
+        }
+        profileFields.classList.remove("is-hidden");
+        profileStatus.querySelector("strong").textContent = stored.complete ? "Switched to new Four Pillars input." : "Start by entering the basic details needed to calculate your chart.";
+        profileStatus.querySelector("span").textContent = stored.complete
+          ? "The inputs below are your personal basis for this reading."
+          : "There’s no existing profile, or the birth date or time is missing.";
+        toggleProfile.textContent = stored.complete ? "Use saved profile" : "Keep input fields";
+      }
+
+      function readProfileFromForm() {
+        return JobChoice.normalizeProfile({
+          name: form.elements.name.value.trim(),
+          gender: form.elements.gender.value,
+          birthDate: form.elements.birthDate.value,
+          birthTime: form.elements.birthTime.value,
+          calendarType: form.elements.calendarType.value,
+          birthPlace: form.elements.birthPlace.value.trim(),
+        });
+      }
+
+      function readOfferFromForm() {
+        return {
+          companyName: form.elements.companyName.value.trim(),
+          roleName: form.elements.roleName.value.trim(),
+          workMode: form.elements.workMode.value,
+          commute: form.elements.commute.value.trim(),
+          salaryFeeling: form.elements.salaryFeeling.value,
+          decisionDate: form.elements.decisionDate.value,
+          concernPoint: form.elements.concernPoint.value.trim(),
+        };
+      }
+
+      function showError(message) {
+        formError.textContent = message;
+        formError.classList.add("is-visible");
+      }
+
+      function clearError() {
+        formError.textContent = "";
+        formError.classList.remove("is-visible");
+      }
+
+      fillProfile(stored.profile);
+      renderProfileState();
+
+      toggleProfile.addEventListener("click", () => {
+        if (!stored.complete) return;
+        useStoredProfile = !useStoredProfile;
+        if (useStoredProfile) fillProfile(stored.profile);
+        renderProfileState();
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        clearError();
+
+        const profile = useStoredProfile && stored.complete ? stored.profile : readProfileFromForm();
+        if (!JobChoice.isProfileComplete(profile)) {
+          showError("Check your calculation name or form of address, birth date, birth time, and solar/lunar calendar.");
+          profileFields.classList.remove("is-hidden");
+          return;
+        }
+
+        const offer = readOfferFromForm();
+        if (!offer.companyName || !offer.roleName || !offer.workMode || !offer.commute || !offer.salaryFeeling || !offer.concernPoint) {
+          showError("Enter company, role, work arrangement, commute / location, how conditions feel, and unsettling points.");
+          return;
+        }
+
+        JobChoice.saveJobInput({
+          profileSource: useStoredProfile && stored.complete ? "stored_profile" : "new_profile",
+          profile,
+          offer,
+        });
+        window.location.href = "../04-step-4-report/index.html#step-4-report";
+      });
+
+      document.querySelector("[data-back]").addEventListener("click", () => {
+        window.location.href = "../01-step-1-story/index.html#step-1-story";
+      });
+
+      if (!window.location.hash) {
+        window.history.replaceState(null, "", "#step-2-saju-input");
+      }
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/jobchoice-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

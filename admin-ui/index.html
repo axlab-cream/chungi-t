@@ -380,6 +380,7 @@
     .admin-toolbar > .admin-button { margin-left: auto; margin-bottom: 8px; }
     .admin-toolbar > .admin-button:not([hidden]) + .admin-button { margin-left: 0; }
     .admin-toolbar > .admin-button { white-space: nowrap; }
+    a.admin-button { text-decoration: none; }
     @media (max-width: 600px) { .admin-toolbar { flex-wrap: wrap; } .admin-toolbar .admin-tabs { flex: 1 1 100%; min-width: 0; } }
     .admin-tabs a em { font-style: normal; margin-left: 4px; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--admin-bg); color: var(--admin-text-muted); }
     .admin-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -451,6 +452,7 @@
     .admin-inline input { flex: 1; }
     .admin-label { margin-top: 4px; font-size: 13px; font-weight: 600; }
     .admin-hint, .admin-counter { color: var(--admin-text-muted); font-size: 12px; }
+    .admin-hint-warn { display: block; margin-top: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid #d9a441; background: rgba(217, 164, 65, .12); color: var(--admin-text); }
     .admin-counter[data-over='true'] { color: var(--admin-state-warn); font-weight: 600; }
     .admin-audience { margin: 4px 0 0; padding: 9px 12px; border-radius: 6px; background: #eef3ff; color: var(--admin-text); font-size: 13px; }
     .admin-compose-preview { position: sticky; top: 0; align-self: start; display: grid; gap: 8px; }
@@ -464,19 +466,6 @@
     .admin-detail-grid .admin-meter + * , .admin-detail-grid .admin-note { margin-top: 12px; }
     .admin-detail-grid div > div > h4 { margin-top: 16px; }
     .admin-compose-form .admin-seg { justify-self: start; }
-    /* 카카오 채널 메시지 미리보기: 카카오톡 채널 채팅방 모양 */
-    .admin-kakao-room { padding: 14px 10px 18px; border-radius: 18px; background: #b2c7d9; min-height: 320px; }
-    .admin-kakao-row { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 8px; align-items: start; }
-    .admin-kakao-avatar { width: 36px; height: 36px; border-radius: 14px; display: grid; place-items: center; background: #1a0705; color: #f2bf6b; font-weight: 800; font-size: 15px; }
-    .admin-kakao-name { margin: 0 0 4px; font-size: 12px; color: #2b2b33; }
-    .admin-kakao-bubble { max-width: 230px; overflow: hidden; border-radius: 4px 14px 14px 14px; background: #fff; color: #1b1b1f; }
-    .admin-kakao-bubble img { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; background: #e6e6ea; }
-    .admin-kakao-text { margin: 0; padding: 10px 12px; font-size: 13px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
-    .admin-kakao-button { margin: 0 10px 10px; padding: 8px; border-radius: 6px; background: #f2f2f4; font-size: 13px; text-align: center; }
-    .admin-kakao-time { margin: 4px 0 0 44px; font-size: 11px; color: #4b5563; }
-    .admin-kakao-paste { width: 100%; min-height: 110px; box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 13px; border: 1px solid var(--admin-line); border-radius: 6px; resize: vertical; }
-    .admin-kakao-steps { margin: 0 0 10px; padding-left: 18px; font-size: 13px; line-height: 1.7; }
-    .admin-channel[data-channel='kakao']::before { background: #f5c400; }
     /* 공통 팝업: 상세(section) 팝업 · 확인/입력(작은) 팝업 · 안내 토스트 · 위험 버튼 */
     .admin-modal.admin-section-modal[open] { display: block; overflow-y: auto; padding: 0; }
     .admin-section-modal > .admin-section { border: 0; }
@@ -672,7 +661,7 @@
     <details class="admin-nav-group" data-nav-group="marketing" open>
       <summary class="admin-nav-label">마케팅</summary>
       <div class="admin-nav-links">
-        <a href="/ops/constellation-7f3c/messages" data-admin-route="messages">메시지</a>
+        <a href="/ops/constellation-7f3c/messages" data-admin-route="messages">푸시</a>
         <a href="/ops/constellation-7f3c/popup" data-admin-route="popup">팝업</a>
         <a href="/ops/constellation-7f3c/coupons" data-admin-route="coupons">쿠폰</a>
       </div>
@@ -951,7 +940,7 @@
           { path: '/quality', label: '품질 점검', load: function (body) { loadQualityEvaluations(body); } },
           { path: '/release', label: '배포 정보', load: function (body) { loadReleaseInfo(body); } },
         ] },
-        { path: '/messages', key: 'messages', title: '메시지', detail: '보낸 메시지의 결과를 확인하고, 새 메시지를 보냅니다.', load: function (body) { loadMessagesManager(body); } },
+        { path: '/messages', key: 'messages', title: '푸시', detail: '앱 설치 기기에 푸시를 보내고 결과를 확인합니다. 카카오 채널 메시지는 파트너센터에서 보냅니다.', load: function (body) { loadMessagesManager(body); } },
         { path: '/popup', key: 'popup', title: '팝업', detail: '첫 페이지 팝업의 이미지와 노출 기간을 관리합니다.', load: function (body) { loadPopupManager(body); } },
         { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '이용권·질문권·할인 쿠폰을 발급하고 사용 현황을 봅니다.', load: function (body) { loadCouponManager(body); } },
         { path: '/admins', key: 'admins', title: '관리자', detail: '관리자 계정을 추가하고 비밀번호·사용 여부를 관리합니다.', load: function (body) { loadAdminAccounts(body); } },
@@ -1757,7 +1746,7 @@
           var actions = document.createElement('div'); actions.className = 'admin-actions'; actions.style.marginTop = '16px';
           var edit = document.createElement('button'); edit.type = 'button'; edit.className = 'admin-button'; edit.setAttribute('data-variant', 'quiet'); edit.textContent = '프로필 수정·계정 정지';
           edit.addEventListener('click', function () { dialog.close(); renderMemberDetail(document.body, member.userId); });
-          var push = document.createElement('a'); push.className = 'admin-button'; push.setAttribute('data-variant', 'quiet'); push.href = ADMIN_BASE + '/messages'; push.textContent = '메시지 보내기';
+          var push = document.createElement('a'); push.className = 'admin-button'; push.setAttribute('data-variant', 'quiet'); push.href = ADMIN_BASE + '/messages'; push.textContent = '푸시 보내기';
           push.title = '메시지 작성에서 "특정 회원"을 골라 이 회원 이름으로 찾으면 됩니다.';
           var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'admin-button'; remove.setAttribute('data-variant', 'quiet'); remove.setAttribute('data-tone', 'danger-text'); remove.textContent = '회원 삭제';
           remove.addEventListener('click', function () { deleteMemberFlow({ id: member.userId, name: member.name, email: member.email, purchaseCount: purchases ? purchases.purchaseCount : null }, function () { dialog.close(); renderWorkspace(currentAdminRoute()); }); });
@@ -2039,7 +2028,7 @@
             card.append(label, value, compare); kGrid.appendChild(card);
           });
           kpiSection.replaceChildren(kHead, kGrid);
-          var names = { members: '회원', payments: '결제', refunds: '환불', support: '문의', reports: '리포트', messages: '메시지' };
+          var names = { members: '회원', payments: '결제', refunds: '환불', support: '문의', reports: '리포트', messages: '푸시' };
           foot.textContent = '기준 ' + memberWhen(data.asOf) + (data.errors && data.errors.length ? ' · 불러오지 못한 부분: ' + data.errors.map(function (key) { return names[key] || key; }).join(', ') : '');
         } catch (error) { todoSection.replaceChildren(memberEmpty(error.message)); }
         if (refresh) refresh.disabled = false;
@@ -2622,72 +2611,25 @@
         return data;
       }
 
-      /*
-       * 카카오 채널 메시지. 파트너센터 채널 메시지에는 공개 발송 API가 없다(src/kakao/channel-messages.ts).
-       * 여기서 쓰고 미리 본 뒤 "파트너센터에서 발송"을 누르면 본문을 복사하고 파트너센터 메시지 화면을 연다.
-       * 운영자가 거기서 붙여 넣어 보낸 뒤 "발송 완료로 표시"를 누르면 이력이 남는다.
-       * 기본값은 2026-10-12 승인된 채널(검색용 ID 운명상회official). 채널 설정에서 바꿀 수 있다.
-       */
-      var KAKAO_DEFAULTS = { channelName: '운명상회', homeUrl: 'https://pf.kakao.com/_WsRFX', partnerCenterUrl: 'https://business.kakao.com/_WsRFX/messages' };
-      var KAKAO_STATUS = { draft: { label: '작성됨', tone: '' }, opened: { label: '발송 확인 전', tone: 'warn' }, sent: { label: '발송 완료', tone: 'ok' } };
-      async function kakaoRequest(path, payload) {
-        var response = await fetch('/api/admin/v1/kakao-channel' + path, { method: payload ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store', headers: payload ? { 'Content-Type': 'application/json' } : {}, body: payload ? JSON.stringify(payload) : undefined });
-        var data = await response.json().catch(function () { return {}; });
-        if (!response.ok) throw new Error(response.status === 403 ? '카카오 채널 메시지 권한이 없습니다.' : response.status === 401 ? '관리자 로그인이 만료되었습니다.' : data.error || '카카오 채널 요청을 처리하지 못했습니다.');
-        return data;
-      }
-      function kakaoPasteText(message) {
-        return message.isAd && !/^\(광고\)/.test(message.body || '') ? '(광고) ' + message.body : (message.body || '');
-      }
-      function renderKakaoRoom(host, channelName, message) {
-        host.replaceChildren();
-        var phone = document.createElement('div'); phone.className = 'admin-phone';
-        phone.innerHTML = '<div class="admin-phone-bar"><span>9:41</span><span>카카오톡</span></div>';
-        var room = document.createElement('div'); room.className = 'admin-kakao-room';
-        var row = document.createElement('div'); row.className = 'admin-kakao-row';
-        var avatar = document.createElement('div'); avatar.className = 'admin-kakao-avatar'; avatar.setAttribute('aria-hidden', 'true'); avatar.textContent = '운';
-        var column = document.createElement('div');
-        var name = document.createElement('p'); name.className = 'admin-kakao-name'; name.textContent = channelName || KAKAO_DEFAULTS.channelName;
-        var bubble = document.createElement('div'); bubble.className = 'admin-kakao-bubble';
-        if (message.imageUrl && /^https:\/\//.test(message.imageUrl)) { var image = document.createElement('img'); image.alt = ''; image.src = message.imageUrl; bubble.appendChild(image); }
-        var text = document.createElement('p'); text.className = 'admin-kakao-text'; text.textContent = message.body ? kakaoPasteText(message) : '메시지를 입력하세요';
-        bubble.appendChild(text);
-        if (message.buttonLabel) { var button = document.createElement('div'); button.className = 'admin-kakao-button'; button.textContent = message.buttonLabel; bubble.appendChild(button); }
-        column.append(name, bubble); row.append(avatar, column);
-        var time = document.createElement('p'); time.className = 'admin-kakao-time'; time.textContent = '오후 6:00';
-        room.append(row, time); phone.appendChild(room); host.appendChild(phone);
-      }
-      async function copyText(text) {
-        try { await navigator.clipboard.writeText(text); return true; } catch (_error) { return false; }
-      }
-      /** 파트너센터에 붙여 넣는 순서와 복사할 본문. 발송 직후 안내와 상세 팝업이 같이 쓴다. */
-      function kakaoPasteGuide(item) {
-        var box = document.createElement('div');
-        var steps = document.createElement('ol'); steps.className = 'admin-kakao-steps';
-        ['파트너센터 메시지 화면에서 새 메시지를 엽니다.', '기본 텍스트형(이미지가 있으면 와이드 이미지형)을 고르고 아래 본문을 붙여 넣습니다.', (item.isAd ? '메시지 유형은 광고로 고릅니다.' : '정보성 메시지인지 다시 확인합니다.') + (item.buttonLabel ? ' 버튼 이름과 링크도 그대로 넣습니다.' : ''), '보낸 뒤 이 메시지의 "발송 완료로 표시"를 누릅니다.'].forEach(function (line) { var li = document.createElement('li'); li.textContent = line; steps.appendChild(li); });
-        var paste = document.createElement('textarea'); paste.className = 'admin-kakao-paste'; paste.readOnly = true; paste.value = kakaoPasteText(item); paste.setAttribute('aria-label', '파트너센터에 붙여 넣을 본문');
-        box.append(steps, paste);
-        if (item.buttonLabel) { var dl = document.createElement('dl'); dl.className = 'admin-dl'; dl.style.marginTop = '10px'; [['버튼', item.buttonLabel], ['링크', item.buttonUrl || '—']].forEach(function (pair) { var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; dl.append(dt, dd); }); box.appendChild(dl); }
-        return box;
-      }
-
+      // 카카오 채널 메시지는 공개 발송 API가 없어 파트너센터에서 쓰고 보낸다. 관리자는 바로가기만 둔다(2026-10-12 결정).
+      var KAKAO_PARTNER_CENTER_URL = 'https://business.kakao.com/_WsRFX/messages';
       async function loadMessagesManager(body) {
         body.replaceChildren();
-        var state = { view: 'history', status: 'all', query: '', items: [], page: 0, kakao: { items: [], settings: {}, error: '' } };
+        var state = { view: 'history', status: 'all', query: '', items: [], page: 0 };
         var PAGE = 20;
 
         var toolbar = document.createElement('div'); toolbar.className = 'admin-toolbar';
         var views = document.createElement('nav'); views.className = 'admin-tabs admin-tabs-inline'; views.setAttribute('aria-label', '메시지 보기');
-        [['history', '발송 내역'], ['scheduled', '예약'], ['kakao', '카카오 채널']].forEach(function (entry) {
+        [['history', '발송 내역'], ['scheduled', '예약']].forEach(function (entry) {
           var link = document.createElement('a'); link.href = '#'; link.dataset.view = entry[0]; link.innerHTML = entry[1] + ' <em data-count></em>';
           link.addEventListener('click', function (event) { event.preventDefault(); state.view = entry[0]; state.page = 0; render(); });
           views.appendChild(link);
         });
         var create = document.createElement('button'); create.type = 'button'; create.className = 'admin-button'; create.textContent = '＋ 새 메시지';
-        create.addEventListener('click', function () { if (state.view === 'kakao') openKakaoComposer(); else openComposer(); });
-        var kakaoSettings = document.createElement('button'); kakaoSettings.type = 'button'; kakaoSettings.className = 'admin-button'; kakaoSettings.setAttribute('data-variant', 'quiet'); kakaoSettings.textContent = '채널 설정';
-        kakaoSettings.addEventListener('click', function () { openKakaoSettings(); });
-        toolbar.append(views, kakaoSettings, create);
+        create.addEventListener('click', function () { openComposer(); });
+        var kakaoLink = document.createElement('a'); kakaoLink.className = 'admin-button'; kakaoLink.setAttribute('data-variant', 'quiet'); kakaoLink.href = KAKAO_PARTNER_CENTER_URL; kakaoLink.target = '_blank'; kakaoLink.rel = 'noopener'; kakaoLink.textContent = '카카오 파트너센터 열기';
+        kakaoLink.title = '카카오톡 채널 메시지는 카카오 비즈니스 파트너센터에서 쓰고 보냅니다. 발송 이력과 통계도 파트너센터에서 봅니다.';
+        toolbar.append(views, kakaoLink, create);
 
         var filters = document.createElement('div'); filters.className = 'admin-filterbar';
         var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '상태');
@@ -2719,12 +2661,10 @@
         function render() {
           views.querySelectorAll('a').forEach(function (link) {
             if (link.dataset.view === state.view) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
-            var count = link.dataset.view === 'kakao' ? state.kakao.items.length : state.items.filter(function (item) { return link.dataset.view === 'scheduled' ? (item.status === 'scheduled' || item.status === 'sending') : (item.status !== 'scheduled' && item.status !== 'draft'); }).length;
+            var count = state.items.filter(function (item) { return link.dataset.view === 'scheduled' ? (item.status === 'scheduled' || item.status === 'sending') : (item.status !== 'scheduled' && item.status !== 'draft'); }).length;
             link.querySelector('[data-count]').textContent = String(count);
           });
           filters.hidden = state.view !== 'history';
-          kakaoSettings.hidden = state.view !== 'kakao';
-          if (state.view === 'kakao') { renderKakao(); return; }
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false'); });
           var list = state.items.filter(matches);
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
@@ -2780,17 +2720,7 @@
           pager.append(info, nav);
           card.replaceChildren(scroll, pager);
         }
-        async function loadKakao() {
-          try {
-            var data = await kakaoRequest('');
-            state.kakao.items = Array.isArray(data.items) ? data.items : [];
-            state.kakao.settings = data.settings || {};
-            state.kakao.error = '';
-          } catch (error) { state.kakao.error = error.message; }
-        }
         async function load() {
-          await loadKakao();
-          if (state.view === 'kakao') { render(); }
           try {
             var data = await pushRequest('?limit=100');
             state.items = Array.isArray(data.items) ? data.items : [];
@@ -2868,7 +2798,7 @@
           var root = document.createElement('div'); root.className = 'admin-compose';
           var form = document.createElement('form'); form.className = 'admin-compose-form'; form.noValidate = true;
           form.innerHTML = ''
-            + '<section><h4><span class="admin-step">1</span>채널</h4><div class="admin-seg" role="radiogroup" aria-label="채널"><button type="button" aria-pressed="true">앱 푸시</button><button type="button" aria-pressed="false" data-channel-kakao>카카오 채널</button></div></section>'
+            + '<section><h4><span class="admin-step">1</span>채널</h4><div class="admin-seg" role="radiogroup" aria-label="채널"><button type="button" aria-pressed="true">앱 푸시</button></div><p class="admin-hint">카카오 채널 메시지는 위쪽 \"카카오 파트너센터 열기\"에서 보냅니다.</p></section>'
             + '<section><h4><span class="admin-step">2</span>대상</h4><div class="admin-radio-list">'
             + '<label><input type="radio" name="target" value="all" checked> 앱 설치 기기 전체</label>'
             + '<label><input type="radio" name="target" value="logged_in"> 로그인한 기기</label>'
@@ -2883,6 +2813,7 @@
             + '<label class="admin-label" for="msg-body">메시지</label><textarea id="msg-body" name="message" maxlength="500" placeholder="오늘 당신에게 들어오는 운은 무엇일까요?"></textarea><span class="admin-counter" data-count="message"></span>'
             + '<label class="admin-label" for="msg-link">누르면 열 페이지</label><input id="msg-link" name="deepLink" maxlength="500" value="/" placeholder="/me/lucky"><span class="admin-hint">운명상회 안의 주소만 됩니다. 비워 두면 첫 화면이 열립니다.</span></section>'
             + '<section><h4><span class="admin-step">4</span>광고 여부</h4><label class="admin-check"><input type="checkbox" name="marketing"> 광고성 알림입니다 (이벤트·할인·쿠폰 소식)</label>'
+            + '<div class="admin-hint admin-hint-warn" data-ad-words hidden><b data-ad-words-text></b><br>광고성이면 위 "광고성 알림입니다"에 체크해 주세요. 체크하지 않으면 수신을 거부한 회원에게도 갑니다.<br><label class="admin-check"><input type="checkbox" name="notMarketing"> 광고가 아닙니다 (풀이·결제·서비스 안내입니다)</label></div>'
             + '<div class="admin-hint" data-marketing-rules hidden><b>광고성 알림 발송 규칙 (정보통신망법)</b><br>'
             + '· 마이페이지에서 <b>이벤트·혜택 알림에 동의한 회원</b>에게만 보냅니다. 로그인하지 않은 기기와 동의하지 않은 회원은 빠집니다.<br>'
             + '· 제목 앞에 <b>(광고)</b>, 본문 끝에 <b>수신 거부 방법</b>이 자동으로 붙습니다.<br>'
@@ -2907,6 +2838,11 @@
             // 광고성이면 고객 기기에 실제로 보이는 문구(제목 앞 (광고), 본문 끝 수신 거부 안내)로 미리 보여 준다.
             var marketing = form.elements.marketing.checked;
             form.querySelector('[data-marketing-rules]').hidden = !marketing;
+            // 일반 알림에 광고 낱말이 있으면 "광고가 아닙니다"를 따로 확인받는다. 서버(parseDraft)도 같은 확인을 한다.
+            var words = marketing ? [] : MARKETING_WORDS.filter(function (word) { return (form.elements.title.value + ' ' + form.elements.message.value).indexOf(word) >= 0; });
+            var adBox = form.querySelector('[data-ad-words]'); adBox.hidden = !words.length;
+            if (words.length) adBox.querySelector('[data-ad-words-text]').textContent = '광고로 보이는 낱말이 있습니다: ' + words.join(', ');
+            else form.elements.notMarketing.checked = false;
             renderPushPhone(phone, (marketing ? '(광고) ' : '') + form.elements.title.value.trim(), form.elements.message.value.trim() + (marketing ? '\n\n수신 거부: 운명상회 앱 › 마이페이지 › 알림' : ''));
             counter('title', form.elements.title.value.trim(), 40, 100); counter('message', form.elements.message.value.trim(), 60, 500);
           }
@@ -2924,10 +2860,10 @@
             node.textContent = '예상 발송 대상을 세는 중입니다.';
             clearTimeout(countTimer);
             countTimer = setTimeout(function () {
-              pushRequest('/audience', { target: target }).then(function (data) {
+              pushRequest('/audience', { target: target, marketing: form.elements.marketing.checked }).then(function (data) {
                 audience = { count: data.count, label: data.label };
                 node.innerHTML = ''; var strong = document.createElement('b'); strong.textContent = '예상 발송 대상 ' + fmtNumber(data.count) + '대';
-                node.append(strong, document.createTextNode(' · ' + data.label + (form.elements.marketing.checked ? ' · 이 중 이벤트·혜택 알림에 동의한 회원에게만 갑니다' : ''))); node.appendChild(adminTip('지금 알림을 받을 수 있는 앱 설치 기기 수입니다. 한 사람이 기기 두 대를 쓰면 두 대로 셉니다.'));
+                node.append(strong, document.createTextNode(' · ' + data.label + (form.elements.marketing.checked ? ' · 이벤트·혜택 알림에 동의한 회원의 기기만 셌습니다' : ' · 알림을 끈 회원은 뺐습니다'))); node.appendChild(adminTip('지금 알림을 받을 수 있는 앱 설치 기기 수입니다. 한 사람이 기기 두 대를 쓰면 두 대로 셉니다.'));
               }).catch(function (error) { audience = { count: null, label: '' }; node.textContent = error.message; });
             }, 250);
           }
@@ -2954,7 +2890,6 @@
             } catch (error) { list.textContent = error.message; }
           });
           refreshPreview(); refreshAudience();
-          form.querySelector('[data-channel-kakao]').addEventListener('click', function () { dialog.close(); openKakaoComposer(); });
           var dialog = openAdminModal({ title: source ? '다시 발송' : '새 메시지', subtitle: '앱 설치 기기에 푸시를 보냅니다.', size: 'wide', body: root, actions: [
             { label: '취소', onClick: function (d) { d.close(); } },
             { label: '발송하기', primary: true, onClick: function (d) { confirmSend(d); } },
@@ -2964,6 +2899,8 @@
             if (!title || !message) { adminToast('제목과 메시지를 입력해 주세요.'); return; }
             var target = selectedTarget();
             if (target.type === 'users' && !target.userIds.length) { adminToast('보낼 회원을 검색해서 골라 주세요.'); return; }
+            var needsAdCheck = !form.querySelector('[data-ad-words]').hidden;
+            if (needsAdCheck && !form.elements.notMarketing.checked) { adminToast('광고로 보이는 낱말이 있습니다. "광고성 알림입니다"에 체크하거나 "광고가 아닙니다"를 확인해 주세요.'); form.querySelector('[data-ad-words]').scrollIntoView({ block: 'center' }); return; }
             var schedule = { mode: 'now' };
             if (form.elements.when.value === 'scheduled') {
               var at = new Date(form.elements.scheduledAt.value);
@@ -2985,7 +2922,7 @@
               { label: schedule.mode === 'now' ? '지금 발송' : '예약하기', primary: true, danger: schedule.mode === 'now', onClick: async function (d) {
                 var buttons = d.querySelectorAll('button'); buttons.forEach(function (b) { b.disabled = true; });
                 try {
-                  var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule, marketing: marketing });
+                  var data = await pushRequest('', { title: title, body: message, deepLink: form.elements.deepLink.value.trim(), target: target, schedule: schedule, marketing: marketing, notMarketingConfirmed: !marketing && form.elements.notMarketing.checked });
                   d.close(); composer.close();
                   await load(); openDetail(data.item);
                 } catch (error) { adminToast(error.message); buttons.forEach(function (b) { b.disabled = false; }); }
@@ -2993,204 +2930,6 @@
             ] });
           }
           return dialog;
-        }
-
-        function kakaoSettingsValue() {
-          var saved = state.kakao.settings || {};
-          return { channelName: saved.channelName || KAKAO_DEFAULTS.channelName, partnerCenterUrl: saved.partnerCenterUrl || KAKAO_DEFAULTS.partnerCenterUrl };
-        }
-        function renderKakao() {
-          if (state.kakao.error) {
-            var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '카카오 채널 메시지를 불러오지 못했습니다. ' + state.kakao.error;
-            card.replaceChildren(failed); return;
-          }
-          var head = ['작성일시', '채널', '메시지', '구분', '발송일시', '발송 수', '상태', '작성자'];
-          var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr>' + head.map(function (name) { return '<th scope="col"' + (name === '발송 수' ? ' class="admin-num"' : '') + '>' + name + '</th>'; }).join('') + '</tr></thead>';
-          var rows = document.createElement('tbody');
-          var list = state.kakao.items;
-          var pageItems = list.slice(state.page * PAGE, state.page * PAGE + PAGE);
-          if (!pageItems.length) {
-            var empty = document.createElement('tr'); var cell = document.createElement('td'); cell.colSpan = head.length; cell.className = 'admin-empty';
-            cell.textContent = '아직 작성한 카카오 채널 메시지가 없습니다. ＋ 새 메시지로 첫 메시지를 써 보세요.';
-            empty.appendChild(cell); rows.appendChild(empty);
-          }
-          pageItems.forEach(function (item) {
-            var row = document.createElement('tr'); row.tabIndex = 0;
-            function td(value, className) { var cell = document.createElement('td'); if (className) cell.className = className; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); return cell; }
-            td(fmtWhen(item.createdAt));
-            var channel = document.createElement('span'); channel.className = 'admin-channel'; channel.setAttribute('data-channel', 'kakao'); channel.textContent = '카카오'; td(channel);
-            var message = document.createElement('div'); message.className = 'admin-msg-cell';
-            var title = document.createElement('b'); title.textContent = item.title; var sub = document.createElement('span'); sub.textContent = String(item.body || '').split('\n')[0];
-            message.append(title, sub); td(message);
-            td(item.isAd ? '광고' : '정보');
-            td(fmtWhen(item.sentAt));
-            td(fmtNumber(item.sentCount), 'admin-num');
-            td(badge(KAKAO_STATUS[item.status] || { label: item.status, tone: '' }));
-            td(String(item.createdBy || '').split('@')[0], 'admin-muted');
-            row.addEventListener('click', function () { openKakaoDetail(item); });
-            row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openKakaoDetail(item); });
-            rows.appendChild(row);
-          });
-          table.appendChild(rows);
-          var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
-          var pager = document.createElement('div'); pager.className = 'admin-pager';
-          var pages = Math.max(1, Math.ceil(list.length / PAGE));
-          var info = document.createElement('span'); info.textContent = list.length ? list.length.toLocaleString('ko-KR') + '건 중 ' + (state.page * PAGE + 1) + '–' + Math.min(list.length, state.page * PAGE + PAGE) : '0건';
-          var nav = document.createElement('div'); nav.className = 'admin-pager-buttons';
-          [['‹', state.page - 1], ['›', state.page + 1]].forEach(function (entry) {
-            var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[0]; button.setAttribute('aria-label', entry[0] === '‹' ? '이전 페이지' : '다음 페이지');
-            button.disabled = entry[1] < 0 || entry[1] >= pages;
-            button.addEventListener('click', function () { state.page = entry[1]; render(); });
-            nav.appendChild(button);
-          });
-          var current = document.createElement('span'); current.className = 'admin-pager-current'; current.textContent = (state.page + 1) + ' / ' + pages;
-          nav.insertBefore(current, nav.lastChild);
-          pager.append(info, nav);
-          card.replaceChildren(scroll, pager);
-        }
-        async function reloadKakao() { await loadKakao(); render(); }
-
-        /** 파트너센터 창은 클릭하는 순간 먼저 연다(팝업 차단 방지). 주소는 서버 기록이 끝난 뒤 넣는다. */
-        async function openPartnerCenter(item, win) {
-          var data = await kakaoRequest('/' + encodeURIComponent(item.id) + '/opened', {});
-          var copied = await copyText(data.pasteText);
-          var target = kakaoSettingsValue().partnerCenterUrl;
-          if (win) { win.opener = null; win.location.href = target; } else window.open(target, '_blank', 'noopener');
-          return { item: data.item || item, copied: copied };
-        }
-        function openedToast(copied) {
-          adminToast(copied ? '본문을 복사하고 파트너센터를 열었습니다. 붙여 넣어 보낸 뒤 발송 완료로 표시해 주세요.' : '파트너센터를 열었습니다. 복사가 막혀 있으니 안내 칸의 본문을 직접 복사해 주세요.');
-        }
-        async function markKakaoSent(item) {
-          var count = await adminPrompt('파트너센터 발송 결과에 나온 발송 수를 넣어 주세요. 모르면 비워 두세요.', { title: '발송 완료로 표시', okLabel: '발송 완료', placeholder: '예: 120' });
-          if (count === null) return false;
-          var text = count.replace(/[,\s]/g, '');
-          if (text && !/^\d+$/.test(text)) { adminToast('발송 수는 0 이상의 숫자로 넣어 주세요.'); return false; }
-          try { await kakaoRequest('/' + encodeURIComponent(item.id) + '/sent', { sentCount: text ? Number(text) : null }); adminToast('발송 완료로 표시했습니다.'); await reloadKakao(); return true; }
-          catch (error) { adminToast(error.message); return false; }
-        }
-        function sendKakao(item) {
-          // 창을 먼저 연다. 서버 응답을 기다린 뒤 열면 브라우저가 팝업으로 막는다.
-          var win = window.open('about:blank', '_blank');
-          openPartnerCenter(item, win).then(function (result) {
-            openedToast(result.copied);
-            return reloadKakao().then(function () { openKakaoDetail(result.item, true); });
-          }).catch(function (error) { if (win) win.close(); adminToast(error.message); });
-        }
-
-        function openKakaoDetail(item, justOpened) {
-          var settings = kakaoSettingsValue();
-          var status = KAKAO_STATUS[item.status] || { label: item.status, tone: '' };
-          var wrap = document.createElement('div'); wrap.className = 'admin-detail-grid';
-          var left = document.createElement('div'); var right = document.createElement('div');
-          var h1 = document.createElement('h4'); h1.textContent = '미리보기';
-          var preview = document.createElement('div'); renderKakaoRoom(preview, settings.channelName, item);
-          left.append(h1, preview);
-          var h2 = document.createElement('h4'); h2.textContent = '발송 정보';
-          var dl = document.createElement('dl'); dl.className = 'admin-dl';
-          [['구분', item.isAd ? '광고성 메시지' : '정보성 메시지'], ['상태', status.label], ['작성', fmtWhen(item.createdAt) + ' · ' + (item.createdBy || '—')], ['창 연 시각', fmtWhen(item.openedAt)], ['발송', item.sentAt ? fmtWhen(item.sentAt) + ' · ' + (item.sentBy || '—') : '—'], ['발송 수', fmtNumber(item.sentCount)]].forEach(function (pair) {
-            var dt = document.createElement('dt'); dt.textContent = pair[0]; var dd = document.createElement('dd'); dd.textContent = pair[1]; dl.append(dt, dd);
-          });
-          var h3 = document.createElement('h4'); h3.textContent = '파트너센터에 붙여 넣기';
-          h3.appendChild(adminTip('카카오는 채널 메시지를 외부 프로그램이 직접 보내는 길을 열어 두지 않았습니다. 그래서 문구는 여기서 쓰고, 실제 발송은 카카오 비즈니스 파트너센터에서 합니다.'));
-          var again = document.createElement('button'); again.type = 'button'; again.className = 'admin-button'; again.setAttribute('data-variant', 'quiet'); again.textContent = '본문 복사'; again.style.marginTop = '8px';
-          again.addEventListener('click', async function () { adminToast(await copyText(kakaoPasteText(item)) ? '본문을 복사했습니다.' : '복사하지 못했습니다. 칸에서 직접 복사해 주세요.'); });
-          right.append(h2, dl, h3, kakaoPasteGuide(item), again);
-          wrap.append(left, right);
-          var waiting = justOpened || item.status === 'opened';
-          var actions = [{ label: '목록에서 내리기', danger: true, onClick: async function (dialog) {
-            if (!await adminConfirm('"' + item.title + '" 메시지를 목록에서 내립니다. 내린 메시지는 이 화면에서 다시 볼 수 없습니다. 이미 카카오로 보낸 메시지는 그대로 남습니다.', { title: '목록에서 내리기', okLabel: '목록에서 내리기', danger: true, irreversible: true })) return;
-            try { await kakaoRequest('/' + encodeURIComponent(item.id) + '/archive', {}); dialog.close(); adminToast('목록에서 내렸습니다.'); reloadKakao(); } catch (error) { adminToast(error.message); }
-          } }, { label: '다시 쓰기', onClick: function (dialog) { dialog.close(); openKakaoComposer(item); } }];
-          actions.push({ label: item.status === 'sent' ? '파트너센터 열기' : '파트너센터에서 발송', primary: item.status !== 'sent' && !waiting, onClick: function (dialog) { dialog.close(); sendKakao(item); } });
-          if (item.status !== 'sent') actions.push({ label: '발송 완료로 표시', primary: waiting, onClick: async function (dialog) { if (await markKakaoSent(item)) dialog.close(); } });
-          openAdminModal({ title: item.title, subtitle: status.label + ' · 카카오 채널 · ' + fmtWhen(item.sentAt || item.createdAt), size: 'wide', body: wrap, actions: actions });
-        }
-
-        function openKakaoComposer(source) {
-          var settings = kakaoSettingsValue();
-          var root = document.createElement('div'); root.className = 'admin-compose';
-          var form = document.createElement('form'); form.className = 'admin-compose-form'; form.noValidate = true;
-          form.innerHTML = ''
-            + '<section><h4><span class="admin-step">1</span>채널</h4><div class="admin-seg" role="radiogroup" aria-label="채널"><button type="button" aria-pressed="false" data-channel-push>앱 푸시</button><button type="button" aria-pressed="true">카카오 채널</button></div>'
-            + '<p class="admin-hint">받는 사람은 운명상회 채널 친구입니다. 대상과 발송 시각은 파트너센터에서 정합니다.</p></section>'
-            + '<section><h4><span class="admin-step">2</span>내용</h4>'
-            + '<label class="admin-label" for="kakao-title">관리용 이름</label><input id="kakao-title" name="title" maxlength="100" placeholder="10월 오늘의 운세 안내"><span class="admin-hint">이 목록에서만 보입니다. 카카오로 나가지 않습니다.</span>'
-            + '<label class="admin-label" for="kakao-body">메시지</label><textarea id="kakao-body" name="body" maxlength="1000" placeholder="오늘 당신에게 들어오는 운은 무엇일까요?&#10;지금 운명상회에서 확인해 보세요."></textarea><span class="admin-counter" data-count="body"></span>'
-            + '<label class="admin-label" for="kakao-image">이미지 주소 (선택)</label><input id="kakao-image" name="imageUrl" maxlength="500" placeholder="https://umsh.kr/assets/..."><span class="admin-hint">미리보기에만 씁니다. 파트너센터에서는 이미지를 직접 올려야 합니다.</span>'
-            + '<label class="admin-label" for="kakao-button">버튼 이름 (선택)</label><input id="kakao-button" name="buttonLabel" maxlength="14" placeholder="운세 보러 가기">'
-            + '<label class="admin-label" for="kakao-link">버튼 링크</label><input id="kakao-link" name="buttonUrl" maxlength="500" placeholder="https://umsh.kr/"></section>'
-            + '<section><h4><span class="admin-step">3</span>광고 여부</h4><label class="admin-check"><input type="checkbox" name="isAd" checked> 광고성 메시지입니다 (이벤트·할인·서비스 홍보)</label>'
-            + '<p class="admin-hint" data-ad-hint>본문 앞에 (광고)가 붙습니다. 파트너센터에서도 메시지 유형을 광고로 골라야 합니다.</p></section>';
-          var aside = document.createElement('aside'); aside.className = 'admin-compose-preview'; aside.setAttribute('aria-label', '미리보기');
-          var asideTitle = document.createElement('h4'); asideTitle.textContent = '미리보기 · 채널 채팅방'; var phone = document.createElement('div'); aside.append(asideTitle, phone);
-          root.append(form, aside);
-          if (source) { form.elements.title.value = source.title || ''; form.elements.body.value = source.body || ''; form.elements.imageUrl.value = source.imageUrl || ''; form.elements.buttonLabel.value = source.buttonLabel || ''; form.elements.buttonUrl.value = source.buttonUrl || ''; form.elements.isAd.checked = source.isAd !== false; }
-          function current() {
-            return { title: form.elements.title.value.trim(), body: form.elements.body.value.trim(), isAd: form.elements.isAd.checked, imageUrl: form.elements.imageUrl.value.trim() || null, buttonLabel: form.elements.buttonLabel.value.trim() || null, buttonUrl: form.elements.buttonUrl.value.trim() || null };
-          }
-          function refresh() {
-            var message = current();
-            renderKakaoRoom(phone, settings.channelName, message);
-            form.querySelector('[data-ad-hint]').hidden = !message.isAd;
-            var count = form.querySelector('[data-count="body"]'); var length = kakaoPasteText(message).length;
-            count.setAttribute('data-over', length > 1000 ? 'true' : 'false'); count.textContent = length + ' / 1000자' + (message.isAd ? ' (광고 표기 포함)' : '');
-          }
-          form.addEventListener('input', refresh);
-          form.querySelector('[data-channel-push]').addEventListener('click', function () { dialog.close(); openComposer(); });
-          function check() {
-            var message = current();
-            if (!message.title || !message.body) { adminToast('관리용 이름과 메시지를 입력해 주세요.'); return null; }
-            if (kakaoPasteText(message).length > 1000) { adminToast('메시지는 광고 표기를 합쳐 1000자 이하로 써 주세요.'); return null; }
-            if (message.imageUrl && !/^https:\/\//.test(message.imageUrl)) { adminToast('이미지 주소는 https:// 로 시작해야 합니다.'); return null; }
-            if (Boolean(message.buttonLabel) !== Boolean(message.buttonUrl)) { adminToast('버튼은 이름과 링크를 함께 넣어 주세요.'); return null; }
-            if (message.buttonUrl && !/^https:\/\//.test(message.buttonUrl)) { adminToast('버튼 링크는 https:// 로 시작해야 합니다.'); return null; }
-            return message;
-          }
-          function lock(d, on) { d.querySelectorAll('.admin-modal-foot button').forEach(function (b) { b.disabled = on; }); }
-          refresh();
-          var dialog = openAdminModal({ title: source ? '다시 쓰기' : '새 메시지', subtitle: '카카오톡 채널 친구에게 보낼 메시지를 씁니다.', size: 'wide', body: root, actions: [
-            { label: '취소', onClick: function (d) { d.close(); } },
-            { label: '저장만 하기', onClick: async function (d) {
-              var message = check(); if (!message) return;
-              lock(d, true);
-              try { await kakaoRequest('', message); d.close(); adminToast('저장했습니다. 카카오 채널 목록에서 언제든 발송할 수 있습니다.'); state.view = 'kakao'; state.page = 0; await reloadKakao(); }
-              catch (error) { adminToast(error.message); lock(d, false); }
-            } },
-            { label: '파트너센터에서 발송', primary: true, onClick: function (d) {
-              var message = check(); if (!message) return;
-              // 창을 먼저 연다. 저장을 기다린 뒤 열면 브라우저가 팝업으로 막는다.
-              var win = window.open('about:blank', '_blank');
-              lock(d, true);
-              kakaoRequest('', message).then(function (data) {
-                d.close(); state.view = 'kakao'; state.page = 0;
-                return openPartnerCenter(data.item, win).then(function (result) {
-                  openedToast(result.copied);
-                  return reloadKakao().then(function () { openKakaoDetail(result.item, true); });
-                });
-              }).catch(function (error) { if (win) win.close(); adminToast(error.message); lock(d, false); });
-            } },
-          ] });
-          return dialog;
-        }
-
-        function openKakaoSettings() {
-          var saved = state.kakao.settings || {};
-          var wrap = document.createElement('form'); wrap.className = 'admin-compose-form'; wrap.noValidate = true;
-          wrap.innerHTML = '<section><label class="admin-label" for="kakao-channel-name">채널 이름</label><input id="kakao-channel-name" name="channelName" maxlength="40"><span class="admin-hint">미리보기 채팅방 위에 보이는 이름입니다.</span></section>'
-            + '<section><label class="admin-label" for="kakao-center-url">파트너센터 메시지 화면 주소</label><input id="kakao-center-url" name="partnerCenterUrl" maxlength="500"><span class="admin-hint">"파트너센터에서 발송"을 누르면 이 주소가 열립니다.</span></section>'
-            + '<section><span class="admin-label">채널 홈</span><a target="_blank" rel="noopener" data-home></a><span class="admin-hint">검색용 아이디: 운명상회official</span></section>';
-          wrap.elements.channelName.value = saved.channelName || KAKAO_DEFAULTS.channelName;
-          wrap.elements.partnerCenterUrl.value = saved.partnerCenterUrl || KAKAO_DEFAULTS.partnerCenterUrl;
-          var home = wrap.querySelector('[data-home]'); home.href = KAKAO_DEFAULTS.homeUrl; home.textContent = KAKAO_DEFAULTS.homeUrl;
-          openAdminModal({ title: '카카오 채널 설정', subtitle: saved.updatedAt ? '마지막 저장 ' + fmtWhen(saved.updatedAt) : '아직 저장하지 않았습니다. 기본값으로 동작합니다.', body: wrap, actions: [
-            { label: '취소', onClick: function (d) { d.close(); } },
-            { label: '저장', primary: true, onClick: async function (d) {
-              try { state.kakao.settings = (await kakaoRequest('/settings', { channelName: wrap.elements.channelName.value, partnerCenterUrl: wrap.elements.partnerCenterUrl.value })).settings || {}; d.close(); adminToast('채널 설정을 저장했습니다.'); }
-              catch (error) { adminToast(error.message); }
-            } },
-          ] });
         }
 
         await load();
@@ -3905,6 +3644,8 @@
           statusForm.appendChild(statusButton); section.appendChild(statusForm);
         } catch (_error) { var note2 = section.querySelector('.admin-note'); if (note2) note2.textContent = '회원 프로필을 불러오지 못했습니다.'; }
       }
+      // src/push/contracts.ts 의 MARKETING_WORDS 와 같은 목록(테스트가 맞춰 본다).
+      var MARKETING_WORDS = ['이벤트', '할인', '쿠폰', '혜택', '특가', '세일', '프로모션', '증정', '적립', '선착순', '한정', '기념', '무료', '오픈', '%'];
       /*
        * 회원 › 고객 지원 (2026-10 개편 7단계). 목록 먼저(답변 대기·처리 중·완료), 행 → 문의 상세 팝업.
        * 상세에서 회원·결제·리포트로 바로 넘어가고, 상태·담당 저장과 처리 기록을 한 화면에서 한다.
@@ -3999,7 +3740,14 @@
         var h3 = document.createElement('h4'); h3.textContent = '처리 기록';
         var timeline = document.createElement('div'); timeline.className = 'admin-timeline'; timeline.appendChild(memberEmpty('불러오는 중입니다.'));
         var noteForm = document.createElement('form'); noteForm.className = 'admin-note-form';
-        noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="internal">내부 메모</option><option value="customer_reply_draft">고객 답변 초안</option><option value="customer_reply">고객에게 답변 (회원 화면에 보임)</option></select><textarea name="text" maxlength="4000" rows="3" placeholder="처리한 내용을 남겨 주세요. 내부 메모와 초안은 고객에게 보이지 않습니다."></textarea><button class="admin-button" type="submit">기록 추가</button>';
+        // 답변을 내부 메모로 잘못 남겨 회원이 못 보는 일이 없게, 기본값은 "고객에게 답변"이다.
+        noteForm.innerHTML = '<select name="kind" aria-label="기록 종류"><option value="customer_reply" selected>고객에게 답변 (회원 화면에 보임)</option><option value="internal">내부 메모 (회원에게 안 보임)</option><option value="customer_reply_draft">고객 답변 초안 (회원에게 안 보임)</option></select><textarea name="text" maxlength="4000" rows="3"></textarea><button class="admin-button" type="submit"></button>';
+        function syncNoteKind() {
+          var reply = noteForm.elements.kind.value === 'customer_reply';
+          noteForm.elements.text.placeholder = reply ? '회원이 마이페이지 › 1:1 문의에서 이 답변을 봅니다. 보내면 문의 상태가 "해결"로 바뀝니다.' : '처리한 내용을 남겨 주세요. 회원에게는 보이지 않습니다.';
+          noteForm.querySelector('button[type="submit"]').textContent = reply ? '회원에게 답변 보내기' : '기록 추가';
+        }
+        noteForm.elements.kind.addEventListener('change', syncNoteKind); syncNoteKind();
         right.append(h3, timeline, noteForm);
         wrap.append(left, right);
         async function loadNotes() {
@@ -4019,8 +3767,12 @@
         noteForm.addEventListener('submit', async function (event) {
           event.preventDefault(); var text = noteForm.elements.text.value.trim(); if (!text) { adminToast('기록할 내용을 적어 주세요.', 'error'); return; }
           try {
-            await adminJson('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ kind: noteForm.elements.kind.value, text: text }) });
-            noteForm.elements.text.value = ''; adminToast('기록을 남겼습니다.'); loadNotes();
+            var saved = await adminJson('/api/admin/v1/support/' + encodeURIComponent(item.id) + '/notes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ kind: noteForm.elements.kind.value, text: text }) });
+            noteForm.elements.text.value = '';
+            // 답변하면 서버가 상태를 "해결"로 바꾼다. 바뀐 상태와 revision 을 받아 "상태 저장"이 충돌하지 않게 한다.
+            if (saved && saved.supportCase) { item.status = saved.supportCase.status; item.revision = saved.supportCase.revision; form.elements.status.value = item.status; }
+            adminToast(saved && saved.statusChanged ? '답변을 보냈습니다. 문의 상태를 "해결"로 바꿨습니다.' : '기록을 남겼습니다.'); loadNotes();
+            if (saved && saved.statusChanged && reload) reload();
           } catch (error) { adminToast(error.message, 'error'); }
         });
         openAdminModal({ title: (MEMBER_SUPPORT_CATEGORY[item.category] || '문의') + ' 문의', subtitle: '접수 ' + memberWhen(item.createdAt) + ' · 최근 변경 ' + memberWhen(item.updatedAt), size: 'wide', body: wrap, actions: [
@@ -4492,7 +4244,7 @@
           love_this_year: '올해 연애운', couple_signal: '연애 신호', love_mind: '상대방 마음', love_again: '재회운',
           love_spouse: '배우자운', match_couple: '커플궁합', marry_match: '결혼궁합', cat_compatibility: '고양이 궁합',
           lucky_color: '행운색', pass_angle: '나, 붙을 각이야?', newyear_flow: '새해운', wedding_day: '결혼 날짜',
-          home_pungsu: '집 풍수', today_fortune: '오늘운', love_speed: '금사빠·금사식 무료 테스트', solo_nara: '솔로나라 캐릭터 테스트'
+          home_pungsu: '집 풍수', today_fortune: '오늘운', love_speed: '금사빠·금사식 무료 테스트', solo_nara: '관계 심리 테스트(솔로나라)'
         };
         var stepNames = { home: '홈', entry: '진입', '01-story': '스토리', '02-input': '입력', '03-service-input': '추가 입력', '04-report': '무료 티저', payment: '결제', '05-toc': '전체 목차', '06-detail': '상세 해석', vault: '보관함', search: '검색' };
         function serviceName(key) { return serviceNames[key] || key || '공통 화면'; }
@@ -4849,7 +4601,7 @@
           addLiveTable(body, '솔로나라 유입 경로', ['경로', '조회', '방문(세션)'], data.sources || [], function (item) { return [loveSources[item.source] || '미분류', count(item.views), count(item.sessions)]; }, '선택 기간에 수집된 유입이 없습니다.');
           addLiveTable(body, '솔로나라 이용 행동', ['행동', '발생 횟수', '방문(세션)'], data.actions || [], function (item) { return [soloActions[item.action] || '기타', count(item.events), count(item.sessions)]; });
           var total = (data.results || []).reduce(function (sum, item) { return sum + Number(item.views || 0); }, 0);
-          addLiveTable(body, '결과 캐릭터 분포', ['캐릭터', '이름 그룹', '결과 표시', '비율'], data.results || [], function (item) { return [item.name, item.gender === 'female' ? '여자 이름' : '남자 이름', count(item.views), total ? (Number(item.views || 0) / total * 100).toFixed(1) + '%' : '—']; });
+          addLiveTable(body, '결과 패 분포', ['패', '결과 표시', '비율'], data.results || [], function (item) { return [item.name, count(item.views), total ? (Number(item.views || 0) / total * 100).toFixed(1) + '%' : '—']; });
           var note = document.createElement('p'); note.className = 'admin-note'; note.textContent = '결과 표시는 결과 화면이 열린 횟수입니다. 같은 사람이 다시하면 다시 셉니다. 특정 캐릭터가 지나치게 많거나 적으면 기준 점수를 조정하고 버전을 올립니다.'; body.appendChild(note);
         }
         function render() {

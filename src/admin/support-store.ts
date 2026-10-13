@@ -66,3 +66,19 @@ export async function createSupportNote(input: { caseId: string; kind: SupportNo
   const response = await fetch(table('support_notes'), { method: 'POST', headers: { ...headers(), 'content-type': 'application/json', prefer: 'return=representation' }, body: JSON.stringify({ case_id: input.caseId, kind: input.kind, text: input.text.trim(), author_email: input.actorEmail.toLowerCase() }) })
   if (!response.ok) throw new Error('SUPPORT_NOTE_CREATE_FAILED'); const rows = await response.json() as Row[]; if (!rows[0]) throw new Error('SUPPORT_NOTE_CREATE_FAILED'); return note(rows[0])
 }
+
+/**
+ * 관리자가 "고객에게 답변"을 남기면 문의를 "해결"로 옮긴다(2026-10-12). 답변을 달고도 상태를 손으로
+ * 바꾸지 않아 문의가 "답변 대기"에 계속 남던 문제를 막는다. 이미 해결·종료면 그대로 둔다.
+ * 다른 직원이 동시에 상태를 바꿔 revision 이 어긋나면 덮어쓰지 않고 null 을 돌려준다.
+ */
+export async function markSupportCaseAnswered(
+  caseId: string,
+  deps: { get: typeof getSupportCase; update: typeof updateSupportCase } = { get: getSupportCase, update: updateSupportCase },
+): Promise<{ supportCase: SupportCase | null; statusChanged: boolean }> {
+  const current = await deps.get(caseId)
+  if (!current) return { supportCase: null, statusChanged: false }
+  if (current.status === 'resolved' || current.status === 'closed') return { supportCase: current, statusChanged: false }
+  const updated = await deps.update({ id: current.id, expectedRevision: current.revision, status: 'resolved', priority: current.priority, assigneeEmail: current.assigneeEmail, resolutionCode: current.resolutionCode })
+  return updated ? { supportCase: updated, statusChanged: true } : { supportCase: current, statusChanged: false }
+}
