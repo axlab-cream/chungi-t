@@ -5041,6 +5041,10 @@
         return !isLoveThisYearService();
       }
 
+      function wantsPurchaseAfterAuth() {
+        return sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1";
+      }
+
       function consumePurchaseAfterAuth() {
         const wanted = sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1";
         sessionStorage.removeItem(AUTH_PURCHASE_KEY);
@@ -7535,7 +7539,7 @@
         }
         const protectedLabel = protectedEntryLabel();
         // 결과(티저)에서 "운명 거래하기"를 눌러 온 경우: 이미 해석을 본 뒤이므로 결제로 이어진다는 안내로 바꾼다.
-        const purchaseIntent = sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1";
+        const purchaseIntent = wantsPurchaseAfterAuth();
         const title = purchaseIntent
           ? "가입하고<br />운명록을 확인하세요"
           : wantsTodayEntry()
