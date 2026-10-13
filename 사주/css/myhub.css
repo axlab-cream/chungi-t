@@ -537,16 +537,46 @@ body.umsh-has-chrome .payment-page {
 .myhub-inquiry-form textarea { width: 100%; padding: 12px; border: 1px solid rgba(255, 247, 223, 0.14); border-radius: 8px; background: #080807; color: var(--payment-cream); font: inherit; font-size: 16px; line-height: 1.6; resize: vertical; }
 .myhub-inquiry-form textarea:focus { outline: 0; border-color: var(--payment-gold); box-shadow: 0 0 0 3px rgba(216, 186, 114, 0.1); }
 .myhub-count { margin: -6px 0 0; color: var(--payment-muted); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
-.myhub-inquiry { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); }
+/* 1:1 문의(2026-10-13): 목록이 먼저, 새 문의는 버튼으로 열고, 답변은 댓글처럼 붙는다. */
+.myhub-inquiry-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 10px; }
+.myhub-inquiry-bar .myhub-group-title { margin: 0 0 0 2px; }
+.myhub-inquiry-bar [data-inquiry-total] { margin-left: 4px; color: var(--payment-muted); }
+.myhub-inquiry-new { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--payment-gold); color: #17130b; font-size: 13px; font-weight: 900; cursor: pointer; }
+.myhub-inquiry-new[hidden] { display: none; }
+.myhub-inquiry-done { min-height: 0; margin: 0 2px 10px; color: var(--payment-gold); }
+.myhub-inquiry-done:empty { display: none; }
+.myhub-inquiry-compose { margin-bottom: 18px; scroll-margin-top: 84px; }
+.myhub-inquiry-compose .myhub-inquiry-form { margin-bottom: 0; }
+.myhub-compose-head { display: flex; align-items: center; justify-content: space-between; margin: -6px -6px -4px 0; }
+.myhub-compose-head b { font-size: 15px; }
+.myhub-inquiry-empty { display: grid; justify-items: center; gap: 8px; padding: 34px 20px 28px; border: 1px dashed var(--payment-line); border-radius: 12px; text-align: center; }
+.myhub-inquiry-empty b { font-size: 15px; }
+.myhub-inquiry-empty p { max-width: 300px; margin: 0 0 8px; color: var(--payment-muted); font-size: 12.5px; line-height: 1.6; word-break: keep-all; }
+.myhub-inquiry { border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); }
+.myhub-inquiry-summary { display: grid; gap: 6px; padding: 14px 16px; cursor: pointer; list-style: none; }
+.myhub-inquiry-summary::-webkit-details-marker { display: none; }
 .myhub-inquiry-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .myhub-inquiry-top b { font-size: 14px; }
 .myhub-inquiry-state { padding: 2px 9px; border: 1px solid var(--payment-line); border-radius: 999px; color: var(--payment-muted); font-size: 11px; font-weight: 800; white-space: nowrap; }
 .myhub-inquiry[data-state="answered"] .myhub-inquiry-state { border-color: var(--payment-gold); background: var(--payment-gold); color: #17130b; }
-.myhub-message { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 247, 223, 0.04); }
-.myhub-message.is-staff { border: 1px solid rgba(232, 199, 111, 0.35); background: rgba(232, 199, 111, 0.07); }
-.myhub-message small { color: var(--payment-muted); font-size: 11px; }
-.myhub-message.is-staff small { color: var(--payment-gold); }
-.myhub-message p { margin: 0; font-size: 13.5px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
+.myhub-inquiry-preview { display: -webkit-box; margin: 0; overflow: hidden; color: var(--payment-cream); font-size: 13.5px; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.myhub-inquiry[open] .myhub-inquiry-preview { display: none; }
+.myhub-inquiry-meta { color: var(--payment-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.myhub-inquiry-body { display: grid; gap: 12px; padding: 0 16px 16px; }
+.myhub-inquiry-question { margin: -4px 0 0; font-size: 14px; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+.myhub-thread { display: grid; gap: 10px; padding: 12px 0 0 12px; border-top: 1px solid rgba(255, 247, 223, 0.08); }
+.myhub-comment { position: relative; display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 247, 223, 0.04); }
+.myhub-comment::before { content: ""; position: absolute; top: 8px; left: -12px; width: 8px; height: 12px; border-bottom: 1px solid rgba(232, 199, 111, 0.45); border-left: 1px solid rgba(232, 199, 111, 0.45); border-bottom-left-radius: 6px; }
+.myhub-comment.is-staff { border: 1px solid rgba(232, 199, 111, 0.35); background: rgba(232, 199, 111, 0.07); }
+.myhub-comment-head { display: flex; align-items: baseline; gap: 8px; }
+.myhub-comment-head b { font-size: 12.5px; }
+.myhub-comment.is-staff .myhub-comment-head b { color: var(--payment-gold); }
+.myhub-comment-head small { color: var(--payment-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.myhub-comment p { margin: 0; font-size: 13.5px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
+.myhub-thread-wait { margin: 0; color: var(--payment-muted); font-size: 12.5px; line-height: 1.6; }
+
+/* 선택 칸 목록: 바탕을 정하지 않으면 휴대폰·Windows 가 흰 바탕에 크림색 글자로 그려 안 보인다. */
+.payment-label select option { background-color: #11110f; color: #fff7df; }
 
 /* ── 칸별 오류와 오류 코드(2026-10-08) · 코드 규정은 docs/ERROR-CODES.md ── */
 .profile-field { display: grid; gap: 7px; }
