@@ -5,7 +5,7 @@ const source=String.raw`(function(){
  const ja=locale==='ja';
  function price(raw){const n=Number(raw.replace(/,/g,''));if(!Number.isFinite(n))return raw;return ja?'約 ¥'+Math.round(n*.118).toLocaleString('ja-JP')+' JPY':'Approx. $'+(n/1340).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' USD'}
  function text(t){return t.replace(/운명상회\s*홈(?:으로)?/g,ja?'運命商会ホーム':'Fate Shop home').replace(/운명상회/g,ja?'運命商会':'Fate Shop').replace(/\bFORTUNE SHOP\b/g,'FATE SHOP').replace(/\bFortune Shop\b/g,'Fate Shop').replace(/\bsaju\b/gi,ja?'四柱推命':'Four Pillars').replace(/ 배너로 이동/g,ja?'のバナーを選択':' banner selection')}
- function priceText(t){let v=t.replace(/([\d,]+)\s*(?:원|KRW)(?![A-Za-z])/g,(_a,n)=>price(n));const note=ja?'（韓国ウォン決済）':' (charged in KRW)';if(/Approx\.\s*\$|約\s*¥/.test(v)&&!v.includes(note))v+=note;return v}
+ function priceText(t){return t.replace(/\s*(?:\(charged in KRW\)|（韓国ウォン決済）)/g,'').replace(/([\d,]+)\s*(?:원|KRW)(?![A-Za-z])/g,(_a,n)=>price(n))}
  let busy=false;
  function refresh(){if(busy)return;busy=true;
  {document.querySelectorAll('img').forEach(img=>{if(!/\/(?:umsh-brand-logo|chungi-nav-logo)\.(?:png|webp)(?:\?|$)/.test(img.getAttribute('src')||''))return;const mark=document.createElement('span');mark.textContent=ja?'運命商会':'Fate Shop';mark.className='locale-wordmark';mark.style.cssText='font:700 19px Georgia,serif;letter-spacing:.04em;color:#ae8750;white-space:nowrap';img.replaceWith(mark)});}

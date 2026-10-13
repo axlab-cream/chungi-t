@@ -36,5 +36,5 @@ export function localizedPages(localizedRoot: string) {
 }
 
 function birthZoneScript(locale: 'en' | 'ja'): string {
-  return '<script src="/' + locale + '/js/locale-runtime.js?v=20261013-price-label1" defer></script>'
+  return '<script src="/' + locale + '/js/locale-runtime.js?v=20261013-price-align1" defer></script>'
 }

@@ -3070,3 +3070,8 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - Bump injected runtime cache version in localized-pages.ts to20261013-price-label1 so reloads do not reuse old suffix logic. This is a promotional price-display correction, NOT USD/JPY checkout implementation.
 - RED5/5 before patch; complete related110 tests PASS, typecheck/public build PASS, independent code review PASS. Added actual runtime VM tests for legacy/preformatted prices, repeated observer refresh, original attrs and protected text; no real payment/provider/DB calls.
 - Live served-loader/script and actual DOM card-line validation recorded after push in recovery. Korean original, centered splash and prior long-note removal retained.
+
+### 2026-10-13 — localized price row alignment
+- Owner screenshots request price typography alignment. EN measured unwrapped244px at25px versus200px available; nowrap alone would overflow. Add only localized home price CSS:19px desktop/17px at<=520, line-height1.25, nowrap, baseline alignment, CTA flex-shrink0. KO/common CSS/media/other text/price amounts/payment fields untouched.
+- Synchronize tracked build-locale-runtime.mjs priceText with already shipped suffix stripping; proven future regeneration regression, not proof screenshots are cached. No active duplicate formatter/SW navigation cache found. Bump loader to20261013-price-align1.
+- RED4/4 then114 related tests PASS, typecheck/public build PASS. Real sharedCSS+newinlineCSS iframe fixture EN/JA x320/390/430/768/1440 (3 prices each):30/30 one line/no overlap/no overflow, baselineDelta0. Fixtures use zero-height baseline markers in b and first CTA grid item; not actual phone/authenticated E2E. Live validation after deploy required.
