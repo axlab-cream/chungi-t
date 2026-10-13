@@ -222,7 +222,7 @@
     wrap.querySelector('#sheet-kakao')?.addEventListener('click', async () => {
       try {
         const Kakao = await loadKakao();
-        Kakao.Share.sendDefault({ objectType: 'feed', content: { title: p.title, description: p.text, imageUrl: 'https://umsh.kr/play/solo-nara/share-banner-v3.jpg', imageWidth: 1200, imageHeight: 630, link: { mobileWebUrl: p.url, webUrl: p.url } }, buttons: [{ title: p.valid ? '나도 해보기' : '테스트 하러 가기', link: { mobileWebUrl: p.url, webUrl: p.url } }] });
+        Kakao.Share.sendDefault({ objectType: 'feed', content: { title: p.title, description: p.text, imageUrl: 'https://umsh.kr/play/solo-nara/share-banner-v4.jpg', imageWidth: 1200, imageHeight: 630, link: { mobileWebUrl: p.url, webUrl: p.url } }, buttons: [{ title: p.valid ? '나도 해보기' : '테스트 하러 가기', link: { mobileWebUrl: p.url, webUrl: p.url } }] });
         close();
       } catch { close(); notice('카카오톡을 열지 못했어요. 링크를 복사해 보내주세요.'); copyLink(p); }
     });
