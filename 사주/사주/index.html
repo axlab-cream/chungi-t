@@ -47,6 +47,85 @@
         background: #000;
       }
       /*
+       * 영상에는 소리가 있지만 브라우저는 소리 있는 자동재생을 막는다. 그래서 muted 로 먼저 틀고,
+       * 사용자가 화면을 한 번 터치하면 소리를 켠다. 버튼(.cmdg-entry-action, z-index 2)은 그대로
+       * 눌러야 하므로 이 레이어는 그 아래(z-index 1)에서 영상 전체를 덮는다.
+       */
+      .cmdg-sound-prompt {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 0 0 18%;
+        border: 0;
+        background: transparent;
+        color: #fff;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .cmdg-sound-prompt[hidden] { display: none; }
+      .cmdg-sound-hand {
+        display: grid;
+        place-items: center;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.28);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(2px);
+        animation: cmdg-sound-pulse 1.8s ease-out infinite;
+      }
+      .cmdg-sound-hand svg {
+        width: 38px;
+        height: 38px;
+        fill: none;
+        stroke: #fff;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.55));
+      }
+      .cmdg-sound-text {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.45;
+        text-align: center;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 0, 0, 0.6);
+      }
+      @keyframes cmdg-sound-pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.35); }
+        70%  { box-shadow: 0 0 0 22px rgba(255, 255, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+      }
+      /* 소리를 켠 뒤 다시 끌 수 있는 작은 토글 */
+      .cmdg-sound-toggle {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 1px solid rgba(242, 191, 107, 0.45);
+        border-radius: 50%;
+        background: rgba(12, 6, 5, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        cursor: pointer;
+      }
+      .cmdg-sound-toggle[hidden] { display: none; }
+      .cmdg-sound-toggle svg { width: 20px; height: 20px; fill: #fff3dc; }
+      @media (prefers-reduced-motion: reduce) {
+        .cmdg-sound-hand { animation: none; }
+      }
+      /*
        * 버튼을 영상 위에 띄운다. 흐름에서 빼야 영상이 화면 높이를 전부 쓸 수 있고,
        * 그만큼 9:16 에서 잘려 나가는 양이 줄어든다.
        */
@@ -1637,6 +1716,40 @@
           rgba(24, 13, 12, 0.9);
       }
 
+      /* 결제 화면: 카드 바깥 여백을 상하좌우 22px 로 맞춘다.
+         기본 .stage 는 위 0 / 좌우 22 / 아래 24 라서 카드가 헤더에 붙는다.
+         카드 높이는 stage 안쪽으로 제한해 위아래 여백이 줄지 않게 한다. */
+      .stage:has(> .purchase-panel) {
+        padding: 22px 22px 0;
+      }
+
+      /* 공용 stage 높이는 실제 헤더(46px)보다 큰 --topbar-height(72px)를 빼서 하단 메뉴 위에
+         26px 여유가 남는다. 결제 버튼이 거기서 떠 보이므로 이 화면만 14px 되돌려 12px 로 맞춘다. */
+      body.umsh-has-chrome .phone .stage:has(> .purchase-panel) {
+        height: calc(100% - var(--topbar-height) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px) + 14px);
+      }
+
+      /* 바깥 카드 박스를 없애고, 결제 버튼 줄은 스크롤 영역 맨 아래에 떠 있게 한다.
+         바깥 여백은 .stage 의 22px 하나로만 잡아 상하좌우가 같다. */
+      .phone[data-scene] .panel.purchase-panel {
+        max-height: 100%;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      .purchase-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 3;
+        margin: 0 -22px;
+        padding: 40px 22px max(0px, env(safe-area-inset-bottom));
+        background: linear-gradient(to top, #000 0 52%, rgba(0, 0, 0, 0.92) 68%, rgba(0, 0, 0, 0.6) 84%, transparent 100%);
+      }
+
       .chapter {
         display: inline-flex;
         margin-bottom: 10px;
@@ -1662,7 +1775,7 @@
 
       .agree-row {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 10px;
         min-height: 44px;
         margin: 0;
@@ -1679,7 +1792,7 @@
       .agree-row input {
         width: 18px;
         height: 18px;
-        margin: 2px 0 0;
+        margin: 0;
         flex: 0 0 auto;
         accent-color: var(--gold);
       }
@@ -5886,6 +5999,7 @@
 
       stage.addEventListener("input", (event) => {
         if (event.target.matches("#name, #birth, #birthtime, #partnerBirth, #partnerTime")) {
+          if (event.target.matches("#birthtime, #partnerTime")) applyTimeMask(event.target);
           clearFieldError(event.target.id);
         }
       });
@@ -6005,6 +6119,36 @@
         if (!isValidDate) return "존재하지 않는 날짜입니다. 생년월일을 다시 확인해주세요.";
         if (year < 1900 || year > new Date().getFullYear()) return "생년월일의 연도를 다시 확인해주세요.";
         return "";
+      }
+
+      function formatTimeDigits(digits) {
+        if (digits.length <= 1) return digits;
+        const hourLength = Number(digits.slice(0, 2)) <= 23 ? 2 : 1;
+        const hour = digits.slice(0, hourLength);
+        const minute = digits.slice(hourLength, hourLength + 2);
+        return minute ? `${hour}:${minute}` : hour;
+      }
+
+      function applyTimeMask(input) {
+        const previous = String(input.value || "");
+        const caret = input.selectionStart ?? previous.length;
+        const digitsBeforeCaret = previous.slice(0, caret).replace(/\D/g, "").length;
+        const next = formatTimeDigits(previous.replace(/\D/g, "").slice(0, 4));
+        if (next === previous) return;
+        input.value = next;
+        let position = 0;
+        let seen = 0;
+        for (let index = 0; index < next.length; index += 1) {
+          position = index + 1;
+          if (/\d/.test(next[index])) seen += 1;
+          if (seen >= digitsBeforeCaret) break;
+        }
+        if (digitsBeforeCaret === 0) position = 0;
+        try {
+          input.setSelectionRange(position, position);
+        } catch (error) {
+          /* setSelectionRange 미지원 입력은 무시 */
+        }
       }
 
       function normalizeTime(value) {
@@ -6899,6 +7043,8 @@
         `;
       }
 
+      let entrySoundUnlocked = false;
+
       // Previous story landing: docs/archive/cmdg-landing-before-video-20261012.js
       function renderLanding() {
         if (isLoveThisYearService()) {
@@ -6912,15 +7058,55 @@
               aria-label="천명사주 소개 영상">
               <source src="https://lcdlszuyicytaexy.public.blob.vercel-storage.com/cmdg/entry-trilogy-20261012.mp4" type="video/mp4" />
             </video>
+            <button class="cmdg-sound-prompt" type="button" aria-label="영상 소리 켜기">
+              <span class="cmdg-sound-hand" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg>
+              </span>
+              <span class="cmdg-sound-text">사운드를 들으려면<br>터치하세요</span>
+            </button>
+            <button class="cmdg-sound-toggle" type="button" aria-label="소리 끄기" hidden>
+              <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            </button>
             <div class="cmdg-entry-action">
               <button class="primary-cta" type="button" data-action="enter"><span class="cta-label">내 사주 확인하기</span></button>
             </div>
           </article>
         `;
+        const video = stage.querySelector("video");
+        const prompt = stage.querySelector(".cmdg-sound-prompt");
+        const toggle = stage.querySelector(".cmdg-sound-toggle");
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          const video = stage.querySelector("video");
           video.autoplay = false;
           video.pause();
+          prompt.hidden = true;
+          return;
+        }
+        const ICON_ON = "M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z";
+        const ICON_OFF = "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z";
+        const showToggle = () => {
+          prompt.hidden = true;
+          toggle.hidden = false;
+          toggle.setAttribute("aria-label", video.muted ? "소리 켜기" : "소리 끄기");
+          toggle.querySelector("path").setAttribute("d", video.muted ? ICON_OFF : ICON_ON);
+        };
+        // 소리 켜기: 터치(사용자 동작) 안에서 muted 를 풀고 다시 재생한다. 막히면 무음으로 되돌리고 안내를 남긴다.
+        const unmute = () => {
+          video.muted = false;
+          video.volume = 1;
+          return video.play().then(
+            () => { entrySoundUnlocked = true; showToggle(); },
+            () => { video.muted = true; },
+          );
+        };
+        prompt.addEventListener("click", unmute);
+        toggle.addEventListener("click", () => {
+          video.muted = !video.muted;
+          showToggle();
+        });
+        // 이미 한 번 켠 뒤 다시 이 화면으로 돌아오면(사용자 동작이 있었으므로) 바로 소리로 시작해 본다.
+        if (entrySoundUnlocked) {
+          video.muted = false;
+          video.play().then(showToggle, () => { video.muted = true; });
         }
       }
 
@@ -8318,7 +8504,7 @@
         const product = catalogProduct(LOVE_THIS_YEAR_SERVICE_KEY);
         const priceLabel = product ? `${Number(product.amount).toLocaleString("ko-KR")}원` : service.price;
         stage.innerHTML = `
-          <section class="panel teaser-panel">
+          <section class="panel teaser-panel purchase-panel">
             <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
             <h1>${escapeHtml(service.title)}</h1>
             <p>${escapeHtml(state.name || "고객")}님의 올해 연애운 전체 리포트입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제 모듈은 아직 연결하지 않은 데모 화면입니다."}</p>
@@ -8348,7 +8534,7 @@
               ${agreeListMarkup()}
             </div>
 
-            <div class="actions">
+            <div class="actions purchase-actions">
               <button class="ghost" type="button" data-action="prev">이전</button>
               <button class="next-cta" type="button" data-action="pay-demo">결제하기</button>
             </div>
@@ -8378,7 +8564,7 @@
         const live = isCheckoutLive() && Boolean(PLAN_PRODUCT_KEYS[selected.id]);
 
         stage.innerHTML = `
-          <section class="panel teaser-panel">
+          <section class="panel teaser-panel purchase-panel">
             <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
             <h1>전체 풀이를 열어볼까요?</h1>
             <p>${state.name || "고객"}님의 입력값으로 만든 전체 리포트 선택 화면입니다. ${live ? "결제를 마치면 전체 풀이가 바로 열립니다." : "실제 결제는 연결하지 않은 데모입니다."}</p>
@@ -8411,7 +8597,7 @@
               ${agreeListMarkup()}
             </div>
 
-            <div class="actions">
+            <div class="actions purchase-actions">
               <button class="ghost" type="button" data-action="prev">이전</button>
               <button class="next-cta" type="button" data-action="pay-demo">결제하기</button>
             </div>
