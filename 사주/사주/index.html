@@ -7133,6 +7133,29 @@
         requestAnimationFrame(() => requestAnimationFrame(onScroll));
       }
 
+      function setupFloatingCta(selector) {
+        const holder = stage.querySelector(selector);
+        if (!holder) return;
+        const spacer = document.createElement("div");
+        spacer.setAttribute("aria-hidden", "true");
+        let latched = false;
+        const onScroll = () => {
+          if (latched) return;
+          const max = stage.scrollHeight - stage.clientHeight;
+          if (max <= 0 || stage.scrollTop / max < 0.4) return;
+          latched = true;
+          spacer.style.height = `${holder.offsetHeight}px`;
+          holder.before(spacer);
+          holder.classList.add("is-floating");
+          stage.removeEventListener("scroll", onScroll);
+        };
+        stage.addEventListener("scroll", onScroll, { passive: true });
+        // go() 는 화면을 그린 뒤에야 stage.scrollTop 을 0 으로 되돌린다(그것도 rAF 안에서).
+        // 여기서 바로 판정하면 직전 화면의 스크롤값을 읽어 처음부터 떠 있게 된다.
+        // 그 초기화가 끝난 다음 프레임에 첫 판정을 한다.
+        requestAnimationFrame(() => requestAnimationFrame(onScroll));
+      }
+
       function renderImmersion() {
         stage.innerHTML = `
           <div class="line-pill">붉은 등불이 켜지고, 안쪽에서 낮은 목소리가 들립니다</div>
