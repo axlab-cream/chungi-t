@@ -238,12 +238,8 @@ export function formatReferencePrice(amountWon: number, locale: 'en' | 'ja'): st
 
 /** Only display text/attributes change. Scripts, JSON-LD, CSS and machine values stay in KRW. */
 function localizePriceDisplay(html: string, locale: 'en' | 'ja'): string {
-  let converted = false
   const display = (text: string) => {
-    const convert = (raw: string) => {
-      converted = true
-      return formatReferencePrice(Number(raw.replace(/,/g, '').replace('−', '-')), locale)
-    }
+    const convert = (raw: string) => formatReferencePrice(Number(raw.replace(/,/g, '').replace('−', '-')), locale)
     // A range with a shared suffix needs both endpoints converted, not only the second.
     let out = text.replace(/(?<![\d.,])([−-]?\d[\d,]*(?:\.\d+)?)\s*([–~～-])\s*([−-]?\d[\d,]*(?:\.\d+)?)\s*(?:원|KRW)(?![A-Za-z])/g,
       (_all, from: string, separator: string, to: string) => `${convert(from)} ${separator} ${convert(to)}`)
@@ -253,20 +249,21 @@ function localizePriceDisplay(html: string, locale: 'en' | 'ja'): string {
   }
   // A tokenizer rather than a global currency replacement avoids changing JS payloads,
   // numeric data-price values used by filters, URLs, coupon IDs and SEO Offer prices.
-  const tokens = /<aside\b[^>]*\bid=["']umsh-currency-disclosure["'][^>]*>[^]*?<\/aside\s*>|<!--[^]*?-->|<(script|style)\b[^>]*>[^]*?<\/\1\s*>|<(?:(?:"[^"]*"|'[^']*')|[^'">])*?>|[^<]+|</gi
-  let out = html.replace(tokens, (token: string) => {
-    if (/^<!--|^<(?:script|style)\b|^<aside\b[^>]*\bid=["']umsh-currency-disclosure["']/i.test(token)) return token
+  // Consume complete attribute values before looking for the real id attribute.
+  // data-id and id text inside quoted values are not our generated notice.
+  const legacyAside = /<aside\b(?:\s+[^\s"'<>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*?\s+id\s*=\s*(?:"umsh-currency-disclosure"|'umsh-currency-disclosure')(?:\s+[^\s"'<>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*\s*>[^]*?<\/aside\s*>/i
+  const legacyAsideWhole = new RegExp(`^(?:${legacyAside.source})$`, 'i')
+  const ordinaryTokens = /<!--[^]*?-->|<(script|style)\b[^>]*>[^]*?<\/\1\s*>|<(?:(?:"[^"]*"|'[^']*')|[^'">])*?>|[^<]+|</
+  const tokens = new RegExp(`${legacyAside.source}|${ordinaryTokens.source}`, 'gi')
+  const out = html.replace(tokens, (token: string) => {
+    if (/^<!--|^<(?:script|style)\b/i.test(token)) return token
+    // Internal reference guidance must not become customer-facing service copy.
+    // Remove only our previously generated aside; scripts and payment data stay intact.
+    if (legacyAsideWhole.test(token)) return ''
     if (!token.startsWith('<')) return display(token)
     // content/itemprop/amount/currency are machine data and must not be inferred from locale.
     return token.replace(/(\s(?:aria-label|aria-description|title|alt)\s*=\s*)(["'])([^]*?)\2/gi,
       (_all, name: string, quote: string, value: string) => `${name}${quote}${display(value)}${quote}`)
   })
-  if (!converted || out.includes('id="umsh-currency-disclosure"')) return out
-  const text = locale === 'en'
-    ? 'USD amounts are approximate references (1 USD = 1,340 KRW). Checkout charges Korean won (KRW), not USD. Your card issuer’s exchange rate and fees may differ. Coupons and the final KRW total are confirmed at checkout.'
-    : '円の金額は参考換算です（1 KRW = 0.118 JPY）。決済は日本円ではなく韓国ウォン（KRW）で行います。カード会社の為替レートや手数料により請求額は変わります。クーポン適用後の最終KRW金額は決済画面で確認できます。'
-  const notice = `<aside id="umsh-currency-disclosure" aria-label="${locale === 'en' ? 'Payment currency' : '決済通貨'}" style="max-width:44rem;margin:1rem auto;padding:1rem;line-height:1.6;font-size:.875rem">${text}</aside>`
-  if (/<\/main\s*>/i.test(out)) return out.replace(/<\/main\s*>/i, notice + '</main>')
-  if (/<\/body\s*>/i.test(out)) return out.replace(/<\/body\s*>/i, notice + '</body>')
-  return out + notice
+  return out
 }

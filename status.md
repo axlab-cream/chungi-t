@@ -3026,3 +3026,47 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - Goal/plan: append supplied third20s clip after existing15s+25s in single optimized faststart file. Preserve CTA/layout/reduced-motion/loop; source URLs only in canonical and mirror.
 - Media: originals re-encoded once to406x720 H264/AAC24fps;60.192s/3023944bytes vs originals9282519bytes,67% smaller. Full decode and39s/43s/58s frames verified. Blob cmdg/entry-trilogy-20261012.mp4; immutable1year cache. Rollback previous entry-sequence URL.
 - Build/tests/review/production pending.
+
+
+## 2026-10-13 — EN/JA full-reading accessibility and title correction
+- Scope: `.vercel-localized/{en,ja}/cmdg/index.html` titles, language/OG/Twitter metadata and nine accessible-label literals per locale. No Korean page, input enum, chart/time-zone calculation, account state, billing or saved-customer record changes.
+- Based on latest `origin/main` 98487ef9, preserving eight newer commits before editing. Branch `aside/i18n-birth-a11y-20261013`.
+- TDD: initial title/label checks RED in both languages; additional metadata checks RED; final six related suites 49 PASS, FAIL0, SKIP0. `prepare-vercel-public.mjs` and `tsc --noEmit` PASS.
+- Independent read-only review PASS after fixing an overbroad ARIA test regex; scanner intentionally checks existing double-quoted attributes/simple interpolation, not every possible template grammar. Customer-title escaping retained.
+- Project design/coding registry files and CreamAI reviewer scripts are missing from this checkout: NOT_RUN. Existing layout/image styling unchanged. Grok reviewer not retried after observed credit403; independent code-review session substituted.
+- Generated Search Console verification file line-ending-only rewrite excluded/restored to HEAD before shipping. Untracked historic diagnostics preserved, not staged.
+- Deployment: pending ordinary scoped main push and live/mobile checks at time of this record. No PR merge, force push, branch deletion, infrastructure, SQL, provider test or customer analysis executed.
+- Remaining: broader visible placeholder/copy audit, authenticated/profile E2E, all-image audit, stored localized report copies/DB gate, native consultation semantic approval and real foreign-currency settlement. This slice is not a complete overseas launch.
+
+### 2026-10-13 — consecutive customer input-example cleanup
+- Previous slice c85f506c deployed successfully via Vercel EpWAyhbA1da8aeJRuRJPgZpNQW1R; live EN/JA200 titles and Calendar type / 暦の種類 verified. Responsive390x844 iframe test shows synthetic New York/Tokyo birthplace selections, no analysis/save actions. Not a real-device or authenticated E2E test.
+- Continued without a new approval gate: EN3/JA4 placeholder literals only. Optional partner name, relationship examples, concern prompt localized; Japanese name example now 例：佐藤 花子. Existing user input values, escaped expressions and technical unknown-time enum remain unchanged.
+- Added two placeholder regression tests. Verification/deployment status recorded separately after execution; no provider/DB/billing calls.
+
+### 2026-10-13 — localized partner restore consistency
+- Input-example slice 715c846f deployed successfully (Vercel FqN6CpgaE4pxDvuzJFNMhXL6HhoU); live EN/JA200 and Korean placeholder0 verified.
+- Independent audit found a pre-existing restore mismatch from 46c1d397: EN lunar/female restored as Lunar calendar/Woman, then parsed as solar/male; JA lunar restored as 陰暦, then parsed as solar. Fresh selections were correct. No observed evidence of changed customer reports; current analyze route rejects love_this_year while report-section generation uses stored context.
+- Narrow fix: EN partner restore uses existing UI tokens Lunar/Solar, Female/Male; JA uses 旧暦/新暦. Three source lines only. Canonical enums, Korean original, calculation logic and saved input/report source payload remain unchanged.
+- New offline suite executes full production applyReadingPayload, actual primary/partner parsers and defaults; only service catalog/report hook/storage are synthetic. RED34/36 before patch; GREEN36/36 after. Covers both source locations, calendar/gender/time matrix, second reopening, saved precedence, absent partner, no-analysis early return, primary birth and original report/chat text preservation. Combined regression87 PASS. No real endpoints/providers/DB writes.
+- Typecheck/build PASS; independent narrow production diff review PASS. Reviewer gaps strengthened with substantive synthetic section text, explicit primary month/day/minute preservation and matching real markup button tokens; final combined87 PASS. Production deployment verified separately after push. This is not authenticated/customer-history E2E.
+
+### 2026-10-13 — owner correction: reference KRW guidance is not service copy
+- Owner provided EN/JA screenshots of the long currency/rate guidance and explicitly said it must not be reflected in the actual service. Live EN home snapshot confirmed #umsh-currency-disclosure was customer-visible, not merely internal documentation.
+- Remove automatic insertion of that long aside in visible-locale-replacements.ts; strip only the genuine previously generated aside ID. Quote-aware attribute matching preserves data-id, quoted ID examples, script/style/comment content and unrelated help. Independent P2 about broad id matching was fixed; final independent review PASS.
+- Keep reference-price converter/rates, concise existing runtime billing indications and all Inicis WON/amount/signatures/product/coupon/order data unchanged. This correction does NOT implement USD/JPY charging and must not be reported as foreign-currency checkout completion.
+- RED4/7 before fix; full related103 tests PASS after fix, including pricing/runtime/payment/partner/date protections. Typecheck/public build PASS. Korean original bytes preserved. No actual payments, API approvals, provider/DB calls. Matcher is for the generated flat notice, not a general malformed/nested HTML parser.
+- Deployment and live absence verification recorded in session recovery after push.
+
+### 2026-10-13 — owner-reported left-aligned localized splash
+- Owner screenshots and explicit clarification: splash is shifted left. Live EN computed styles confirmed #splashScreen position:static and missing centering, video intrinsic720x1280. Shared Korean splash styles were intentionally removed in e39f7a83, but EN/JA retain their localized splash markup/scripts.
+- Add identical #localized-splash-layout inline CSS only to EN/JA portal.html. Fixed full-viewport grid centers the existing video; width min430px/100%, viewport height, object-fit:contain/object-position:center prevent cropping. Restore hidden/disabled/closing and skip positioning from prior CSS, with100vh fallback before100dvh.
+- Do not reintroduce KO splash, edit shared CSS, change body/stage/phone layout, video assets, sessions/timers/scripts, product prices, currency correction or saved data.
+- RED3/4 on missing styles; combined107 tests PASS, typecheck/public build PASS, independent review PASS. Disabled-state source assertion added after review. Browser isolated production CSS/markup tests: EN/JA at390x844,768x1024,1440x900 all center error0px, full overlay and contain with native720x1280. EN hidden and JA html.splash-disabled computed display:none. These are browser CSS viewport tests, not native devices/authenticated E2E.
+- Production deployment/live desktop alignment and real transition checks recorded in recovery after push.
+
+### 2026-10-13 — owner screenshot: remove price-card KRW billing suffix
+- Owner screenshots show 約 ¥1,168/5,888 JPY（韓国ウォン決済） wrapping into multiple lines. Earlier removal addressed only the long disclosure; runtime still appended this suffix. Live JA .price-line snapshot and DOM confirmed it.
+- Change only priceText in both identical EN/JA locale-runtime.js files: stop appending billing suffix and remove the retired EN/JA suffix from preformatted product-price nodes. Preserve reference converter/rates/numbers, selector scope, report/quote/customer-quote guards, machine attrs and payment/provider records/settings.
+- Bump injected runtime cache version in localized-pages.ts to20261013-price-label1 so reloads do not reuse old suffix logic. This is a promotional price-display correction, NOT USD/JPY checkout implementation.
+- RED5/5 before patch; complete related110 tests PASS, typecheck/public build PASS, independent code review PASS. Added actual runtime VM tests for legacy/preformatted prices, repeated observer refresh, original attrs and protected text; no real payment/provider/DB calls.
+- Live served-loader/script and actual DOM card-line validation recorded after push in recovery. Korean original, centered splash and prior long-note removal retained.
