@@ -3,7 +3,7 @@ import type { ReportOwner } from '../report/report-store.js'
 import { listPaymentProducts } from '../payment/catalog.js'
 import { getPaymentOrder } from '../payment/order-store.js'
 import { CouponError } from './contracts.js'
-import { listWallet, claimCoupon, bindFreeCoupon, listCampaigns, createCampaign, disableCampaign } from './store.js'
+import { listWallet, claimCoupon, bindFreeCoupon, listCampaigns, createCampaign, disableCampaign, grantCoupon } from './store.js'
 
 type Dependencies = {
   authenticate(req: Request, res: Response): Promise<ReportOwner | null | undefined>
@@ -35,6 +35,11 @@ export function couponFailure(res: Response, error: unknown): void {
     COUPON_ORDER_CLOSED: '이미 처리된 쿠폰 주문입니다. 결제 내역을 확인하거나 고객센터에 문의해 주세요.',
     COUPON_ORDER_INVALID: '쿠폰이 적용된 주문 금액을 확인하지 못했습니다. 다시 시도해 주세요.',
     COUPON_ORDER_CONFLICT: '이 쿠폰은 다른 풀이의 주문에 연결되어 있습니다. 원래 주문에서 이어서 진행해 주세요.',
+    COUPON_ALREADY_OWNED: '이 회원은 이미 같은 쿠폰을 가지고 있습니다.',
+    COUPON_MEMBER_NOT_FOUND: '해당 회원을 찾지 못했습니다.',
+    COUPON_MEMBER_LOOKUP_FAILED: '회원 정보를 확인하지 못했습니다. 쿠폰은 지급하지 않았습니다. 잠시 후 다시 시도해 주세요.',
+    COUPON_REQUEST_CONFLICT: '같은 요청이 다른 내용으로 이미 처리되었습니다. 창을 닫고 다시 시도해 주세요.',
+    COUPON_BUSY: '쿠폰 요청이 몰렸습니다. 잠시 후 다시 시도해 주세요.',
   }
   res.status(error instanceof CouponError ? error.status : 503).json({ code, error: messages[code] || '쿠폰을 처리하지 못했습니다. 사용 조건과 저장된 상태를 확인해 주세요.' })
 }
@@ -78,7 +83,8 @@ export function couponRouter(deps: Dependencies): Router {
 }
 /** 쿠폰 발급·중단을 공통 감사 기록(로그 화면)에 남긴다(2026-10 7단계). 기록 실패가 발급을 막지는 않는다. */
 export type CouponAudit = (event: { actorEmail: string; action: string; target: { type: string; id: string } }) => Promise<void>
-export function adminCouponRouter(deps: Pick<Dependencies,'staff'> & { audit?: CouponAudit }): Router {
+const MEMBER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+export function adminCouponRouter(deps: Pick<Dependencies,'staff'> & { audit?: CouponAudit; memberExists?: (memberId: string) => Promise<boolean> }): Router {
   const router = Router()
   router.use((_req,res,next) => { res.setHeader('Cache-Control','private, no-store'); next() })
   router.get('/', async (req,res) => {
@@ -91,6 +97,21 @@ export function adminCouponRouter(deps: Pick<Dependencies,'staff'> & { audit?: C
     try {
       const item = await createCampaign(req.body,actor.email,text(req.header('Idempotency-Key')))
       await deps.audit?.({ actorEmail: actor.email, action: 'coupon.campaign.create', target: { type: 'coupon_campaign', id: item.id } }).catch(() => undefined)
+      res.status(201).json({item})
+    } catch (error) { couponFailure(res,error) }
+  })
+  // 2026-10-12: 회원 상세에서 쿠폰을 한 명에게 바로 지급한다. 발급과 같은 권한을 요구한다.
+  router.post('/:id/grant', async (req,res) => {
+    const actor = await deps.staff(req,res,'content:publish'); if (!actor) return
+    try {
+      const memberId = text(req.body?.memberId).toLowerCase()
+      if (!MEMBER_ID.test(memberId)) throw new CouponError('COUPON_INPUT_INVALID',400)
+      if (deps.memberExists) {
+        const exists = await deps.memberExists(memberId).catch(() => { throw new CouponError('COUPON_MEMBER_LOOKUP_FAILED',503) })
+        if (!exists) throw new CouponError('COUPON_MEMBER_NOT_FOUND',404)
+      }
+      const item = await grantCoupon(text(req.params.id),memberId,actor.email,text(req.header('Idempotency-Key')))
+      await deps.audit?.({ actorEmail: actor.email, action: 'coupon.wallet.grant', target: { type: 'member_profile', id: memberId } }).catch(() => undefined)
       res.status(201).json({item})
     } catch (error) { couponFailure(res,error) }
   })
