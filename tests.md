@@ -1355,3 +1355,12 @@ PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport width
 REST auth_tokens schema regression verifies bidiGenerateContentSetup/generationConfig, absent SDK liveConnectConstraints. 86/86 scoped tests pass after correction. Raw provider error messages and credentials never logged.
 
 GA-FUNNEL-07 (2026-10-07): npx tsx --test tests/unit/analytics-purchase-funnel.test.ts — 10/10 PASS(단계 매핑, 식별자 미전송, 체크아웃 금액, 해시 transaction_id·중복 차단, 미결제 미집계, 로컬 비활성). npm test 1,920/1,920 PASS, npm run typecheck PASS. 운영 GA4 수신 NOT_RUN.
+
+## LOCALIZED-UI-ALIGN-20261013
+- Source2c3f8b55 parent963dcdc5;130 focused unit/runtime/generator/security tests PASS(fail0), static preparation EXIT0,typecheck EXIT0. Independent source review PASS. No DB/provider/model/payment calls.
+- Baseline552cases/55geometry warnings. Integrated184 initial documents x5widths=920cases: geometry0,auth/offline chat10conditions blocked. Initial CMDG image warnings were missing cmdg static prefix in QA harness;24 canonical production image URLs200. Harness corrected; final image/font-loaded matrix and live verification follow below.
+- No KO/shared code/payment/schema/enum/customer-original/media changes; no code/HTML/CSS fallback around paused gate.
+
+### Final integrated initial-view audit
+- Source2c3f8b55 on963dcdc5;920conditions(184initial documents x320/390/430/768/1440).910conditions inspected,10chat auth/offline redirects blocked. Geometry warnings0, broken initial-view images0, broken stylesheets0 after correcting QA static cmdg prefix. QA harness uses local prepared static files;24 canonical published CMDG image GETs independently200. Temporary image cache was not connected and no repository/media files were changed.
+- Functional NOT_PASS:11 step05aliases/locale target absent sibling chat.html; localized newyear app.js,signal-video.js,couple06-detail-data.js,job-choice-data.js remain missing. Shared JS/HTML/JSON fallback is deliberately disallowed to preserve paused gates and backend/report semantics. Some localized manifests missing. Saved/API-backed paid report,customer finance originals,native phone,authentication,742image-pixel language audit and actual USD/JPY billing are not verified by this initial-view audit. No full-localization launch claim.
