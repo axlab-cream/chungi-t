@@ -82,6 +82,14 @@ test('payment page and cmdg report their stages with the product key', () => {
   assert.ok(cmdg.includes('const FUNNEL_MARKS = { loading: "input_done", purchase: "buy_click" };'))
 })
 
+test('cmdg counts input from any input scene and the price card as its locked stage', () => {
+  // 2026-10-13 운영 숫자: 입력 시작 1 < 입력 완료 4, 무료 결과 4인데 잠긴 목차 0. 프로필 손님은 생년월일 장면을 건너뛰고, 결과에는 잠긴 목차 대신 복채 안내가 있다.
+  const cmdg = read('사주/사주/index.html')
+  assert.ok(cmdg.includes('const FUNNEL_SCENES = { name: "02-input", birth: "02-input", concern: "02-input", result: "04-report" };'))
+  assert.ok(read('사주/js/umsh-track.js').includes('.cmdg-master-teaser .package-card'))
+  assert.ok(read('사주/js/cmdg-master-teaser.js').includes('class=\\"package-card\\"'), 'teaser still renders the price card the tracker watches')
+})
+
 test('service performance highlights the weakest stage and greys out small samples', () => {
   const admin = read('admin-ui/index.html')
   assert.ok(admin.includes("var SMALL_SAMPLE = 10;"))
