@@ -28,9 +28,24 @@ test('service pages no longer put their own PDF button in the top bar', () => {
   }
 })
 
-test('lucky service places its PDF button at the end of the page, not in the header', () => {
-  const lucky = read('사주/js/lucky-service.js')
-  assert.doesNotMatch(lucky, /\$\('#step-[^']*header'\)/, '행운 PDF 버튼이 다시 상단바에 붙는다')
-  assert.match(lucky, /dock\.className = 'umsh-pdf-dock'/)
-  assert.match(lucky, /page\.insertBefore\(dock, before\)/)
+/**
+ * 2026-10-12: 정책이 바뀌었다. PDF 저장은 보관함(`/vault`) 카드 한 곳에서만 받는다.
+ * 결과 화면(상세 06 · 고유 주소 `/r/:id` · 상담 chat)에는 더 이상 두지 않는다.
+ */
+test('result screens no longer offer their own PDF button', () => {
+  const chatHtml = read('사주/chat.html')
+  assert.doesNotMatch(chatHtml, /id="btn-pdf"/, '상담 화면에 PDF 버튼이 남아 있다')
+  assert.doesNotMatch(chatHtml, /umsh-pdf-dock/, '상담 화면에 PDF 도크가 남아 있다')
+
+  const chatJs = read('사주/js/chat.js')
+  assert.doesNotMatch(chatJs, /data-report-pdf>PDF/, '리포트 본문에 PDF 버튼이 남아 있다')
+
+  const access = read('사주/js/umsh-report-access.js')
+  assert.doesNotMatch(access, /data-umsh-pdf>PDF/, '공용 리더 도구에 PDF 버튼이 남아 있다')
+})
+
+test('the vault keeps the only PDF entry point', () => {
+  const vault = read('사주/vault.html')
+  assert.match(vault, /class="vault-pdf/, '보관함 카드에서 PDF 버튼이 사라졌다')
+  assert.match(vault, /downloadPdf\(button/, '보관함 PDF 내려받기 동작이 사라졌다')
 })

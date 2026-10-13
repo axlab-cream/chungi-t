@@ -1,3 +1,4 @@
+import { parseBirthLocation, birthLocationKey, requestBirthsForIdentity } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
@@ -111,7 +112,7 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput | undefine
   if (birthTimeKnown && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) {
     throw new Error('상대 태어난 시간은 00:00부터 23:59 사이로 입력해 주세요.')
   }
-  return { year, month, day, hour: birthTimeKnown ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender, calendar, isLeapMonth: Boolean(source.isLeapMonth) }
+  return { year, month, day, hour: birthTimeKnown ? hour : 12, minute: Number.isFinite(minute) ? minute : 0, gender, calendar, isLeapMonth: Boolean(source.isLeapMonth), ...parseBirthLocation(source) }
 }
 
 export function parseLoveAgainRequest(body: Record<string, unknown>): LoveAgainRequest {
@@ -126,7 +127,7 @@ export function parseLoveAgainRequest(body: Record<string, unknown>): LoveAgainR
   return {
     partnerName: trimmed(body.partnerName, 20),
     partnerBirth: parsePartnerBirth(body),
-    partnerBirthTimeKnown: body.partnerBirthTimeKnown === true,
+    partnerBirthTimeKnown: body.partnerBirthTimeKnown === true || asObject(body.partnerBirth).birthTimeKnown === true,
     relationshipStage,
     breakupReason,
     currentSignal,
@@ -168,7 +169,7 @@ export function buildLoveAgainContext(name: string | undefined, input: LoveAgain
 }
 
 export function createLoveAgainReportId(ownerId: string | undefined, birth: BirthInput, input: LoveAgainRequest): string {
-  const fingerprint = JSON.stringify({ ownerId: ownerId ?? '', birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar }, input, serviceKey: LOVE_AGAIN_SERVICE_KEY })
+  const fingerprint = JSON.stringify({ ownerId: ownerId ?? '', birth: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, ...(birth.minute ? { minute: birth.minute } : {}), gender: birth.gender, calendar: birth.calendar, ...birthLocationKey(birth) }, input: requestBirthsForIdentity(input), serviceKey: LOVE_AGAIN_SERVICE_KEY })
   return createHash('sha256').update(fingerprint).digest('hex').slice(0, 28)
 }
 

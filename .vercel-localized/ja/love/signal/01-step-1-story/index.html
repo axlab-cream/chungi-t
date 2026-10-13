@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>恋人は浮気する？｜運命商会</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="運命商会" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="運命商会 - 運命を売ります。" />
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta
+      name="description"
+      content="連絡と約束が変わった理由、繰り返す距離感、今の関係を守る会話を、二人の命式と現状から確認する。"
+    />
+    <meta name="application-name" content="運命商会" />
+    <meta name="theme-color" content="#080303" />
+    <meta property="og:title" content="恋人は浮気する？｜運命商会" />
+    <meta
+      property="og:description"
+      content="大丈夫と思いたいのに変化が気になるなら、推測より、二人の間で実際に繰り返した場面から確かめる。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080303;
+        --surface: rgba(17, 7, 6, 0.88);
+        --surface-strong: rgba(34, 10, 9, 0.92);
+        --line: rgba(235, 189, 101, 0.24);
+        --line-strong: rgba(235, 189, 101, 0.42);
+        --gold: #e9bf6a;
+        --gold-soft: #ffe2a3;
+        --red: #b31e24;
+        --red-deep: #4b0709;
+        --teal: #7fc7c6;
+        --text: #fff6e7;
+        --muted: rgba(255, 246, 231, 0.72);
+        --dim: rgba(255, 246, 231, 0.52);
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+        --font-ui: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #000;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(148, 19, 27, 0.18), transparent 30rem),
+          #000;
+        color: var(--text);
+        font-family: var(--font-ui);
+      }
+
+      body,
+      button {
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        width: min(100%, 440px);
+        min-height: 68px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(235, 189, 101, 0.14);
+        background: rgba(8, 3, 3, 0.86);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        text-decoration: none;
+      }
+
+      .brand strong {
+        color: var(--gold-soft);
+        font-family: var(--font-title);
+        font-size: 19px;
+        line-height: 1;
+      }
+
+      .brand span {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .top-pill {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        border: 1px solid rgba(235, 189, 101, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 100svh;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        padding: 92px 18px max(26px, env(safe-area-inset-bottom));
+      }
+
+      .hero :is(img, video),
+      .scene-media :is(img, video) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .hero :is(img, video) {
+        object-position: center top;
+      }
+
+      .scene-media :is(img, video) {
+        object-position: center 12%;
+      }
+
+      .scene-media.short :is(img, video) {
+        object-position: center top;
+      }
+
+      .hero::after,
+      .scene-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.16) 42%, rgba(0, 0, 0, 0.9) 100%),
+          linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent 20% 80%, rgba(0, 0, 0, 0.32));
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 16px;
+        width: 100%;
+      }
+
+      .eyebrow,
+      .chapter {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 9.8ch;
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: clamp(38px, 13vw, 58px);
+        line-height: 1.08;
+      }
+
+      h2 {
+        margin-bottom: 12px;
+        font-family: var(--font-title);
+        font-size: clamp(28px, 8vw, 38px);
+        line-height: 1.18;
+      }
+
+      h3 {
+        margin-bottom: 6px;
+        font-size: 17px;
+        line-height: 1.32;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+        word-break: keep-all;
+      }
+
+      .lead {
+        max-width: 31ch;
+        margin-bottom: 0;
+        color: rgba(255, 246, 231, 0.84);
+        font-size: 16px;
+        font-weight: 680;
+      }
+
+      .red {
+        color: #ff7676;
+      }
+
+      .gold {
+        color: var(--gold-soft);
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .primary-cta,
+      .secondary-link {
+        min-height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-weight: 950;
+        text-decoration: none;
+      }
+
+      .primary-cta {
+        flex: 1 1 190px;
+        padding: 13px 18px;
+        background: linear-gradient(135deg, #c6222b, #7b0e14);
+        color: #fff9ef;
+        box-shadow: 0 16px 34px rgba(151, 12, 23, 0.38);
+      }
+
+      .secondary-link {
+        flex: 0 0 auto;
+        padding: 13px 14px;
+        border: 1px solid rgba(235, 189, 101, 0.38);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--gold-soft);
+      }
+
+      .primary-cta:hover,
+      .secondary-link:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary-cta:focus-visible,
+      .secondary-link:focus-visible,
+      .preview-card:focus-visible {
+        outline: 2px solid var(--gold-soft);
+        outline-offset: 3px;
+      }
+
+      .quick-signals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .quick-signals li {
+        min-height: 32px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 10px;
+        border: 1px solid rgba(235, 189, 101, 0.22);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.26);
+        color: rgba(255, 226, 163, 0.9);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .scene {
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+        background:
+          radial-gradient(circle at 80% 0%, rgba(127, 199, 198, 0.08), transparent 18rem),
+          #080303;
+      }
+
+      .scene-media {
+        position: relative;
+        min-height: 510px;
+        overflow: hidden;
+      }
+
+      .scene-media.short {
+        min-height: 430px;
+      }
+
+      .scene-copy {
+        padding: 28px 20px 32px;
+      }
+
+      .scene-copy p:last-child {
+        margin-bottom: 0;
+      }
+
+      .signal-list,
+      .basis-list,
+      .conclusion-list {
+        display: grid;
+        gap: 10px;
+        padding: 0;
+        margin: 18px 0 0;
+        list-style: none;
+      }
+
+      .signal-list li,
+      .basis-list li,
+      .conclusion-list li {
+        border: 1px solid rgba(235, 189, 101, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 14px;
+        color: rgba(255, 246, 231, 0.78);
+        font-size: 14px;
+        font-weight: 750;
+        line-height: 1.5;
+      }
+
+      .basis-list li {
+        display: grid;
+        gap: 4px;
+      }
+
+      .basis-list strong {
+        color: var(--gold-soft);
+        font-size: 15px;
+      }
+
+      .preview-section {
+        padding: 30px 20px 34px;
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+        background:
+          linear-gradient(180deg, rgba(57, 8, 10, 0.42), rgba(8, 3, 3, 0.96)),
+          #110706;
+      }
+
+      .preview-head {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .preview-head p {
+        margin-bottom: 0;
+      }
+
+      .preview-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .preview-card {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 12px;
+        width: 100%;
+        padding: 14px;
+        border: 1px solid rgba(235, 189, 101, 0.24);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+        color: inherit;
+        text-align: left;
+        text-decoration: none;
+      }
+
+      .preview-card:hover {
+        border-color: var(--line-strong);
+        background: rgba(179, 30, 36, 0.14);
+      }
+
+      .preview-icon {
+        display: grid;
+        place-items: center;
+        align-self: start;
+        width: 42px;
+        height: 42px;
+        margin-top: 0;
+        border: 1px solid rgba(235, 189, 101, 0.28);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.22);
+        color: var(--gold-soft);
+        font-size: 18px;
+        font-weight: 950;
+      }
+
+      .preview-card strong {
+        display: block;
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.34;
+      }
+
+      .preview-card > span:not(.preview-icon) {
+        min-width: 0;
+      }
+
+      .preview-card > span:not(.preview-icon) > span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.42;
+      }
+
+      .cta-section {
+        position: relative;
+        min-height: 720px;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        padding: 32px 20px max(28px, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+      }
+
+      .cta-section :is(img, video) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+
+      .cta-section::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.28) 48%, rgba(0, 0, 0, 0.94) 100%),
+          linear-gradient(to right, rgba(0, 0, 0, 0.32), transparent 20% 80%, rgba(0, 0, 0, 0.32));
+      }
+
+      .cta-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 16px;
+        width: 100%;
+      }
+
+      .notice {
+        margin: 14px 0 0;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .footer {
+        padding: 24px 20px 84px;
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.65;
+        background: #050202;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 24px 0;
+        }
+
+        .app {
+          min-height: calc(100vh - 48px);
+          border: 1px solid rgba(235, 189, 101, 0.16);
+        }
+
+        .topbar {
+          top: 24px;
+          border-left: 1px solid rgba(235, 189, 101, 0.16);
+          border-right: 1px solid rgba(235, 189, 101, 0.16);
+        }
+
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky,
+      body.umsh-has-chrome .submit-dock { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .signal-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="app" data-umsh-chrome data-service="恋人は浮気する？" data-price="19,900 KRW" data-active="home" id="step-1-story">
+      <header class="appbar topbar" aria-label="サービス上部">
+        <a class="brand" href="#step-1-story" aria-label="運命商会の最初へ">
+          <strong>運命商会</strong>
+          <span>二人の相性</span>
+        </a>
+      </header>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <video
+          class="signal-video"
+          poster="../assets/signal/videos/01-scene-01-hero-poster.webp"
+          data-video-src="../assets/signal/videos/01-scene-01-hero.mp4"
+          data-video-priority="high"
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-label="赤い服の相談役が、スマートフォンと四柱推命の図を一緒に見る場面"
+        ></video>
+        <div class="hero-copy">
+          <span class="eyebrow">大丈夫と思いたいのに、引っかかるとき</span>
+          <h1 id="hero-title">変わったのは愛情か、<br /><span class="red">二人の間かも？</span></h1>
+          <p class="lead">
+            返事が遅い一日より、説明なく変わった日々の方が心に残る。二人の命式と今経験している
+            場面を並べ、不安がどこから始まったか見よう。
+          </p>
+          <div class="cta-row">
+            <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>二人の関係の最初のサインを見る</a>
+            <a class="secondary-link" href="#preview">どこまで見るかを確認</a>
+          </div>
+          <ul class="quick-signals" aria-label="先に確認する関係の場面">
+            <li>変わった連絡</li>
+            <li>曖昧な約束</li>
+            <li>もう一度聞きたいこと</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" aria-labelledby="concern-title">
+        <div class="scene-media">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/02-scene-02-concern-poster.webp"
+            data-video-src="../assets/signal/videos/02-scene-02-concern.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="雨の夜の窓辺でスマートフォンの通知を確認する赤い服の相談者"
+          ></video>
+        </div>
+        <div class="scene-copy">
+          <span class="chapter">不安は小さな変化から始まります</span>
+          <h2 id="concern-title">返信が遅いからではなく、<br /><span class="gold">説明がなくなったから</span> 不安ということだ</h2>
+          <p>
+            前は先に教えてくれた予定を後で知り、約束が変わった理由は短くなり、聞く自分が敏感すぎる人のように感じることがあります。心を揺らすのは一度の遅刻より、変わった説明の仕方。
+          </p>
+          <ul class="signal-list">
+            <li>連絡の回数より先に、変わった時間帯と説明の隙間を見る。</li>
+            <li>相手が離れた場面と、自分が不安で確認を増やした場面を分ける。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" aria-labelledby="pattern-title">
+        <div class="scene-media">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/04-scene-03-pattern-poster.webp"
+            data-video-src="../assets/signal/videos/04-scene-03-pattern.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="ティーカップ、指輪、携帯電話を置き、繰り返す関係のパターンを見る場面"
+          ></video>
+        </div>
+        <div class="scene-copy">
+          <span class="chapter">一度の場面より、繰り返される順序</span>
+          <h2 id="pattern-title">疑いが大きくなるのに<br /><span class="red">いつも同じ順番</span>がある</h2>
+          <p>
+            連絡が減り、理由を聞くと争い、数日後に何もなかったように済ませることが繰り返すなら、返信一回の問題ではない。不快さを扱う方法が同じ所で止まり続ける。
+          </p>
+          <ul class="signal-list">
+            <li>最初に変わった場面から見よう。質問したときの反応と、再び近づいたきっかけを順番に並べてみる。</li>
+            <li>愛情が残るサインと、もう見過ごせない境界は分けて見よう。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" aria-labelledby="basis-title">
+        <div class="scene-media short">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/03-scene-04-evidence-poster.webp"
+            data-video-src="../assets/signal/videos/03-scene-04-evidence.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="二枚の命式と五行の流れを見る赤い服の相談者"
+          ></video>
+        </div>
+        <div class="scene-copy">
+          <span class="chapter">二人の命式から読む違い</span>
+          <h2 id="basis-title">愛し方が違えば、<br />同じ沈黙でも <span class="gold">まったく違う形で</span> そう感じることもある</h2>
+          <p>
+            一人はすぐ聞いて解くと安心し、もう一人は一人で整理する時間が必要かもしれない。
+            二人の出生情報で、反応の速さと対立の後に戻る方法を、生活の言葉で解説する。
+          </p>
+          <ul class="basis-list">
+            <li>
+              <strong>愛情を確認する速度</strong>
+              <span>言葉ですぐ確認すると安心する？ 行動を見てから心を開く？ その違いを見よう。</span>
+            </li>
+            <li>
+              <strong>喧嘩の後に戻ってくる方法</strong>
+              <span>先に手を伸ばす人と、時間を置く人。その間を解いてみる。</span>
+            </li>
+            <li>
+              <strong>関係の外で揺れる瞬間</strong>
+              <span>仕事・集まり・SNSに関心が分かれるとき、二人がどう振る舞うかを見よう。</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" id="preview" aria-labelledby="preview-title">
+        <div class="scene-media short">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/07-scene-05-preview-poster.webp"
+            data-video-src="../assets/signal/videos/07-scene-05-preview.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="五枚の象徴カードで関係レポートの項目を広げる場面"
+          ></video>
+        </div>
+        <div class="preview-section">
+          <div class="preview-head">
+            <span class="chapter">無料の解釈のあとに続く話</span>
+            <h2 id="preview-title">浮気の○×より、知りたいのは<br /><span class="gold">この関係を信じてよい理由</span>だから</h2>
+            <p>
+              漠然とした疑いを膨らませないよう、二人の四柱推命と自分で書いた変化をつなげ、安心できる場面と見過ごせない場面を順に見ていこう。
+            </p>
+          </div>
+          <div
+            class="preview-grid"
+            aria-label="提供する主な鑑定項目"
+            data-report-topic="関係の外の行動と合意した境界"
+            data-next-topic="新しい接点と関係への意向"
+          >
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">1</span>
+              <span>
+                <strong>最初に変わったもの</strong>
+                <span>連絡・約束・話し方のうち、実際の変化が始まった場面</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">2</span>
+              <span>
+                <strong>まだ愛情が残る行動</strong>
+                <span>言葉より日程、責任、関係を戻す試みに表れる意向</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">3</span>
+              <span>
+                <strong>関心が関係の外へ向くとき</strong>
+                <span>仕事、集まり、SNS、過去の縁が二人の間に入る形</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">4</span>
+              <span>
+                <strong>今回は見過ごせない境界</strong>
+                <span>繰り返す回避や嘘、二人で合意した約束が破られる瞬間</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">5</span>
+              <span>
+                <strong>相手の本当の意向を聞く質問</strong>
+                <span>追及で終わらない質問の順序と、対話を始めるとき</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-section" id="cta" aria-labelledby="cta-title">
+        <video
+          class="signal-video"
+          poster="../assets/signal/videos/05-scene-06-cta-poster.webp"
+          data-video-src="../assets/signal/videos/05-scene-06-cta.mp4"
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-label="赤い服の相談者が封筒と空の命式を渡す、最後の場面"
+        ></video>
+        <div class="cta-copy">
+          <span class="chapter">無料でまず確認</span>
+          <h2 id="cta-title">心配だけを繰り返す前に、<br /><span class="gold">私たち二人の最初の二つの場面</span>から見よう</h2>
+          <p>
+            二人の生まれた情報と、今実際に変わったことを書くと、安心してよい部分と先に話すべき
+            部分を無料解釈2つで詳しく見せます。
+          </p>
+          <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>二人の関係の無料鑑定を開く</a>
+          <p class="notice">
+            伝統的な四柱推命に基づく参考の解説です。実際の事実確認、会話、相互の同意が、関係を判断する基準です。
+          </p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        このサービスは、二人の関係を一場面で決めません。自分で書いた変化と伝統的な四柱推命の解釈を並べ、今確認する会話と守る境界を案内します。
+      </footer>
+    </main>
+
+    <script src="../signal-video.js"></script>
+    <script>
+      const serviceState = {
+        service_key: "couple_signal",
+        service_slug: "couple-signal",
+        service_title: "恋人は浮気する？",
+        category: "カップル相性",
+        subcategory: "恋人は浮気する？",
+        price_krw: 19900,
+        analysis_basis: ["四柱推命の相性", "五行", "日支"],
+        analysis_period: "今の流れと近い時期",
+        target_question: "関係で確認された変化と、互いに合意した境界線を見たい。",
+        report_version: "couple-signal-v1",
+        copy_version: "intro-red-v2"
+      };
+
+      const nextRoute = "../02-step-2-saju-input/index.html";
+      const nextHash = "step-2-saju-input";
+
+      function goNext() {
+        const params = new URLSearchParams(window.location.search);
+        params.set("service_key", serviceState.service_key);
+        params.set("service_slug", serviceState.service_slug);
+        params.set("service_title", serviceState.service_title);
+        params.set("category", serviceState.category);
+        params.set("report_version", serviceState.report_version);
+        params.set("entry", "step-1-story");
+        sessionStorage.setItem(
+          "umsh:service:couple_signal",
+          JSON.stringify({
+            service_key: serviceState.service_key,
+            service_slug: serviceState.service_slug,
+            category: serviceState.category,
+            report_version: serviceState.report_version,
+            entry: "step-1-story"
+          })
+        );
+        window.location.href = `${nextRoute}?${params.toString()}#${nextHash}`;
+      }
+
+      document.querySelectorAll("[data-next]").forEach((button) => {
+        button.addEventListener("click", goNext);
+      });
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/signal-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

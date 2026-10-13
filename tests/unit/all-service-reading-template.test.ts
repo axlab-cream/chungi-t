@@ -314,7 +314,8 @@ test('올해 연애운 상세은 공통 GNB·하단 내비게이션을 유지하
   assert.match(detail, /#step-6_1-report \[data-umsh-legacy-reading-ui\] \{ display: none !important; \}/)
   assert.match(reader, /function ensureInPlaceReaderActions\(host, payload\)/)
   assert.match(reader, /링크 공유하기/)
-  assert.match(reader, /data-umsh-pdf>PDF 저장/)
+  // 2026-10-12: PDF 저장은 보관함 한 곳에서만 받는다. 리더 도구에는 링크 공유만 남긴다.
+  assert.doesNotMatch(reader, /data-umsh-pdf>PDF 저장/)
   assert.match(reader, /if \(!ensureInPlaceReaderActions\(host, payload\)\) ensurePdfDock\(host\)/)
   assert.match(css, /\.umsh-reader-actions\s*\{/)
   assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\)/)

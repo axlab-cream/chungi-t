@@ -41,7 +41,9 @@ test('결제 화면은 모바일 키트와 같은 430·52px 터치를 쓴다', (
 test('공용 상단바가 홈과 같은 크기를 쓴다(PC·520px·360px)', () => {
   const shell = readFileSync(join(CSS, 'service-shell.css'), 'utf8')
   const portal = readFileSync(join(CSS, 'portal.css'), 'utf8')
-  for (const value of ['padding: 14px 20px 9px', 'padding: 7px 14px 6px', 'width: 106px', 'width: 90px', 'width: 80px']) {
+  // 2026-10-12: 위 14 / 아래 9 는 로고가 가운데서 어긋나 보였다. 위아래를 12 로 맞췄다.
+  // 값 자체보다 '홈과 공용 상단바가 같은 값을 쓴다'가 이 검사의 뜻이다.
+  for (const value of ['padding: 12px 20px', 'padding: 7px 14px 6px', 'width: 106px', 'width: 90px', 'width: 80px']) {
     assert.ok(portal.includes(value), `홈에 ${value} 없음`)
     assert.ok(shell.includes(value), `공용 상단바에 ${value} 없음`)
   }

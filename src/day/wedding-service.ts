@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto'
+import { InputError } from '../server/input-error.js'
+import { parseBirthLocation, birthForIdentity, requestBirthsForIdentity } from '../saju/birth-location.js'
 /**
  * 우리, 언제 결혼하면 좋을까? — 결혼 택일.
  *
@@ -188,8 +190,18 @@ export function parseWeddingRequest(body: Record<string, unknown>): WeddingReque
     }
   }
 
-  const partnerDate = parseIsoDate(body.partnerBirth)
-  const partnerTime = parseTime(body.partnerTime)
+  const partnerSource = body.partnerBirth && typeof body.partnerBirth === 'object' && !Array.isArray(body.partnerBirth)
+    ? body.partnerBirth as Record<string, unknown> : undefined
+  const partnerDate = partnerSource
+    ? parseIsoDate(`${partnerSource.year}-${String(partnerSource.month).padStart(2, '0')}-${String(partnerSource.day).padStart(2, '0')}`)
+    : parseIsoDate(body.partnerBirth)
+  if (partnerSource && !partnerDate) throw new InputError('INVALID_PARTNER_BIRTH_DATE')
+  if (partnerSource?.gender !== undefined && partnerSource.gender !== 'male' && partnerSource.gender !== 'female') throw new InputError('INVALID_PARTNER_GENDER')
+  if (partnerSource?.calendar !== undefined && partnerSource.calendar !== 'solar' && partnerSource.calendar !== 'lunar') throw new InputError('INVALID_PARTNER_CALENDAR')
+  const partnerTime = partnerSource?.hour !== undefined && partnerSource.birthTimeKnown !== false
+    ? parseTime(`${partnerSource.hour}:${String(partnerSource.minute ?? 0).padStart(2, '0')}`)
+    : parseTime(body.partnerTime)
+  if (partnerSource?.hour !== undefined && partnerSource.birthTimeKnown !== false && !partnerTime.known) throw new InputError('INVALID_PARTNER_BIRTH_TIME')
   const partnerBirth: BirthInput | undefined = partnerDate
     ? {
         year: partnerDate.year,
@@ -197,9 +209,10 @@ export function parseWeddingRequest(body: Record<string, unknown>): WeddingReque
         day: partnerDate.day,
         hour: partnerTime.hour,
         minute: partnerTime.minute,
-        gender: 'female',
-        calendar: 'solar',
-        isLeapMonth: false,
+        gender: partnerSource?.gender === 'male' ? 'male' : 'female',
+        calendar: partnerSource?.calendar === 'lunar' ? 'lunar' : 'solar',
+        isLeapMonth: partnerSource ? Boolean(partnerSource.isLeapMonth) : false,
+        ...parseBirthLocation(partnerSource ?? { birthTimeZone: body.partnerBirthTimeZone, birthTimeDisambiguation: body.partnerBirthTimeDisambiguation }),
       }
     : undefined
 
@@ -210,7 +223,7 @@ export function parseWeddingRequest(body: Record<string, unknown>): WeddingReque
 
   return {
     candidateDates: dates,
-    ...(partnerBirth ? { partnerBirth, partnerBirthTimeKnown: parseTime(body.partnerTime).known } : {}),
+    ...(partnerBirth ? { partnerBirth, partnerBirthTimeKnown: partnerTime.known } : {}),
     ...(FORMATS.includes(rawFormat as WeddingFormat) ? { format: rawFormat as WeddingFormat } : {}),
     ...(FAMILY_LIMITS.includes(rawLimit as FamilyLimit) ? { familyLimit: rawLimit as FamilyLimit } : {}),
     ...(displayName ? { displayName } : {}),
@@ -496,7 +509,7 @@ export function createWeddingReportId(analysis: SajuAnalysis, birth: BirthInput,
   const p = analysis.fourPillars
   const stamp = `${birth.year}${String(birth.month).padStart(2, '0')}${String(birth.day).padStart(2, '0')}`
   const dates = input.candidateDates.map((d) => d.replace(/-/g, '')).join('-') || 'nodate'
-  const fingerprint = createHash('sha256').update(JSON.stringify({ birth, input })).digest('hex').slice(0, 20)
+  const fingerprint = createHash('sha256').update(JSON.stringify({ birth: birthForIdentity(birth), input: requestBirthsForIdentity(input) })).digest('hex').slice(0, 20)
   return `wedding-${stamp}-${p.day.stem}${p.day.branch}-${dates}-${fingerprint}`
 }
 

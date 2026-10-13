@@ -1,3 +1,4 @@
+import { birthLocationKey } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
 import { buildRelationshipReading } from './reading-content.js'
@@ -115,6 +116,7 @@ export function createLoveSpouseReportId(ownerId: string | undefined, birth: Bir
       ...(birth.minute ? { minute: birth.minute } : {}),
       gender: birth.gender,
       calendar: birth.calendar,
+      ...birthLocationKey(birth),
     },
     input,
     serviceKey: LOVE_SPOUSE_SERVICE_KEY,

@@ -1450,24 +1450,16 @@
   }
 
   function ensurePdfDock(host) {
-    // 06-1 상세 화면이 없는 서비스는 공용 리더(`/r/:id`)로 떨어진다. 보관함에서 여는 화면이
-    // 거기라서, 고유 주소도 상세 화면과 같이 PDF 를 받을 수 있어야 한다. 티저(04)는 제외 —
-    // 아직 열지 않은 본문의 PDF 를 권할 자리가 아니다.
+    /*
+     * 2026-10-12: PDF 저장 버튼은 보관함(`/vault`) 카드 한 곳에서만 둔다.
+     * 결과 화면마다 따로 두면 같은 기능이 서비스별로 다른 자리에 생기고,
+     * 보관함 카드가 이미 "전부 생성됐을 때만 연다"는 조건을 쥐고 있다.
+     *
+     * 다만 인쇄 규칙은 그대로 깐다. 사용자가 브라우저 인쇄로 저장할 때
+     * 상단바와 버튼까지 종이에 찍히면 안 되기 때문이다.
+     */
     if (!isDetailPage() && !isPermalink()) return;
     ensurePrintStyles();
-    if (document.querySelector('[data-umsh-pdf], #btn-pdf')) return;
-    var anchor = host && host.closest ? (host.closest('section, article, main, body') || host) : document.body;
-    if (!anchor) return;
-    var dock = document.createElement('div');
-    dock.className = 'umsh-pdf-dock';
-    dock.setAttribute('data-umsh-pdf-auto', '');
-    var button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'pdf-button';
-    button.setAttribute('data-umsh-pdf', '');
-    button.textContent = 'PDF 저장';
-    dock.appendChild(button);
-    anchor.appendChild(dock);
   }
   /**
    * 등록 디자인 안에서 실제 저장 리포트를 여는 06 상세 화면도 공용 리더와 같은 끝맺음을 쓴다.
@@ -1494,8 +1486,7 @@
     actions.setAttribute('data-umsh-reader-actions', '');
     actions.setAttribute('aria-label', '리포트 도구');
     actions.innerHTML = '<button type="button" data-umsh-report-share="' + escapeHtml(id) + '">링크 공유하기</button>'
-      + '<span role="status" aria-live="polite"></span>'
-      + '<button type="button" data-umsh-pdf>PDF 저장</button>';
+      + '<span role="status" aria-live="polite"></span>';
     anchor.appendChild(actions);
     return true;
   }

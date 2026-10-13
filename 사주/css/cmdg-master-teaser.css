@@ -4,11 +4,11 @@
 .cmdg-master-teaser .price-line { display:flex; justify-content:space-between; gap:12px; font-size:15px; }
 .cmdg-master-teaser .price-line:first-child span:last-child { text-decoration:line-through; }
 .cmdg-master-teaser .price-line.final { color:#f2bf6b; font-size:25px; font-weight:800; }
-.cmdg-master-teaser .primary-cta .cta-label { font-size: clamp(17px, 5vw, 22px); white-space: normal; }
+/* 액자 CTA 안에 한 줄로 들어가야 한다. 두 줄이 되면 판 밖으로 넘친다. */
+.cmdg-master-teaser .primary-cta .cta-label { font-size: clamp(18px, 5.2vw, 23px); white-space: nowrap; }
 .cmdg-master-teaser button:focus-visible { outline: 3px solid #f2bf6b; outline-offset: 4px; }
-.cmdg-master-teaser .intro-pillars { display:flex; justify-content:space-between; gap:8px; padding:0; list-style:none; }
-.cmdg-master-teaser .intro-pillars li { min-width:0; text-align:center; }
-.cmdg-master-teaser .intro-pillars strong { display:block; color:#f2bf6b; font-size:22px; }
+/* 기둥 표기는 아래 master 규칙 하나로 통일한다.
+   여기 있던 strong{display:block} 때문에 '정묘'와 '년'이 두 줄로 갈렸다. */
 @media (prefers-reduced-motion: reduce) { .cmdg-master-teaser *, .cmdg-master-teaser *::before, .cmdg-master-teaser *::after { animation:none!important; transition:none!important; } }
 .cmdg-master-teaser .story-section.sub-result-pillar-band {
         padding: 22px 24px 64px;

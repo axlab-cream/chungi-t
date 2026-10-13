@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="ko" data-umsh-verified-inplace>
+  <head><link id="umsh-inplace-css" rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260923-markdown-view-v1">
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/umsh-auth-session.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>詳細解説 | 今の家、自分に合う？</title>
+    <meta
+      name="description"
+      content="家の風水リポートで選んだ一項目を、結論・根拠・行動に分けて詳しく確認する。"
+    />
+    <meta property="og:title" content="運命商会 - 運命を売ります。" />
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://place.umsh.kr/home" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0b1110;
+        --surface: #141a17;
+        --surface-2: #1b231e;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.5);
+        --line: rgba(216, 236, 212, 0.18);
+        --sage: #9fb7a1;
+        --mint: #d8ecd4;
+        --brass: #e4c36f;
+        --clay: #bf6745;
+        --blue: #89a9bd;
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #050706;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% -10%, rgba(159, 183, 161, 0.18), transparent 28rem),
+          linear-gradient(180deg, #050706 0%, #101511 46%, #050706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        padding-bottom: 152px;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(11, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .brand span,
+      .step-badge,
+      .eyebrow {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .top-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button,
+      .step-badge {
+        display: grid;
+        min-height: 34px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .icon-button {
+        width: 34px;
+        padding: 0;
+      }
+
+      .step-badge {
+        padding: 7px 9px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 30px;
+        line-height: 1.16;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      p,
+      li {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .hero,
+      .band {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-copy,
+      .section-head {
+        display: grid;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .chips,
+      .fact-list,
+      .section-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip,
+      .fact-chip,
+      .section-tab {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .section-tab {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .section-tab.is-active {
+        color: #1b1207;
+        background: var(--brass);
+      }
+
+      .visual-frame {
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        overflow: hidden;
+        border: 1px solid rgba(216, 236, 212, 0.24);
+        border-radius: 8px;
+        background: #eadfcb;
+      }
+
+      .visual-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .notice,
+      .conclusion-card,
+      .block-card,
+      .action-card,
+      .relation-card,
+      .chat-bubble {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .notice {
+        display: none;
+        gap: 7px;
+        padding: 14px;
+        border-color: rgba(191, 103, 69, 0.25);
+        background: rgba(191, 103, 69, 0.1);
+      }
+
+      .notice.is-open {
+        display: grid;
+      }
+
+      .conclusion-card {
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+        border-color: rgba(228, 195, 111, 0.28);
+        background:
+          radial-gradient(circle at 86% 0%, rgba(228, 195, 111, 0.14), transparent 12rem),
+          rgba(255, 255, 255, 0.045);
+      }
+
+      .conclusion-card strong,
+      .block-card strong,
+      .action-card strong,
+      .relation-card strong,
+      .chat-bubble strong,
+      .notice strong {
+        display: block;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .home-richtext { min-width: 0; color: var(--muted); line-height: 1.8; overflow-wrap: anywhere; }
+      .home-richtext p { margin: 0 0 12px; }
+      .home-richtext .reading-table-wrap { max-width: 100%; }
+      .home-richtext .reading-quote { color: var(--ink); }
+
+      .conclusion-card span,
+      .block-card span,
+      .action-card span,
+      .relation-card span,
+      .chat-bubble span,
+      .notice span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.5;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .block-list,
+      .action-list,
+      .relation-list,
+      .chat-area {
+        display: grid;
+        gap: 10px;
+      }
+
+      .block-card,
+      .action-card,
+      .relation-card,
+      .chat-bubble {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+      }
+
+      .block-card b,
+      .action-card b {
+        color: var(--brass);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.04em;
+      }
+
+      .action-card {
+        border-color: rgba(159, 183, 161, 0.28);
+        background: rgba(159, 183, 161, 0.08);
+      }
+
+      .relation-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .relation-card span {
+        text-align: right;
+      }
+
+      .bottom-nav {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        z-index: 25;
+        display: grid;
+        width: min(100%, 440px);
+        gap: 10px;
+        padding: 12px 18px max(16px, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: rgba(11, 17, 16, 0.96);
+        transform: translateX(-50%);
+        backdrop-filter: blur(16px);
+      }
+
+      .nav-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
+      .nav-button,
+      .send-btn {
+        display: grid;
+        min-height: 46px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 950;
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .nav-button.primary,
+      .send-btn {
+        border-color: rgba(228, 195, 111, 0.55);
+        background: linear-gradient(135deg, #efd47d, #c8913d);
+        color: #1b1207;
+      }
+
+      .input-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 68px;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      textarea {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        max-height: 110px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.45;
+        outline: none;
+      }
+
+      textarea:focus {
+        border-color: rgba(228, 195, 111, 0.5);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 374px) {
+        h1 {
+          font-size: 26px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+        }
+
+        .top-actions {
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .input-row,
+        .nav-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907" />
+  </head>
+  <body>
+    <main class="app" id="step-6_1-report" aria-label="家の風水の詳細解説">
+      <div data-umsh-service-top></div>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <span class="eyebrow" id="section-kicker">選んだ項目</span>
+          <h1 id="page-title">この家、本当に自分に合う？</h1>
+          <p id="page-summary">選んだレポート項目を、一行の結論、根拠、行動に分けて確認します。</p>
+          <div class="chips" id="section-items" aria-label="詳しい項目"></div>
+        </div>
+        <figure class="visual-frame" data-asset-key="home-06-detail-hero">
+          <img src="assets/generated/home/06-detail-hero.webp" alt="家の模型と図面を使い、詳細な読み解きを説明する運命商会のガイド" />
+        </figure>
+      </section>
+
+      <section class="band">
+        <div class="notice" id="invalid-section">
+          <strong>一覧にない項目です</strong>
+          <span>05の一覧の項目だけ詳しく開けるため、最初の項目へ移りました。</span>
+        </div>
+        <div class="notice" id="permission-note">
+          <strong>この項目の基準で続けて見ます</strong>
+          <span>疑問を書くと、今開いている章の流れに沿って続けて確かめます。</span>
+        </div>
+        <div class="conclusion-card" id="conclusion-card">
+          <strong>一行の結論</strong>
+          <span>家の良し悪しより、自分の生活リズムに合うかを先に見ます。</span>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="evidence-title">
+        <div class="section-head">
+          <span class="eyebrow">判断のポイント</span>
+          <h2 id="evidence-title">今、家を見るときに先に置いた基準</h2>
+
+        </div>
+        <div class="fact-list" id="fact-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="interpretation-title">
+        <div class="section-head">
+          <span class="eyebrow">詳しい鑑定</span>
+          <h2 id="interpretation-title">今の家と自分の生活を一緒に見ると</h2>
+        </div>
+        <div class="block-list" id="block-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="actions-title">
+        <div class="section-head">
+          <span class="eyebrow">今週の行動</span>
+          <h2 id="actions-title">すぐ手を入れられることから</h2>
+        </div>
+        <div class="action-list" id="action-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="cautions-title">
+        <div class="section-head">
+          <span class="eyebrow">一緒に考える点</span>
+          <h2 id="cautions-title">決める前にもう一度</h2>
+        </div>
+        <div class="block-list" id="caution-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="related-title">
+        <div class="section-head">
+          <span class="eyebrow">関連項目</span>
+          <h2 id="related-title">前後の流れも一緒に見るとよいです</h2>
+        </div>
+        <div class="relation-list" id="relation-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="all-sections-title">
+        <div class="section-head">
+          <span class="eyebrow">他の詳細</span>
+          <h2 id="all-sections-title">別の項目へ</h2>
+        </div>
+        <nav class="section-tabs" id="section-tabs" aria-label="詳細項目の移動"></nav>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="詳細への移動と相談">
+      <div class="nav-row">
+        <a class="nav-button" id="prev-link" href="#">前の項目</a>
+        <a class="nav-button primary" href="../05-step-5-chat/chat.html#step-5-chat">一覧へ</a>
+        <a class="nav-button" id="next-link" href="#">次の項目</a>
+      </div>
+      <form id="detail-chat-form" class="input-row">
+        <textarea id="detail-chat-message" rows="2" placeholder="この項目でさらに気になることを書いてください..." required></textarea>
+        <button class="send-btn" type="submit">送信</button>
+      </form>
+      <p class="fine-print">気になることを書けば、この項目の基準で続けて整理する。</p>
+    </nav>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "今の家、自分と合う？",
+        "service_category": "家の風水",
+        "rag": ["風水", "個人の命理"],
+        "domain": "place.umsh.kr/home",
+        "price_krw": 19900,
+        "stage": "06-step-6_1-report-detail"
+      }
+    </script>
+
+    <script type="application/json" id="DETAIL_DATA">
+      {
+        "source": "user_seed",
+        "default_section_id": "home-fit-overall",
+        "sections": [
+          {
+            "section_id": "home-fit-overall",
+            "title": "この家、本当に自分に合う？",
+            "items": ["全体の相性の判定", "住み続ける／手を入れる／比べる", "引かれる理由", "妙に疲れるところ", "今の自分の時期との相性", "一行の結論"],
+            "conclusion": "この項目は、家そのものの良しあしより、今の生活リズムとこの家の速度が合うかを先に見ます。",
+            "evidence": ["집과 사람의 궁합은 용도와 생활 리듬이 바뀌면 달라질 수 있음", "사주 계산값은 상세 서버 계산이 있을 때 일간·오행·신강약·용신으로 연결", "현재 입력값은 집 형태, 목적, 悩み, 체감 신호를 우선 사용"],
+            "blocks": [
+              {"heading": "引かれる理由", "body": "この家が好きな理由は、多くの場合、窓の外の開放感、玄関で最初に感じること、慣れた動線など、体が先に受け取るサインから来る。"},
+              {"heading": "疲れるポイント", "body": "逆に、眠りが浅かったり、帰宅した瞬間に片付けが滞る感じが繰り返されるなら、家の流れが自分の回復速度より速い側かもしれません。"},
+              {"heading": "判定の仕方", "body": "住み続ける、手を入れる、比べるという方向は、引っ越しの結論ではなく、今の家で先に調整できる範囲を分ける基準だ。"}
+            ],
+            "actions": ["玄関から居間へ入る時、視線がまっすぐ向く所を確かめます。", "ベッドに横になった時、扉・窓・音のどれが先に気になるか書きます。", "7日間、朝と夜の家の体感を一行で記録する。"],
+            "cautions": ["一日の気分だけで引っ越しを決めず、繰り返す疲れのサインを見る。", "よい家という言葉より、今の自分の目的に合うかを先に確認する。"]
+          },
+          {
+            "section_id": "house-energy",
+            "title": "土地は、自分を支える？ 遠ざける？",
+            "items": ["土地の類似度", "支えの感覚", "移動の負担", "似た土地の生活パターン"],
+            "conclusion": "この家の地盤の流れは、周辺条件を技術語で並べず、似た地盤で繰り返す生活感で判断します。",
+            "evidence": ["앞열림과 뒤받침은 집의 안정감과 활동성을 나누는 핵심 기준", "도로와 골목 흐름은 생활 속도와 소음 체감의 보조 신호", "창밖 압박은 나쁨 판정이 아니라 회복감 판단의 참고값"],
+            "blocks": [
+              {"heading": "土地の類似度", "body": "住所周辺の流れを似た土地の生活パターンと比べ、人を楽に支える家か、忙しく押す家か見ます。"},
+              {"heading": "支えの感覚", "body": "家に着いて緊張がほどけ、体が落ち着くなら、支えられる感覚があるほうだ。着く前から疲れが増すなら、移動の負担も合わせて見る。"},
+              {"heading": "生活のパターン", "body": "似た敷地で繰り返す騒音、見通し、アクセスの動線、朝の疲労感を生活の言葉に置き換え、実際の判断に使う。"}
+            ],
+            "actions": ["窓辺に立って、視界が開けるか、圧迫が先に感じられるかを確認します。", "家や寝室の後ろが安定した面で支えられるか見ます。", "道路・路地の騒音が大きくなる時間帯を書く。"],
+            "cautions": ["開けた家がすべてよいわけではなく、休む目的が強ければ刺激の調整が必要です。", "周囲の環境は、契約条件と生活の時間帯まで一緒に見る必要があります。"]
+          },
+          {
+            "section_id": "saju-house-ohaeng",
+            "title": "自分の四柱推命 × 家の五行との相性",
+            "items": ["日干の生活のリズム", "五行の過剰／不足を補う", "用神と空間の質感", "身強・身弱別の家の速度", "自分に過剰な家", "自分を生かしてくれる家"],
+            "conclusion": "四柱と家のフィットは、自分に足りないリズムを空間が補うか、すでに強いリズムをさらに大きくするかを見ます。",
+            "evidence": ["일간·오행·신강약·용신은 계산값이 있을 때만 상세 연결", "오행은 성격 단정이 아니라 생활 리듬 조정 기준으로 사용", "공간의 색, 빛, 습도, 동선은 補う点 신호로 해석"],
+            "blocks": [
+              {"heading": "自分に過剰な家", "body": "家が明るすぎて速いと、活動性は良くても回復が後回しになることがある。逆に塞がりすぎると、考えが重くなることがある。"},
+              {"heading": "自分を生かしてくれる家", "body": "必要な気は華やかな内装より、深い眠りや揺れにくい日常として現れることが多いです。"},
+              {"heading": "計算値をつなげる", "body": "生年月日と時刻が計算されると、日干、五行分布、身強弱、用神を、家の方位・色・動線と別々につなぐ。"}
+            ],
+            "actions": ["家で一番長くいる場所の光・色・温度を書きます。", "休む空間と働く空間の刺激の違いを確認します。", "命式の計算値が確認できたら、この項目を先に見直す。"],
+            "cautions": ["五行を色一つに単純化せず、光・素材・動線も合わせて見ます。", "出生時刻がなければ、一部の解釈は範囲を広げて示す必要があります。"]
+          },
+          {
+            "section_id": "sleep-recovery",
+            "title": "睡眠・回復・心のリズム",
+            "items": ["寝室の落ち着き", "眠りの深さ", "家で回復する力", "音と視線の疲れ", "休む枠を確保", "退勤後の充電感", "消耗を防ぐポイント"],
+            "conclusion": "この項目は、家との相性の1番を眠りと回復に置き、寝室が自分を充電するかを確認します。",
+            "evidence": ["침실 안정감은 집콕 회복력의 핵심 기준", "소음과 시선은 도로·창밖 흐름의 현실 체감값", "쉬는 칸이 없으면 집 안에서도 계속 긴장할 수 있음"],
+            "blocks": [
+              {"heading": "眠りの深さ", "body": "ベッドに横たわると扉、窓、鏡、音が先に気になるなら、体は十分に休みにくい。"},
+              {"heading": "退勤後の充電感", "body": "よい寝室は飾りより、帰宅後に口数が減り身体がゆっくり落ち着く感じに表れます。"},
+              {"heading": "休む欄", "body": "寝室全体を変えにくければ、ベッド周り60cm以内だけでも空けて回復の場所を作る必要があります。"}
+            ],
+            "actions": ["ベッドから最初に見えるものを、写真を撮らずにメモする。", "眠る前にいちばん気になる音と光を書きます。", "ベッド脇の床と、サイドテーブルの物から減らす。"],
+            "cautions": ["疲れを家だけのせいにせず、睡眠時間、騒音の時間帯、照明の習慣を一緒に見る。", "不安を増す解釈より調整できる配置から使います。"]
+          },
+          {
+            "section_id": "entrance-flow",
+            "title": "玄関・動線の力",
+            "items": ["第一印象", "玄関の整理状態", "玄関・居間・寝室の直線の流れ", "エレベーター・廊下の刺激", "入ってきた気がとどまるか", "荷物・靴の混雑"],
+            "conclusion": "玄関は家の第一印象です。入った流れがすぐ抜けるか、一度とどまるかから見ます。",
+            "evidence": ["현관은 외부 흐름이 들어오는 첫 자리", "현관-침실 직선 흐름은 가림과 정리 처방으로 완화", "복도·엘베 자극은 사생활 피로와 연결될 수 있음"],
+            "blocks": [
+              {"heading": "第一印象", "body": "ドアを開けてすぐ靴、荷物、大きな窓、寝室の扉が同時に見えると、帰宅しても視線が休まらない。"},
+              {"heading": "流れが留まる構造", "body": "低い収納、ラグ、照明、植物など、視線が一度休む仕掛けがあると、家の内側の安定感が生きる。"},
+              {"heading": "混雑度", "body": "玄関が複雑だと、お金、日程、感情も外から引き込む感じが強まることがある。"}
+            ],
+            "actions": ["ドアを開けて3秒以内に見える物を、三つだけ書きます。", "荷物と靴がたまる場所を一つに決める。", "寝室がすぐ見えるなら、カーテン・パーティション・低い棚のどれかを試す。"],
+            "cautions": ["鏡一つですべての流れを解決しようとせず、整理と視線の調整から見ます。", "玄関が狭いなら、物を増やすより空けることが先です。"]
+          },
+          {
+            "section_id": "remote-focus",
+            "title": "在宅・勉強・仕事の集中力",
+            "items": ["机の位置", "背中の支え", "ドア・窓の位置", "集中しやすい隅", "ビデオ会議・通話の適合", "仕事の場所と休む場所を分ける", "生産性の習慣"],
+            "conclusion": "在宅勤務や勉強が多いなら、この家の評価は、机の場所と休む場所の分離で大きく分かれる。",
+            "evidence": ["책상 등 뒤 받침은 집중 안정감의 기본 기준", "문과 창 위치는 시선 자극과 긴장도에 영향", "공간 목적이 바뀌면 집과 사람의 궁합도 달라짐"],
+            "blocks": [
+              {"heading": "背中の支え", "body": "背後が窓や通路に開いていると、集中していても体が後ろを気にすることがあります。"},
+              {"heading": "扉と窓", "body": "ドアを正面に見ると気が引き締まる一方、長く座ると疲れることがある。窓の外からの刺激が強いと、時間帯による集中の差が大きくなる。"},
+              {"heading": "空間の分離", "body": "ベッドと机が隣だと、休むときに仕事を考え、働くときに休みたくなる感覚が一緒に出やすい。"}
+            ],
+            "actions": ["机に座って、背後が壁、窓、通路のどれかを確認する。", "ビデオ会議に映る背景を整えます。", "小さな照明や敷物で仕事の場所を分けます。"],
+            "cautions": ["生産性の問題を意志だけでは見ず、視線と背後の安定も一緒に見てください。", "部屋が小さければ机を動かすより、作業時間と照明を分ける方が現実的な場合があります。"]
+          },
+          {
+            "section_id": "money-living",
+            "title": "お金・暮らし・消費の流れ",
+            "items": ["お金が集まる仕組み", "お金が流れ出る点", "家賃・管理費の実感", "在宅収入のリズム", "重要書類・金庫の位置", "衝動消費のきっかけ"],
+            "conclusion": "お金の流れは運を断定せず、家事の動線と支出の漏れを現実的に探す項目です。",
+            "evidence": ["중요 문서와 금고 자리는 안정된 보관감이 중요", "현관 혼잡과 동선 피로는 충동소비 트리거와 연결될 수 있음", "재택 수익 리듬은 책상 자리와 휴식 분리의 영향을 받음"],
+            "blocks": [
+              {"heading": "お金が集まる仕組み", "body": "書類、財布、契約書、領収書が散らばらない場所があれば、生活費の感覚が安定しやすい。"},
+              {"heading": "お金が流れ出る点", "body": "玄関に荷物が積まれたり、ベッド近くでよく買い物をしたりすると、消費が習慣のように流れることがある。"},
+              {"heading": "管理費の実感", "body": "家賃と管理費は、価格だけでなく、この家で回復、集中、関係の負担が減るかも一緒に見る。"}
+            ],
+            "actions": ["財布、通帳、契約書を一か所に集める保管場所を作ります。", "荷物を開ける場所は玄関ではない一か所にします。", "ベッドで決済アプリを見る時間を減らす仕組みを置く。"],
+            "cautions": ["金運を収益保証として語らず、消費と整理の繰り返すパターンで確認します。", "金庫の方向より、見つけやすく安全に保てる場所が先だ。"]
+          },
+          {
+            "section_id": "relationship-cohabitation",
+            "title": "関係・家族・同居の相性",
+            "items": ["一人でいるときの心地よさ", "家族とぶつかる動線", "恋人・友人を招くフィット", "同居人・同棲の相性", "近所・騒音のストレス", "プライバシーが守られる感覚"],
+            "conclusion": "関係の相性は、一緒にいるときより一人のときのほうが楽か、ぶつかる動線が繰り返されるかで先に見ます。",
+            "evidence": ["장소와 사람의 궁합은 생활 목적과 관계 방식에 따라 달라짐", "동선 충돌은 가족·동거 피로의 현실 신호", "이웃·소음 스트레스는 사생활 보호감과 연결"],
+            "blocks": [
+              {"heading": "一人でいるとき", "body": "一人でいても誰かが入ってきそうな感覚が強いなら、家が十分なプライバシーの安心感を守っていないのかもしれない。"},
+              {"heading": "一緒にいる時", "body": "台所、浴室、玄関でよく出会ったり、物が重なったりすると、小さな対立が生活のリズムの問題に広がることがある。"},
+              {"heading": "招待との相性", "body": "友人や恋人を呼ぶとき楽な家か、招待後に自分がさらに疲れる家かも、関係の相性の大切な手がかりです。"}
+            ],
+            "actions": ["一人で休む場所と一緒に使う場所を分けます。", "最もぶつかる動線を一つだけ選んで整理します。", "招待のあと、疲労が残る時間帯を記録します。"],
+            "cautions": ["関係の問題を空間のせいだけにせず、生活のルールとプライバシーの境界も決める。", "同居前はきれいな間取りより、物の置き場と音の実感を先に見ます。"]
+          },
+          {
+            "section_id": "spatial-fix",
+            "title": "空間ごとの手入れ",
+            "items": ["ベッドの位置", "机の位置", "ソファ・食卓の場所", "鉢植え・鏡・テレビの活用", "カーテン・照明・収納の補足", "色・素材のヒント", "引っ越せないときの代案"],
+            "conclusion": "空間のアドバイスは大工事より、ベッド、机、照明、収納など、すぐ実感できる小さな調整から始める。",
+            "evidence": ["침대 안정감과 책상 등 뒤 받침은 핵심 처방 기준", "현관 가림과 정리는 직선 흐름 완화에 사용", "소파·식탁은 집 안에서 머무는 중심을 만드는 자리"],
+            "blocks": [
+              {"heading": "ベッド", "body": "ベッドは扉と窓の刺激が少ない側が安定します。動かせなければサイドテーブル・カーテン・照明で視線を調整します。"},
+              {"heading": "机", "body": "机は背後が支えられる位置を優先する。難しければ、背後に低い棚や布を置く方法が現実的だ。"},
+              {"heading": "リビング", "body": "ソファと食卓は家で気がとどまる中心です。テレビを見るだけでなく、会話と食事ができる場所を生かします。"}
+            ],
+            "actions": ["ベッドの周りの床から空ける。", "机の後ろに安定感を与える物を一つ置く。", "玄関と居間の間に視線が休むポイントを作ります。"],
+            "cautions": ["鉢植え、鏡、照明は、多く置くより必要な場所に少なく置くほうがいい。", "配置を変えられないなら、先に補う工夫を試して、感じ方を確認する。"]
+          },
+          {
+            "section_id": "reality-action",
+            "title": "現実の確認と行動プラン",
+            "items": ["朝・夜の感じ方を試す", "契約維持／引っ越し比較", "今すぐ直す3つ", "避ける配置", "7日暮らしてみるチェック", "次の行動の提案"],
+            "conclusion": "この項目は解釈を行動に変える部分なので、まず7日の体感テストと引っ越し比較の基準を置きます。",
+            "evidence": ["현실 체크는 아침·저녁 체감 차이로 진행", "이사는 금지가 아니라 비교와 補う点 가능성으로 판단", "생활 목적이 바뀌면 집 궁합도 다시 평가"],
+            "blocks": [
+              {"heading": "7日チェック", "body": "朝、家を出るときと、夜に戻るときの体調を同じ文で記録すると、繰り返すパターンが見える。"},
+              {"heading": "契約を維持", "body": "小さな配置の調整で睡眠・集中・整理感が変われば、契約の維持は現実的な選択になり得ます。"},
+              {"heading": "引っ越しの比較", "body": "同価格帯の候補は採光だけでなく寝室の安定・玄関の流れ・机の位置・音の時間帯も比べます。"}
+            ],
+            "actions": ["今日は玄関・ベッド・机のどれか一つだけ整える。", "7日間、朝と夜の体感の文を残す。", "引っ越し候補は同じ基準表で比べます。"],
+            "cautions": ["急な結論より、変えられるものと変えられないものを先に分けます。", "引っ越しの判断は、費用、契約、生活圏まで一緒に確認する必要があります。"]
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-06-detail-hero",
+            "filename": "assets/generated/home/06-detail-hero.webp",
+            "role": "detail",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["丸眼鏡", "整えた濃い色の髪", "ベージュのニットの羽織り", "セージ色", "暖かな室内照明"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "家の模型と図面を前に、詳しい読みを説明するシーン。画像内テキスト禁止。",
+            "alt": "家の模型と図面を使い、詳細な読み解きを説明する運命商会のガイド",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-06-detail-hero'] img"
+          }
+        ]
+      }
+    </script>
+
+
+
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        service_title: "今住んでいる家は、私と合う？",
+        report_version: "home-fit-v1.0"
+      };
+
+      const STORAGE_KEYS = {
+        input: "umsh_home_fit_input_payload_v1",
+        report: "umsh_home_fit_report_v1",
+        selectedSection: "umsh_home_fit_selected_section_v1",
+        detailQuestion: "umsh_home_fit_detail_question_v1",
+        paymentIntent: "umsh_home_fit_payment_intent_v1"
+      };
+
+      const SECTION_ALIASES = {
+        "house-energy": "terrain-support",
+        "spatial-fix": "reality-action"
+      };
+
+      const HOME_GUIDE_SECTIONS = [
+        { section_id: "home-fit-overall", title: "この家、本当に自分に合う？", items: ["全体の判断", "8軸の点数表", "主な強み", "優先して見るリスク"] },
+        { section_id: "terrain-support", title: "土地は、自分を支える？ 遠ざける？", items: ["土地の類似度", "支えの感覚", "移動の負担", "似た土地の生活のパターン"] },
+        { section_id: "external-flow", title: "水路、道路、風、何が入ってくる？", items: ["水系", "道路", "風", "外の音"] },
+        { section_id: "light-air-noise", title: "光は薬か、アラームの爆弾か", items: ["方位・日照", "換気", "騒音", "時間帯の刺激"] },
+        { section_id: "building-unit", title: "建物と世帯の基本体力", items: ["階数・竣工", "共用施設", "平面", "住戸の条件"] },
+        { section_id: "entrance-flow", title: "玄関でもう力が抜ける？", items: ["最初の動線", "扉の前の停滞", "靴・荷物", "出入りのリズム"] },
+        { section_id: "sleep-recovery", title: "寝室は休む部屋？それとも残業の二回戦？", items: ["睡眠の刺激", "回復感", "夜間の光・音", "7日間の実験"] },
+        { section_id: "remote-focus", title: "机は集中席か、通知のコロッセオか", items: ["後ろの支え", "視野", "通知・音", "開始・締切"] },
+        { section_id: "money-living", title: "お金が漏れる？動線が漏れる？", items: ["重複購入", "収納", "返品・定期購入", "家事の動線"] },
+        { section_id: "relationship-cohabitation", title: "一緒に暮らせば相性、それとも騒音の協定", items: ["共用空間", "私生活", "使用時間", "関係の距離"] },
+        { section_id: "saju-house-ohaeng", title: "自分の四柱推命 × 家の五行との相性", items: ["個人の五行", "家の象徴", "目的の五行", "年間の流れ"] },
+        { section_id: "reality-action", title: "それで何をすればいい？", items: ["今日", "7日", "30日", "引っ越しの比較の基準"] }
+      ];
+
+      function canonicalSectionId(sectionId) {
+        return SECTION_ALIASES[sectionId] || sectionId || HOME_GUIDE_SECTIONS[0].section_id;
+      }
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        try {
+          return JSON.parse(node.textContent);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function getSession(key) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function setSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          return false;
+        }
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function selectedReportId() {
+        const query = new URLSearchParams(location.search).get("reportId");
+        if (query) return query;
+        const stored = safeParse(getSession(STORAGE_KEYS.selectedSection));
+        const inputPayload = safeParse(getSession(STORAGE_KEYS.input));
+        const report = inputPayload?.analysis?.report || safeParse(getSession(STORAGE_KEYS.report));
+        return stored?.report_id || inputPayload?.reportId || report?.reportId || "";
+      }
+
+      function route(sectionId) {
+        const reportId = selectedReportId();
+        const reportQuery = reportId ? `&reportId=${encodeURIComponent(reportId)}` : "";
+        return `../06-step-6_1-report-detail/index.html?section=${encodeURIComponent(canonicalSectionId(sectionId))}${reportQuery}#step-6_1-report`;
+      }
+
+      function selectedSectionId(data) {
+        const query = new URLSearchParams(location.search).get("section");
+        if (query) return canonicalSectionId(query);
+        const stored = safeParse(getSession(STORAGE_KEYS.selectedSection));
+        return canonicalSectionId(stored?.section_id || data.default_section_id);
+      }
+
+      function reportFromSession() {
+        const inputPayload = safeParse(getSession(STORAGE_KEYS.input));
+        return inputPayload?.analysis?.report || safeParse(getSession(STORAGE_KEYS.report));
+      }
+
+      async function fetchReportById(reportId) {
+        if (!reportId) return null;
+        try {
+          const response = await fetch(`/api/report/${encodeURIComponent(reportId)}`);
+          const json = await response.json().catch(() => ({}));
+          if (!response.ok) return null;
+          if (json.report) setSession(STORAGE_KEYS.report, json.report);
+          return json.report || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function splitInterpretation(text) {
+        return String(text || "")
+          .split(/\n{2,}/)
+          .map((part) => part.replace(/^\[[^\]]+\]\s*/, "").trim())
+          .filter(Boolean);
+      }
+
+      function dynamicBlocks(section) {
+        if (section.status !== 'complete') return [{ heading: '解釈の準備', body: section.status === 'failed' ? 'この項目の鑑定を完成できなかった。少し待ってから、もう一度確認してね。' : '解釈を準備しています。完了すると本文が表示される。' }];
+
+        return String(section.interpretation || "").split(/\n\s*\n/).filter(part => part.trim()).map(part => {
+          const match = part.trim().match(/^\[([^\]]+)\]\s*/);
+          if (match) return { heading: match[1], body: part.trim().slice(match[0].length) };
+          const text = part.trim();
+          // Use the author's opening sentence, not a made-up numbered label.
+          // Do not split decimal values or shorten the saved interpretation.
+          const opening = text.match(/^([\s\S]*?[.!?。](?:[”’"']?))\s+([\s\S]+)$/);
+          return opening ? { heading: opening[1], body: opening[2] } : { heading: text, body: "" };
+        });
+      }
+
+      function dynamicActions(section, staticSection) {
+        const fallback = [
+          "玄関、寝室、机、窓の外のうち、今日いちばん先に気になる一か所だけ整えます。",
+          "7日間、睡眠、集中、消費、関係の体感を短く記録します。",
+          "大きな引っ越しの判断は、小さな手直しを試してから繰り返すサインで決める。"
+        ];
+        return Array.isArray(staticSection?.actions) && staticSection.actions.length ? staticSection.actions : fallback;
+      }
+
+      function dynamicCautions(staticSection) {
+        const fallback = [
+          "吉地・凶地のような一言で結論にしない。",
+          "健康、財産、契約の結果は確定せず、生活の体感と現実の条件を一緒に見ます。"
+        ];
+        return Array.isArray(staticSection?.cautions) && staticSection.cautions.length ? staticSection.cautions : fallback;
+      }
+
+      function dynamicSectionsFromReport(report, staticData) {
+        const reportSections = Array.isArray(report?.sections) ? report.sections : [];
+        const staticSections = staticData?.sections || [];
+        const reportById = new Map(reportSections.map((section) => [canonicalSectionId(section.id), section]));
+        return HOME_GUIDE_SECTIONS.map((guide, index) => {
+          const section = reportById.get(guide.section_id);
+          const staticSection = staticSections.find((item) => canonicalSectionId(item.section_id) === guide.section_id) || {};
+          const evidence = homeEvidenceFor(guide.section_id, report, section?.classification);
+          return {
+            ...staticSection,
+            section_id: guide.section_id,
+            title: section?.category || guide.title || staticSection.title || `詳細 ${index + 1}`,
+            conclusion: section?.hook || staticSection.conclusion || "この章は今の家で実際に感じやすい場面を基準に、はっきり見ます。",
+            items: guide.items || staticSection.items || [],
+            evidence,
+            blocks: section ? dynamicBlocks(section) : (staticSection.blocks || [{ heading: guide.title, body: "レポートの生成が完了すると、この章の実際の本文は該当テーマだけを別に開く。他の章の玄関・寝室・机の話は繰り返さない。" }]),
+            actions: dynamicActions(section, staticSection),
+            cautions: dynamicCautions(staticSection)
+          };
+        });
+      }
+
+      function homeEvidenceFor(sectionId, report, fallback) {
+        const context = report?.context || report?.userContext || {};
+        const home = context.home || report?.home || {};
+        const analysis = report?.analysis || {};
+        const terrain = home.terrainEvidence || {};
+        const hasElements = context.birthTimeKnown !== false && analysis.elements;
+        const rules = {
+          "home-fit-overall": [["生活の目的", home.mainPurpose], ["家の種類", home.buildingType], ["玄関", home.entranceFlow], ["寝室", home.bedroomFeel], ["机", home.deskPosition], ["窓の外", home.outsideFlow]],
+          "terrain-support": [["土地の類似度", terrain.siteSimilarityScore ? `${terrain.siteSimilarityScore}点` : terrain.siteSimilarityLabel], ["土地のタイプ", terrain.siteArchetype || terrain.summary], ["生活のパターン", Array.isArray(terrain.similarCases) && terrain.similarCases.join(" · ")], ["支えの感覚", home.outsideFlow || home.livingPeriod]],
+          "external-flow": [["本人の感じ方 · 窓の外", home.outsideFlow], ["生活圏の流れ", terrain.front || terrain.back], ["繰り返す刺激", terrain.summary], ["外の流れのタイプ", terrain.siteArchetype]],
+          "light-air-noise": [["体感 · 寝室", home.bedroomFeel], ["本人の感じ方 · 窓の外", home.outsideFlow], ["時間帯の刺激", terrain.summary], ["回復の目的", home.mainPurpose]],
+          "building-unit": [["自分の実感・家の種類", home.buildingType], ["本人の体感 · 居住期間", home.livingPeriod], ["世代の体感", home.extraNote], ["生活の目的", home.mainPurpose]],
+          "saju-house-ohaeng": [["命式の計算値", hasElements], ["年間の計算値", analysis.fortune?.yearPillar], ["家の五行", null], ["目的", home.mainPurpose]],
+          "sleep-recovery": [["寝室を使う人の体感", home.bedroomFeel], ["睡眠の悩み", Array.isArray(home.painPoints) && home.painPoints.join(" ")], ["光・温度", null], ["7日の記録", null]],
+          "entrance-flow": [["玄関を使う人の体感", home.entranceFlow], ["扉の前の停滞", null], ["最初の動線", home.entranceFlow]],
+          "remote-focus": [["机を使う人の体感", home.deskPosition], ["在宅勤務の有無", null], ["仕事を終える合図", null]],
+          "money-living": [["家事の摩擦", Array.isArray(home.painPoints) && home.painPoints.join(" ")], ["繰り返す支出", null], ["収納の基準", null]],
+          "relationship-cohabitation": [["住む人数", null], ["音・時間帯", null], ["私生活の境界", null]],
+          "reality-action": [["住み続ける意向", home.stayDecision], ["契約・通勤・予算", null], ["候補の家を比較", null]]
+        };
+        const picked = rules[sectionId] || [];
+        const known = picked.filter((item) => item[1]).length;
+        const total = picked.length || 1;
+        const score = Math.round((known / total) * 20) * 5;
+        const label = sectionId === "terrain-support" ? `土地の類似度${score}点` : `解釈の信頼度${score}点`;
+        const facts = [label].concat(picked.filter((item) => item[1]).map((item) => `${item[0]} · ${item[1]}`));
+        if (fallback) facts.push(fallback);
+        return facts;
+      }
+
+      function neighbors(sections, index) {
+        const previous = sections[(index - 1 + sections.length) % sections.length];
+        const next = sections[(index + 1) % sections.length];
+        return { previous, next };
+      }
+
+      function render(section, sections, index, wasInvalid) {
+        const { previous, next } = neighbors(sections, index);
+        document.title = `${section.title} | 今の家、自分に合う？`;
+        document.getElementById("section-kicker").textContent = `詳細 ${String(index + 1).padStart(2, "0")}`;
+        document.getElementById("page-title").textContent = section.title;
+        document.getElementById("page-summary").textContent = section.conclusion;
+        document.getElementById("section-items").innerHTML = section.items.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join("");
+        document.getElementById("conclusion-card").innerHTML = `\x3cstrong>一行の結論\x3c/strong>\x3cspan>${escapeHtml(section.conclusion)}\x3c/span>`;
+        document.getElementById("fact-list").innerHTML = section.evidence.map((item) => `<span class="fact-chip">${escapeHtml(item)}</span>`).join("");
+        document.getElementById("block-list").innerHTML = section.blocks
+          .map(
+            (block) => `
+              <article class="block-card">
+                ${block.heading ? `<strong>${escapeHtml(block.heading)}</strong>` : ""}
+                ${block.body ? `<div class="home-richtext">${window.UMSHReportAccess && window.UMSHReportAccess.richText ? window.UMSHReportAccess.richText(block.body) : `<p>${escapeHtml(block.body)}</p>`}</div>` : ""}
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("action-list").innerHTML = section.actions
+          .map(
+            (action, actionIndex) => `
+              <article class="action-card">
+                <b>${String(actionIndex + 1).padStart(2, "0")}</b>
+                <span>${escapeHtml(action)}</span>
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("caution-list").innerHTML = section.cautions
+          .map(
+            (caution) => `
+              <article class="block-card">
+                <span>${escapeHtml(caution)}</span>
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("relation-list").innerHTML = `\x3ca class="relation-card" href="${route(previous.section_id)}">\x3cstrong>前の項目\x3c/strong>\x3cspan>${escapeHtml(previous.title)}\x3c/span>\x3c/a>\x3ca class="relation-card" href="${route(next.section_id)}">\x3cstrong>次の項目\x3c/strong>\x3cspan>${escapeHtml(next.title)}\x3c/span>\x3c/a>`;
+        document.getElementById("section-tabs").innerHTML = sections
+          .map((item, tabIndex) => `<a class="section-tab ${item.section_id === section.section_id ? "is-active" : ""}" href="${route(item.section_id)}">${String(tabIndex + 1).padStart(2, "0")} ${escapeHtml(item.title)}</a>`)
+          .join("");
+        document.getElementById("prev-link").href = route(previous.section_id);
+        document.getElementById("prev-link").textContent = "前へ";
+        document.getElementById("next-link").href = route(next.section_id);
+        document.getElementById("next-link").textContent = "次へ";
+        if (wasInvalid) document.getElementById("invalid-section").classList.add("is-open");
+
+      }
+
+      function initChat(section) {
+        const form = document.getElementById("detail-chat-form");
+        const message = document.getElementById("detail-chat-message");
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const value = message.value.trim();
+          if (!value) return;
+          setSession(STORAGE_KEYS.detailQuestion, {
+            service_key: SERVICE.service_key,
+            report_version: SERVICE.report_version,
+            section_id: section.section_id,
+            title: section.title,
+            question: value,
+            created_at: new Date().toISOString()
+          });
+          message.value = "";
+          document.getElementById("permission-note").innerHTML = `
+            \x3cstrong>質問を保存した\x3c/strong>
+            \x3cspan>今の詳細項目をもとに続けて答える。\x3c/span>
+          `;
+          document.getElementById("permission-note").classList.add("is-open");
+        });
+      }
+
+      async function init() {
+        if (window.UMSHReportAccess) return;
+        const data = readJsonBlock("DETAIL_DATA");
+        const report = reportFromSession() || await fetchReportById(selectedReportId());
+        const sections = dynamicSectionsFromReport(report, data);
+        const wanted = selectedSectionId(data || {});
+        let index = sections.findIndex((section) => section.section_id === wanted);
+        const wasInvalid = index < 0;
+        if (index < 0) index = Math.max(0, sections.findIndex((section) => section.section_id === data?.default_section_id));
+        const section = sections[index];
+        if (!section) return;
+        setSession(STORAGE_KEYS.selectedSection, {
+          service_key: SERVICE.service_key,
+          report_version: SERVICE.report_version,
+          report_id: selectedReportId(),
+          section_id: section.section_id,
+          title: section.title,
+          selected_at: new Date().toISOString()
+        });
+        render(section, sections, index, wasInvalid);
+        initChat(section);
+      }
+
+      init();
+    </script>
+    <div data-umsh-service-bottom></div>
+    <script src="/js/home-dashboard.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-home-reading.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/service-shell.js?v=20261008-three-voice-v1"></script>
+      <!-- 2026-09-15: 해석 신고 버튼을 전 화면에서 내렸다. 되살릴 때 주석만 풀 것. <script src="/js/ai-report-flag.js?v=20261008-three-voice-v1" defer></script> -->
+  </body>
+</html>

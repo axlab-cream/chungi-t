@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Do I have the angle to pass? | Fortune Shop</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Fortune Shop" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Fortune Shop - We sell fate." />
+    <meta name="twitter:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta name="description" content="A passing-readiness report covering exam fortune, study strategies, mindset, study setting, and exam timing" />
+    <meta name="application-name" content="Fortune Shop" />
+    <meta property="og:title" content="Do I have a real shot at passing?" />
+    <meta property="og:description" content="Check whether this is a stretch when you&#39;re more likely to pass, and how to study so your chances improve." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #030604;
+        --surface: #07120e;
+        --panel: rgba(7, 18, 14, 0.92);
+        --line: rgba(214, 255, 120, 0.22);
+        --ink: #fffdf2;
+        --muted: rgba(255, 253, 242, 0.72);
+        --dim: rgba(255, 253, 242, 0.52);
+        --mint: #4effca;
+        --yellow: #efff4a;
+        --gold: #f1c969;
+        font-family: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { min-width: 320px; background: #000; scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 50% -8%, rgba(78, 255, 202, 0.28), transparent 24rem),
+          radial-gradient(circle at 0% 18%, rgba(239, 255, 74, 0.12), transparent 16rem),
+          #000;
+        color: var(--ink);
+      }
+      a, button { -webkit-tap-highlight-color: transparent; }
+      button { font: inherit; cursor: pointer; }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100svh;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.56);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(3, 6, 4, 0.88);
+        backdrop-filter: blur(16px);
+      }
+      .brand { display: grid; gap: 2px; color: inherit; text-decoration: none; }
+      .brand strong { font-size: 15px; font-weight: 950; letter-spacing: 0; }
+      .brand span { color: var(--dim); font-size: 10px; font-weight: 850; letter-spacing: 0.12em; }
+      .price-chip {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 12px;
+        border: 1px solid rgba(239, 255, 74, 0.4);
+        border-radius: 999px;
+        background: rgba(239, 255, 74, 0.1);
+        color: var(--yellow);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .poster {
+        position: relative;
+        padding: 0;
+        background: #020403;
+      }
+      .poster img { display: block; width: 100%; height: auto; }
+      .poster::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -44px;
+        z-index: 1;
+        height: 45px;
+        background: linear-gradient(to bottom, #020403, var(--surface));
+        pointer-events: none;
+      }
+
+      .story-image {
+        position: relative;
+        min-height: 300px;
+        margin-top: -1px;
+        overflow: hidden;
+        background: #050403;
+      }
+      .story-image.tall { min-height: 430px; }
+      .story-image.deep { min-height: 520px; }
+      .story-image img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .story-image::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(3, 6, 4, 0.78), rgba(3, 6, 4, 0.04) 20%, transparent 48%, rgba(3, 6, 4, 0.9)),
+          linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent 28%, rgba(0, 0, 0, 0.24));
+      }
+
+      .section {
+        position: relative;
+        padding: 30px 20px;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(78, 255, 202, 0.1), transparent 14rem),
+          var(--surface);
+      }
+      .section::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -84px;
+        height: 84px;
+        background: linear-gradient(to bottom, rgba(3, 6, 4, 0), var(--surface));
+        pointer-events: none;
+      }
+      .section.tight {
+        margin-top: 0;
+        padding-top: 60px;
+      }
+      .section.tight::before { display: none; }
+      .story-image + .section,
+      .visual + .section {
+        margin-top: -58px;
+        padding-top: 78px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        color: var(--mint);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.12em;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--mint);
+        box-shadow: 0 0 18px var(--mint);
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      h1, h2, h3 {
+        letter-spacing: 0;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        text-wrap: balance;
+      }
+      h1 {
+        max-width: 10ch;
+        margin-bottom: 14px;
+        font-size: clamp(42px, 13vw, 62px);
+        line-height: 0.98;
+        font-weight: 950;
+      }
+      h2 {
+        margin-bottom: 12px;
+        font-size: clamp(28px, 8vw, 38px);
+        line-height: 1.08;
+        font-weight: 950;
+      }
+      h3 { margin-bottom: 6px; font-size: 17px; line-height: 1.28; }
+      p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.68;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        text-wrap: pretty;
+      }
+      .mint { color: var(--mint); }
+      .yellow { color: var(--yellow); }
+
+      .cta-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 22px; }
+      .button, .ghost {
+        min-height: 54px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 18px;
+        border-radius: 8px;
+        font-weight: 950;
+        text-decoration: none;
+      }
+      .button {
+        border: 1px solid rgba(78, 255, 202, 0.75);
+        background: linear-gradient(135deg, var(--mint), var(--yellow));
+        color: #03120c;
+        box-shadow: 0 16px 46px rgba(78, 255, 202, 0.2);
+      }
+      .ghost {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+      }
+      .button:focus-visible, .ghost:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+
+      .visual {
+        position: relative;
+        min-height: 520px;
+        margin-top: -1px;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        background: #020403;
+      }
+      .visual img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(3, 6, 4, 0.82), rgba(0, 0, 0, 0.18) 24%, rgba(0, 0, 0, 0.28) 46%, rgba(0, 0, 0, 0.94)),
+          linear-gradient(to right, rgba(0, 0, 0, 0.46), transparent 62%);
+      }
+      .visual + .story-image,
+      .story-image + .visual {
+        margin-top: -72px;
+      }
+      .story-image + .story-image {
+        margin-top: -96px;
+      }
+      .visual + .story-image::after,
+      .story-image + .visual::after,
+      .story-image + .story-image::after {
+        background:
+          linear-gradient(to bottom, rgba(3, 6, 4, 0.9), rgba(3, 6, 4, 0.1) 24%, transparent 48%, rgba(3, 6, 4, 0.9)),
+          linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent 28%, rgba(0, 0, 0, 0.24));
+      }
+      .visual-copy {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        padding: 28px 20px max(30px, env(safe-area-inset-bottom));
+      }
+
+      .cards, .proof { display: grid; gap: 10px; margin-top: 18px; }
+      .signal-card, .proof-row {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+      .signal-card { position: relative; overflow: hidden; padding: 15px; }
+      .signal-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: linear-gradient(to bottom, var(--mint), var(--yellow));
+      }
+      .signal-card strong { display: block; margin-bottom: 4px; font-size: 15px; line-height: 1.35; }
+      .signal-card span { display: block; color: var(--muted); font-size: 12px; line-height: 1.55; word-break: keep-all; }
+      .proof-row { display: flex; justify-content: space-between; gap: 12px; padding: 13px 14px; }
+      .proof-row span { color: var(--dim); font-size: 12px; }
+      .proof-row strong { color: var(--ink); font-size: 12px; text-align: right; }
+
+      .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+      .scope {
+        min-height: 112px;
+        padding: 14px;
+        border: 1px solid rgba(239, 255, 74, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+      .scope b { display: block; margin-bottom: 7px; color: var(--yellow); font-size: 14px; }
+      .scope small { display: block; color: var(--muted); font-size: 11px; line-height: 1.48; word-break: keep-all; }
+
+      .footer { padding: 22px 20px 32px; color: var(--dim); font-size: 11px; line-height: 1.7; }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .visual img { animation: slowZoom 12s ease-in-out infinite alternate; }
+        @keyframes slowZoom {
+          from { transform: scale(1.01); }
+          to { transform: scale(1.06); }
+        }
+      }
+      @media (min-width: 720px) {
+        body { padding: 24px 0; }
+        .app { min-height: calc(100svh - 48px); border: 1px solid rgba(255, 255, 255, 0.12); }
+      }
+
+      body.umsh-has-chrome .app{padding-bottom:calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom, 0px))}
+      body.umsh-has-chrome .footer{padding-bottom:18px}
+    </style>
+    <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="app" id="step-1-story" data-umsh-chrome data-service="PASS ANGLE" data-price="9,900 KRW" data-active="home">
+      <header class="appbar topbar" aria-label="Top of the service">
+        <a class="brand" href="/me/pass-angle" aria-label="Fortune Shop home">
+          <strong>Fortune Shop</strong>
+          <span>PASS ANGLE</span>
+        </a>
+        <span class="price-chip">9,900 KRW</span>
+      </header>
+
+      <section class="poster" aria-label="“Am I likely to pass?” main image">
+        <img src="../assets/pass-angle/hero.png" alt="Main image for “Do I have a shot at passing?”, with a passing ticket and exam objects arranged explosively" />
+      </section>
+
+      <section class="section tight" aria-labelledby="hero-title">
+        <span class="eyebrow">PASS OR HOLD</span>
+        <h1 id="hero-title">Do I have a real shot at passing?</h1>
+        <p>
+          Push ahead this year, change strategy, or try again? Look at exam fortune, study methods, mental well-being, environment, and test-day condition together.
+        </p>
+        <div class="cta-row">
+          <a class="button" href="../02-step-2-saju-input/index.html#step-2-saju-input">Check my prospects of passing</a>
+          <a class="ghost" href="#preview">See first what is being looked at</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">FLOW CHECK</span>
+        <h2>Not just a look at your luck <span class="mint">The way it sticks</span>Let us set it from</h2>
+        <p>
+          Even the same exam has a case that draws strength when you cram, and a case that draws strength when you build a routine. Let&#39;s look at the current flow and my study type together.
+        </p>
+        <div class="cards">
+          <div class="signal-card"><strong>Do I have a real shot at passing?</strong><span>Start with the overall picture and GO/HOLD. We will separate what may be worth trying now from what needs a longer view.</span></div>
+          <div class="signal-card"><strong>How I use my mind</strong><span>First check whether you learn by memorizing or understanding, and in bursts or steadily.</span></div>
+          <div class="signal-card"><strong>Body and mind for enduring</strong><span>Let us look at burnout signals and the rhythm of sleep and recovery. I will also organize a sentence to hold when things shake.</span></div>
+        </div>
+      </section>
+
+      <section class="story-image" aria-label="A path where energy that draws in and energy that holds diverge">
+        <img src="../assets/pass-angle/01-bridge-01-flow-split.webp" alt="A chart-flow path dividing dark and golden energies" />
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">FIRST JUDGEMENT</span>
+        <h2>For now <span class="yellow">A period to push ahead</span>Let&#39;s distinguish which first</h2>
+        <p>
+          Supportive and restraining influences can appear together. The first assessment is not a yes-or-no verdict. Look at whether GO, HOLD, or regrouping fits better.
+        </p>
+      </section>
+
+      <section class="story-image deep" aria-label="A golden life path carrying exam-preparation flow">
+        <img src="../assets/pass-angle/01-bridge-06-life-flow.webp" alt="A golden destiny path symbolizing the long flow of exam preparation" />
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">ONE SHOT OR LONG GAME</span>
+        <h2>Whether it can be done in one go, <span class="mint">The long-game outlook</span>Let&#39;s distinguish which</h2>
+        <p>
+          Neither just enduring nor just charging ahead is the answer. First see whether your flow suits short-term contests or long-term accumulation, so your strategy wavers less.
+        </p>
+      </section>
+
+      <section class="visual" aria-labelledby="study-title">
+        <img src="../assets/pass-angle/study.png" alt="A spiritual exam strategist who analyzes study tendencies and ways of remembering" />
+        <div class="visual-copy">
+          <span class="eyebrow">STUDY TYPE</span>
+          <h2 id="study-title">Start with the study method that actually lands in my head</h2>
+          <p>
+            Memorizing, understanding, studying alone, groups, bursts, or steady routines. See whether pushing through a poor-fitting method is draining your energy.
+          </p>
+        </div>
+      </section>
+
+      <section class="story-image" aria-label="A destiny document listing saju and exam-preparation criteria">
+        <img src="../assets/pass-angle/01-bridge-02-destiny-paper.webp" alt="An old destiny document and Four Pillars chart under candlelight" />
+      </section>
+
+      <section class="visual" aria-labelledby="timing-title">
+        <img src="../assets/pass-angle/timing.png" alt="A strategist assessing exam-passing timing and preparation periods" />
+        <div class="visual-copy">
+          <span class="eyebrow">PASS TIMING</span>
+          <h2 id="timing-title">Start by distinguishing when to push and when to hold steady</h2>
+          <p>
+            Look at this year’s overall pattern, favorable and unfavorable months, application and registration timing, and when to consider trying again alongside your actual schedule.
+          </p>
+        </div>
+      </section>
+
+      <section class="story-image tall" aria-label="A golden sphere with rising passing-exam energy">
+        <img src="../assets/pass-angle/01-bridge-03-energy-orb.webp" alt="A sphere with golden energy rising out of darkness" />
+      </section>
+
+      <section class="visual" aria-labelledby="mental-title">
+        <img src="../assets/pass-angle/blockers.png" alt="An exam strategist who blocks study distractions and mental wobble" />
+        <div class="visual-copy">
+          <span class="eyebrow">BLOCKER CUT</span>
+          <h2 id="mental-title">Catch focus-breaking patterns too</h2>
+          <p>
+            Comparison, social media, attraction to others, and worries about money and daily life. Identify the patterns, including self-doubt, that interrupt your focus and work out how to respond.
+          </p>
+        </div>
+      </section>
+
+      <section class="story-image deep" aria-label="The network of people who push me, and of advice">
+        <img src="../assets/pass-angle/01-bridge-07-support-network.webp" alt="A golden network symbolizing supportive people and advice to avoid" />
+      </section>
+
+      <section class="section">
+        <span class="eyebrow">SUPPORT SIGNAL</span>
+        <h2>People who support me and <span class="yellow">Advice to avoid</span>Let&#39;s look at it too</h2>
+        <p>
+          Study groups, classes, mentors, and family expectations aren’t all helpful. Let’s separate advice that supports you now from advice that drains you.
+        </p>
+      </section>
+
+      <section class="story-image" aria-label="An old-book desk with accumulated study evidence and interpretation criteria">
+        <img src="../assets/pass-angle/01-bridge-04-old-books.webp" alt="A reading desk with old books, candlelight, and a chart" />
+      </section>
+
+      <section class="section" id="preview">
+        <span class="eyebrow">REPORT PREVIEW</span>
+        <h2>After payment, <span class="yellow">Pass outlook index</span> opens</h2>
+        <p>
+          It won’t end with exam fortune. I’ll organize study strategies and exam-day routines for immediate use.
+        </p>
+        <div class="scope-grid">
+          <div class="scope"><b>Patterns that support passing</b><small>Overall judgment, GO/HOLD, supporting and restraining energies</small></div>
+          <div class="scope"><b>Study strategy</b><small>Memorizing or understanding, bursts or consistency, studying alone or together</small></div>
+          <div class="scope"><b>Exam compatibility</b><small>Multiple choice, written response, organizational, professional, language, interview and oral</small></div>
+          <div class="scope"><b>Mind and environment</b><small>Burnout, sleep, desk direction, helpful colors, and advice to avoid</small></div>
+          <div class="scope"><b>Choosing an exam date</b><small>Favorable conditions, conditions to avoid, and routines for the day before and the day itself</small></div>
+          <div class="scope"><b>Action plan</b><small>D-100, D-30, D-7, what to let go of, and criteria for trying again</small></div>
+        </div>
+      </section>
+
+      <section class="story-image" aria-label="A golden path leading toward passing">
+        <img src="../assets/pass-angle/01-bridge-05-golden-road.webp" alt="A golden path of exam preparation leading toward a distant light" />
+      </section>
+
+      <section class="story-image tall" aria-label="A ring of incense smoke for finding your center when shaken">
+        <img src="../assets/pass-angle/01-bridge-08-incense-ring.webp" alt="Incense smoke and a ring of fate that steadies the mind when it wavers" />
+      </section>
+
+      <section class="visual" aria-labelledby="cta-title">
+        <img src="../assets/pass-angle/action.png" alt="A strategist offering a passing talisman and planner on the road to the exam venue" />
+        <div class="visual-copy">
+          <span class="eyebrow">START CHECK</span>
+          <h2 id="cta-title">Instead of circling through worry, look at what you can do now</h2>
+          <p>
+            These are choice criteria, not fixed predictions. I&#39;ll separate pushing ahead, changing routines, and trying again.
+          </p>
+          <div class="cta-row">
+            <a class="button" href="../02-step-2-saju-input/index.html#step-2-saju-input">Check my prospects of passing</a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        This service offers Four Pillars-based tendency analysis and study-strategy content. It does not determine exam, hiring, legal, or medical outcomes. Make important decisions together with your actual preparedness.
+      </footer>
+    </main>
+
+    <script>
+      const serviceContext = {
+        service_key: "pass_angle_exam",
+        service_slug: "pass-angle",
+        service_title: "Do I have a real shot at passing?",
+        category: "Exam fortune and study strategies",
+        price_krw: 9900,
+        service_url_hint: "me.umsh.kr/pass-angle",
+        next_route: "../02-step-2-saju-input/index.html#step-2-saju-input",
+      };
+
+      document.querySelectorAll('a[href*="02-step-2-saju-input"]').forEach((link) => {
+        link.addEventListener("click", () => {
+          sessionStorage.setItem("umsh.pending_service", JSON.stringify({
+            service_key: serviceContext.service_key,
+            service_slug: serviceContext.service_slug,
+            entry_step: "01-step-1-story",
+            interpretation_index_source: "user_seed",
+          }));
+        });
+      });
+    </script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1" defer></script>
+    <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/pass-angle-service.js?v=20260928-funnel-gate" defer></script>
+  </body>
+</html>

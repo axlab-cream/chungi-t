@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Will my partner cheat? | Fortune Shop</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Fortune Shop" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Fortune Shop - We sell fate." />
+    <meta name="twitter:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta
+      name="description"
+      content="Check changed contact and promises, recurring distance, and conversations protecting the current relationship through both charts and the current situation."
+    />
+    <meta name="application-name" content="Fortune Shop" />
+    <meta name="theme-color" content="#080303" />
+    <meta property="og:title" content="Will my partner cheat? | Fortune Shop" />
+    <meta
+      property="og:description"
+      content="If you want to believe it is fine but keep noticing changes, start with scenes actually repeated between you rather than guesses."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080303;
+        --surface: rgba(17, 7, 6, 0.88);
+        --surface-strong: rgba(34, 10, 9, 0.92);
+        --line: rgba(235, 189, 101, 0.24);
+        --line-strong: rgba(235, 189, 101, 0.42);
+        --gold: #e9bf6a;
+        --gold-soft: #ffe2a3;
+        --red: #b31e24;
+        --red-deep: #4b0709;
+        --teal: #7fc7c6;
+        --text: #fff6e7;
+        --muted: rgba(255, 246, 231, 0.72);
+        --dim: rgba(255, 246, 231, 0.52);
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+        --font-ui: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #000;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(148, 19, 27, 0.18), transparent 30rem),
+          #000;
+        color: var(--text);
+        font-family: var(--font-ui);
+      }
+
+      body,
+      button {
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        width: min(100%, 440px);
+        min-height: 68px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(235, 189, 101, 0.14);
+        background: rgba(8, 3, 3, 0.86);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        text-decoration: none;
+      }
+
+      .brand strong {
+        color: var(--gold-soft);
+        font-family: var(--font-title);
+        font-size: 19px;
+        line-height: 1;
+      }
+
+      .brand span {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .top-pill {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        border: 1px solid rgba(235, 189, 101, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 100svh;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        padding: 92px 18px max(26px, env(safe-area-inset-bottom));
+      }
+
+      .hero :is(img, video),
+      .scene-media :is(img, video) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .hero :is(img, video) {
+        object-position: center top;
+      }
+
+      .scene-media :is(img, video) {
+        object-position: center 12%;
+      }
+
+      .scene-media.short :is(img, video) {
+        object-position: center top;
+      }
+
+      .hero::after,
+      .scene-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.16) 42%, rgba(0, 0, 0, 0.9) 100%),
+          linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent 20% 80%, rgba(0, 0, 0, 0.32));
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 16px;
+        width: 100%;
+      }
+
+      .eyebrow,
+      .chapter {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 9.8ch;
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: clamp(38px, 13vw, 58px);
+        line-height: 1.08;
+      }
+
+      h2 {
+        margin-bottom: 12px;
+        font-family: var(--font-title);
+        font-size: clamp(28px, 8vw, 38px);
+        line-height: 1.18;
+      }
+
+      h3 {
+        margin-bottom: 6px;
+        font-size: 17px;
+        line-height: 1.32;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+        word-break: keep-all;
+      }
+
+      .lead {
+        max-width: 31ch;
+        margin-bottom: 0;
+        color: rgba(255, 246, 231, 0.84);
+        font-size: 16px;
+        font-weight: 680;
+      }
+
+      .red {
+        color: #ff7676;
+      }
+
+      .gold {
+        color: var(--gold-soft);
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .primary-cta,
+      .secondary-link {
+        min-height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-weight: 950;
+        text-decoration: none;
+      }
+
+      .primary-cta {
+        flex: 1 1 190px;
+        padding: 13px 18px;
+        background: linear-gradient(135deg, #c6222b, #7b0e14);
+        color: #fff9ef;
+        box-shadow: 0 16px 34px rgba(151, 12, 23, 0.38);
+      }
+
+      .secondary-link {
+        flex: 0 0 auto;
+        padding: 13px 14px;
+        border: 1px solid rgba(235, 189, 101, 0.38);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--gold-soft);
+      }
+
+      .primary-cta:hover,
+      .secondary-link:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary-cta:focus-visible,
+      .secondary-link:focus-visible,
+      .preview-card:focus-visible {
+        outline: 2px solid var(--gold-soft);
+        outline-offset: 3px;
+      }
+
+      .quick-signals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .quick-signals li {
+        min-height: 32px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 10px;
+        border: 1px solid rgba(235, 189, 101, 0.22);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.26);
+        color: rgba(255, 226, 163, 0.9);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .scene {
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+        background:
+          radial-gradient(circle at 80% 0%, rgba(127, 199, 198, 0.08), transparent 18rem),
+          #080303;
+      }
+
+      .scene-media {
+        position: relative;
+        min-height: 510px;
+        overflow: hidden;
+      }
+
+      .scene-media.short {
+        min-height: 430px;
+      }
+
+      .scene-copy {
+        padding: 28px 20px 32px;
+      }
+
+      .scene-copy p:last-child {
+        margin-bottom: 0;
+      }
+
+      .signal-list,
+      .basis-list,
+      .conclusion-list {
+        display: grid;
+        gap: 10px;
+        padding: 0;
+        margin: 18px 0 0;
+        list-style: none;
+      }
+
+      .signal-list li,
+      .basis-list li,
+      .conclusion-list li {
+        border: 1px solid rgba(235, 189, 101, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 14px;
+        color: rgba(255, 246, 231, 0.78);
+        font-size: 14px;
+        font-weight: 750;
+        line-height: 1.5;
+      }
+
+      .basis-list li {
+        display: grid;
+        gap: 4px;
+      }
+
+      .basis-list strong {
+        color: var(--gold-soft);
+        font-size: 15px;
+      }
+
+      .preview-section {
+        padding: 30px 20px 34px;
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+        background:
+          linear-gradient(180deg, rgba(57, 8, 10, 0.42), rgba(8, 3, 3, 0.96)),
+          #110706;
+      }
+
+      .preview-head {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .preview-head p {
+        margin-bottom: 0;
+      }
+
+      .preview-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .preview-card {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 12px;
+        width: 100%;
+        padding: 14px;
+        border: 1px solid rgba(235, 189, 101, 0.24);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+        color: inherit;
+        text-align: left;
+        text-decoration: none;
+      }
+
+      .preview-card:hover {
+        border-color: var(--line-strong);
+        background: rgba(179, 30, 36, 0.14);
+      }
+
+      .preview-icon {
+        display: grid;
+        place-items: center;
+        align-self: start;
+        width: 42px;
+        height: 42px;
+        margin-top: 0;
+        border: 1px solid rgba(235, 189, 101, 0.28);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.22);
+        color: var(--gold-soft);
+        font-size: 18px;
+        font-weight: 950;
+      }
+
+      .preview-card strong {
+        display: block;
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.34;
+      }
+
+      .preview-card > span:not(.preview-icon) {
+        min-width: 0;
+      }
+
+      .preview-card > span:not(.preview-icon) > span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.42;
+      }
+
+      .cta-section {
+        position: relative;
+        min-height: 720px;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        padding: 32px 20px max(28px, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+      }
+
+      .cta-section :is(img, video) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+      }
+
+      .cta-section::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.28) 48%, rgba(0, 0, 0, 0.94) 100%),
+          linear-gradient(to right, rgba(0, 0, 0, 0.32), transparent 20% 80%, rgba(0, 0, 0, 0.32));
+      }
+
+      .cta-copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 16px;
+        width: 100%;
+      }
+
+      .notice {
+        margin: 14px 0 0;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .footer {
+        padding: 24px 20px 84px;
+        border-top: 1px solid rgba(235, 189, 101, 0.14);
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.65;
+        background: #050202;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 24px 0;
+        }
+
+        .app {
+          min-height: calc(100vh - 48px);
+          border: 1px solid rgba(235, 189, 101, 0.16);
+        }
+
+        .topbar {
+          top: 24px;
+          border-left: 1px solid rgba(235, 189, 101, 0.16);
+          border-right: 1px solid rgba(235, 189, 101, 0.16);
+        }
+
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky,
+      body.umsh-has-chrome .submit-dock { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .signal-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css" />
+  </head>
+  <body>
+    <main class="app" data-umsh-chrome data-service="Could my partner stray?" data-price="19,900 KRW" data-active="home" id="step-1-story">
+      <header class="appbar topbar" aria-label="Top of the service">
+        <a class="brand" href="#step-1-story" aria-label="Back to Fortune Shop start">
+          <strong>Fortune Shop</strong>
+          <span>Couple compatibility</span>
+        </a>
+      </header>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <video
+          class="signal-video"
+          poster="../assets/signal/videos/01-scene-01-hero-poster.webp"
+          data-video-src="../assets/signal/videos/01-scene-01-hero.mp4"
+          data-video-priority="high"
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-label="A counselor in red looks at a phone and chart together"
+        ></video>
+        <div class="hero-copy">
+          <span class="eyebrow">When you want to believe it&#39;s fine, but something keeps nagging</span>
+          <h1 id="hero-title">Has love changed,<br /><span class="red">Could it be us?</span></h1>
+          <p class="lead">
+            Days that change without explanation stay with you more than one late reply. Let’s put both your Four Pillars beside what you are experiencing
+            and see where this unease began.
+          </p>
+          <div class="cta-row">
+            <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>View our relationship’s first signals</a>
+            <a class="secondary-link" href="#preview">Check the scope</a>
+          </div>
+          <ul class="quick-signals" aria-label="Relationship situations to check first">
+            <li>Changed contact</li>
+            <li>Unclear commitments</li>
+            <li>Something you want to ask again</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" aria-labelledby="concern-title">
+        <div class="scene-media">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/02-scene-02-concern-poster.webp"
+            data-video-src="../assets/signal/videos/02-scene-02-concern.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="A counselor in red checking phone notifications by a rainy night window"
+          ></video>
+        </div>
+        <div class="scene-copy">
+          <span class="chapter">Anxiety starts with small changes</span>
+          <h2 id="concern-title">Not because the reply is late,<br /><span class="gold">Because the explanation disappeared</span> It&#39;s anxiety</h2>
+          <p>
+            Plans once shared in advance now reach you later, explanations for changed plans get shorter, and asking can make you feel like the oversensitive one.
+            What unsettles you is not one late arrival, but a changed way of explaining.
+          </p>
+          <ul class="signal-list">
+            <li>Before counting contacts, look at changed hours and gaps in explanations.</li>
+            <li>I’ll separate their pulling away from your checking more out of anxiety.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" aria-labelledby="pattern-title">
+        <div class="scene-media">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/04-scene-03-pattern-poster.webp"
+            data-video-src="../assets/signal/videos/04-scene-03-pattern.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="Examining recurring relationship patterns with a teacup, ring, and phone"
+          ></video>
+        </div>
+        <div class="scene-copy">
+          <span class="chapter">A recurring sequence rather than a single moment</span>
+          <h2 id="pattern-title">Even as doubt grows<br /><span class="red">Always the same sequence</span>there is</h2>
+          <p>
+            If contact decreases, asking why causes fights, and days later things are brushed aside as if nothing happened, the problem is not one reply. The way discomfort is handled keeps getting stuck in the same place.
+          </p>
+          <ul class="signal-list">
+            <li>Start with the first situation that changed. We will arrange the reaction when you asked and what brought you closer again in order.</li>
+            <li>Separate signs of remaining affection from boundaries you must no longer overlook.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" aria-labelledby="basis-title">
+        <div class="scene-media short">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/03-scene-04-evidence-poster.webp"
+            data-video-src="../assets/signal/videos/03-scene-04-evidence.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="A counselor in red examining two Four Pillars charts and Five Elements flow"
+          ></video>
+        </div>
+        <div class="scene-copy">
+          <span class="chapter">Differences read in both of your Four Pillars charts</span>
+          <h2 id="basis-title">If your ways of loving differ,<br />Even the same silence <span class="gold">Completely differently</span> It can feel that way</h2>
+          <p>
+            One person feels secure by asking and resolving things right away; the other may need time to process alone.
+            Use both birth profiles to explain response speed and ways of returning after conflict in everyday language.
+          </p>
+          <ul class="basis-list">
+            <li>
+              <strong>The speed of checking affection</strong>
+              <span>Do you need words right away to feel secure, or watch actions before opening up? Look at that difference.</span>
+            </li>
+            <li>
+              <strong>How you reconnect after an argument</strong>
+              <span>Let&#39;s read the gap between the person who reaches out first and the one who takes time.</span>
+            </li>
+            <li>
+              <strong>Moments of wavering outside the relationship</strong>
+              <span>See how you both react when attention is divided among work, gatherings, and social media.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="scene" id="preview" aria-labelledby="preview-title">
+        <div class="scene-media short">
+          <video
+            class="signal-video"
+            poster="../assets/signal/videos/07-scene-05-preview-poster.webp"
+            data-video-src="../assets/signal/videos/07-scene-05-preview.mp4"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-label="A scene unfolding relationship-report topics through five symbolic cards"
+          ></video>
+        </div>
+        <div class="preview-section">
+          <div class="preview-head">
+            <span class="chapter">The story that continues after the free reading</span>
+            <h2 id="preview-title">More than a yes/no on cheating, what you want to know is<br /><span class="gold">Reasons to trust this relationship</span>that&#39;s why</h2>
+            <p>
+              To avoid feeding vague suspicion, I’ll connect both charts with the changes you described and walk through reassuring situations and situations you should not simply overlook.
+            </p>
+          </div>
+          <div
+            class="preview-grid"
+            aria-label="Representative reading items offered"
+            data-report-topic="Activity outside the relationship and an agreed boundary"
+            data-next-topic="A new point of contact and interest in the relationship"
+          >
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">1</span>
+              <span>
+                <strong>What changed first</strong>
+                <span>The scene where real changes began in contact, promises, or tone</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">2</span>
+              <span>
+                <strong>Behavior showing affection remains</strong>
+                <span>Relationship intent shown in schedules, responsibility, and repair efforts rather than words</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">3</span>
+              <span>
+                <strong>A time when attention turns outside the relationship</strong>
+                <span>How work, gatherings, social media, and past connections come between you</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">4</span>
+              <span>
+                <strong>A boundary you should not overlook this time</strong>
+                <span>Repeated avoidance and lies, and moments when mutually agreed promises are broken</span>
+              </span>
+            </div>
+            <div class="preview-card">
+              <span class="preview-icon" aria-hidden="true">5</span>
+              <span>
+                <strong>Questions to hear what they really want</strong>
+                <span>The order of asking so it does not end in interrogation, and when to start the conversation</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-section" id="cta" aria-labelledby="cta-title">
+        <video
+          class="signal-video"
+          poster="../assets/signal/videos/05-scene-06-cta-poster.webp"
+          data-video-src="../assets/signal/videos/05-scene-06-cta.mp4"
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-label="A final scene of a red-clad advisor handing over an envelope and blank chart"
+        ></video>
+        <div class="cta-copy">
+          <span class="chapter">Check free first</span>
+          <h2 id="cta-title">Before repeating only worries,<br /><span class="gold">The first two scenes of the two of us</span>start there</h2>
+          <p>
+            Write both people&#39;s birth details and what has actually changed now, and I&#39;ll show in detail, as 2 free readings, the part you can ease about and the part to talk about first.
+
+          </p>
+          <a class="primary-cta" href="../02-step-2-saju-input/index.html#step-2-saju-input" data-next>Open a free reading of our relationship</a>
+          <p class="notice">
+            A reference reading based on traditional Four Pillars. Actual fact-checking, conversation, and mutual consent are the basis for relationship judgment.
+          </p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        This service does not determine your relationship from one scene. It places changes you wrote yourself alongside traditional Four Pillars interpretations to guide conversations to check now and boundaries to protect.
+      </footer>
+    </main>
+
+    <script src="../signal-video.js"></script>
+    <script>
+      const serviceState = {
+        service_key: "couple_signal",
+        service_slug: "couple-signal",
+        service_title: "Will my partner cheat?",
+        category: "Couple compatibility",
+        subcategory: "Will my partner cheat?",
+        price_krw: 19900,
+        analysis_basis: ["Four Pillars compatibility", "Five Elements", "Day branch"],
+        analysis_period: "Current flow and the near term",
+        target_question: "I want to explore confirmed changes in the relationship and boundaries we agreed on.",
+        report_version: "couple-signal-v1",
+        copy_version: "intro-red-v2"
+      };
+
+      const nextRoute = "../02-step-2-saju-input/index.html";
+      const nextHash = "step-2-saju-input";
+
+      function goNext() {
+        const params = new URLSearchParams(window.location.search);
+        params.set("service_key", serviceState.service_key);
+        params.set("service_slug", serviceState.service_slug);
+        params.set("service_title", serviceState.service_title);
+        params.set("category", serviceState.category);
+        params.set("report_version", serviceState.report_version);
+        params.set("entry", "step-1-story");
+        sessionStorage.setItem(
+          "umsh:service:couple_signal",
+          JSON.stringify({
+            service_key: serviceState.service_key,
+            service_slug: serviceState.service_slug,
+            category: serviceState.category,
+            report_version: serviceState.report_version,
+            entry: "step-1-story"
+          })
+        );
+        window.location.href = `${nextRoute}?${params.toString()}#${nextHash}`;
+      }
+
+      document.querySelectorAll("[data-next]").forEach((button) => {
+        button.addEventListener("click", goNext);
+      });
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/signal-service.js?v=20261008-three-voice-v1" defer></script>
+  </body>
+</html>

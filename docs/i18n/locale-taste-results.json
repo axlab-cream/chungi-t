@@ -1,0 +1,65 @@
+{
+  "observedAt": "2026-10-12T06:53:20.693Z",
+  "mode": "live_requested",
+  "scope": "synthetic actual prompt-builder/provider transport smoke; NOT full API E2E, customer storage, entitlement, voice or report-queue validation",
+  "providerRequests": 0,
+  "maxProviderRequests": 4,
+  "retries": 0,
+  "outputTokenCapPerCall": 500,
+  "timeoutMsPerCall": 45000,
+  "localizationVersion": "generation-language-v1",
+  "models": {
+    "report": "gpt-5.6-luna",
+    "consultation": "gemini-3.8-flash"
+  },
+  "rows": [
+    {
+      "locale": "en",
+      "surface": "reading",
+      "model": "gpt-5.6-luna",
+      "status": "blocked",
+      "promptChars": 47006,
+      "promptSha256": "4436f5843127ebc0594561432e372236d3142629c1287f47970b7833f04970c2",
+      "requestSent": false,
+      "error": {
+        "code": "OPENAI_API_KEY_MISSING"
+      }
+    },
+    {
+      "locale": "en",
+      "surface": "consultation",
+      "model": "gemini-3.8-flash",
+      "status": "blocked",
+      "promptChars": 16738,
+      "promptSha256": "4a5c3bb8cd29eece48c809dfc7392651bef479235133ec877a4fa2deb0838f5d",
+      "requestSent": false,
+      "error": {
+        "code": "GEMINI_API_KEY_MISSING"
+      }
+    },
+    {
+      "locale": "ja",
+      "surface": "reading",
+      "model": "gpt-5.6-luna",
+      "status": "blocked",
+      "promptChars": 46310,
+      "promptSha256": "57aef364e47133cb09b38b49ad1e86ff8c18e45c4db70c9f586f69a942804af9",
+      "requestSent": false,
+      "error": {
+        "code": "OPENAI_API_KEY_MISSING"
+      }
+    },
+    {
+      "locale": "ja",
+      "surface": "consultation",
+      "model": "gemini-3.8-flash",
+      "status": "blocked",
+      "promptChars": 15938,
+      "promptSha256": "caddf897bbf6b3256f957289126f859dccc3743a81a2dbf9ea81316583a41976",
+      "requestSent": false,
+      "error": {
+        "code": "GEMINI_API_KEY_MISSING"
+      }
+    }
+  ]
+}

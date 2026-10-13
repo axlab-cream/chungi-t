@@ -1937,7 +1937,7 @@
       }
 
       .site-footer {
-        display: grid;
+        display: none;
         gap: 14px;
         padding: 28px 22px max(32px, env(safe-area-inset-bottom));
         border-top: 1px solid rgba(242, 191, 107, 0.14);
@@ -3914,13 +3914,13 @@
 
       function cachedProfileForSession(session) {
         const cached = readCachedUserProfile();
-        if (!cached) return null;
+        if (!cached || !isUsableProfileName(cached.name)) return null;
         if (!session?.user?.id) return cached;
         return cached.userId === session.user.id ? cached : null;
       }
 
       function applyUserProfile(profile, options = {}) {
-        if (!profile?.birth) return false;
+        if (!profile?.birth || !isUsableProfileName(profile.name)) return false;
         const birth = profile.birth;
         state.name = profile.name || state.name;
         state.target = profile.context?.target || state.target || "본인";
@@ -5108,13 +5108,13 @@
         stage.querySelector(".panel")?.append(nudge);
       }
 
+      function isUsableProfileName(value) {
+        const name = String(value || "").trim().normalize("NFC");
+        return Array.from(name).length >= 2 && Array.from(name).length <= 20 && /^[\p{L}\p{M}][\p{L}\p{M} .'’\-]*$/u.test(name);
+      }
+
       function validateName(value) {
-        const name = String(value || "").trim();
-        if (!name) return "이름을 입력해주세요.";
-        if (name.length < 2) return "이름은 한글 2자 이상 입력해주세요.";
-        if (name.length > 5) return "이름은 한글 5자까지만 입력해주세요.";
-        if (!/^[가-힣]+$/.test(name)) return "이름은 한글만 입력해주세요. 영어, 숫자, 특수기호는 사용할 수 없습니다.";
-        return "";
+        return isUsableProfileName(value) ? "" : "이름은 문자 2자 이상 20자 이하로 입력해 주세요.";
       }
 
       function validateBirth(value) {

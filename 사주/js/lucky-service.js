@@ -437,7 +437,9 @@
     const page = $('#step-5-chat') || $('#step-6_1-report');
     if (!page) return;
     let button = $('#btn-pdf');
-    if (!button) {
+    // 2026-10-12: PDF 저장은 보관함에서만 받는다. 결과 화면에는 새로 만들지 않는다.
+    if (!button) return;
+    if (false) {
       // 다른 서비스와 같은 자리: 상단바가 아니라 본문 끝(목록 링크·입력창 바로 위).
       const dock = document.createElement('div');
       dock.className = 'umsh-pdf-dock';

@@ -1,0 +1,1356 @@
+<!DOCTYPE html><html lang="ko" data-umsh-verified-inplace=""><head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <script src="/js/umsh-funnel-auth-gate.js?v=live-20260916t"></script>
+    <script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>無料要約|恋人は浮気する？</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="運命商会">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" content="運命商会 - 運命を売ります。">
+    <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="運命商会 - 運命を売ります。">
+    <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。">
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide">
+    <meta name="description" content="関係の温度感、揺らぎの手がかり、決済後に開く関係のサインのリポートの範囲を確認する無料の要約画面">
+    <meta name="application-name" content="運命商会">
+    <meta name="theme-color" content="#080303">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080303;
+        --surface: rgba(17, 7, 7, 0.92);
+        --surface-strong: rgba(36, 9, 10, 0.95);
+        --surface-soft: rgba(255, 255, 255, 0.055);
+        --line: rgba(235, 189, 101, 0.22);
+        --line-strong: rgba(235, 189, 101, 0.48);
+        --gold: #e9bf6a;
+        --gold-soft: #ffe4aa;
+        --red: #b31e24;
+        --red-deep: #52080b;
+        --teal: #78c7bf;
+        --text: #fff7ea;
+        --muted: rgba(255, 247, 234, 0.72);
+        --dim: rgba(255, 247, 234, 0.52);
+        --danger: #ff7468;
+        --ok: #8bd6ae;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+        --font-ui: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #000;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% -12rem, rgba(179, 30, 36, 0.24), transparent 34rem),
+          radial-gradient(circle at 5% 34rem, rgba(120, 199, 191, 0.08), transparent 22rem),
+          #000;
+        color: var(--text);
+        font-family: var(--font-ui);
+      }
+
+      body,
+      button {
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(88, 8, 10, 0.32), transparent 28rem),
+          var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 20;
+        width: min(100%, 440px);
+        min-height: 68px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(235, 189, 101, 0.14);
+        background: rgba(8, 3, 3, 0.88);
+        backdrop-filter: blur(16px);
+      }
+
+      .back-link {
+        width: 38px;
+        height: 38px;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid rgba(235, 189, 101, 0.2);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .brand {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+      }
+
+      .brand strong {
+        overflow: hidden;
+        color: var(--gold-soft);
+        font-family: var(--font-title);
+        font-size: 18px;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand span {
+        color: var(--dim);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .top-pill {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        border: 1px solid rgba(235, 189, 101, 0.26);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--gold-soft);
+        font-size: 12px;
+        font-weight: 950;
+        white-space: nowrap;
+      }
+
+      main {
+        padding-bottom: 98px;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 88svh;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        padding: 92px 18px 28px;
+        background: #160707;
+      }
+
+      .hero :is(img, video),
+      .image-band :is(img, video),
+      .cta-visual :is(img, video) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .hero :is(img, video) {
+        object-position: center 18%;
+      }
+
+      .hero::after,
+      .image-band::after,
+      .cta-visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.34) 42%, rgba(0, 0, 0, 0.94)),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.46), transparent 54%);
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        display: grid;
+        gap: 16px;
+      }
+
+      .eyebrow,
+      .section-kicker {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        letter-spacing: 0;
+      }
+
+      .hero h1 {
+        max-width: 11ch;
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: clamp(36px, 12vw, 56px);
+        line-height: 1.08;
+      }
+
+      .hero p {
+        max-width: 24rem;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.65;
+      }
+
+      .hero-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .meta-chip,
+      .summary-card,
+      .toc-card,
+      .state-card {
+        border: 1px solid rgba(235, 189, 101, 0.16);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+      }
+
+      .meta-chip {
+        min-height: 62px;
+        display: grid;
+        align-content: center;
+        gap: 4px;
+        padding: 10px 8px;
+      }
+
+      .meta-chip span {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .meta-chip strong {
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .section {
+        display: grid;
+        gap: 15px;
+        padding: 30px 18px;
+      }
+
+      .section.deep {
+        background:
+          radial-gradient(circle at 0% 0%, rgba(179, 30, 36, 0.14), transparent 16rem),
+          rgba(0, 0, 0, 0.18);
+      }
+
+      .section-head {
+        display: grid;
+        gap: 8px;
+      }
+
+      h2 {
+        margin-bottom: 0;
+        font-family: var(--font-title);
+        font-size: 26px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        margin-bottom: 0;
+        color: var(--gold-soft);
+        font-size: 17px;
+        line-height: 1.35;
+      }
+
+      .section-head p,
+      .body-copy,
+      .fineprint {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.68;
+      }
+
+      .fineprint {
+        color: var(--dim);
+        font-size: 12px;
+      }
+
+      .result-callout {
+        padding: 17px;
+        border: 1px solid rgba(235, 189, 101, 0.24);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(179, 30, 36, 0.22), rgba(57, 8, 8, 0.28)),
+          rgba(255, 255, 255, 0.05);
+      }
+
+      .result-callout strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--gold-soft);
+        font-family: var(--font-title);
+        font-size: 21px;
+        line-height: 1.34;
+      }
+
+      .result-callout p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .summary-card {
+        min-height: 130px;
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .summary-card span {
+        width: 32px;
+        height: 32px;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid rgba(235, 189, 101, 0.2);
+        border-radius: 50%;
+        background: rgba(179, 30, 36, 0.2);
+        color: var(--gold-soft);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .summary-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .confidence {
+        display: inline-flex;
+        width: max-content;
+        min-height: 25px;
+        align-items: center;
+        padding: 0 9px;
+        border: 1px solid rgba(120, 199, 191, 0.24);
+        border-radius: 999px;
+        background: rgba(120, 199, 191, 0.08);
+        color: var(--teal);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .image-band {
+        position: relative;
+        min-height: 360px;
+        overflow: hidden;
+        background: #120606;
+      }
+
+      .image-band :is(img, video) {
+        object-position: center 12%;
+      }
+
+      .image-band .caption {
+        position: absolute;
+        inset: auto 18px 18px;
+        z-index: 1;
+        padding: 15px;
+        border: 1px solid rgba(235, 189, 101, 0.2);
+        border-radius: 8px;
+        background: rgba(8, 3, 3, 0.62);
+        backdrop-filter: blur(12px);
+      }
+
+      .caption p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.62;
+      }
+
+      .flow-list,
+      .toc-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .flow-row {
+        display: grid;
+        grid-template-columns: 76px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid rgba(235, 189, 101, 0.14);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .flow-row strong {
+        color: var(--gold-soft);
+        font-size: 13px;
+      }
+
+      .flow-row span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .toc-card {
+        display: grid;
+        gap: 7px;
+        padding: 13px 14px;
+      }
+
+      .toc-card strong {
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .toc-card span {
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .toc-card.is-locked {
+        position: relative;
+      }
+
+      .toc-card.is-locked::after {
+        content: "支払い後に開く";
+        width: max-content;
+        min-height: 22px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        border: 1px solid rgba(235, 189, 101, 0.2);
+        border-radius: 999px;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .state-stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .state-card {
+        display: grid;
+        grid-template-columns: 84px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding: 13px;
+      }
+
+      .state-card strong {
+        color: var(--gold-soft);
+        font-size: 13px;
+      }
+
+      .state-card span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .cta-visual {
+        position: relative;
+        min-height: 520px;
+        display: grid;
+        align-items: end;
+        overflow: hidden;
+        padding: 22px 18px 24px;
+        background: #120606;
+      }
+
+      .cta-visual :is(img, video) {
+        object-position: center 8%;
+      }
+
+      .cta-box {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(235, 189, 101, 0.23);
+        border-radius: 8px;
+        background: rgba(8, 3, 3, 0.78);
+        backdrop-filter: blur(14px);
+      }
+
+      .price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid rgba(235, 189, 101, 0.13);
+        border-bottom: 1px solid rgba(235, 189, 101, 0.13);
+      }
+
+      .price-row span {
+        color: var(--dim);
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .price-row strong {
+        color: var(--gold-soft);
+        font-size: 20px;
+      }
+
+      .agreement {
+        display: grid;
+        gap: 8px;
+      }
+
+      .check-row {
+        min-height: 46px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 12px;
+        border: 1px solid rgba(235, 189, 101, 0.15);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 850;
+        cursor: pointer;
+      }
+
+      .check-row input {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        accent-color: var(--gold-soft);
+      }
+
+      .check-row:has(input:checked) {
+        border-color: rgba(242, 191, 107, 0.72);
+        color: var(--text);
+      }
+
+      .check-all {
+        border-color: rgba(242, 191, 107, 0.42);
+        background: rgba(139, 30, 22, 0.28);
+        color: var(--text);
+      }
+
+      .actions {
+        position: fixed;
+        inset: auto 0 0;
+        z-index: 30;
+        width: min(100%, 440px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        margin: 0 auto;
+        padding: 12px 16px max(14px, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(235, 189, 101, 0.15);
+        background: rgba(8, 3, 3, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .ghost,
+      .primary {
+        min-height: 52px;
+        border-radius: 8px;
+        font-weight: 950;
+      }
+
+      .ghost {
+        border: 1px solid rgba(255, 226, 175, 0.17);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+      }
+
+      .primary {
+        border: 1px solid rgba(255, 225, 168, 0.38);
+        background: linear-gradient(180deg, #b31e24, #650d10);
+        color: #fff8e8;
+        box-shadow: 0 16px 34px rgba(105, 9, 12, 0.34);
+      }
+
+      .primary:disabled {
+        cursor: not-allowed;
+        opacity: 0.58;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 86px;
+        z-index: 40;
+        width: min(calc(100% - 32px), 408px);
+        transform: translateX(-50%);
+        padding: 12px 14px;
+        border: 1px solid rgba(235, 189, 101, 0.2);
+        border-radius: 8px;
+        background: rgba(8, 3, 3, 0.94);
+        color: var(--gold-soft);
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.5;
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.38);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .footer {
+        padding: 26px 18px 0;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      .footer a {
+        color: var(--gold-soft);
+        font-weight: 850;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 26px 0;
+        }
+
+        .app {
+          min-height: calc(100vh - 52px);
+          border: 1px solid rgba(235, 189, 101, 0.16);
+          border-radius: 18px;
+        }
+
+        .topbar {
+          border-radius: 18px 18px 0 0;
+        }
+      }
+
+      @media (max-width: 370px) {
+        .hero-meta,
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .state-card,
+        .flow-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .primary,
+        .ghost,
+        .back-link,
+        .check-row,
+        .toc-card {
+          transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            background 160ms ease;
+        }
+
+        .primary:active,
+        .ghost:active,
+        .back-link:active,
+        .check-row:active {
+          transform: translateY(1px);
+        }
+      }
+
+      /* Shared UMSH chrome: keep the fixed bottom nav clear of the page's own CTA.
+         The shell publishes its measured height, but that measurement can land before
+         layout settles, so the floor keeps the reserve honest either way. */
+      body.umsh-has-chrome .app,
+      body.umsh-has-chrome .phone { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      body.umsh-has-chrome .sticky-cta,
+      body.umsh-has-chrome .sticky,
+      body.umsh-has-chrome .submit-dock { bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      .signal-saved-profile { display: grid; gap: 6px; border: 1px solid rgba(22, 181, 188, 0.45); border-radius: 10px; background: rgba(22, 181, 188, 0.08); padding: 14px; margin-bottom: 14px; }
+      .signal-saved-profile b { color: #80f1dc; font-size: 14px; }
+      .signal-saved-profile span { color: rgba(248, 255, 251, 0.76); font-size: 13px; line-height: 1.55; }
+      .signal-saved-profile button { justify-self: start; margin-top: 4px; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: inherit; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+</style>
+      <link rel="stylesheet" href="/css/umsh-chrome.css">
+  </head>
+  <body>
+    <div class="app" data-umsh-chrome="" data-service="恋人は浮気する？" data-price="19,900 KRW" data-active="home">
+      <header class="appbar topbar">
+
+        <div class="brand">
+          <strong>恋人は浮気します？</strong>
+          <span>無料の要約 · 全体レポートの案内</span>
+        </div>
+        <span class="top-pill">19,900ウォン</span>
+      </header>
+
+      <main id="step-4-report">
+        <div data-umsh-service-top></div>
+        <section id="umsh-preview-host" data-umsh-slot="preview" aria-label="自分の入力から先に見る関係シグナルの解釈"></section>
+        <section class="hero" aria-labelledby="hero-title">
+          <video class="signal-video" poster="../assets/signal/videos/08-free-hero-poster.webp" data-video-src="../assets/signal/videos/08-free-hero.mp4" data-video-priority="high" muted="" loop="" playsinline="" preload="none" aria-label="二人の関係のサインを見る赤い服の相談者"></video>
+          <div class="hero-copy">
+            <span class="eyebrow">無料要約</span>
+            <h1 id="hero-title">浮気より先に見る信号</h1>
+            <p data-hero-summary="">関係の温度、外の変数、会話の時期から分けよう。</p>
+            <div class="hero-meta" aria-label="入力基準の要約">
+              <div class="meta-chip">
+                <span>関係</span>
+                <strong data-meta-relationship="">交際中</strong>
+              </div>
+              <div class="meta-chip">
+                <span>焦点</span>
+                <strong data-meta-focus="">連絡のテンション</strong>
+              </div>
+              <div class="meta-chip">
+                <span>基準</span>
+                <strong>命理の相性</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section deep" aria-labelledby="summary-title">
+          <div class="section-head">
+            <span class="section-kicker">無料要約</span>
+            <h2 id="summary-title">今は結論よりパターンから見よう</h2>
+            <p data-input-warning="" class="fineprint hidden"></p>
+          </div>
+          <div class="result-callout">
+            <strong data-teaser-headline="">相手の気持ちを決めるより、繰り返す合図を先に確かめる流れだ。</strong>
+            <p data-teaser-summary="">入力値をもとに、連絡、約束、表現の温度差を分けて見ます。</p>
+          </div>
+          <div class="summary-grid" data-signal-grid=""></div>
+        </section>
+
+        <section class="image-band" aria-labelledby="signal-title">
+          <video class="signal-video" poster="../assets/signal/videos/11-signal-card-poster.webp" data-video-src="../assets/signal/videos/11-signal-card.mp4" muted="" loop="" playsinline="" preload="none" aria-label="二枚の空の命式カードと赤い糸で、関係の合図を見る場面"></video>
+          <div class="caption">
+            <span class="section-kicker">核心シグナル</span>
+            <h2 id="signal-title">一つの行動だけで決め付けないで</h2>
+            <p>日支、五行、関係の星、繰り返す行動を束ねて、「なぜ不安が大きくなったか」と「何を確認すべきか」を分けて見ます。</p>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="flow-title">
+          <div class="section-head">
+            <span class="section-kicker">確認の流れ</span>
+            <h2 id="flow-title">無料で開いた部分</h2>
+            <p>全体の解説の前に、今見える方向だけを短く示す。</p>
+          </div>
+          <div class="flow-list">
+            <div class="flow-row">
+              <strong>強いサイン</strong>
+              <span data-flow-main="">連絡の温度感と約束の変化が同時に動いているか確認する。</span>
+            </div>
+            <div class="flow-row">
+              <strong>条件</strong>
+              <span data-flow-condition="">集まりやSNSの活動自体が問題ではありません。互いに合意した約束と実際の変化を確かめます。</span>
+            </div>
+            <div class="flow-row">
+              <strong>妨げになる要因</strong>
+              <span data-flow-obstacle="">不安が増すほど質問が追及に聞こえることがある。話す時を別に設けよう。</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="section deep" aria-labelledby="scope-title">
+          <div class="section-head">
+            <span class="section-kicker">全体レポート</span>
+            <h2 id="scope-title">決済すると開く実際の目次</h2>
+
+          </div>
+          <div class="toc-list" data-paid-scope=""></div>
+        </section>
+
+        <section class="cta-visual" aria-labelledby="cta-title">
+          <video class="signal-video" poster="../assets/signal/videos/09-payment-cta-poster.webp" data-video-src="../assets/signal/videos/09-payment-cta.mp4" muted="" loop="" playsinline="" preload="none" aria-label="関係レポートの冊子と封筒を渡す赤い服の相談者"></video>
+          <div class="cta-box">
+            <span class="section-kicker" data-cta-kicker="">全体レポート</span>
+            <h2 id="cta-title" data-cta-title="">関係の温度と揺れる時期、最後まで見てみる？</h2>
+            <p class="body-copy" data-cta-copy="">
+              無料の要約は入り口だ。支払い後は、関係の温度、関係の外の活動と合意した境界、関係の変化、恋人宮の合図、現実を確かめる行動まで続く。
+            </p>
+            <div class="price-row">
+              <span>全体レポート</span>
+              <strong>19,900ウォン</strong>
+            </div>
+            <div class="agreement" data-agreements="">
+              <label class="check-row check-all">
+                <input type="checkbox" data-agree-all="">
+                <span>すべて選択</span>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" data-agree="privacy">
+                <span>プライバシーポリシーへの同意</span>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" data-agree="payment">
+                <span>決済に進むための必須同意</span>
+              </label>
+            </div>
+            <p class="fineprint">
+              決済額と閲覧権限は、商品と注文履歴を基準に確認します。
+              <a href="/refund">返金・取消の案内</a>
+            </p>
+          </div>
+        </section>
+
+        <footer class="footer">
+          伝統的な四柱推命に基づく参考の解説です。実際の事実確認、会話、相互の同意が、関係を判断する基準です。
+        </footer>
+      </main>
+
+      <div class="actions">
+        <button class="ghost" type="button" data-back="">入力を修正</button>
+        <button class="primary" type="button" data-primary="">ログインして全体を見る (19,900 KRW)</button>
+      </div>
+
+      <div class="toast hidden" data-toast="" role="status" aria-live="polite"></div>
+    </div>
+
+    <script src="../signal-video.js"></script>
+    <script>
+      const service = {
+        service_key: "couple_signal",
+        service_slug: "couple-signal",
+        service_title: "恋人は浮気する？",
+        category: "カップル相性",
+        subcategory: "恋人は浮気する？",
+        price_krw: 19900,
+        analysis_basis: ["四柱推命の相性", "五行", "日支"],
+        analysis_period: "今の流れと近い時期",
+        target_question: "関係で確認された変化と、互いに合意した境界線を見たい。",
+        report_version: "couple-signal-v1",
+        copy_version: "report-free-red-v1"
+      };
+
+      const keys = {
+        reportInput: "umsh:report-input:couple_signal",
+        serviceState: "umsh:service:couple_signal",
+        reportPreview: "umsh:report-preview:couple_signal",
+        authReturn: "umsh:auth:return:couple_signal",
+        pendingPayment: "umsh:payment-pending:couple_signal",
+        activeReport: "umsh:active-report:couple_signal",
+        activeReportLegacy: "cheongi_active_report_id"
+      };
+
+      const paidScope = [
+        { id: "relationship_temperature", title: "今の私たちの関係の温度", items: ["本物の愛が続く見込み", "少し倦怠期かも", "連絡の温度感の変化", "デートの気の変化"] },
+        { id: "partner_signal_radar", title: "関係の外の活動と合意した境界", items: ["桃花・紅艶による魅力のサイン", "注目されるのが好きなタイプ", "不快な状況で守る境界", "関係の境界線を確認する場面"] },
+        { id: "switch_flirt_check", title: "新しい接点と、関係への意向", items: ["新しい出会いへの合意", "SNS・集まりの変数", "過去の関係に対する今の基準"] },
+        { id: "partner_palace_signal", title: "夫妻宮・恋人宮のサイン", items: ["夫妻宮の冲・合・刑・破・害チェック", "怨嗔の反りポイント。", "関係を近づける構造と遠ざける構造"] },
+        { id: "ten_gods_love_style", title: "十神で見る恋愛スタイル", items: ["比肩", "劫財", "食神", "傷官", "偏財", "正財", "偏官", "正官", "偏印", "正印"] },
+        { id: "compatibility_chemistry", title: "相性の分析", items: ["天干の相性。", "地支の相性", "五行の相生", "五行の相克", "対話がうまくいくタイプ"] },
+        { id: "timing_flow", title: "時期ごとの揺れ", items: ["歳運", "月運", "日辰", "初め", "中盤", "末期"] },
+        { id: "anxiety_source", title: "不安の原因の解釈", items: ["直感が合っているのか、不安なのか", "執着ボタンが押された理由", "会話が減った本当の理由"] },
+        { id: "reality_check_action", title: "現実確認の行動。", items: ["問い詰めず、確認の質問", "連絡パターンのチェックリスト", "会話の時機の提案", "関係を修復するための一言"] },
+        { id: "final_conclusion_type", title: "最終レポートの結論タイプ。", items: ["安心の可能性", "様子を見る見込み", "対話のタイミング", "境界を置く判断", "整理の時", "再確認のタイミング"] }
+      ];
+
+      const focusCopy = {
+        contact_change: {
+          label: "連絡の温度感",
+          signal: "連絡の速さより、言い方と約束の具体性が一緒に変わったかを先に見てください。",
+          condition: "返事の間隔、約束の変更、表現の減少が同じ時期に重なるなら、関係の温度の確認が必要だ。"
+        },
+        schedule_change: {
+          label: "約束の変化",
+          signal: "約束が曖昧になるほど、気持ちより生活パターンの分散を先に見る必要がある。",
+          condition: "外の予定や集まりが増えても約束を守れば問題とは見ません。不快な変化がある時だけ合意した境界を確かめます。"
+        },
+        sns_group: {
+          label: "SNS・集まり",
+          signal: "新しい接点の意味は、生年の情報では断定しない。本人が言った関係の意向と、実際の約束を一緒に確認する。",
+          condition: "SNSでの反応、集まりの頻度、連絡の優先順位が変わる場面を、あわせて確認する。"
+        },
+        ex_return: {
+          label: "元恋人の変数",
+          signal: "元恋人の変数は、復縁するかより、感情の整理が残る区間かが先だ。",
+          condition: "昔の連絡、思い出話、比べる話し方が繰り返されるとき、会話の基準を別に置く。"
+        },
+        cold_mood: {
+          label: "表現が減る",
+          signal: "表現が減っても、すぐ気持ちが冷めたとはいえません。温度と疲れを分けて見る必要があります。",
+          condition: "日常の疲れ・倦怠感・口調の変化が重なる時は関係の温度から整理します。"
+        },
+        not_sure: {
+          label: "すべてのサイン",
+          signal: "曖昧なら観察した変化があるかから確かめます。",
+          condition: "証拠より感覚が先に立つときは、連絡、約束、関心の分散をまとめて確認する。"
+        }
+      };
+
+      const relationLabels = {
+        lover: "交際中",
+        situationship: "ときめき・曖昧さ",
+        distance: "距離を置いている",
+        ex_variable: "元恋人の変数"
+      };
+
+      const agreement = {
+        privacy: false,
+        payment: false
+      };
+
+      function readJson(storage, key) {
+        try {
+          const value = storage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function writeSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function safeText(value, fallback = "") {
+        return String(value || fallback).trim();
+      }
+
+      function displayName(input) {
+        return safeText(input?.self?.alias, "自分");
+      }
+
+      function partnerName(input) {
+        return safeText(input?.partner?.alias, "相手");
+      }
+
+      function reportInput() {
+        const input = readJson(sessionStorage, keys.reportInput);
+        if (input?.service?.service_key === service.service_key && input?.input?.partner?.birth) {
+          return { data: input, missing: false };
+        }
+
+        return {
+          missing: true,
+          data: {
+            service,
+            schema_version: "couple-signal-input-v1",
+            subject_mode: "pair",
+            input: {
+              self: { alias: "自分" },
+              partner: { alias: "相手", relationship_status: "lover" },
+              signal_focus: "not_sure",
+              concern: "",
+              analysis_basis: service.analysis_basis
+            },
+            interpretation_index: paidScope
+          }
+        };
+      }
+
+      function currentReportId() {
+        const params = new URLSearchParams(location.search);
+        const existing = params.get("report_id") || params.get("reportId") || readJson(sessionStorage, keys.activeReport)?.report_id;
+        if (existing) return String(existing);
+        return `couple_signal_${Date.now().toString(36)}`;
+      }
+
+      function authSession() {
+        return window.UMSH_AUTH_SESSION || window.UMSHAuthSession?.session || null;
+      }
+
+      function serverEntitlement() {
+        return window.UMSH_ENTITLEMENT?.[service.service_key] || window.UMSHEntitlement?.[service.service_key] || null;
+      }
+
+      function paymentReturnStatus() {
+        const params = new URLSearchParams(location.search);
+        const status = params.get("payment") || params.get("paymentStatus") || "";
+        if (status === "cancelled" || status === "failed" || status === "pending") return status;
+        if (params.get("paid") === "1" && params.get("orderId")) return "verifying";
+        return "";
+      }
+
+      function userState() {
+        const entitlement = serverEntitlement();
+        const paidByServer = ["paid", "viewed", "active"].includes(String(entitlement?.status || entitlement?.paymentStatus || "").toLowerCase());
+        if (paidByServer) return "entitled";
+
+        const paymentStatus = paymentReturnStatus();
+        if (paymentStatus === "pending" || paymentStatus === "verifying") return "payment_pending";
+        if (paymentStatus === "failed" || paymentStatus === "cancelled") return "payment_failed";
+
+        return authSession()?.user ? "logged_out_paid" : "guest";
+      }
+
+      function teaserFromInput(payload) {
+        const input = payload.input || {};
+        const focus = focusCopy[input.signal_focus] || focusCopy.not_sure;
+        const relation = relationLabels[input.partner?.relationship_status] || input.partner?.relationship_label || "関係の基準";
+        const self = displayName(input);
+        const partner = partnerName(input);
+        const concern = safeText(input.concern, "");
+
+        return {
+          self,
+          partner,
+          relation,
+          focus,
+          headline: `${self}は今、${partner}の気持ちを決めつけるより、繰り返す関係のサインを先に見る流れだ。`,
+          summary: concern
+            ? `「${concern}」という悩みなら、感情だけを育てるより、連絡、約束、外部の変数の順番を分けて見るのがよい。`
+            : "今、特に不便がなければ、保つ点から見る。変化があるときは、連絡・約束・表現を実際の観察と分けて確認する。",
+          signals: [
+            {
+              label: "強い信号",
+              text: focus.signal,
+              confidence: "medium",
+              evidence_ids: ["item-22-p1-0027", "item-22-p1-0028"]
+            },
+            {
+              label: "時期・条件",
+              text: focus.condition,
+              confidence: "limited",
+              evidence_ids: ["zip-연예-qa-000047", "zip-연예-qa-000048", "zip-만세력-qa-000576"]
+            },
+            {
+              label: "妨げの要因",
+              text: "不安が大きくなるほど、質問は強くなりやすい。追及より確認の質問に切り替えるタイミングを取る。",
+              confidence: "medium",
+              evidence_ids: ["item-12-p1-0029", "zip-연예-qa-000024"]
+            },
+            {
+              label: "有料で確認",
+              text: "二人の日支の関係、五行の相生・相克、関係の外の活動と合意した境界、現実を確かめる行動へ続けて見ます。",
+              confidence: "medium",
+              evidence_ids: ["zip-연예-qa-000035", "item-12-p1-0037"]
+            }
+          ]
+        };
+      }
+
+      function renderSignals(signals) {
+        const grid = document.querySelector("[data-signal-grid]");
+        grid.innerHTML = signals.map((item, index) => `
+          \x3carticle class="summary-card">
+            \x3cspan aria-hidden="true">${index + 1}\x3c/span>
+            \x3ch3>${item.label}\x3c/h3>
+            \x3cp>${item.text}\x3c/p>
+            \x3cem class="confidence">${item.confidence === "limited" ? "入力の補足が必要" : "参考にできる"}\x3c/em>
+          \x3c/article>
+        `).join("");
+      }
+
+      function renderPaidScope() {
+        const list = document.querySelector("[data-paid-scope]");
+        list.innerHTML = paidScope.map((group, index) => `
+          <article class="toc-card is-locked">
+            <strong>${String(index + 1).padStart(2, "0")} · ${group.title}</strong>
+            <span>${group.items.slice(0, 4).join(" · ")}</span>
+          </article>
+        `).join("");
+      }
+
+      function renderStateCta(state) {
+        const primary = document.querySelector("[data-primary]");
+        const kicker = document.querySelector("[data-cta-kicker]");
+        const title = document.querySelector("[data-cta-title]");
+        const copy = document.querySelector("[data-cta-copy]");
+
+        primary.disabled = false;
+        if (state === "entitled") {
+          primary.textContent = "全レポートの一覧を開く";
+          kicker.textContent = "権限を確認した。";
+          title.textContent = "決済画面なしで直接続けられます";
+          copy.textContent = "閲覧権限が確認済みのレポート。全結果の一覧から見たい項目を押すと、詳細な読み解きへ移動します。";
+          return;
+        }
+
+        if (state === "payment_pending") {
+          primary.textContent = "決済状態を再確認";
+          kicker.textContent = "決済を確認中";
+          title.textContent = "注文状態を確認している";
+          copy.textContent = "重複決済を防ぐため、決済完了かを先に確認します。確認が終わると、全体の結果一覧へ続きます。";
+          return;
+        }
+
+        if (state === "payment_failed") {
+          primary.textContent = "再び支払って全体を見る (19,900 KRW)";
+          kicker.textContent = "無料要約を保持";
+          title.textContent = "決済が完了していない";
+          copy.textContent = "入力値と無料の要約は残る。支払い情報を再確認してから全体のレポートを開ける。";
+          return;
+        }
+
+        if (state === "logged_out_paid") {
+          primary.textContent = "全体を見る（19,900ウォン）";
+          kicker.textContent = "支払いの案内";
+          title.textContent = "全体のレポートと相談形式の解説を開く？";
+          copy.textContent = "関係の温度・実際に観察した変化・相性の摩擦・確認の会話文を一度に整理します。";
+          return;
+        }
+
+        primary.textContent = "ログインして全体を見る（19,900ウォン）";
+        kicker.textContent = "ログインが必要";
+        title.textContent = "ログイン後、この結果の続きを見られる。";
+        copy.textContent = "入力したサービスと段階だけを残し、ログイン後に同じ無料のまとめへ戻って決済を続けます。";
+      }
+
+      function persistReportPreview(teaser, input, missing) {
+        const reportId = currentReportId();
+        const payload = {
+          service,
+          report_id: reportId,
+          profile_id: authSession()?.user?.id || "pending_profile",
+          analysis_period: service.analysis_period,
+          report_version: service.report_version,
+          created_at: new Date().toISOString(),
+          input_status: missing ? "missing_or_expired" : "available",
+          teaser,
+          paid_scope_preview: {
+            source: "user_seed",
+            groups: paidScope
+          },
+          next_route: "../05-step-5-chat/chat.html#step-5-chat",
+          input_summary: {
+            self_alias: displayName(input.input),
+            partner_alias: partnerName(input.input),
+            relationship_status: input.input?.partner?.relationship_status || "",
+            signal_focus: input.input?.signal_focus || ""
+          }
+        };
+        writeSession(keys.reportPreview, payload);
+        return payload;
+      }
+
+      function render() {
+        const inputState = reportInput();
+        const teaser = teaserFromInput(inputState.data);
+        const previewPayload = persistReportPreview(teaser, inputState.data, inputState.missing);
+        const status = userState();
+
+        document.querySelector("[data-hero-summary]").textContent = teaser.summary;
+        document.querySelector("[data-meta-relationship]").textContent = teaser.relation;
+        document.querySelector("[data-meta-focus]").textContent = teaser.focus.label;
+        document.querySelector("[data-teaser-headline]").textContent = teaser.headline;
+        document.querySelector("[data-teaser-summary]").textContent = teaser.summary;
+        document.querySelector("[data-flow-main]").textContent = teaser.signals[0].text;
+        document.querySelector("[data-flow-condition]").textContent = teaser.signals[1].text;
+        document.querySelector("[data-flow-obstacle]").textContent = teaser.signals[2].text;
+
+        const warning = document.querySelector("[data-input-warning]");
+        if (inputState.missing) {
+          warning.textContent = "入力が見つからず、基本画面で開いた。正しい無料要約は02の入力後に作り直される。";
+          warning.classList.remove("hidden");
+        }
+
+        renderSignals(teaser.signals);
+        renderPaidScope();
+        renderStateCta(status);
+
+        writeSession(keys.serviceState, {
+          service_key: service.service_key,
+          service_slug: service.service_slug,
+          category: service.category,
+          report_version: service.report_version,
+          entry: "step-4-report",
+          report_id: previewPayload.report_id
+        });
+      }
+
+      function showToast(message) {
+        const toast = document.querySelector("[data-toast]");
+        toast.textContent = message;
+        toast.classList.remove("hidden");
+        window.clearTimeout(showToast.timer);
+        showToast.timer = window.setTimeout(() => toast.classList.add("hidden"), 2400);
+      }
+
+      function canStartPayment() {
+        if (!agreement.privacy || !agreement.payment) {
+          showToast("必須の同意から確認してください。");
+          return false;
+        }
+        return true;
+      }
+
+      function startLogin() {
+        writeSession(keys.authReturn, {
+          service_key: service.service_key,
+          report_version: service.report_version,
+          flow_step: "step-4-report",
+          return_route: "../04-step-4-report/index.html#step-4-report",
+          contains_personal_values: false
+        });
+
+        const returnTo = `${location.pathname}${location.search}#step-4-report`;
+        location.href = `/login?service_key=${encodeURIComponent(service.service_key)}&returnTo=${encodeURIComponent(returnTo)}`;
+      }
+
+      function startPayment() {
+        if (!canStartPayment()) return;
+        const preview = readJson(sessionStorage, keys.reportPreview);
+        writeSession(keys.pendingPayment, {
+          service_key: service.service_key,
+          report_id: preview?.report_id || currentReportId(),
+          product_key: service.service_key,
+          amount_krw: service.price_krw,
+          started_at: new Date().toISOString(),
+          return_route: "../04-step-4-report/index.html#step-4-report"
+        });
+
+        const returnTo = `${location.pathname}${location.search}#step-4-report`;
+        location.href = `/payment?product=${encodeURIComponent(service.service_key)}&returnTo=${encodeURIComponent(returnTo)}`;
+      }
+
+      function openFullReport() {
+        const preview = readJson(sessionStorage, keys.reportPreview) || {};
+        const reportId = preview.report_id || currentReportId();
+        writeSession(keys.activeReport, {
+          service_key: service.service_key,
+          report_id: reportId,
+          report_version: service.report_version,
+          source: "step-4-report"
+        });
+        try {
+          sessionStorage.setItem(keys.activeReportLegacy, reportId);
+        } catch (err) {
+          // The new service key above remains the primary handoff state.
+        }
+
+        const params = new URLSearchParams();
+        params.set("service_key", service.service_key);
+        params.set("report_id", reportId);
+        params.set("profile_id", preview.profile_id || "pending_profile");
+        params.set("analysis_period", service.analysis_period);
+        params.set("report_version", service.report_version);
+        location.href = `../05-step-5-chat/chat.html?${params.toString()}#step-5-chat`;
+      }
+
+      document.querySelector("[data-back]")?.addEventListener("click", () => {
+        location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
+      });
+
+      document.querySelector("[data-agree-all]")?.addEventListener("change", (event) => {
+        const on = event.currentTarget.checked;
+        document.querySelectorAll("[data-agree]").forEach((box) => {
+          box.checked = on;
+          agreement[box.dataset.agree] = on;
+        });
+      });
+
+      document.querySelectorAll("[data-agree]").forEach((box) => {
+        box.addEventListener("change", () => {
+          agreement[box.dataset.agree] = box.checked;
+          const boxes = Array.from(document.querySelectorAll("[data-agree]"));
+          const master = document.querySelector("[data-agree-all]");
+          if (!master) return;
+          master.checked = boxes.every((item) => item.checked);
+          master.indeterminate = !master.checked && boxes.some((item) => item.checked);
+        });
+      });
+
+      document.querySelector("[data-primary]")?.addEventListener("click", () => {
+        const state = userState();
+        if (state === "entitled") return openFullReport();
+        if (state === "payment_pending") {
+          showToast("注文確認は、決済結果の確認のあとに処理されます。");
+          return;
+        }
+        if (state === "guest") return startLogin();
+        startPayment();
+      });
+
+      render();
+    </script>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
+    <script src="/js/payment-bridge.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-text-clip.js"></script>
+<script src="/js/signal-service.js?v=20261008-three-voice-v1" defer=""></script>
+
+
+</body></html>

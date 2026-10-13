@@ -110,7 +110,7 @@ export interface LoveSpeedSummary {
 
 export interface SoloNaraSummary extends LoveSpeedSummary {
   /** 결과 화면이 열린 캐릭터별 횟수. 성별·답변·점수는 수집하지 않는다. */
-  results: Array<{ typeId: string; name: string; gender: string; views: number }>
+  results: Array<{ typeId: string; name: string; views: number }>
 }
 
 export interface FunnelSummary {
@@ -276,9 +276,9 @@ export function summarizeSoloNaraRows(rows: FunnelRow[]): SoloNaraSummary {
   const sources = new Map<string, { views: number; sessions: Set<string> }>()
   const actions = new Map<string, { events: number; sessions: Set<string> }>()
   const results = new Map<string, number>()
-  const characters = new Map(soloNaraSpec.characters.map(c => [c.typeId, c]))
+  const characters = new Map(soloNaraSpec.types.map(t => [t.typeId, t]))
   const sourceKeys = ['home','share','admin','internal','search','social','external','direct']
-  const actionKeys = ['start','gender','complete','login','share','copy','fortune','restart']
+  const actionKeys = ['start','complete','login','share','copy','fortune','restart']
   let views = 0, homeClicks = 0
   for (const row of rows) {
     if (row.event === 'cta_click' && row.target === 'solo_nara:home') homeClicks++
@@ -302,7 +302,7 @@ export function summarizeSoloNaraRows(rows: FunnelRow[]): SoloNaraSummary {
   return { views, sessions: visits.size, signedInUsers: users.size, homeClicks,
     sources: [...sources].map(([source, value]) => ({ source, views: value.views, sessions: value.sessions.size })),
     actions: actionKeys.map(action => ({ action, events: actions.get(action)?.events || 0, sessions: actions.get(action)?.sessions.size || 0 })),
-    results: soloNaraSpec.characters.map(c => ({ typeId: c.typeId, name: c.name, gender: c.gender, views: results.get(c.typeId) || 0 })) }
+    results: soloNaraSpec.types.map(t => ({ typeId: t.typeId, name: t.name, views: results.get(t.typeId) || 0 })) }
 }
 
 function summarizeChannels(sessionChannel: Map<string, string>, stages: Record<PurchaseStage, Set<string>>, signedUp: Set<string>): FunnelSummary['acquisition'] {

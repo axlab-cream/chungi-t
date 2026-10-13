@@ -216,7 +216,7 @@ describe('배포 라우팅은 선별한 public 자산만 정적으로 제공한�
       // `admin-ui` 는 정적 루트 밖에 있지만 함수는 그 파일을 읽어야 한다(ADR-0002 D1).
       assert.equal(
         config.functions['api/index.ts'].includeFiles,
-        '{admin-ui/**,data/**,prompts/**,.vercel-runtime/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/{PRD.md,PLAN.md,HANDOFF-PROMPT-20260912.md,report-budget.json}}',
+        '{.vercel-localized/**,admin-ui/**,data/**,prompts/**,.vercel-runtime/**,tone-v2/generated/**,tone-v2/source/규격/**,tone-v2/{PRD.md,PLAN.md,HANDOFF-PROMPT-20260912.md,report-budget.json}}',
       )
       assert.equal('excludeFiles' in config.functions['api/index.ts'], false)
       assert.match(prepareSource, /copySelectedFiles\([\s\S]*'\.png'[\s\S]*'\.webp'[\s\S]*'\.woff2'/)

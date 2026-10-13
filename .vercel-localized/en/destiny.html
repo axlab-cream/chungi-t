@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fortune Shop fate record · Personal Four Pillars details</title>
+    <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
+         og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Fortune Shop" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta property="og:description" content="Your Four Pillars first describe what concerns you now. Explore love, money, work, and compatibility one question at a time." />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Fortune Shop - We sell fate." />
+    <meta name="twitter:description" content="Your Four Pillars first describe what concerns you now. Explore love, money, work, and compatibility one question at a time." />
+    <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <meta
+      name="description"
+      content="Fortune Shop fortune record. View your personal Four Pillars profile, natal chart, symbolic stars, combinations/clashes, and major-cycle flow on one screen."
+    />
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260917-icon" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20260917-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="preload" as="image" href="/assets/chungi-manseryeok-bg.webp" />
+    <link rel="preload" as="image" href="/assets/chungi-destiny-card-bg.webp" />
+    <link rel="stylesheet" href="/css/destiny.css?v=20260901-destiny-record" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260907-destiny-chrome" />
+  </head>
+  <body>
+    <div class="stage">
+      <main class="phone" aria-label="Fortune Shop Destiny Record" data-umsh-chrome data-service="Fate log" data-active="destiny">
+        <header class="appbar topbar"></header>
+
+        <div class="destiny-scroll" data-destiny-root>
+          <section class="destiny-loading" role="status" aria-live="polite">
+            <img class="destiny-loading-logo" src="/assets/umsh-brand-logo.png" alt="Fortune Shop" width="132" height="50" />
+            <strong>Opening your fate record</strong>
+            <p>I’ll check login and Four Pillars registration, then show your fortune record.</p>
+          </section>
+        </div>
+
+        <div class="record-cta-bar" aria-label="Main actions in the fate record">
+          <button type="button" data-action="share-record">Share</button>
+          <a href="/signup?entry=destiny" data-primary-record-cta>Log in and register your birth chart</a>
+        </div>
+
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">Preparing your fate record.</div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/destiny.js?v=20261008-three-voice-v1"></script>
+  </body>
+</html>

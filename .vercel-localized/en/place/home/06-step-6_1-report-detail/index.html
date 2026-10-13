@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="ko" data-umsh-verified-inplace>
+  <head><link id="umsh-inplace-css" rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260923-markdown-view-v1">
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+<script src="/js/umsh-report-access.js?v=20261008-three-voice-v1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/umsh-auth-session.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Detailed reading | Does my current home fit me?</title>
+    <meta
+      name="description"
+      content="Explore one selected home feng shui report section in detail through its conclusion, evidence, and actions."
+    />
+    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://place.umsh.kr/home" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
+    <style>
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 500;
+        font-display: swap;
+        src: url("/assets/fonts/Pretendard-Medium.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Maru Buri";
+        font-weight: 700;
+        font-display: swap;
+        src: url("/assets/fonts/MaruBuri-Bold.woff2") format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #0b1110;
+        --surface: #141a17;
+        --surface-2: #1b231e;
+        --ink: #fff8ef;
+        --muted: rgba(255, 248, 239, 0.72);
+        --dim: rgba(255, 248, 239, 0.5);
+        --line: rgba(216, 236, 212, 0.18);
+        --sage: #9fb7a1;
+        --mint: #d8ecd4;
+        --brass: #e4c36f;
+        --clay: #bf6745;
+        --blue: #89a9bd;
+        --font-body: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-title: "Maru Buri", "Noto Serif KR", serif;
+        --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: #050706;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% -10%, rgba(159, 183, 161, 0.18), transparent 28rem),
+          linear-gradient(180deg, #050706 0%, #101511 46%, #050706 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(100%, 440px);
+        min-height: 100vh;
+        margin: 0 auto;
+        padding-bottom: 152px;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(11, 17, 16, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand strong {
+        color: var(--brass);
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .brand span,
+      .step-badge,
+      .eyebrow {
+        color: var(--dim);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .top-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button,
+      .step-badge {
+        display: grid;
+        min-height: 34px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .icon-button {
+        width: 34px;
+        padding: 0;
+      }
+
+      .step-badge {
+        padding: 7px 9px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-title);
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 30px;
+        line-height: 1.16;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      p,
+      li {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.62;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .hero,
+      .band {
+        display: grid;
+        gap: 16px;
+        padding: 24px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-copy,
+      .section-head {
+        display: grid;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .chips,
+      .fact-list,
+      .section-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip,
+      .fact-chip,
+      .section-tab {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 7px 9px;
+        border: 1px solid rgba(228, 195, 111, 0.24);
+        border-radius: 8px;
+        color: var(--mint);
+        background: rgba(228, 195, 111, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .section-tab {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .section-tab.is-active {
+        color: #1b1207;
+        background: var(--brass);
+      }
+
+      .visual-frame {
+        width: 100%;
+        margin: 0;
+        aspect-ratio: 9 / 16;
+        overflow: hidden;
+        border: 1px solid rgba(216, 236, 212, 0.24);
+        border-radius: 8px;
+        background: #eadfcb;
+      }
+
+      .visual-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center top;
+      }
+
+      .notice,
+      .conclusion-card,
+      .block-card,
+      .action-card,
+      .relation-card,
+      .chat-bubble {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .notice {
+        display: none;
+        gap: 7px;
+        padding: 14px;
+        border-color: rgba(191, 103, 69, 0.25);
+        background: rgba(191, 103, 69, 0.1);
+      }
+
+      .notice.is-open {
+        display: grid;
+      }
+
+      .conclusion-card {
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+        border-color: rgba(228, 195, 111, 0.28);
+        background:
+          radial-gradient(circle at 86% 0%, rgba(228, 195, 111, 0.14), transparent 12rem),
+          rgba(255, 255, 255, 0.045);
+      }
+
+      .conclusion-card strong,
+      .block-card strong,
+      .action-card strong,
+      .relation-card strong,
+      .chat-bubble strong,
+      .notice strong {
+        display: block;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 950;
+        line-height: 1.35;
+      }
+
+      .home-richtext { min-width: 0; color: var(--muted); line-height: 1.8; overflow-wrap: anywhere; }
+      .home-richtext p { margin: 0 0 12px; }
+      .home-richtext .reading-table-wrap { max-width: 100%; }
+      .home-richtext .reading-quote { color: var(--ink); }
+
+      .conclusion-card span,
+      .block-card span,
+      .action-card span,
+      .relation-card span,
+      .chat-bubble span,
+      .notice span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.5;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      .block-list,
+      .action-list,
+      .relation-list,
+      .chat-area {
+        display: grid;
+        gap: 10px;
+      }
+
+      .block-card,
+      .action-card,
+      .relation-card,
+      .chat-bubble {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+      }
+
+      .block-card b,
+      .action-card b {
+        color: var(--brass);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.04em;
+      }
+
+      .action-card {
+        border-color: rgba(159, 183, 161, 0.28);
+        background: rgba(159, 183, 161, 0.08);
+      }
+
+      .relation-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .relation-card span {
+        text-align: right;
+      }
+
+      .bottom-nav {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        z-index: 25;
+        display: grid;
+        width: min(100%, 440px);
+        gap: 10px;
+        padding: 12px 18px max(16px, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: rgba(11, 17, 16, 0.96);
+        transform: translateX(-50%);
+        backdrop-filter: blur(16px);
+      }
+
+      .nav-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
+      .nav-button,
+      .send-btn {
+        display: grid;
+        min-height: 46px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 950;
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .nav-button.primary,
+      .send-btn {
+        border-color: rgba(228, 195, 111, 0.55);
+        background: linear-gradient(135deg, #efd47d, #c8913d);
+        color: #1b1207;
+      }
+
+      .input-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 68px;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      textarea {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        max-height: 110px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.45;
+        outline: none;
+      }
+
+      textarea:focus {
+        border-color: rgba(228, 195, 111, 0.5);
+      }
+
+      .fine-print {
+        color: var(--dim);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 374px) {
+        h1 {
+          font-size: 26px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+        }
+
+        .top-actions {
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .input-row,
+        .nav-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/css/service-shell.css?v=20260902-address-shell" />
+    <link rel="stylesheet" href="/css/umsh-home-shell.css?v=20260907" />
+  </head>
+  <body>
+    <main class="app" id="step-6_1-report" aria-label="Detailed home feng shui reading">
+      <div data-umsh-service-top></div>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <span class="eyebrow" id="section-kicker">Selected item</span>
+          <h1 id="page-title">Does this home really fit me?</h1>
+          <p id="page-summary">Check the selected report item split into a one-line conclusion, the basis, and an action.</p>
+          <div class="chips" id="section-items" aria-label="Detailed items"></div>
+        </div>
+        <figure class="visual-frame" data-asset-key="home-06-detail-hero">
+          <img src="assets/generated/home/06-detail-hero.webp" alt="An Fortune Shop guide explains a detailed reading with a house model and plans" />
+        </figure>
+      </section>
+
+      <section class="band">
+        <div class="notice" id="invalid-section">
+          <strong>This item is not in the list</strong>
+          <span>Only items in step 05’s list open in detail, so you were moved to the first item.</span>
+        </div>
+        <div class="notice" id="permission-note">
+          <strong>I&#39;ll continue using this item&#39;s criteria</strong>
+          <span>Enter a question to continue checking in line with the chapter you have open.</span>
+        </div>
+        <div class="conclusion-card" id="conclusion-card">
+          <strong>One-line conclusion</strong>
+          <span>First explore whether the home fits your daily rhythm rather than whether it is good or bad.</span>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="evidence-title">
+        <div class="section-head">
+          <span class="eyebrow">Decision points</span>
+          <h2 id="evidence-title">Criteria set first when looking at a home now</h2>
+
+        </div>
+        <div class="fact-list" id="fact-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="interpretation-title">
+        <div class="section-head">
+          <span class="eyebrow">Detailed reading</span>
+          <h2 id="interpretation-title">Looking at my current home and life together</h2>
+        </div>
+        <div class="block-list" id="block-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="actions-title">
+        <div class="section-head">
+          <span class="eyebrow">This week’s action</span>
+          <h2 id="actions-title">Start with what can be adjusted now</h2>
+        </div>
+        <div class="action-list" id="action-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="cautions-title">
+        <div class="section-head">
+          <span class="eyebrow">Points to consider together</span>
+          <h2 id="cautions-title">One more check before deciding</h2>
+        </div>
+        <div class="block-list" id="caution-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="related-title">
+        <div class="section-head">
+          <span class="eyebrow">Related items</span>
+          <h2 id="related-title">It helps to look at the preceding and following flow too</h2>
+        </div>
+        <div class="relation-list" id="relation-list"></div>
+      </section>
+
+      <section class="band" aria-labelledby="all-sections-title">
+        <div class="section-head">
+          <span class="eyebrow">Other details</span>
+          <h2 id="all-sections-title">Go to another item</h2>
+        </div>
+        <nav class="section-tabs" id="section-tabs" aria-label="Move between detailed items"></nav>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Detail navigation and consultation">
+      <div class="nav-row">
+        <a class="nav-button" id="prev-link" href="#">Previous item</a>
+        <a class="nav-button primary" href="../05-step-5-chat/chat.html#step-5-chat">Back to the list</a>
+        <a class="nav-button" id="next-link" href="#">Next topic</a>
+      </div>
+      <form id="detail-chat-form" class="input-row">
+        <textarea id="detail-chat-message" rows="2" placeholder="Write what else you want to know about this item..." required></textarea>
+        <button class="send-btn" type="submit">Send</button>
+      </form>
+      <p class="fine-print">Write your question, and we will continue using the criteria for this item.</p>
+    </nav>
+
+    <script type="application/json" id="PROMPT_INPUT">
+      {
+        "service_title": "Does my current home fit me?",
+        "service_category": "Home feng shui",
+        "rag": ["Feng shui", "Personal destiny reading"],
+        "domain": "place.umsh.kr/home",
+        "price_krw": 19900,
+        "stage": "06-step-6_1-report-detail"
+      }
+    </script>
+
+    <script type="application/json" id="DETAIL_DATA">
+      {
+        "source": "user_seed",
+        "default_section_id": "home-fit-overall",
+        "sections": [
+          {
+            "section_id": "home-fit-overall",
+            "title": "Does this home really fit me?",
+            "items": ["Overall fit assessment", "Stay / Adjust / Compare", "Why it pulls", "Subtly draining points", "Compatibility with my timing now", "One-line conclusion"],
+            "conclusion": "This item first looks at whether this home's pace matches my current living rhythm, rather than whether the home itself is good or bad.",
+            "evidence": ["집과 사람의 궁합은 용도와 생활 리듬이 바뀌면 달라질 수 있음", "사주 계산값은 상세 서버 계산이 있을 때 일간·오행·신강약·용신으로 연결", "현재 입력값은 집 형태, 목적, 고민, 체감 신호를 우선 사용"],
+            "blocks": [
+              {"heading": "Why it pulls", "body": "The reasons you like this home usually come from signals your body takes in first, such as an open view outside the window, the first feeling at the entrance, or familiar routes."},
+              {"heading": "Tiring points", "body": "If light sleep, or chores piling up the moment you get home, keeps repeating, the home's flow may be faster than your recovery pace."},
+              {"heading": "How the judgment is made", "body": "Staying, improving, and comparing aren't moving conclusions, but criteria separating what you can adjust in the current home first."}
+            ],
+            "actions": ["Check where your gaze goes straight to on entering from the entrance to the living room.", "When lying in bed, note which first bothers you: the door, window, or noise.", "For 7 days, record one line about home comfort each morning and evening."],
+            "cautions": ["Don’t decide whether to move from one day’s mood; look at recurring signs of fatigue.", "Check whether it meets your needs now before simply calling it a good home."]
+          },
+          {
+            "section_id": "house-energy",
+            "title": "Does the site support me or push me away?",
+            "items": ["Site similarity", "Sense of support", "Travel burden", "Daily-life patterns in similar sites"],
+            "conclusion": "The site flow of this home is judged by the feel of daily life that repeats on a similar site, not by listing surrounding conditions as technical terms.",
+            "evidence": ["앞열림과 뒤받침은 집의 안정감과 활동성을 나누는 핵심 기준", "도로와 골목 흐름은 생활 속도와 소음 체감의 보조 신호", "창밖 압박은 나쁨 판정이 아니라 회복감 판단의 참고값"],
+            "blocks": [
+              {"heading": "Site similarity", "body": "Compare the flow around the address with daily patterns on similar sites to see whether this home comfortably supports people or keeps pushing them to stay busy."},
+              {"heading": "Sense of support", "body": "If tension eases and your body relaxes when you arrive home, it tends to feel supportive. If fatigue grows before arrival, consider the travel burden too."},
+              {"heading": "Daily routines", "body": "Translates recurring noise, views, access routes, and morning fatigue at similar sites into everyday language for practical decisions."}
+            ],
+            "actions": ["Stand by the window and check whether the view opens first, or pressure does.", "Check whether the back of the home or bedroom rests against a stable surface.", "Note when road and alley noise becomes louder."],
+            "cautions": ["An open home is not always better; a strong need for rest calls for managing stimulation.", "The surroundings should be read together with contract terms and the hours of daily life."]
+          },
+          {
+            "section_id": "saju-house-ohaeng",
+            "title": "My saju × the home’s five-element fit",
+            "items": ["Day-master daily rhythm", "Balancing excessive/missing elements", "Useful god and the space's texture", "Home pace by strong or weak chart", "A house that is too much for me", "A home that keeps me going"],
+            "conclusion": "The fit of saju and home is read by whether the space supplements a rhythm I lack, or further grows a rhythm that is already too much.",
+            "evidence": ["일간·오행·신강약·용신은 계산값이 있을 때만 상세 연결", "오행은 성격 단정이 아니라 생활 리듬 조정 기준으로 사용", "공간의 색, 빛, 습도, 동선은 What to add 신호로 해석"],
+            "blocks": [
+              {"heading": "A house that is too much for me", "body": "If a home is too bright and fast-paced, activity may thrive while recovery falls behind. If it is too blocked, thoughts may grow heavy."},
+              {"heading": "A home that keeps me going", "body": "The energy you need often appears as deeper sleep and steadier daily life rather than elaborate interiors."},
+              {"heading": "Connect calculated values", "body": "Once birth date and time are calculated, the day master, element distribution, chart strength, and useful element are linked separately to the home's direction, colors, and routes."}
+            ],
+            "actions": ["Record the light, color, and temperature where you spend the most time at home.", "Check the difference in stimulation between resting and working spaces.", "Review this item first when saju calculations are verified."],
+            "cautions": ["Don’t reduce an element to one color; consider light, materials, and paths together.", "Without a birth time, some readings need to be shown with a broader range."]
+          },
+          {
+            "section_id": "sleep-recovery",
+            "title": "Sleep, recovery, and mental rhythm",
+            "items": ["Bedroom calm", "Depth of sleep", "Recovery at home", "Noise and visual fatigue", "Make room for rest", "Recharge after work", "Burnout prevention points"],
+            "conclusion": "This item takes sleep and recovery as priority 1 for home fit, and checks whether the bedroom recharges you.",
+            "evidence": ["침실 안정감은 집콕 회복력의 핵심 기준", "소음과 시선은 도로·창밖 흐름의 현실 체감값", "쉬는 칸이 없으면 집 안에서도 계속 긴장할 수 있음"],
+            "blocks": [
+              {"heading": "Depth of sleep", "body": "If the door, window, mirror, or noise is what you notice first lying in bed, your body may struggle to rest fully."},
+              {"heading": "Recharge after work", "body": "A good bedroom shows itself less in decoration than in becoming quieter and your body slowly settling after you arrive home."},
+              {"heading": "Rest column", "body": "If changing the whole bedroom is difficult, you need to clear at least the area within 60cm around the bed to create space for recovery."}
+            ],
+            "actions": ["Note the first thing you see from bed, without taking a photo.", "Write down the sound and light that bother you most before you fall asleep.", "Reduce items on the floor beside the bed and on the bedside table first."],
+            "cautions": ["Don’t blame fatigue only on the home; consider sleep times, noisy periods, and lighting habits together.", "Apply adjustable layouts before interpretations that fuel anxiety."]
+          },
+          {
+            "section_id": "entrance-flow",
+            "title": "Entrance and route energy",
+            "items": ["First impression", "Entrance tidiness", "Straight entrance–living room–bedroom flow", "Elevator and corridor stimulation", "Whether the qi that entered stays", "Package and shoe congestion"],
+            "conclusion": "The entrance is a home’s first impression. Start by seeing whether incoming flow escapes immediately or pauses.",
+            "evidence": ["현관은 외부 흐름이 들어오는 첫 자리", "현관-침실 직선 흐름은 가림과 정리 처방으로 완화", "복도·엘베 자극은 사생활 피로와 연결될 수 있음"],
+            "blocks": [
+              {"heading": "First impression", "body": "If shoes, parcels, a large window, and the bedroom door all come into view as soon as you open the door, your gaze can’t rest even when you get home."},
+              {"heading": "A structure where flow stays", "body": "Low storage, rugs, lighting, or plants give the eye a pause, bringing stability to the home's interior."},
+              {"heading": "Congestion", "body": "A cluttered entrance can increase the feeling of bringing outside money, schedules, and emotions in."}
+            ],
+            "actions": ["Write only three objects visible within 3 seconds of opening the door.", "Fix one spot for piled-up deliveries and shoes.", "If the bedroom is immediately visible, try a curtain, partition, or low shelf."],
+            "cautions": ["Don’t try to fix every flow with one mirror; start with organization and adjusting sightlines.", "If the entrance is narrow, clearing it comes before adding objects."]
+          },
+          {
+            "section_id": "remote-focus",
+            "title": "Focus for working from home, studying, and work",
+            "items": ["Desk position", "Support behind the back", "Door and window positions", "A corner for deep focus", "Video-call or phone-call fit", "Separate work and rest spaces", "Productivity routine"],
+            "conclusion": "If you often work or study at home, this home's assessment hinges on separating desk and rest areas.",
+            "evidence": ["책상 등 뒤 받침은 집중 안정감의 기본 기준", "문과 창 위치는 시선 자극과 긴장도에 영향", "공간 목적이 바뀌면 집과 사람의 궁합도 달라짐"],
+            "blocks": [
+              {"heading": "Support behind the back", "body": "If the space behind you opens to a window or passage, your body may keep noticing that area even while you concentrate."},
+              {"heading": "Doors and windows", "body": "Facing the door can keep you alert, but sitting there for long periods may be tiring. If the view outside is visually intense, your focus may vary more by time of day."},
+              {"heading": "Separating space", "body": "When the bed and desk are next to each other, thoughts of work can arise while resting, and the urge to rest while working."}
+            ],
+            "actions": ["Sit at the desk and check whether there is a wall, window, or passage behind you.", "Tidy the background visible on video calls.", "Separate work space with a small light or rug."],
+            "cautions": ["Don't read a productivity problem as willpower alone. Also look at sightlines and the steadiness behind your back.", "In a small room, separating work hours and lighting may be more practical than moving the desk."]
+          },
+          {
+            "section_id": "money-living",
+            "title": "Money, household, and spending flow",
+            "items": ["How money accumulates", "Where money slips away", "Sense of rent and maintenance costs", "Work-from-home income rhythm", "Important documents and safe placement", "Impulse-spending triggers"],
+            "conclusion": "Money flow does not declare your fortune; it practically locates household paths and places where spending leaks.",
+            "evidence": ["중요 문서와 금고 자리는 안정된 보관감이 중요", "현관 혼잡과 동선 피로는 충동소비 트리거와 연결될 수 있음", "재택 수익 리듬은 책상 자리와 휴식 분리의 영향을 받음"],
+            "blocks": [
+              {"heading": "How money accumulates", "body": "A place that keeps documents, wallets, contracts, and receipts from scattering can help stabilize your sense of living expenses."},
+              {"heading": "Where money slips away", "body": "When parcels pile up at the entrance or shopping often happens near the bed, spending can flow like a habit."},
+              {"heading": "Experience of maintenance fees", "body": "Read rent and maintenance costs alongside whether this home reduces recovery, focus, and relationship costs, not price alone."}
+            ],
+            "actions": ["Make one storage spot that gathers wallet, bankbook, and contracts.", "Choose one place away from the entrance to unpack deliveries.", "Put a measure in place to reduce time spent looking at payment apps in bed."],
+            "cautions": ["Read money fortune through recurring spending and organizing patterns, not as guaranteed returns.", "Before safe direction, choose a spot easy to find and keep secure."]
+          },
+          {
+            "section_id": "relationship-cohabitation",
+            "title": "Relationship, family, and living-together chemistry",
+            "items": ["Comfort when alone", "Movement paths that clash with family", "Fit for inviting a partner or a friend", "Roommate or cohabitation compatibility", "Stress from neighbors and noise", "Sense of privacy"],
+            "conclusion": "Look at relationship fit first by whether you are more comfortable alone than together, and whether colliding paths repeat.",
+            "evidence": ["장소와 사람의 궁합은 생활 목적과 관계 방식에 따라 달라짐", "동선 충돌은 가족·동거 피로의 현실 신호", "이웃·소음 스트레스는 사생활 보호감과 연결"],
+            "blocks": [
+              {"heading": "When alone", "body": "If you strongly feel someone could enter even when you are alone, your home may not be giving you enough sense of privacy."},
+              {"heading": "When together", "body": "Frequent encounters or overlapping objects in the kitchen, bathroom, or entrance can turn small conflicts into daily-rhythm issues."},
+              {"heading": "Fit for inviting guests", "body": "Whether a home is comfortable for inviting friends or a partner, or leaves you more tired afterward, is also an important clue to relationship compatibility."}
+            ],
+            "actions": ["Separate places for resting alone from shared spaces.", "Choose and organize just one route where you most often bump into things.", "Record the hours when fatigue lingers after hosting."],
+            "cautions": ["Do not put relationship problems down to the space alone. Set rules for daily life and privacy boundaries as well.", "Before living together, check where belongings go and how noise feels before admiring the layout."]
+          },
+          {
+            "section_id": "spatial-fix",
+            "title": "Room-by-room adjustments",
+            "items": ["Bed position", "Desk position", "Sofa and dining-table placement", "Using plants, mirrors, and a TV", "Curtain, lighting, and storage improvements", "Color and material hints", "Alternatives when you cannot move"],
+            "conclusion": "Start space guidance with small, immediately felt adjustments to beds, desks, lighting, and storage rather than major construction.",
+            "evidence": ["침대 안정감과 책상 등 뒤 받침은 핵심 처방 기준", "현관 가림과 정리는 직선 흐름 완화에 사용", "소파·식탁은 집 안에서 머무는 중심을 만드는 자리"],
+            "blocks": [
+              {"heading": "Bed", "body": "A bed is calmer where it receives less stimulation from doors and windows. If it cannot move, adjust sightlines with a bedside table, curtains, and lighting."},
+              {"heading": "Desk", "body": "Prioritize a desk position with support behind you. If difficult, a low shelf or cloth behind you is practical."},
+              {"heading": "Living room", "body": "The sofa and dining table are centers where energy stays at home. Favor places for conversation and meals, not just watching TV."}
+            ],
+            "actions": ["Clear the floor around the bed first.", "Place one object behind the desk that gives a sense of stability.", "Create a place for the eyes to pause between entrance and living room."],
+            "cautions": ["Fewer plants, mirrors, and lights where needed are better than placing many.", "If the layout cannot be changed, try the suggested adjustments first and see how it feels."]
+          },
+          {
+            "section_id": "reality-action",
+            "title": "Reality check and action plan",
+            "items": ["Morning and evening comfort check", "Keep contract / Compare moving", "3 things to adjust right now", "Arrangements to avoid", "A 7-day living check", "Recommended next actions"],
+            "conclusion": "This item turns a reading into action, so set a 7-day felt test and move-comparison criteria first.",
+            "evidence": ["현실 체크는 아침·저녁 체감 차이로 진행", "이사는 금지가 아니라 비교와 What to add 가능성으로 판단", "생활 목적이 바뀌면 집 궁합도 다시 평가"],
+            "blocks": [
+              {"heading": "7-day check", "body": "Use the same sentence to record your condition leaving home in the morning and returning at night; recurring patterns emerge."},
+              {"heading": "Keep the contract", "body": "If small layout adjustments change sleep, focus, and the sense of organization, keeping the contract can be a practical choice."},
+              {"heading": "Compare a move", "body": "For similarly priced candidates, compare bedroom stability, entrance flow, desk position, and noise times alongside daylight."}
+            ],
+            "actions": ["Today, tidy just one area: the entrance, bed, or desk.", "For 7 days, leave morning and evening experience notes.", "Compare moving candidates with the same criteria table."],
+            "cautions": ["Before a rushed conclusion, first divide what can be changed from what cannot.", "A move decision should also check cost, contract, and living area."]
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/json" id="IMAGE_MANIFEST">
+      {
+        "images": [
+          {
+            "asset_key": "home-06-detail-hero",
+            "filename": "assets/generated/home/06-detail-hero.webp",
+            "role": "detail",
+            "aspect_ratio": "9:16",
+            "reference_image": "../IMAGE/umsh-place-card-bg.webp",
+            "reference_status": "selected",
+            "character_style_lock": ["Round glasses", "Neatly styled dark hair", "Beige knit outerwear", "Sage tones", "Warm indoor lighting"],
+            "generation_policy": "same-character-new-scene",
+            "prompt": "A scene explaining the detailed reading beside a house model and a floor plan. No text in the image.",
+            "alt": "An Fortune Shop guide explains a detailed reading with a house model and plans",
+            "text_in_image": false,
+            "generation_status": "generated",
+            "file_exists": true,
+            "html_usage_selector": ".visual-frame[data-asset-key='home-06-detail-hero'] img"
+          }
+        ]
+      }
+    </script>
+
+
+
+    <script>
+      const SERVICE = {
+        service_key: "home_fit",
+        service_slug: "home",
+        service_title: "Does the house I live in now fit me?",
+        report_version: "home-fit-v1.0"
+      };
+
+      const STORAGE_KEYS = {
+        input: "umsh_home_fit_input_payload_v1",
+        report: "umsh_home_fit_report_v1",
+        selectedSection: "umsh_home_fit_selected_section_v1",
+        detailQuestion: "umsh_home_fit_detail_question_v1",
+        paymentIntent: "umsh_home_fit_payment_intent_v1"
+      };
+
+      const SECTION_ALIASES = {
+        "house-energy": "terrain-support",
+        "spatial-fix": "reality-action"
+      };
+
+      const HOME_GUIDE_SECTIONS = [
+        { section_id: "home-fit-overall", title: "Does this home really fit me?", items: ["Overall assessment", "8-axis scorecard", "Key strengths", "Priority risk"] },
+        { section_id: "terrain-support", title: "Does the site support me or push me away?", items: ["Site similarity", "Sense of support", "Travel burden", "Daily-life patterns on similar sites"] },
+        { section_id: "external-flow", title: "Waterways, roads, wind: what comes rushing in?", items: ["Water systems", "Road", "Wind", "External noise"] },
+        { section_id: "light-air-noise", title: "Is light medicine, or an alarm bomb?", items: ["Orientation and sunlight", "Ventilation", "Noise", "Stimulus by time of day"] },
+        { section_id: "building-unit", title: "Basic stamina of the building and the household", items: ["Floor and completion year", "Shared facilities", "Floor plan", "Dwelling-unit conditions"] },
+        { section_id: "entrance-flow", title: "Already drained at the entrance?", items: ["First path through the space", "Congestion at the door", "Shoes and packages", "Coming and going rhythm"] },
+        { section_id: "sleep-recovery", title: "Is the bedroom for rest, or overtime round two?", items: ["Sleep stimulation", "Sense of recovery", "Nighttime light and sound", "7-day experiment"] },
+        { section_id: "remote-focus", title: "Is the desk a focus seat, or a coliseum of notifications?", items: ["Backing", "View", "Notifications and sound", "Start · finish"] },
+        { section_id: "money-living", title: "Is money leaking, or is the route?", items: ["Duplicate purchase", "Storage", "Returns / subscriptions", "Household path"] },
+        { section_id: "relationship-cohabitation", title: "Living together: chemistry, or a noise agreement", items: ["Shared space", "Private life", "Hours of use", "Relationship distance"] },
+        { section_id: "saju-house-ohaeng", title: "My saju × the home’s five-element fit", items: ["Your Five Elements", "Home symbols", "Target element", "Annual flow"] },
+        { section_id: "reality-action", title: "So what should I do?", items: ["Today", "7 days", "30 days", "Criteria for comparing moves"] }
+      ];
+
+      function canonicalSectionId(sectionId) {
+        return SECTION_ALIASES[sectionId] || sectionId || HOME_GUIDE_SECTIONS[0].section_id;
+      }
+
+      function readJsonBlock(id) {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        try {
+          return JSON.parse(node.textContent);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function safeParse(raw) {
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function getSession(key) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function setSession(key, value) {
+        try {
+          sessionStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          return false;
+        }
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function selectedReportId() {
+        const query = new URLSearchParams(location.search).get("reportId");
+        if (query) return query;
+        const stored = safeParse(getSession(STORAGE_KEYS.selectedSection));
+        const inputPayload = safeParse(getSession(STORAGE_KEYS.input));
+        const report = inputPayload?.analysis?.report || safeParse(getSession(STORAGE_KEYS.report));
+        return stored?.report_id || inputPayload?.reportId || report?.reportId || "";
+      }
+
+      function route(sectionId) {
+        const reportId = selectedReportId();
+        const reportQuery = reportId ? `&reportId=${encodeURIComponent(reportId)}` : "";
+        return `../06-step-6_1-report-detail/index.html?section=${encodeURIComponent(canonicalSectionId(sectionId))}${reportQuery}#step-6_1-report`;
+      }
+
+      function selectedSectionId(data) {
+        const query = new URLSearchParams(location.search).get("section");
+        if (query) return canonicalSectionId(query);
+        const stored = safeParse(getSession(STORAGE_KEYS.selectedSection));
+        return canonicalSectionId(stored?.section_id || data.default_section_id);
+      }
+
+      function reportFromSession() {
+        const inputPayload = safeParse(getSession(STORAGE_KEYS.input));
+        return inputPayload?.analysis?.report || safeParse(getSession(STORAGE_KEYS.report));
+      }
+
+      async function fetchReportById(reportId) {
+        if (!reportId) return null;
+        try {
+          const response = await fetch(`/api/report/${encodeURIComponent(reportId)}`);
+          const json = await response.json().catch(() => ({}));
+          if (!response.ok) return null;
+          if (json.report) setSession(STORAGE_KEYS.report, json.report);
+          return json.report || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function splitInterpretation(text) {
+        return String(text || "")
+          .split(/\n{2,}/)
+          .map((part) => part.replace(/^\[[^\]]+\]\s*/, "").trim())
+          .filter(Boolean);
+      }
+
+      function dynamicBlocks(section) {
+        if (section.status !== 'complete') return [{ heading: 'Preparing the reading', body: section.status === 'failed' ? 'This section’s reading could not be completed. Check again in a little while.' : 'Preparing the reading. The full text appears when complete.' }];
+
+        return String(section.interpretation || "").split(/\n\s*\n/).filter(part => part.trim()).map(part => {
+          const match = part.trim().match(/^\[([^\]]+)\]\s*/);
+          if (match) return { heading: match[1], body: part.trim().slice(match[0].length) };
+          const text = part.trim();
+          // Use the author's opening sentence, not a made-up numbered label.
+          // Do not split decimal values or shorten the saved interpretation.
+          const opening = text.match(/^([\s\S]*?[.!?。](?:[”’"']?))\s+([\s\S]+)$/);
+          return opening ? { heading: opening[1], body: opening[2] } : { heading: text, body: "" };
+        });
+      }
+
+      function dynamicActions(section, staticSection) {
+        const fallback = [
+          "Tidy only the one place among the entrance, bedroom, desk, and view outside the window that bothers you first today.",
+          "For 7 days, briefly record sleep, focus, spending, and how relationships feel.",
+          "Decide on a major move from recurring signals after trying small adjustments."
+        ];
+        return Array.isArray(staticSection?.actions) && staticSection.actions.length ? staticSection.actions : fallback;
+      }
+
+      function dynamicCautions(staticSection) {
+        const fallback = [
+          "We don't conclude with a single word like auspicious or inauspicious site.",
+          "Do not decide health, property, or contract results. Read lived feel together with real conditions."
+        ];
+        return Array.isArray(staticSection?.cautions) && staticSection.cautions.length ? staticSection.cautions : fallback;
+      }
+
+      function dynamicSectionsFromReport(report, staticData) {
+        const reportSections = Array.isArray(report?.sections) ? report.sections : [];
+        const staticSections = staticData?.sections || [];
+        const reportById = new Map(reportSections.map((section) => [canonicalSectionId(section.id), section]));
+        return HOME_GUIDE_SECTIONS.map((guide, index) => {
+          const section = reportById.get(guide.section_id);
+          const staticSection = staticSections.find((item) => canonicalSectionId(item.section_id) === guide.section_id) || {};
+          const evidence = homeEvidenceFor(guide.section_id, report, section?.classification);
+          return {
+            ...staticSection,
+            section_id: guide.section_id,
+            title: section?.category || guide.title || staticSection.title || `Details ${index + 1}`,
+            conclusion: section?.hook || staticSection.conclusion || "This chapter focuses clearly on scenes you may actually feel in your current home.",
+            items: guide.items || staticSection.items || [],
+            evidence,
+            blocks: section ? dynamicBlocks(section) : (staticSection.blocks || [{ heading: guide.title, body: "Once report generation is complete, this chapter’s actual text opens separately for this topic only. It doesn’t repeat other chapters’ stories about the entrance, bedroom, or desk." }]),
+            actions: dynamicActions(section, staticSection),
+            cautions: dynamicCautions(staticSection)
+          };
+        });
+      }
+
+      function homeEvidenceFor(sectionId, report, fallback) {
+        const context = report?.context || report?.userContext || {};
+        const home = context.home || report?.home || {};
+        const analysis = report?.analysis || {};
+        const terrain = home.terrainEvidence || {};
+        const hasElements = context.birthTimeKnown !== false && analysis.elements;
+        const rules = {
+          "home-fit-overall": [["Purpose in daily life", home.mainPurpose], ["Home type", home.buildingType], ["Entrance", home.entranceFlow], ["Bedroom", home.bedroomFeel], ["Desk", home.deskPosition], ["Outside the window", home.outsideFlow]],
+          "terrain-support": [["Site similarity", terrain.siteSimilarityScore ? `${terrain.siteSimilarityScore} points` : terrain.siteSimilarityLabel], ["Site type", terrain.siteArchetype || terrain.summary], ["Daily routines", Array.isArray(terrain.similarCases) && terrain.similarCases.join(" · ")], ["Sense of support", home.outsideFlow || home.livingPeriod]],
+          "external-flow": [["User experience · Outside the window", home.outsideFlow], ["Living-area flow", terrain.front || terrain.back], ["Recurring stimuli", terrain.summary], ["Outside-flow type", terrain.siteArchetype]],
+          "light-air-noise": [["User experience · Bedroom", home.bedroomFeel], ["User experience · Outside the window", home.outsideFlow], ["Stimulus by time of day", terrain.summary], ["Recovery goal", home.mainPurpose]],
+          "building-unit": [["Your experience · home type", home.buildingType], ["What you feel · How long you've lived there", home.livingPeriod], ["How a generation feels it", home.extraNote], ["Purpose in daily life", home.mainPurpose]],
+          "saju-house-ohaeng": [["Birth-chart calculations", hasElements], ["Annual calculations", analysis.fortune?.yearPillar], ["Home five elements", null], ["Purpose", home.mainPurpose]],
+          "sleep-recovery": [["How the bedroom feels to the person using it", home.bedroomFeel], ["Sleep concerns", Array.isArray(home.painPoints) && home.painPoints.join(" ")], ["Light and temperature", null], ["7-day log", null]],
+          "entrance-flow": [["How the entrance feels to the person using it", home.entranceFlow], ["Congestion at the door", null], ["First path through the space", home.entranceFlow]],
+          "remote-focus": [["How the desk feels to its user", home.deskPosition], ["Remote-work status", null], ["A cue to end the workday", null]],
+          "money-living": [["Household friction", Array.isArray(home.painPoints) && home.painPoints.join(" ")], ["Recurring spending", null], ["Storage criteria", null]],
+          "relationship-cohabitation": [["Number of residents", null], ["Sound and time of day", null], ["Privacy boundaries", null]],
+          "reality-action": [["Intention to keep living here", home.stayDecision], ["Contract, commute, budget", null], ["Compare candidate homes", null]]
+        };
+        const picked = rules[sectionId] || [];
+        const known = picked.filter((item) => item[1]).length;
+        const total = picked.length || 1;
+        const score = Math.round((known / total) * 20) * 5;
+        const label = sectionId === "terrain-support" ? `Site similarity: ${score} points` : `Reading confidence: ${score} points`;
+        const facts = [label].concat(picked.filter((item) => item[1]).map((item) => `${item[0]} · ${item[1]}`));
+        if (fallback) facts.push(fallback);
+        return facts;
+      }
+
+      function neighbors(sections, index) {
+        const previous = sections[(index - 1 + sections.length) % sections.length];
+        const next = sections[(index + 1) % sections.length];
+        return { previous, next };
+      }
+
+      function render(section, sections, index, wasInvalid) {
+        const { previous, next } = neighbors(sections, index);
+        document.title = `${section.title} | Does my current home fit me?`;
+        document.getElementById("section-kicker").textContent = `Details ${String(index + 1).padStart(2, "0")}`;
+        document.getElementById("page-title").textContent = section.title;
+        document.getElementById("page-summary").textContent = section.conclusion;
+        document.getElementById("section-items").innerHTML = section.items.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join("");
+        document.getElementById("conclusion-card").innerHTML = `\x3cstrong>One-line conclusion\x3c/strong>\x3cspan>${escapeHtml(section.conclusion)}\x3c/span>`;
+        document.getElementById("fact-list").innerHTML = section.evidence.map((item) => `<span class="fact-chip">${escapeHtml(item)}</span>`).join("");
+        document.getElementById("block-list").innerHTML = section.blocks
+          .map(
+            (block) => `
+              <article class="block-card">
+                ${block.heading ? `<strong>${escapeHtml(block.heading)}</strong>` : ""}
+                ${block.body ? `<div class="home-richtext">${window.UMSHReportAccess && window.UMSHReportAccess.richText ? window.UMSHReportAccess.richText(block.body) : `<p>${escapeHtml(block.body)}</p>`}</div>` : ""}
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("action-list").innerHTML = section.actions
+          .map(
+            (action, actionIndex) => `
+              <article class="action-card">
+                <b>${String(actionIndex + 1).padStart(2, "0")}</b>
+                <span>${escapeHtml(action)}</span>
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("caution-list").innerHTML = section.cautions
+          .map(
+            (caution) => `
+              <article class="block-card">
+                <span>${escapeHtml(caution)}</span>
+              </article>
+            `
+          )
+          .join("");
+        document.getElementById("relation-list").innerHTML = `\x3ca class="relation-card" href="${route(previous.section_id)}">\x3cstrong>Previous item\x3c/strong>\x3cspan>${escapeHtml(previous.title)}\x3c/span>\x3c/a>\x3ca class="relation-card" href="${route(next.section_id)}">\x3cstrong>Next item\x3c/strong>\x3cspan>${escapeHtml(next.title)}\x3c/span>\x3c/a>`;
+        document.getElementById("section-tabs").innerHTML = sections
+          .map((item, tabIndex) => `<a class="section-tab ${item.section_id === section.section_id ? "is-active" : ""}" href="${route(item.section_id)}">${String(tabIndex + 1).padStart(2, "0")} ${escapeHtml(item.title)}</a>`)
+          .join("");
+        document.getElementById("prev-link").href = route(previous.section_id);
+        document.getElementById("prev-link").textContent = "Previous";
+        document.getElementById("next-link").href = route(next.section_id);
+        document.getElementById("next-link").textContent = "Next";
+        if (wasInvalid) document.getElementById("invalid-section").classList.add("is-open");
+
+      }
+
+      function initChat(section) {
+        const form = document.getElementById("detail-chat-form");
+        const message = document.getElementById("detail-chat-message");
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const value = message.value.trim();
+          if (!value) return;
+          setSession(STORAGE_KEYS.detailQuestion, {
+            service_key: SERVICE.service_key,
+            report_version: SERVICE.report_version,
+            section_id: section.section_id,
+            title: section.title,
+            question: value,
+            created_at: new Date().toISOString()
+          });
+          message.value = "";
+          document.getElementById("permission-note").innerHTML = `
+            \x3cstrong>Your question has been saved\x3c/strong>
+            \x3cspan>The answer will continue based on this detailed section.\x3c/span>
+          `;
+          document.getElementById("permission-note").classList.add("is-open");
+        });
+      }
+
+      async function init() {
+        if (window.UMSHReportAccess) return;
+        const data = readJsonBlock("DETAIL_DATA");
+        const report = reportFromSession() || await fetchReportById(selectedReportId());
+        const sections = dynamicSectionsFromReport(report, data);
+        const wanted = selectedSectionId(data || {});
+        let index = sections.findIndex((section) => section.section_id === wanted);
+        const wasInvalid = index < 0;
+        if (index < 0) index = Math.max(0, sections.findIndex((section) => section.section_id === data?.default_section_id));
+        const section = sections[index];
+        if (!section) return;
+        setSession(STORAGE_KEYS.selectedSection, {
+          service_key: SERVICE.service_key,
+          report_version: SERVICE.report_version,
+          report_id: selectedReportId(),
+          section_id: section.section_id,
+          title: section.title,
+          selected_at: new Date().toISOString()
+        });
+        render(section, sections, index, wasInvalid);
+        initChat(section);
+      }
+
+      init();
+    </script>
+    <div data-umsh-service-bottom></div>
+    <script src="/js/home-dashboard.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/umsh-home-reading.js?v=20261008-three-voice-v1"></script>
+    <script src="/js/service-shell.js?v=20261008-three-voice-v1"></script>
+      <!-- 2026-09-15: 해석 신고 버튼을 전 화면에서 내렸다. 되살릴 때 주석만 풀 것. <script src="/js/ai-report-flag.js?v=20261008-three-voice-v1" defer></script> -->
+  </body>
+</html>
