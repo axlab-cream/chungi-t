@@ -4564,7 +4564,7 @@
         /** 구매 퍼널 단계별로 세는 화면 주소. 서비스를 고르면 그 서비스의 실제 주소를 보인다. */
         function stagePaths(serviceKey) {
           var common = { checkout: '/payment', payOpen: '/payment 결제창 열기 버튼', paid: '/payment/result · 주문 확인' };
-          if (serviceKey === 'cmdg') return Object.assign({ intro: '/cmdg', input: '/cmdg 입력 장면', inputDone: '/cmdg 로딩 장면', teaser: '/cmdg 결과 장면', locked: '/cmdg 잠긴 목차 보임', buy: '/cmdg 구매 장면' }, common);
+          if (serviceKey === 'cmdg') return Object.assign({ intro: '/cmdg', input: '/cmdg 이름·생년월일·고민 장면', inputDone: '/cmdg 로딩 장면', teaser: '/cmdg 결과 장면', locked: '/cmdg 결과의 복채 안내 보임', buy: '/cmdg 구매 장면' }, common);
           var base = serviceKey && SERVICE_PATHS[serviceKey];
           var root = base ? base + '/' : '/서비스/';
           return Object.assign({
