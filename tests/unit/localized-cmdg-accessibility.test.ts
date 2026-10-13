@@ -46,6 +46,17 @@ for (const locale of ['en', 'ja'] as const) {
     assert.ok(html.includes('birthTimeDisambiguation'))
     assert.ok(html.includes('America/New_York'))
   })
+  test(`${locale} customer input examples use local wording without changing stored values`, () => {
+    const placeholders = [...html.matchAll(/placeholder="([^"]*)"/g)].map(match => match[1])
+    for (const placeholder of placeholders) assert.ok(!/[가-힣]/.test(placeholder), placeholder)
+    assert.ok(placeholders.includes(locale === 'en' ? 'Optional' : '任意'))
+    assert.ok(placeholders.includes(locale === 'en' ? 'e.g. dating, a crush, an ex' : '例：交際中、片思い、元恋人'))
+    assert.ok(placeholders.includes(locale === 'en' ? 'What is on your mind?' : '気になることを入力'))
+    assert.ok(placeholders.includes(locale === 'en' ? 'Alex Morgan' : '例：佐藤 花子'))
+    assert.ok(html.includes('value="${escapeHtml(state.partnerRelationship)}"'))
+    assert.ok(html.includes('value="${state.concern}"'))
+    assert.ok(html.includes('state.time === "모름"'))
+  })
   test(`${locale} inline scripts remain syntactically valid`, () => {
     let checked = 0
     for (const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {

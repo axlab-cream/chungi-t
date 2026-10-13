@@ -3037,3 +3037,8 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - Generated Search Console verification file line-ending-only rewrite excluded/restored to HEAD before shipping. Untracked historic diagnostics preserved, not staged.
 - Deployment: pending ordinary scoped main push and live/mobile checks at time of this record. No PR merge, force push, branch deletion, infrastructure, SQL, provider test or customer analysis executed.
 - Remaining: broader visible placeholder/copy audit, authenticated/profile E2E, all-image audit, stored localized report copies/DB gate, native consultation semantic approval and real foreign-currency settlement. This slice is not a complete overseas launch.
+
+### 2026-10-13 — consecutive customer input-example cleanup
+- Previous slice c85f506c deployed successfully via Vercel EpWAyhbA1da8aeJRuRJPgZpNQW1R; live EN/JA200 titles and Calendar type / 暦の種類 verified. Responsive390x844 iframe test shows synthetic New York/Tokyo birthplace selections, no analysis/save actions. Not a real-device or authenticated E2E test.
+- Continued without a new approval gate: EN3/JA4 placeholder literals only. Optional partner name, relationship examples, concern prompt localized; Japanese name example now 例：佐藤 花子. Existing user input values, escaped expressions and technical unknown-time enum remain unchanged.
+- Added two placeholder regression tests. Verification/deployment status recorded separately after execution; no provider/DB/billing calls.

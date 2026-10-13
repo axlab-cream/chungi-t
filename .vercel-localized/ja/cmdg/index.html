@@ -6128,7 +6128,7 @@
             \x3cdiv class="field-grid">
               \x3cdiv class="field">
                 \x3clabel for="name">名前\x3c/label>
-                \x3cinput id="name" type="text" placeholder="ホン・ギルドン" value="${state.name}" autocomplete="off" aria-describedby="name-error" />
+                \x3cinput id="name" type="text" placeholder="例：佐藤 花子" value="${state.name}" autocomplete="off" aria-describedby="name-error" />
                 \x3cdiv class="field-error" id="name-error" aria-live="polite">\x3c/div>
               \x3c/div>
             \x3c/div>
@@ -6161,11 +6161,11 @@
               <div class="field-grid">
                 <div class="field">
                   <label for="partnerName">相手の名前か呼び方</label>
-                  <input id="partnerName" type="text" placeholder="선택 입력" value="${escapeHtml(state.partnerName)}" autocomplete="off" />
+                  <input id="partnerName" type="text" placeholder="任意" value="${escapeHtml(state.partnerName)}" autocomplete="off" />
                 </div>
                 <div class="field">
                   <label for="partnerRelationship">相手との関係</label>
-                  <input id="partnerRelationship" type="text" placeholder="예: 썸, 짝사랑, 전연인" value="${escapeHtml(state.partnerRelationship)}" autocomplete="off" />
+                  <input id="partnerRelationship" type="text" placeholder="例：交際中、片思い、元恋人" value="${escapeHtml(state.partnerRelationship)}" autocomplete="off" />
                 </div>
               </div>
               <div class="choices two" role="group" aria-label="相手の暦の種類">
@@ -6266,7 +6266,7 @@
             <div class="field-grid">
               <div class="field">
                 <label for="concern">悩み</label>
-                <input id="concern" type="text" placeholder="悩み 입력하기" value="${state.concern}" autocomplete="off" />
+                <input id="concern" type="text" placeholder="気になることを入力" value="${state.concern}" autocomplete="off" />
               </div>
             </div>
             <div class="actions">
