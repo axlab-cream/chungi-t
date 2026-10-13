@@ -314,15 +314,16 @@
         background-repeat: no-repeat;
       }
 
+      /* 안드로이드 선택 목록은 글자색을 따르지 않아 어두운 바탕이면 안 보인다(umsh-chrome.css 참고). */
       select option {
-        background-color: #151917 !important;
-        color: var(--ink) !important;
+        background-color: #fff7df !important;
+        color: #17130b !important;
       }
 
       select option:checked,
       select option:hover {
-        background-color: #263026 !important;
-        color: var(--ink) !important;
+        background-color: #f2dc9a !important;
+        color: #17130b !important;
       }
 
       .postcode-layer {
