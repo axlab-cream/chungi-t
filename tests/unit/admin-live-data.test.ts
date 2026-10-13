@@ -181,6 +181,10 @@ describe('관리자 실데이터 DTO', { concurrency: false }, () => {
     const countRequests = requests.slice(before)
     assert.equal(countRequests[0]?.headers.get('prefer'), 'count=exact')
     assert.equal(countRequests[1]?.headers.get('prefer'), 'count=exact')
+    // 2026-10-13 비회원(익명 계정) 프로필은 회원 수에서 뺀다.
+    assert.equal(countRequests[0]?.url.searchParams.get('profile_payload->>account_type'), 'is.null')
+    await liveData.countLiveGuests()
+    assert.equal(requests.at(-1)?.url.searchParams.get('profile_payload->>account_type'), 'eq.guest')
   })
 
   /**

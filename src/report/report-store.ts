@@ -72,6 +72,8 @@ export interface ReportOwner {
   email?: string
   provider?: string
   accessToken?: string
+  /** Supabase 익명 계정(비회원). SNS 로그인 전이라 결제·서브 콘텐츠·상담은 막는다. */
+  isAnonymous?: boolean
 }
 
 const connectionString = configuredEnv(process.env.DATABASE_URL)

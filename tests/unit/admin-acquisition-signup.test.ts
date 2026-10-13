@@ -57,6 +57,8 @@ test('custom window end is exclusive for orders, buyers and signups', () => {
   assert.equal(summarizePaidOrders(orders, since, until).orders, 1)
   assert.equal(summarizeBuyers(orders, since, until).buyers, 1)
   assert.equal(countSignups([{ created_at: '2026-10-02T00:00:00.000Z' }, { created_at: '2026-10-05T00:00:00.000Z' }], since, until).signups, 1)
+  // 비회원(익명 계정)은 가입으로 세지 않는다.
+  assert.equal(countSignups([{ created_at: '2026-10-02T00:00:00.000Z', is_anonymous: true }], since, until).signups, 0)
 })
 
 function trackerContext(href: string, extra: Record<string, unknown> = {}) {

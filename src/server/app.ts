@@ -1495,6 +1495,7 @@ async function verifySupabaseUser(req: Request): Promise<ReportOwner | undefined
     email?: string
     app_metadata?: { provider?: string }
     identities?: Array<{ provider?: string }>
+    is_anonymous?: boolean
   }
   if (!data.id) throw new Error('회원 식별값을 확인하지 못했습니다.')
   return {
@@ -1502,6 +1503,7 @@ async function verifySupabaseUser(req: Request): Promise<ReportOwner | undefined
     email: data.email,
     provider: data.app_metadata?.provider ?? data.identities?.[0]?.provider,
     accessToken: token,
+    isAnonymous: data.is_anonymous === true,
   }
 }
 
@@ -1515,6 +1517,26 @@ async function requireSupabaseUser(req: Request, res: Response): Promise<ReportO
   }
   res.status(401).json({ error: '회원가입 후 이용해 주세요.' })
   return null
+}
+
+/**
+ * 2026-10-13 비회원(익명 계정) 도입. 사주 입력·무료 풀이는 비회원도 쓰고,
+ * 결제·쿠폰·서브 콘텐츠(play)·상담·채팅·리더 도구·번역·계정 기능은 SNS 로그인 회원만 쓴다.
+ */
+async function requireMemberUser(req: Request, res: Response): Promise<ReportOwner | null> {
+  const owner = await requireSupabaseUser(req, res)
+  if (!owner) return null
+  if (owner.isAnonymous) {
+    res.status(401).json({ code: 'MEMBER_REQUIRED', error: 'SNS 로그인 후 이용해 주세요.' })
+    return null
+  }
+  return owner
+}
+
+/** 회원 전용 목록·집계에 비회원을 섞지 않는다. 비회원은 계정 id만 있고 회원으로 세지 않는다. */
+async function verifyMemberUser(req: Request): Promise<ReportOwner | undefined> {
+  const owner = await verifySupabaseUser(req)
+  return owner && !owner.isAnonymous ? owner : undefined
 }
 
 function asObject(value: unknown): Record<string, unknown> {
@@ -2525,8 +2547,8 @@ app.post('/api/events', async (req, res) => {
     const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : ''
     const list = Array.isArray(body?.events) ? body.events.slice(0, FUNNEL_BATCH_LIMIT) : []
     if (!sessionId || !list.length) { res.status(204).end(); return }
-    // 로그인 상태면 계정을 붙인다. 아니면 익명 세션으로만 센다.
-    const owner = await verifySupabaseUser(req).catch(() => undefined)
+    // 로그인 회원이면 계정을 붙인다. 비회원(익명 계정)·로그아웃은 세션으로만 센다 — "로그인 방문자" 수가 부풀지 않게.
+    const owner = await verifyMemberUser(req).catch(() => undefined)
     const rows = list
       .map((item) => toStoredEvent(item as never, sessionId, owner?.id))
       .filter((row): row is NonNullable<typeof row> => Boolean(row))
@@ -3827,7 +3849,7 @@ app.get('/api/payment/config', (_req, res) => {
 })
 
 const pushDeps = {
-  optionalUser: async (req: Request) => { const owner = await verifySupabaseUser(req).catch(() => undefined); return owner ? { id: owner.id } : null },
+  optionalUser: async (req: Request) => { const owner = await verifyMemberUser(req).catch(() => undefined); return owner ? { id: owner.id } : null },
   staff: requireStaff,
   audit: (actor: string, action: string, targetId: string) => postgrestAdminCommandStore().appendAuditEvent({ actorEmail: actor, action, target: { type: 'push_notification', id: targetId }, result: 'succeeded' }),
   recipients: { optedOut: optedOutUserIds, marketingConsented: marketingConsentedUserIds },
@@ -3846,7 +3868,7 @@ app.use('/api/admin/v1/coupons', adminCouponRouter({
   memberExists: async (memberId) => Boolean(await getAdminMemberDetail(memberId)),
 }))
 app.use('/api/coupons', couponRouter({
-  authenticate: requireSupabaseUser,
+  authenticate: requireMemberUser,
   staff: requireStaff,
   resolveReport: async (owner, reportId) => {
     try {
@@ -3864,7 +3886,7 @@ app.use('/api/coupons', couponRouter({
 
 app.post('/api/payment/orders', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const config = paymentConfigPayload()
     if (!config.checkoutEnabled) {
@@ -4014,7 +4036,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(404).json({ error: '테스트 결제 모드가 아닙니다.' })
       return
     }
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const orderId = trimmedString(req.body?.orderId)
     const order = await getPaymentOrder(orderId)
@@ -4058,7 +4080,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
  */
 app.post('/api/payment/google/verify', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     if (!isGooglePlayConfigured()) {
       res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
@@ -4177,7 +4199,7 @@ async function settleGooglePlayPurchase(
  */
 app.post('/api/payment/google/recover', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     if (!isGooglePlayConfigured()) {
       res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
@@ -4245,7 +4267,7 @@ app.post('/api/payment/google/recover', async (req, res) => {
  */
 app.get('/api/payment/google/product/:productKey', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const product = getPaymentProduct(req.params.productKey)
     if (!product) {
@@ -4359,7 +4381,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
 
 app.get('/api/payment/orders/:orderId', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
     if (!order || order.ownerId !== owner.id) {
@@ -4374,7 +4396,7 @@ app.get('/api/payment/orders/:orderId', async (req, res) => {
 
 app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
     if (!order || order.ownerId !== owner.id) {
@@ -4394,7 +4416,7 @@ app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
 
 app.get('/api/user/orders', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const orders = await listPaymentOrders(owner.id, parseListLimit(req.query.limit))
     res.json({ orders: orders.map(clientPaymentOrder), storage: getPaymentStorageMode() })
@@ -4405,13 +4427,13 @@ app.get('/api/user/orders', async (req, res) => {
 
 
 app.use('/api/play/love-speed', loveSpeedRouter({
-  authenticate: requireSupabaseUser,
+  authenticate: requireMemberUser,
   context: async (owner) => {
     const profile = await getUserBirthProfile(owner)
     return { saju: profile ? analyzeSaju(profile.birth) : null, birthTimeKnown: profile?.birthTimeKnown !== false }
   },
 }))
-app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireSupabaseUser, spec: soloNaraSpec as SoloSpec }))
+app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireMemberUser, spec: soloNaraSpec as SoloSpec }))
 app.get('/api/user/profile', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
@@ -4439,12 +4461,12 @@ app.post('/api/user/profile', saveUserProfileHandler)
 app.put('/api/user/profile', saveUserProfileHandler)
 
 // 마이페이지 알림 설정·1:1 문의·공지(2026-10). 규칙은 src/user/hub-store.ts.
-app.use('/api', memberHubRouter({ authenticate: requireSupabaseUser }))
+app.use('/api', memberHubRouter({ authenticate: requireMemberUser }))
 
 // 회원 탈퇴. 결제 기록은 법정 기간 보관하고 나머지는 지운다 — 기준은 src/user/account-deletion.ts.
 app.delete('/api/user/account', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const result = await deleteOwnAccount(owner.id)
     res.json({ deleted: true, paymentRecordsRetained: result.paymentRecordsRetained })
@@ -5476,7 +5498,7 @@ app.post('/api/saju/analyze', async (req, res) => {
 app.use('/api/report/:reportId/reader', async (req, res, next) => {
   res.setHeader('Cache-Control', 'private, no-store')
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const record = await findReportRecord(String(req.params.reportId), owner)
     if (!record) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
@@ -5491,7 +5513,7 @@ app.use('/api/report/:reportId/reader', async (req, res, next) => {
 })
 app.get('/api/user/reader-history', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const rows = await listReaderHistoryRecords(owner)
     // Only question metadata is listed here. Answers/images still pass report-level purchase checks.
@@ -5542,7 +5564,7 @@ app.get('/api/report/:reportId/reader/sketch', async (_req, res) => {
 })
 
 const localeCopyHandler = storedResultRoute({
-  authenticate: requireSupabaseUser,
+  authenticate: requireMemberUser,
   lookup: async (id, owner) => {
     const record = await findReportRecord(id, owner)
     return record && !isConsultationRecord(record) && !isSavedChatRecord(record) ? record : null
@@ -5829,7 +5851,7 @@ app.post('/api/report/prewarm', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
+    const owner = await requireMemberUser(req, res)
     if (!owner) return
     const requestId = trimmedString(req.body.requestId)
     if (requestId) {
