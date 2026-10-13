@@ -1,5 +1,11 @@
 # Status
 
+## 2026-10-13 — 천명사주 퍼널 측정 보정
+
+- [DONE] 입력 시작: 이름·생년월일·고민 장면 중 처음 들어간 곳을 02-input 으로 센다. 프로필 손님은 고민 장면부터 시작해 입력 시작(1)이 입력 완료(4)보다 작게 나왔다.
+- [DONE] 잠긴 목차: 천명사주 결과에는 잠긴 목차가 없어 상담 구성·복채 안내(.cmdg-master-teaser .package-card), 올해 연애운은 마지막 가격 안내 칸이 30% 이상 보이면 locked_view 로 센다. 관리자 단계 주소 설명도 맞춤.
+- 남음: 가입 퍼널은 천명사주 로그인 화면에서만 기록된다. 10/12 네이버 가입 1건이 완료로 안 잡힌 원인은 미확인.
+
 ## 2026-10-08 — 관리자 구매 퍼널 9단계 + 숫자 출처 ⓘ + 단계 주소
 
 - [DONE] 요약 카드 8개·블록 제목·페이지 조회 카드에 ⓘ(출처·기준). 주문 상태에 환불이 따로 없어 "환불 미반영"으로 적음.
@@ -3070,3 +3076,14 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - Bump injected runtime cache version in localized-pages.ts to20261013-price-label1 so reloads do not reuse old suffix logic. This is a promotional price-display correction, NOT USD/JPY checkout implementation.
 - RED5/5 before patch; complete related110 tests PASS, typecheck/public build PASS, independent code review PASS. Added actual runtime VM tests for legacy/preformatted prices, repeated observer refresh, original attrs and protected text; no real payment/provider/DB calls.
 - Live served-loader/script and actual DOM card-line validation recorded after push in recovery. Korean original, centered splash and prior long-note removal retained.
+
+### 2026-10-13 — localized price row alignment
+- Owner screenshots request price typography alignment. EN measured unwrapped244px at25px versus200px available; nowrap alone would overflow. Add only localized home price CSS:19px desktop/17px at<=520, line-height1.25, nowrap, baseline alignment, CTA flex-shrink0. KO/common CSS/media/other text/price amounts/payment fields untouched.
+- Synchronize tracked build-locale-runtime.mjs priceText with already shipped suffix stripping; proven future regeneration regression, not proof screenshots are cached. No active duplicate formatter/SW navigation cache found. Bump loader to20261013-price-align1.
+- RED4/4 then114 related tests PASS, typecheck/public build PASS. Real sharedCSS+newinlineCSS iframe fixture EN/JA x320/390/430/768/1440 (3 prices each):30/30 one line/no overlap/no overflow, baselineDelta0. Fixtures use zero-height baseline markers in b and first CTA grid item; not actual phone/authenticated E2E. Live validation after deploy required.
+
+### 2026-10-13 — bare localized price copy requested by owner
+- Owner asks for no KRW-calculation/reference wording in price labels. Remove Approx./約 only from existing server/runtime price producers; normalize legacy currency-prefixed prices only under existing guarded price selectors. Preserve ordinary Approx. timing/約1分/約束, quote/customerQuote/report originals and attributes. Rates, numeric home values, currency schema and actual Inicis WON settings unchanged.
+- Search EN/JA inline display price() still emitted KRW/ウォン: update only those display functions to canonical pinned USD/JPY formatting. Actual source functions VM-tested against server converter for 0/1/9900/12900/49900/-250/-1000/null, including negative half rounding. No data/filter/query/payment mutation.
+- Sync generator and both runtimes; cache loader v20261013-price-copy1. No broader prose replacement, KO/commonCSS/media/baseline changes.
+- RED9/12 plus search2/2; initial replacement-string dollar substitution broke local JS, caught by VM/parity and independent blocker BEFORE any deploy. Repaired from HEAD with callback replacement. Then116 related tests PASS/typecheck/public build PASS; independent re-review/live checks recorded in recovery.

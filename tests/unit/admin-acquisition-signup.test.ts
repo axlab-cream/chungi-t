@@ -106,7 +106,7 @@ test('cmdg reports in-page scenes and admin wires the new views, range and Clari
   const cmdg = read('사주/사주/index.html')
   const admin = read('admin-ui/index.html')
   const app = read('src/server/app.ts')
-  assert.ok(cmdg.includes('const FUNNEL_SCENES = { birth: "02-input", result: "04-report" };'))
+  assert.ok(cmdg.includes('const FUNNEL_SCENES = { name: "02-input", birth: "02-input", concern: "02-input", result: "04-report" };'))
   assert.ok(cmdg.includes('trackFunnelScene(scene);'))
   assert.ok(admin.includes("['signup', '가입 퍼널'], ['acquisition', '유입 채널']"))
   assert.ok(admin.includes('<option value="custom">직접 선택</option>'))

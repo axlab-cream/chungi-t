@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import {readFileSync} from 'node:fs'
+import vm from 'node:vm'
+function layout(locale:string){const html=readFileSync(new URL('../../.vercel-localized/'+locale+'/portal.html',import.meta.url),'utf8');const match=html.match(/<style id="localized-price-layout">([\s\S]*?)<\/style>/);assert.ok(match,'Localized price layout must exist');return match[1]}
+for(const locale of ['en','ja'])test(locale+' price fits one line and uses the CTA text baseline',()=>{const css=layout(locale);assert.match(css,/align-items:\s*baseline/);assert.match(css,/white-space:\s*nowrap/);assert.match(css,/font-size:\s*19px/);assert.match(css,/@media\s*\(max-width:\s*520px\)/);assert.match(css,/font-size:\s*17px/);assert.match(css,/flex-shrink:\s*0/);assert.doesNotMatch(css,/overflow:\s*hidden|text-overflow|transform|object-fit/)});
+test('Localized price layouts match and Korean original is untouched',()=>{assert.equal(layout('en'),layout('ja'));assert.ok(!readFileSync(new URL('../../사주/portal.html',import.meta.url),'utf8').includes('localized-price-layout'))});
+test('Executing the generator reproduces both tested runtime files exactly',()=>{const writes:Record<string,string>={};const fakeFs={mkdirSync(){},writeFileSync(path:string,value:string){writes[path]=value}};const generator=readFileSync(new URL('../../scripts/build-locale-runtime.mjs',import.meta.url),'utf8').replace(/^import fs from 'node:fs'\s*/,'');vm.runInNewContext(generator,{fs:fakeFs,console:{log(){}}});for(const locale of ['en','ja'])assert.equal(writes['.vercel-localized/'+locale+'/js/locale-runtime.js'],readFileSync(new URL('../../.vercel-localized/'+locale+'/js/locale-runtime.js',import.meta.url),'utf8'))});

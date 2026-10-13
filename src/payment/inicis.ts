@@ -238,10 +238,76 @@ export function createInicisMobilePaymentFields(params: {
 
 type InicisEndpointMode = 'pc' | 'mobile'
 
-function expectedInicisHost(mode: InicisEndpointMode, idcName: string): string | undefined {
+/**
+ * KG이니시스 보안 권고(2026-10, 리다이렉트 피싱 방지): idc_name 별 승인 URL 을 가맹점이
+ * 들고 있다가, 인증결과로 받은 authUrl·P_REQ_URL 과 비교한 뒤 이 URL 로 승인을 요청한다.
+ * 값은 권고 메일에 적힌 그대로다.
+ */
+const INICIS_APPROVAL_URLS: Record<InicisEndpointMode, Record<string, string>> = {
+  pc: {
+    fc: 'https://fcstdpay.inicis.com/api/payAuth',
+    ks: 'https://ksstdpay.inicis.com/api/payAuth',
+    stg: 'https://stgstdpay.inicis.com/api/payAuth',
+  },
+  mobile: {
+    fc: 'https://fcmobile.inicis.com/smart/payReq.ini',
+    ks: 'https://ksmobile.inicis.com/smart/payReq.ini',
+    stg: 'https://stgmobile.inicis.com/smart/payReq.ini',
+  },
+}
+
+/**
+ * 받은 승인 URL 이 표와 다를 때 막을지 여부.
+ *
+ * 우리 테스트는 PC 승인 경로를 `/stdpay/payAuth` 로 가정해 왔고 권고 메일은 `/api/payAuth`
+ * 라서, 운영에서 실제 값을 확인하기 전에 막으면 결제가 전부 실패할 수 있다. 지금은 호스트
+ * 검사로 막고 경로 차이는 로그로만 남긴다. 운영 로그로 표가 맞다고 확인되면 true 로 바꾼다.
+ */
+export const INICIS_ENFORCE_EXACT_APPROVAL_URL = false
+
+function isInicisTestMid(mid: string): boolean {
+  return mid.startsWith('INIpayTest')
+}
+
+/**
+ * 운영 상점에서는 테스트 서버(stg) 인증결과를 받지 않는다. 테스트 MID 로 도는 미리보기·로컬은
+ * stg 를 계속 쓴다.
+ */
+export function allowedInicisIdcNames(): string[] {
+  const production = (process.env.VERCEL_ENV ?? '').trim() === 'production'
+  if (production && !isInicisTestMid(config().mid)) return ['fc', 'ks']
+  return ['fc', 'ks', 'stg']
+}
+
+function normalizedIdc(idcName: string): string | undefined {
   const idc = idcName.trim().toLowerCase()
-  if (!['fc', 'ks', 'stg'].includes(idc)) return undefined
+  return allowedInicisIdcNames().includes(idc) ? idc : undefined
+}
+
+function expectedInicisHost(mode: InicisEndpointMode, idcName: string): string | undefined {
+  const idc = normalizedIdc(idcName)
+  if (!idc) return undefined
   return mode === 'pc' ? `${idc}stdpay.inicis.com` : `${idc}mobile.inicis.com`
+}
+
+/**
+ * 승인 요청을 보낼 URL 을 정한다. 호스트가 idc_name 과 다르면 항상 막는다. 경로까지 표와
+ * 같은지는 INICIS_ENFORCE_EXACT_APPROVAL_URL 에 따라 막거나 로그만 남긴다.
+ */
+export function resolveInicisApprovalUrl(
+  returnedUrl: string,
+  idcName: string,
+  mode: InicisEndpointMode,
+  enforceExact = INICIS_ENFORCE_EXACT_APPROVAL_URL,
+): string {
+  const label = mode === 'pc' ? '승인 URL' : '모바일 승인 URL'
+  if (!isAllowedInicisUrl(returnedUrl, idcName, mode)) throw new Error(`이니시스 IDC와 ${label}이 일치하지 않습니다.`)
+  const stored = INICIS_APPROVAL_URLS[mode][idcName.trim().toLowerCase()]
+  if (returnedUrl === stored) return stored
+  if (enforceExact) throw new Error(`이니시스 ${label}이 등록된 주소와 다릅니다.`)
+  const received = new URL(returnedUrl)
+  console.warn(`[inicis-approval-url] mode=${mode} idc=${idcName.trim().toLowerCase()} received=${received.origin}${received.pathname} stored=${stored}`)
+  return returnedUrl
 }
 
 export function isAllowedInicisUrl(value: string, idcName: string, mode: InicisEndpointMode): boolean {
@@ -449,7 +515,7 @@ export async function approveInicisPayment(params: {
 }, transport: InicisTransport = fetch): Promise<InicisApprovalResult> {
   const current = config()
   if (!current.enabled) throw new Error('이니시스 결제 설정이 없습니다.')
-  if (!isAllowedInicisUrl(params.authUrl, params.idcName, 'pc')) throw new Error('이니시스 IDC와 승인 URL이 일치하지 않습니다.')
+  const authUrl = resolveInicisApprovalUrl(params.authUrl, params.idcName, 'pc')
   const timestamp = String(Date.now())
   const body = new URLSearchParams({
     mid: current.mid,
@@ -461,7 +527,7 @@ export async function approveInicisPayment(params: {
     format: 'JSON',
     price: String(params.order.amount),
   })
-  const response = await transport(params.authUrl, {
+  const response = await transport(authUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
     body,
@@ -472,7 +538,7 @@ export async function approveInicisPayment(params: {
   const returnedOrder = raw.MOID || raw.orderNumber || raw.P_OID || ''
   const returnedAmount = raw.TotPrice || raw.P_AMT || raw.price || ''
   if (!response.ok || resultCode !== '0000') throw new Error(resultMessage)
-  if (!returnedOrder || returnedOrder !== params.order.orderId) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
+  if (!returnedOrder || returnedOrder !== safeOrderId(params.order.orderId)) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
   if (!returnedAmount || Number(returnedAmount) !== params.order.amount) throw new Error('승인 결과의 결제금액이 일치하지 않습니다.')
   return {
     resultCode,
@@ -492,8 +558,8 @@ export async function approveInicisMobilePayment(params: {
 }, transport: InicisTransport = fetch): Promise<InicisApprovalResult> {
   const current = config()
   if (!current.mobileEnabled) throw new Error('이니시스 모바일 결제 설정이 없습니다.')
-  if (!isAllowedInicisUrl(params.requestUrl, params.idcName, 'mobile')) throw new Error('이니시스 IDC와 모바일 승인 URL이 일치하지 않습니다.')
-  const response = await transport(params.requestUrl, {
+  const requestUrl = resolveInicisApprovalUrl(params.requestUrl, params.idcName, 'mobile')
+  const response = await transport(requestUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
     body: new URLSearchParams({ P_MID: current.mid, P_TID: params.tid }),
@@ -502,7 +568,7 @@ export async function approveInicisMobilePayment(params: {
   const resultCode = raw.P_STATUS || raw.resultCode || ''
   const resultMessage = raw.P_RMESG1 || raw.resultMsg || '모바일 승인 결과를 확인하지 못했습니다.'
   if (!response.ok || resultCode !== '00') throw new Error(resultMessage)
-  if (!raw.P_OID || raw.P_OID !== params.order.orderId) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
+  if (!raw.P_OID || raw.P_OID !== safeOrderId(params.order.orderId)) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
   if (!raw.P_AMT || Number(raw.P_AMT) !== params.order.amount) throw new Error('승인 결과의 결제금액이 일치하지 않습니다.')
   return {
     resultCode,
@@ -543,13 +609,15 @@ export async function cancelInicisApproval(params: InicisCancellationContext, tr
     const requestUrl = new URL(params.requestUrl)
     url = new URL('/smart/payNetCancel.ini', requestUrl.origin).toString()
     const timestamp = String(Date.now())
+    // 망취소의 P_OID 는 결제 요청 때 보낸 P_OID 와 같아야 한다. 요청 필드와 같은 함수를 쓴다.
+    const oid = safeOrderId(params.order.orderId)
     body = new URLSearchParams({
       P_TID: params.tid,
       P_MID: current.mid,
       P_AMT: String(params.order.amount),
-      P_OID: params.order.orderId,
+      P_OID: oid,
       P_TIMESTAMP: timestamp,
-      P_CHKFAKE: sha512Base64(`${params.order.amount}${params.order.orderId}${timestamp}${current.hashKey}`),
+      P_CHKFAKE: sha512Base64(`${params.order.amount}${oid}${timestamp}${current.hashKey}`),
     })
   }
   const response = await transport(url, {

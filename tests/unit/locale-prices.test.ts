@@ -1,27 +1,29 @@
+import fs from 'node:fs'
+import vm from 'node:vm'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { formatReferencePrice, replaceVisibleLocaleText, PRICE_REFERENCE } from '../../src/i18n/visible-locale-replacements.js'
 
 test('reference prices use one documented rate and normal currency precision, not marketing prices', () => {
   assert.deepEqual(PRICE_REFERENCE, { krwPerUsd: 1340, jpyPerKrw: 0.118 })
-  assert.equal(formatReferencePrice(9900, 'en'), 'Approx. $7.39 USD')
-  assert.equal(formatReferencePrice(9900, 'ja'), '約 ¥1,168 JPY')
-  assert.equal(formatReferencePrice(49900, 'en'), 'Approx. $37.24 USD')
-  assert.equal(formatReferencePrice(49900, 'ja'), '約 ¥5,888 JPY')
-  assert.equal(formatReferencePrice(0, 'en'), 'Approx. $0.00 USD')
-  assert.equal(formatReferencePrice(0, 'ja'), '約 ¥0 JPY')
-  assert.equal(formatReferencePrice(1, 'en'), 'Approx. $0.00 USD')
+  assert.equal(formatReferencePrice(9900, 'en'), '$7.39 USD')
+  assert.equal(formatReferencePrice(9900, 'ja'), '¥1,168 JPY')
+  assert.equal(formatReferencePrice(49900, 'en'), '$37.24 USD')
+  assert.equal(formatReferencePrice(49900, 'ja'), '¥5,888 JPY')
+  assert.equal(formatReferencePrice(0, 'en'), '$0.00 USD')
+  assert.equal(formatReferencePrice(0, 'ja'), '¥0 JPY')
+  assert.equal(formatReferencePrice(1, 'en'), '$0.00 USD')
   assert.throws(() => formatReferencePrice(Number.NaN, 'en'), /finite KRW/)
 })
 
 test('prices render locally in text and accessible display attributes while every machine price attribute stays original', () => {
   const input = '<html lang="en"><body><main><a href="/payment?amount=9900&coupon=9900원" data-price="9900" data-amount="9900" aria-label="Read 9,900 KRW"><b>9,900원</b></a><p data-price="49,900 KRW" title="Price: 49,900원">49,900 KRW</p><img alt="9,900 KRW" src="/assets/9900원.png"></main></body></html>'
   const out = replaceVisibleLocaleText(input, 'en')
-  assert.match(out, /<b>Approx\. \$7\.39 USD<\/b>/)
-  assert.match(out, /aria-label="Read Approx\. \$7\.39 USD"/)
+  assert.match(out, /<b>\$7\.39 USD<\/b>/)
+  assert.match(out, /aria-label="Read \$7\.39 USD"/)
   assert.match(out, /data-price="49,900 KRW"/)
-  assert.match(out, /title="Price: Approx\. \$37\.24 USD"/)
-  assert.match(out, /alt="Approx\. \$7\.39 USD"/)
+  assert.match(out, /title="Price: \$37\.24 USD"/)
+  assert.match(out, /alt="\$7\.39 USD"/)
   assert.ok(out.includes('href="/payment?amount=9900&coupon=9900원"'))
   assert.ok(out.includes('data-price="9900" data-amount="9900"'))
   assert.ok(out.includes('src="/assets/9900원.png"'))
@@ -36,7 +38,7 @@ test('JS purchase payloads, coupons, CSS and structured-data offers are not conv
   const comment = '<!-- reference: 9900 KRW -->'
   const out = replaceVisibleLocaleText(script + jsonLd + microdata + style + comment + '<b>9,900 KRW</b>', 'ja')
   for (const original of [script, jsonLd, microdata, style, comment]) assert.ok(out.includes(original), original)
-  assert.ok(out.includes('<b>約 ¥1,168 JPY</b>'))
+  assert.ok(out.includes('<b>¥1,168 JPY</b>'))
   const schema = JSON.parse(out.match(/<script type="application\/ld\+json">([^]*?)<\/script>/)![1])
   assert.equal(schema.price, '9900')
   assert.equal(schema.priceCurrency, 'KRW')
@@ -45,11 +47,11 @@ test('JS purchase payloads, coupons, CSS and structured-data offers are not conv
 
 test('discounted totals, free coupons and ranges use the same converter with no minimum', () => {
   const out = replaceVisibleLocaleText('<p>4,900–24,900 KRW</p><p>0원</p><p>-1,000 KRW</p><p>Final: 8,900 KRW</p><p>KRW 1,340 / ₩1,340</p>', 'en')
-  assert.match(out, /Approx\. \$3\.66 USD – Approx\. \$18\.58 USD/)
-  assert.match(out, /<p>Approx\. \$0\.00 USD<\/p>/)
-  assert.match(out, /Approx\. −\$0\.75 USD/)
-  assert.match(out, /Final: Approx\. \$6\.64 USD/)
-  assert.match(out, /Approx\. \$1\.00 USD \/ Approx\. \$1\.00 USD/)
+  assert.match(out, /\$3\.66 USD – \$18\.58 USD/)
+  assert.match(out, /<p>\$0\.00 USD<\/p>/)
+  assert.match(out, /−\$0\.75 USD/)
+  assert.match(out, /Final: \$6\.64 USD/)
+  assert.match(out, /\$1\.00 USD \/ \$1\.00 USD/)
 })
 
 test('conversion is idempotent without inserting the internal currency-reference note', () => {
@@ -93,4 +95,14 @@ test('previously generated currency-reference asides are removed without touchin
     assert.equal(replaceVisibleLocaleText(out, locale), out)
     assert.equal(replaceVisibleLocaleText(input, 'ko'), input)
   }
+})
+
+for (const locale of ['en', 'ja'] as const) test(locale + ' search prices use the same display converter without won/reference wording', () => {
+ const html = fs.readFileSync(new URL(`../../.vercel-localized/${locale}/search.html`, import.meta.url), 'utf8')
+ const match = html.match(/function price\(amount\) \{([\s\S]*?)\n        \}/)
+ assert.ok(match)
+ const price = vm.runInNewContext('(function(amount){' + match[1] + '})') as (value: number|null) => string
+ for (const amount of [0, 1, 9900, 12900, 49900, -250, -1000]) assert.equal(price(amount), formatReferencePrice(amount, locale))
+ assert.equal(price(null), formatReferencePrice(0, locale))
+ assert.doesNotMatch(price(9900), /KRW|ウォン|Approx\.|約/)
 })

@@ -867,3 +867,16 @@ body.has-inline-back .umsh-service-shell .app-back { display: none; }
 body.umsh-has-chrome {
   padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
 }
+
+/* 선택 칸을 눌렀을 때 뜨는 목록(2026-10-13).
+   안드로이드는 목록 바탕색은 페이지 CSS를 따르면서 글자색은 기본 검정으로 그린다.
+   어두운 바탕을 주면 검은 글자가 묻혀 안 보이므로, 어느 기기에서도 읽히도록 밝은 바탕·어두운 글자로 통일한다.
+   화면마다 어두운 option 규칙이 따로 있어 !important 로 덮는다. */
+select option,
+select optgroup {
+  background-color: #fff7df !important;
+  color: #17130b !important;
+}
+select option:disabled {
+  color: #8a8172 !important;
+}

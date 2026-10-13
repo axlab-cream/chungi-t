@@ -121,6 +121,14 @@
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
   <link rel="stylesheet" href="/css/consultation.css?v=20261002-banner3" />
 <script src="/js/consultation-rail.js?v=20261006-solo-nara" defer></script>
+    <style id="localized-price-layout">
+      .price-line { align-items: baseline; }
+      .price-line b { font-size: 19px; line-height: 1.25; white-space: nowrap; }
+      .price-line > span { flex-shrink: 0; }
+      @media (max-width: 520px) {
+        .price-line b { font-size: 17px; }
+      }
+    </style>
     <style id="localized-splash-layout">
       .splash-screen {
         position: fixed;

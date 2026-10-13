@@ -237,7 +237,10 @@
         }
 
         function price(amount) {
-          return `${Number(amount || 0).toLocaleString('ko-KR')}ウォン`;
+          const converted = Number(amount || 0) * 0.118;
+          const sign = converted < 0 ? '−' : '';
+          const value = Math.abs(converted).toLocaleString('ja-JP', { maximumFractionDigits: 0 });
+          return `${sign}¥${value} JPY`;
         }
 
         function matches(service) {

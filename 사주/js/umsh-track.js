@@ -167,7 +167,8 @@
    * 한 화면에서 같은 표시는 한 번만 남긴다.
    */
   var TWO_STEP_INPUT = { pass_angle: true, quit_fortune: true };
-  var LOCKED_SELECTOR = '.job-teaser-toc, .umsh-lf-locked, .umsh-highlight.is-locked';
+  // 천명사주 결과에는 잠긴 목차가 없고, 상담 구성·복채 안내(package-card)가 같은 자리다. 올해 연애운은 마지막 가격 안내 칸.
+  var LOCKED_SELECTOR = '.job-teaser-toc, .umsh-lf-locked, .umsh-highlight.is-locked, .cmdg-master-teaser .package-card, [data-sample-section="love-final-cta"]';
   var marked = {};
   function mark(name, serviceKey) {
     if (!/^[a-z_]{2,30}$/.test(name || '') || marked[name]) return;
