@@ -140,6 +140,10 @@
   function cancelSignup() {
     try { global.sessionStorage.removeItem(SIGNUP_PENDING); } catch (_) {}
   }
+  // 네이버는 Supabase 사용자 정의 공급자라 설정값과 계정 기록이 'custom:naver' 와 'naver' 로 엇갈릴 수 있다. 앞머리를 떼고 비교한다.
+  function providerName(value) {
+    return String(value || '').replace(/^custom:/, '');
+  }
   function isSignupMethod(method) {
     return ['google', 'kakao', 'naver'].includes(method);
   }
@@ -196,7 +200,7 @@
         var user = result.data.user;
         var createdAt = Date.parse(user.created_at || '');
         cancelSignup();
-        if (!user.id || !Number.isFinite(createdAt) || createdAt < pending.startedAt || createdAt > pending.startedAt + SIGNUP_TTL || (user.app_metadata || {}).provider !== (pending.provider || pending.method)) return;
+        if (!user.id || !Number.isFinite(createdAt) || createdAt < pending.startedAt || createdAt > pending.startedAt + SIGNUP_TTL || providerName((user.app_metadata || {}).provider) !== providerName(pending.provider || pending.method)) return;
         var key = 'umsh:analytics:signup-sent:' + user.id;
         if (global.localStorage.getItem(key)) return;
         // Consume before sending: repeated auth callbacks and reloads must not count twice.
