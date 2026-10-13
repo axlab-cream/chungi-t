@@ -70,7 +70,7 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
   justify-content: space-between;
   gap: 14px;
   /* 홈(portal.css .appbar)과 같은 값. 2026-10-08 홈과 헤더 높이를 맞췄다(PC 64px). */
-  padding: 14px 20px 9px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--shell-line-soft);
   background: rgba(8, 8, 7, 0.96);
 }
@@ -85,7 +85,7 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
  * 비쳤다. position 이 static 이 되면 활성 탭 표시(.is-active::before)도 자리를
  * 잃는다. 공용 크롬이 스스로 칠하는 값은 페이지 초기화의 대상이 아니다. */
 body.umsh-has-chrome .umsh-service-shell .appbar {
-  padding: 14px 20px 9px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--shell-line-soft);
   background: rgba(8, 8, 7, 0.96);
 }

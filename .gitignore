@@ -37,3 +37,7 @@ CreamAI/logs/**/_prompt_*.txt
 99_logs/
 
 .vercel
+.env*
+
+# 운영 파일을 고치기 전 같은 폴더에 남기는 사본. 저장소에 올리지 않는다.
+*.bak-*

@@ -699,7 +699,7 @@ function updatePdfButtons() {
     }
     button.textContent = pdfState.preparing && pdfState.total
       ? `PDF 준비 중 ${pdfState.done}/${pdfState.total}`
-      : 'PDF 다운받기'
+      : 'PDF 저장'
   })
 }
 
@@ -1434,7 +1434,6 @@ function renderReportGate(groups, report) {
         }).join('')}
       </div>
       <div class="report-panel-actions">
-        <button class="pdf-button" type="button" data-report-pdf>PDF 다운받기</button>
       </div>
     </section>
   `
@@ -1654,12 +1653,6 @@ function appendBubble(role, text, scroll = true) {
 
 const session = loadSession()
 if (session) {
-  const p = session.analysis.pillars
-  if (p) {
-    document.getElementById('chat-saju-label').textContent =
-      `사주 ${p.year?.hanja || ''} ${p.month?.hanja || ''} ${p.day?.hanja || ''} ${p.hour?.hanja || ''}`
-  }
-
   renderReportHub()
 
   if (session.history.length === 0) {
@@ -1680,7 +1673,9 @@ document.getElementById('btn-back').addEventListener('click', () => {
   history.back()
 })
 
-document.getElementById('btn-pdf').addEventListener('click', openReportPdf)
+// PDF 저장은 보관함에서만 받는다. 버튼이 없는 화면에서도 아래 코드가 살아 있어야 한다.
+const legacyPdfButton = document.getElementById('btn-pdf')
+if (legacyPdfButton) legacyPdfButton.addEventListener('click', openReportPdf)
 
 chatLog.addEventListener('click', (event) => {
   const pdfButton = event.target.closest('[data-report-pdf]')
