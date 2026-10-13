@@ -3063,3 +3063,10 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - Do not reintroduce KO splash, edit shared CSS, change body/stage/phone layout, video assets, sessions/timers/scripts, product prices, currency correction or saved data.
 - RED3/4 on missing styles; combined107 tests PASS, typecheck/public build PASS, independent review PASS. Disabled-state source assertion added after review. Browser isolated production CSS/markup tests: EN/JA at390x844,768x1024,1440x900 all center error0px, full overlay and contain with native720x1280. EN hidden and JA html.splash-disabled computed display:none. These are browser CSS viewport tests, not native devices/authenticated E2E.
 - Production deployment/live desktop alignment and real transition checks recorded in recovery after push.
+
+### 2026-10-13 — owner screenshot: remove price-card KRW billing suffix
+- Owner screenshots show 約 ¥1,168/5,888 JPY（韓国ウォン決済） wrapping into multiple lines. Earlier removal addressed only the long disclosure; runtime still appended this suffix. Live JA .price-line snapshot and DOM confirmed it.
+- Change only priceText in both identical EN/JA locale-runtime.js files: stop appending billing suffix and remove the retired EN/JA suffix from preformatted product-price nodes. Preserve reference converter/rates/numbers, selector scope, report/quote/customer-quote guards, machine attrs and payment/provider records/settings.
+- Bump injected runtime cache version in localized-pages.ts to20261013-price-label1 so reloads do not reuse old suffix logic. This is a promotional price-display correction, NOT USD/JPY checkout implementation.
+- RED5/5 before patch; complete related110 tests PASS, typecheck/public build PASS, independent code review PASS. Added actual runtime VM tests for legacy/preformatted prices, repeated observer refresh, original attrs and protected text; no real payment/provider/DB calls.
+- Live served-loader/script and actual DOM card-line validation recorded after push in recovery. Korean original, centered splash and prior long-note removal retained.
