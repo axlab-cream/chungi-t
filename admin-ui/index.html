@@ -4454,6 +4454,14 @@
           var note = document.createElement('p'); note.className = 'admin-note'; note.style.padding = '0 4px';
           note.textContent = '가입 완료는 새로 만든 계정만 셉니다(기존 회원 로그인 제외). 요약의 신규 가입은 모든 계정 생성을 세므로 숫자가 다를 수 있습니다.';
           body.appendChild(note);
+          // 2026-10-13: 화면 기록(가입 완료 0)과 실제 새 계정(네이버 1)이 달라 운영자가 헷갈렸다. 회원 목록 기준 숫자를 바로 옆에 둔다.
+          var accounts = payload.signups;
+          if (accounts && typeof accounts.signups === 'number') {
+            var real = document.createElement('p'); real.className = 'admin-note'; real.style.padding = '0 4px';
+            var parts = Object.keys(accounts.byProvider || {}).map(function (key) { return (PROVIDER_NAMES[key] || key) + ' ' + count(accounts.byProvider[key]); });
+            real.textContent = '같은 기간 실제로 새로 만든 계정(회원 목록 기준): ' + count(accounts.signups) + '개' + (parts.length ? ' (' + parts.join(', ') + ')' : '') + '. 앱 로그인처럼 화면 기록이 끊기는 경로도 여기에는 잡힙니다.';
+            body.appendChild(real);
+          }
         }
         /*
          * 2026-10-08 유입 채널. 새 방문의 첫 화면에서 utm_source 또는 이전 사이트 주소로 채널을 정한다.
