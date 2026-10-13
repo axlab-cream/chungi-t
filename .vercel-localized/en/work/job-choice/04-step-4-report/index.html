@@ -25,7 +25,7 @@
     <meta name="description" content="Show the first job-choice signals free from the entered chart profile and company conditions, and explain what opens after payment.">
     <link rel="stylesheet" href="/css/umsh-chrome.css">
     <link rel="stylesheet" href="../shared/job-choice.css">
-    <script src="../shared/job-choice-data.js?v=20261008-three-voice-v1"></script>
+
   </head>
   <body>
     <main class="phone" data-umsh-chrome="" data-service="Choosing a job" data-price="9,900 KRW" data-active="home" id="step-4-report" aria-label="Free career-choice results">
@@ -62,120 +62,9 @@
 
     <script type="application/json" id="IMAGE_MANIFEST">[]</script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/jobchoice-report-store.js"></script>
+
     <script>
-      const stage = document.getElementById("reportStage");
-      const loaded = JobChoice.loadJobInput();
-      const report = JobChoice.buildReport(loaded.input);
-      const teaser = report.teaser;
-      const esc = JobChoice.escapeHtml;
-
-      JobChoice.hydrateContracts("04-step-4-report", [
-        { item: "Personal-input-based teaser", status: "pass", detail: "The axis to check first, and the wording, change with the four-pillars profile and the company conditions." },
-        { item: "Paid scope: 10 main categories", status: "pass", detail: "Keep the 10 major categories supplied by the user as paid_scope_preview." },
-        { item: "Preparation for a failed payment", status: "pass", detail: "On the static screen, keep the free result and place a CTA that lets the person try again." },
-      ]);
-
-      function renderPaidScope() {
-        return teaser.paid_preview
-          .map(
-            (group, index) => `
-              <div class="result-card">
-                <small>${String(index + 1).padStart(2, "0")}</small>
-                <strong>${esc(group.title)}</strong>
-                <span>${esc(group.preview)}</span>
-              </div>
-            `,
-          )
-          .join("");
-      }
-
-      function renderSignals() {
-        return teaser.signals
-          .map(
-            (item) => `
-              <div class="signal-item">
-                <b>${esc(item.title)}</b>
-                <span>${esc(item.body)}</span>
-              </div>
-            `,
-          )
-          .join("");
-      }
-
-      function renderFacts() {
-        return teaser.calculated_facts
-          .map((fact) => `<div class="fact-row"><span>${esc(fact.label)}</span><strong>${esc(fact.value)}</strong></div>`)
-          .join("");
-      }
-
-      function renderFallbackNotice() {
-        if (!loaded.fallback) return "";
-        return `\x3cdiv class="notice-card">\x3cspan class="eyebrow">No inputs\x3c/span>\x3ch2>Example inputs are shown for now\x3c/h2>\x3cp>Enter company and birth date/time on the 02 input screen to update this preview wording immediately.\x3c/p>\x3c/div>`;
-      }
-
-      stage.insertAdjacentHTML(
-        "beforeend",
-        `
-          ${renderFallbackNotice()}
-          \x3csection class="panel" aria-label="Input summary">
-            \x3cspan class="eyebrow">Input summary\x3c/span>
-            \x3cdiv class="summary-grid">
-              \x3cdiv class="summary-row">\x3cspan>Saju criteria\x3c/span>\x3cstrong>${esc(JobChoice.profileLabel(loaded.input.profile))}\x3c/strong>\x3c/div>
-              \x3cdiv class="summary-row">\x3cspan>Company/offer\x3c/span>\x3cstrong>${esc(loaded.input.offer.companyName || "Selected company")}\x3c/strong>\x3c/div>
-              \x3cdiv class="summary-row">\x3cspan>Role\x3c/span>\x3cstrong>${esc(loaded.input.offer.roleName || "Entered role")}\x3c/strong>\x3c/div>
-              \x3cdiv class="summary-row">\x3cspan>Main concern\x3c/span>\x3cstrong>${esc(loaded.input.offer.concernPoint || "Check after entering details")}\x3c/strong>\x3c/div>
-            \x3c/div>
-          \x3c/section>
-
-          \x3csection class="hero-panel" aria-label="Free-preview conclusion">
-            \x3cspan class="kicker">Free teaser\x3c/span>
-            \x3ch1>${esc(teaser.headline)}\x3c/h1>
-            \x3cp>${esc(teaser.summary)}\x3c/p>
-            \x3cdiv class="teaser-answer">
-              \x3cstrong>${esc(teaser.signal.direction)}\x3c/strong>
-              \x3cspan>${esc(teaser.signal.directionCopy)}\x3c/span>
-            \x3c/div>
-            \x3cdiv class="signal-list">${renderSignals()}\x3c/div>
-          \x3c/section>
-
-          \x3csection class="panel" aria-label="Check calculation inputs">
-            \x3cspan class="eyebrow">Supporting signals from entered values\x3c/span>
-            \x3cdiv class="summary-grid">${renderFacts()}\x3c/div>
-            \x3cp class="fineprint">This step shows only part of the overall conclusion. Details explain the Career, Wealth, Friends, Travel, and Happiness Palaces and timing flow by topic.\x3c/p>
-          \x3c/section>
-
-          \x3csection class="panel" aria-label="Topics opened after payment">
-            \x3cspan class="eyebrow" data-localized-product-price>Scope opened after payment · KRW 9,900\x3c/span>
-            \x3ch2>Continue through all 10 major categories\x3c/h2>
-            \x3cp>Instead of a vague “see more,” connect detailed readings with practical action for each topic below.\x3c/p>
-            \x3cdiv class="result-grid" style="margin-top: 14px">${renderPaidScope()}\x3c/div>
-          \x3c/section>
-
-          \x3csection class="panel" aria-label="Payment and next step">
-            \x3cspan class="eyebrow">Next step\x3c/span>
-            \x3ch2>Go to the full result list\x3c/h2>
-            \x3cp>After payment, first view major and subcategory lists, then select needed details to read interpretations.\x3c/p>
-            \x3cdiv class="button-row">
-              \x3cbutton class="primary-button" type="button" id="payButton">View all (KRW 9,900)\x3c/button>
-              \x3cbutton class="text-button" type="button" id="retryButton">Recheck inputs\x3c/button>
-            \x3c/div>
-            \x3cp class="fineprint">Full results open after payment verification. If cancelled or unsuccessful, return to this free result and try again.\x3c/p>
-          \x3c/section>
-        `,
-      );
-
-      document.getElementById("retryButton").addEventListener("click", () => {
-        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
-      });
-
-      document.querySelector("[data-back]").addEventListener("click", () => {
-        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
-      });
-
-      if (!window.location.hash) {
-        window.history.replaceState(null, "", "#step-4-report");
-      }
+      document.querySelector("[data-back]")?.addEventListener("click", () => { window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input"; });
     </script>
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>

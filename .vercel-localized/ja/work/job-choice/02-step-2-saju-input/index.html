@@ -25,7 +25,7 @@
     <meta name="description" content="保存済みの命式プロフィールは聞き直さず、選んだ会社とオファー条件だけ追加して職場の相性を準備します。">
     <link rel="stylesheet" href="/css/umsh-chrome.css">
     <link rel="stylesheet" href="../shared/job-choice.css"><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
-    <script src="../shared/job-choice-data.js?v=20261008-three-voice-v1"></script>
+    <script src="../shared/job-choice-input.js?v=20261013-input2"></script>
   </head>
   <body class="umsh-fields">
     <main class="phone" data-umsh-chrome="" data-service="仕事選び" data-price="9,900 KRW" data-active="home" id="step-2-saju-input" aria-label="職場選択の鑑定を入力">
@@ -170,7 +170,7 @@
     <script type="application/json" id="INTERPRETATION_INDEX">[]</script>
 
     <script type="application/json" id="IMAGE_MANIFEST">[]</script>
-    <script src="/js/jobchoice-report-store.js"></script>
+
     <script>
       const form = document.getElementById("jobChoiceForm");
       const profileFields = document.getElementById("profileFields");
@@ -269,11 +269,12 @@
           return;
         }
 
-        JobChoice.saveJobInput({
+        const savedInput = JobChoice.saveJobInput({
           profileSource: useStoredProfile && stored.complete ? "stored_profile" : "new_profile",
           profile,
           offer,
         });
+        if (!savedInput) { showError("このブラウザに入力を保存できませんでした。保存を許可して、もう一度お試しください。"); return; }
         window.location.href = "../04-step-4-report/index.html#step-4-report";
       });
 

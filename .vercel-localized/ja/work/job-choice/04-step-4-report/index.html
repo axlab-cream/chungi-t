@@ -25,7 +25,7 @@
     <meta name="description" content="入力した四柱推命プロフィールと会社条件を基に、職場選びの最初のサインを無料で示し、決済後に開く範囲を案内します。">
     <link rel="stylesheet" href="/css/umsh-chrome.css">
     <link rel="stylesheet" href="../shared/job-choice.css">
-    <script src="../shared/job-choice-data.js?v=20261008-three-voice-v1"></script>
+
   </head>
   <body>
     <main class="phone" data-umsh-chrome="" data-service="仕事選び" data-price="9,900 KRW" data-active="home" id="step-4-report" aria-label="職場選びの無料結果">
@@ -62,120 +62,9 @@
 
     <script type="application/json" id="IMAGE_MANIFEST">[]</script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/jobchoice-report-store.js"></script>
+
     <script>
-      const stage = document.getElementById("reportStage");
-      const loaded = JobChoice.loadJobInput();
-      const report = JobChoice.buildReport(loaded.input);
-      const teaser = report.teaser;
-      const esc = JobChoice.escapeHtml;
-
-      JobChoice.hydrateContracts("04-step-4-report", [
-        { item: "個人の入力に基づくティーザー", status: "pass", detail: "四柱プロフィールと会社の条件で、先に確認する軸と文言が変わる。" },
-        { item: "有料の範囲：10の大分類", status: "pass", detail: "ユーザーが渡した10個の大分類は paid_scope_preview のまま残す。" },
-        { item: "決済失敗への備え", status: "pass", detail: "静的画面では無料結果を残したまま、もう一度試せるCTAを置く。" },
-      ]);
-
-      function renderPaidScope() {
-        return teaser.paid_preview
-          .map(
-            (group, index) => `
-              <div class="result-card">
-                <small>${String(index + 1).padStart(2, "0")}</small>
-                <strong>${esc(group.title)}</strong>
-                <span>${esc(group.preview)}</span>
-              </div>
-            `,
-          )
-          .join("");
-      }
-
-      function renderSignals() {
-        return teaser.signals
-          .map(
-            (item) => `
-              <div class="signal-item">
-                <b>${esc(item.title)}</b>
-                <span>${esc(item.body)}</span>
-              </div>
-            `,
-          )
-          .join("");
-      }
-
-      function renderFacts() {
-        return teaser.calculated_facts
-          .map((fact) => `<div class="fact-row"><span>${esc(fact.label)}</span><strong>${esc(fact.value)}</strong></div>`)
-          .join("");
-      }
-
-      function renderFallbackNotice() {
-        if (!loaded.fallback) return "";
-        return `\x3cdiv class="notice-card">\x3cspan class="eyebrow">入力値なし\x3c/span>\x3ch2>今は入力例で表示している\x3c/h2>\x3cp>02の入力画面で会社と生年月日時を入れると、この試し読みの文句がすぐ変わる。\x3c/p>\x3c/div>`;
-      }
-
-      stage.insertAdjacentHTML(
-        "beforeend",
-        `
-          ${renderFallbackNotice()}
-          \x3csection class="panel" aria-label="入力の要約">
-            \x3cspan class="eyebrow">入力の要約\x3c/span>
-            \x3cdiv class="summary-grid">
-              \x3cdiv class="summary-row">\x3cspan>四柱推命の基準\x3c/span>\x3cstrong>${esc(JobChoice.profileLabel(loaded.input.profile))}\x3c/strong>\x3c/div>
-              \x3cdiv class="summary-row">\x3cspan>会社・オファー\x3c/span>\x3cstrong>${esc(loaded.input.offer.companyName || "選択した会社")}\x3c/strong>\x3c/div>
-              \x3cdiv class="summary-row">\x3cspan>職務\x3c/span>\x3cstrong>${esc(loaded.input.offer.roleName || "入力した職務")}\x3c/strong>\x3c/div>
-              \x3cdiv class="summary-row">\x3cspan>最も気になる点\x3c/span>\x3cstrong>${esc(loaded.input.offer.concernPoint || "入力後に確認")}\x3c/strong>\x3c/div>
-            \x3c/div>
-          \x3c/section>
-
-          \x3csection class="hero-panel" aria-label="無料お試しの結論">
-            \x3cspan class="kicker">無料ティザー\x3c/span>
-            \x3ch1>${esc(teaser.headline)}\x3c/h1>
-            \x3cp>${esc(teaser.summary)}\x3c/p>
-            \x3cdiv class="teaser-answer">
-              \x3cstrong>${esc(teaser.signal.direction)}\x3c/strong>
-              \x3cspan>${esc(teaser.signal.directionCopy)}\x3c/span>
-            \x3c/div>
-            \x3cdiv class="signal-list">${renderSignals()}\x3c/div>
-          \x3c/section>
-
-          \x3csection class="panel" aria-label="計算の入力を確認">
-            \x3cspan class="eyebrow">入力値から確認した補助のサイン\x3c/span>
-            \x3cdiv class="summary-grid">${renderFacts()}\x3c/div>
-            \x3cp class="fineprint">この段階は全体の結論の一部だけを示す。詳細では官禄宮・財帛宮・交友宮・遷移宮・福徳宮と時期の流れを項目別に解釈する。\x3c/p>
-          \x3c/section>
-
-          \x3csection class="panel" aria-label="決済後に開く項目">
-            \x3cspan class="eyebrow" data-localized-product-price>決済後に開く範囲・9,900ウォン\x3c/span>
-            \x3ch2>10の大分類すべてを続けて見る\x3c/h2>
-            \x3cp>曖昧な「さらに見る」より、以下の項目ごとに詳細な解釈と現実の行動をつなげる。\x3c/p>
-            \x3cdiv class="result-grid" style="margin-top: 14px">${renderPaidScope()}\x3c/div>
-          \x3c/section>
-
-          \x3csection class="panel" aria-label="決済と次の段階">
-            \x3cspan class="eyebrow">次の段階\x3c/span>
-            \x3ch2>全体の結果一覧へ移動\x3c/h2>
-            \x3cp>決済後は大分類と中分類の一覧を先に見て、必要な詳細項目を押して解釈を確認する。\x3c/p>
-            \x3cdiv class="button-row">
-              \x3cbutton class="primary-button" type="button" id="payButton">すべて見る（9,900ウォン）\x3c/button>
-              \x3cbutton class="text-button" type="button" id="retryButton">入力値を再確認\x3c/button>
-            \x3c/div>
-            \x3cp class="fineprint">決済の確認後、全体の結果が開く。取消や失敗なら、この無料の結果へ戻って再試行できる。\x3c/p>
-          \x3c/section>
-        `,
-      );
-
-      document.getElementById("retryButton").addEventListener("click", () => {
-        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
-      });
-
-      document.querySelector("[data-back]").addEventListener("click", () => {
-        window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input";
-      });
-
-      if (!window.location.hash) {
-        window.history.replaceState(null, "", "#step-4-report");
-      }
+      document.querySelector("[data-back]")?.addEventListener("click", () => { window.location.href = "../02-step-2-saju-input/index.html#step-2-saju-input"; });
     </script>
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
