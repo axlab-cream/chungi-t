@@ -25,8 +25,7 @@ test('prices render locally in text and accessible display attributes while ever
   assert.ok(out.includes('href="/payment?amount=9900&coupon=9900원"'))
   assert.ok(out.includes('data-price="9900" data-amount="9900"'))
   assert.ok(out.includes('src="/assets/9900원.png"'))
-  assert.match(out, /Checkout charges Korean won \(KRW\), not USD/)
-  assert.match(out, /card issuer’s exchange rate and fees may differ/)
+  assert.doesNotMatch(out, /umsh-currency-disclosure|USD amounts are approximate references|Checkout charges Korean won/)
 })
 
 test('JS purchase payloads, coupons, CSS and structured-data offers are not converted', () => {
@@ -41,7 +40,7 @@ test('JS purchase payloads, coupons, CSS and structured-data offers are not conv
   const schema = JSON.parse(out.match(/<script type="application\/ld\+json">([^]*?)<\/script>/)![1])
   assert.equal(schema.price, '9900')
   assert.equal(schema.priceCurrency, 'KRW')
-  assert.match(out, /決済は日本円ではなく韓国ウォン（KRW）/)
+  assert.doesNotMatch(out, /umsh-currency-disclosure|円の金額は参考換算です|決済は日本円ではなく韓国ウォン/)
 })
 
 test('discounted totals, free coupons and ranges use the same converter with no minimum', () => {
@@ -53,12 +52,12 @@ test('discounted totals, free coupons and ranges use the same converter with no 
   assert.match(out, /Approx\. \$1\.00 USD \/ Approx\. \$1\.00 USD/)
 })
 
-test('conversion is idempotent, including its exchange-rate disclosure', () => {
+test('conversion is idempotent without inserting the internal currency-reference note', () => {
   for (const locale of ['en', 'ja'] as const) {
     const once = replaceVisibleLocaleText('<html><body><main><h1>Fortune Shop</h1><p>9,900 KRW</p></main></body></html>', locale)
     const twice = replaceVisibleLocaleText(once, locale)
     assert.equal(twice, once)
-    assert.equal(once.match(/id="umsh-currency-disclosure"/g)?.length, 1)
+    assert.doesNotMatch(once, /umsh-currency-disclosure/)
     if (locale === 'en') assert.ok(once.includes('<h1>Fate Shop</h1>'))
   }
 })
@@ -68,4 +67,30 @@ test('Korean content is byte-for-byte untouched and technical-only amounts add n
   assert.equal(replaceVisibleLocaleText(ko, 'ko'), ko)
   const machine = '<script>const label="9,900 KRW";</script><meta itemprop="price" content="9900"><meta itemprop="priceCurrency" content="KRW">'
   assert.equal(replaceVisibleLocaleText(machine, 'en'), machine)
+})
+
+test('previously generated currency-reference asides are removed without touching other content or script data', () => {
+  for (const locale of ['en', 'ja'] as const) {
+    const legacy = '<aside id="umsh-currency-disclosure" aria-label="Payment currency">USD amounts are approximate references. Checkout charges Korean won (KRW), not USD.</aside>'
+    const legacySingleQuote = "<aside id='umsh-currency-disclosure'>円の金額は参考換算です。</aside>"
+    const script = '<script>const example = `<aside id="umsh-currency-disclosure">9900 KRW</aside>`; const payload={amount:9900,currency:"KRW"};</script>'
+    const legacyWithAttributes = `<aside class="reference" title='id="not-the-notice"' id = 'umsh-currency-disclosure'>Internal reference note</aside>`
+    const other = '<aside id="customer-help">Customer help</aside>'
+    const unrelated = [
+      '<aside data-id="umsh-currency-disclosure">Customer help with data-id</aside>',
+      `<aside title='Example id="umsh-currency-disclosure"'>Customer help with quoted id text</aside>`,
+      `<div data-template='<aside id="umsh-currency-disclosure">Template example</aside>'>Customer template</div>`,
+    ]
+    const input = '<html><body><main><p>Reading description</p>' + legacy + legacySingleQuote + legacyWithAttributes + other + unrelated.join('') + script + '</main></body></html>'
+    const out = replaceVisibleLocaleText(input, locale)
+    assert.ok(!out.includes(legacy))
+    assert.ok(!out.includes(legacySingleQuote))
+    assert.ok(!out.includes(legacyWithAttributes))
+    for (const content of unrelated) assert.ok(out.includes(content), 'Unrelated attributes and quoted examples must remain intact')
+    assert.ok(out.includes('<p>Reading description</p>'))
+    assert.ok(out.includes(other))
+    assert.ok(out.includes(script), 'Example strings and payment payloads in scripts must remain byte-for-byte intact')
+    assert.equal(replaceVisibleLocaleText(out, locale), out)
+    assert.equal(replaceVisibleLocaleText(input, 'ko'), input)
+  }
 })
