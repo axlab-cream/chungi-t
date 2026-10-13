@@ -4518,9 +4518,9 @@
         state.partnerMode = partner.mode || "none";
         state.partnerName = partner.name || "";
         state.partnerRelationship = partner.relationship || "Flirting / Person of interest";
-        state.partnerCalendar = partner.birth?.calendar === "lunar" ? "Lunar calendar" : "Solar calendar";
+        state.partnerCalendar = partner.birth?.calendar === "lunar" ? "Lunar" : "Solar";
         state.partnerBirth = partner.birth?.year ? `${partner.birth.year}${pad2(partner.birth.month || 1)}${pad2(partner.birth.day || 1)}` : "";
-        state.partnerGender = partner.birth?.gender === "female" ? "Woman" : partner.birth?.gender === "male" ? "Male" : "";
+        state.partnerGender = partner.birth?.gender === "female" ? "Female" : partner.birth?.gender === "male" ? "Male" : "";
         state.partnerBirthTimeKnown = partner.birthTimeKnown === true;
         state.partnerTime = state.partnerBirthTimeKnown && Number.isFinite(Number(partner.birth?.hour))
           ? `${pad2(partner.birth.hour)}:${pad2(partner.birth.minute || 0)}`

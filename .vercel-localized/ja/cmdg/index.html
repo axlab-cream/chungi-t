@@ -4518,7 +4518,7 @@
         state.partnerMode = partner.mode || "none";
         state.partnerName = partner.name || "";
         state.partnerRelationship = partner.relationship || "曖昧な恋・気になる相手";
-        state.partnerCalendar = partner.birth?.calendar === "lunar" ? "陰暦" : "陽暦";
+        state.partnerCalendar = partner.birth?.calendar === "lunar" ? "旧暦" : "新暦";
         state.partnerBirth = partner.birth?.year ? `${partner.birth.year}${pad2(partner.birth.month || 1)}${pad2(partner.birth.day || 1)}` : "";
         state.partnerGender = partner.birth?.gender === "female" ? "女性" : partner.birth?.gender === "male" ? "男性" : "";
         state.partnerBirthTimeKnown = partner.birthTimeKnown === true;
