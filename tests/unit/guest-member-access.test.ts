@@ -65,14 +65,12 @@ test('SNS 회원으로 저장하면 비회원 표시가 없다', async () => {
   assert.equal(profileRows.get('member-profile-0001')?.profile_payload?.account_type, undefined)
 })
 
-test('비회원은 결제·쿠폰·서브 콘텐츠·상담 채팅·계정 기능에서 MEMBER_REQUIRED 를 받는다', async () => {
+test('비회원은 결제·쿠폰·상담 채팅·계정 기능에서 MEMBER_REQUIRED 를 받는다', async () => {
   const guest = 'guest-blocked-0001'
   const blocked: Array<[string, string, unknown?]> = [
     ['POST', '/api/payment/orders', { productKey: 'cmdg' }],
     ['GET', '/api/user/orders'],
     ['GET', '/api/coupons'],
-    ['POST', '/api/play/solo-nara/result', { answers: [] }],
-    ['POST', '/api/play/love-speed/result', { answers: [] }],
     ['GET', '/api/user/inquiries'],
     ['GET', '/api/user/notification-prefs'],
     ['DELETE', '/api/user/account'],
@@ -90,5 +88,13 @@ test('SNS 회원은 같은 회원 전용 경로에서 MEMBER_REQUIRED 를 받지
   for (const path of ['/api/coupons', '/api/user/orders', '/api/user/inquiries']) {
     const result = await call('GET', path, 'member-0001')
     assert.notEqual(result.data.code, 'MEMBER_REQUIRED', path)
+  }
+})
+
+test('서브 콘텐츠(무료 테스트)는 비회원도 결과 API를 쓴다', async () => {
+  for (const path of ['/api/play/solo-nara/result', '/api/play/love-speed/result']) {
+    const result = await call('POST', path, 'guest-play-0001', { answers: [] })
+    // 빈 답은 입력 오류(400)일 뿐, 로그인 요구(401)는 아니다.
+    assert.equal(result.status, 400, path)
   }
 })

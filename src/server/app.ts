@@ -4426,14 +4426,15 @@ app.get('/api/user/orders', async (req, res) => {
 })
 
 
+// 서브 콘텐츠(무료 테스트)는 비회원도 결과까지 본다(2026-10-13). 결과 저장만 SNS 로그인 뒤에 한다.
 app.use('/api/play/love-speed', loveSpeedRouter({
-  authenticate: requireMemberUser,
+  authenticate: requireSupabaseUser,
   context: async (owner) => {
     const profile = await getUserBirthProfile(owner)
     return { saju: profile ? analyzeSaju(profile.birth) : null, birthTimeKnown: profile?.birthTimeKnown !== false }
   },
 }))
-app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireMemberUser, spec: soloNaraSpec as SoloSpec }))
+app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireSupabaseUser, spec: soloNaraSpec as SoloSpec }))
 app.get('/api/user/profile', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
