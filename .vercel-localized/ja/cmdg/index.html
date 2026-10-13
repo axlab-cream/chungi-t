@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ja">
   <head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
 <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1" defer></script>
@@ -7,13 +7,13 @@
 <script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>チョンミョン四柱推命・四柱推命</title>
+    <title>四柱推命 | 運命商会</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="運命商会" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:title" content="運命商会 - 運命を売ります。" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:title" content="四柱推命 | 運命商会" />
     <meta property="og:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
     <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
     <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
@@ -22,10 +22,10 @@
     <meta property="og:image:height" content="600" />
     <meta property="og:image:alt" content="風水の羅盤を持つ運命商会の相談役と、運命商会のロゴ" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="運命商会 - 運命を売ります。" />
+    <meta name="twitter:title" content="四柱推命 | 運命商会" />
     <meta name="twitter:description" content="今何が気になるか、命式が先に語る。恋、お金、仕事、相性まで、気になる運を一つずつ取り出して。" />
     <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta name="description" content="天命四柱推命の没入型相談" />
+    <meta name="description" content="運命商会の四柱推命と命式に基づく相談。" />
     <style>
       @font-face {
         font-family: "Maru Buri";
@@ -4634,7 +4634,7 @@
                   <span>${escapeHtml(historySubtitle(entry))}</span>
                   <span class="history-id">ID ${escapeHtml(formatReportId(entry.reportId))}</span>
                 </button>
-                <button class="history-remove" type="button" aria-label="${escapeHtml(entry.title || "保存した解説")} 삭제" data-history-delete="${escapeHtml(entry.reportId)}">×</button>
+                <button class="history-remove" type="button" aria-label="保存した鑑定を削除: ${escapeHtml(entry.title || "保存した解説")}" data-history-delete="${escapeHtml(entry.reportId)}">×</button>
               </div>
             `).join("")
           : `
@@ -6075,7 +6075,7 @@
             <div class="status">${state.name || "名前"} · ${state.gender ? birthGenderLabel(state.gender) : "性別"}</div>
             <h1>生年月日から今年の運の流れが開きます</h1>
             <p>新暦か旧暦を合わせると、日主と大運の方向から読みます。</p>
-            <div class="segmented" role="group" aria-label="달력 선택">
+            <div class="segmented" role="group" aria-label="暦の種類">
               <button type="button" data-key="calendar" data-value="solar" aria-pressed="${state.calendar === "solar"}">新暦</button>
               <button type="button" data-key="calendar" data-value="lunar" aria-pressed="${state.calendar === "lunar"}">旧暦</button>
             </div>
@@ -6168,7 +6168,7 @@
                   <input id="partnerRelationship" type="text" placeholder="예: 썸, 짝사랑, 전연인" value="${escapeHtml(state.partnerRelationship)}" autocomplete="off" />
                 </div>
               </div>
-              <div class="choices two" role="group" aria-label="상대 달력 선택">
+              <div class="choices two" role="group" aria-label="相手の暦の種類">
                 <button class="choice ${state.partnerCalendar === "新暦" ? "is-selected" : ""}" type="button" data-key="partnerCalendar" data-value="新暦" aria-pressed="${state.partnerCalendar === "新暦"}">新暦</button>
                 <button class="choice ${state.partnerCalendar === "旧暦" ? "is-selected" : ""}" type="button" data-key="partnerCalendar" data-value="旧暦" aria-pressed="${state.partnerCalendar === "旧暦"}">旧暦</button>
               </div>
@@ -6179,11 +6179,11 @@
                   <div class="field-error" id="partnerBirth-error" aria-live="polite"></div>
                 </div>
               </div>
-              <div class="choices two" role="group" aria-label="상대 성별 선택">
+              <div class="choices two" role="group" aria-label="相手の性別">
                 <button class="choice ${state.partnerGender === "男性" ? "is-selected" : ""}" type="button" data-key="partnerGender" data-value="男性" aria-pressed="${state.partnerGender === "男性"}">男性</button>
                 <button class="choice ${state.partnerGender === "女性" ? "is-selected" : ""}" type="button" data-key="partnerGender" data-value="女性" aria-pressed="${state.partnerGender === "女性"}">女性</button>
               </div>
-              <div class="choices two" role="group" aria-label="상대 生まれた時刻を入力 여부">
+              <div class="choices two" role="group" aria-label="相手の出生時刻の確認">
                 <button class="choice ${state.partnerBirthTimeKnown === true ? "is-selected" : ""}" type="button" data-key="partnerBirthTimeKnown" data-value="true" aria-pressed="${state.partnerBirthTimeKnown === true}">生まれた時刻を入力</button>
                 <button class="choice ${state.partnerBirthTimeKnown !== true ? "is-selected" : ""}" type="button" data-key="partnerBirthTimeKnown" data-value="false" aria-pressed="${state.partnerBirthTimeKnown !== true}">生まれた時刻は不明</button>
               </div>
@@ -6364,13 +6364,13 @@
           ? ["ログイン必須", "四柱登録が必要", protectedLabel]
           : ["無料の今日の鑑定", "解説を保管", "30日ログインを維持"];
         stage.innerHTML = `
-          <section class="panel auth-card" role="dialog" aria-label="회원가입">
+          <section class="panel auth-card" role="dialog" aria-label="アカウント作成">
             <div class="auth-card-head">
               <span class="auth-card-kicker">FORTUNE SHOP · SIGN UP</span>
               <h2>${title}</h2>
               <p>${description}</p>
             </div>
-            <div class="auth-benefits" aria-label="회원가입 혜택">
+            <div class="auth-benefits" aria-label="登録特典">
               ${benefitLabels.map((label) => `<span>${escapeHtml(label)}</span>`).join("")}
             </div>
             <div class="auth-provider-list">
@@ -6692,7 +6692,7 @@
               <span class="chapter">無料の要約</span>
               <h2>今年の縁は<br /><span class="red">タイミング</span>を逃さない方です</h2>
               <p>${loveText}</p>
-              <div class="sub-result-summary" aria-label="연애운 요약">
+              <div class="sub-result-summary" aria-label="恋愛運のまとめ">
                 <div class="sub-result-card"><strong>自分の基準</strong><span>${birthLabel} · ${dayLabel}の日支基準</span></div>
                 <div class="sub-result-card"><strong>桃花の時期</strong><span>${escapeHtml(dohwa.dohwaBranch)}の桃花 · ${escapeHtml(dohwa.monthHint)}</span></div>
                 <div class="sub-result-card"><strong>配偶者星</strong><span>${spouseStar}の流れで縁の型を見ます</span></div>
@@ -6702,7 +6702,7 @@
             <section class="story-section" data-sample-section="love-context-proof">
               <span class="chapter">入力基準</span>
               <h2>自分の命式と関係の状態を<br />一緒に見ます</h2>
-              <div class="saju-table" aria-label="사주팔자">
+              <div class="saju-table" aria-label="四柱の命式">
                 <div class="pillar"><span>年柱</span><b>${yearLabel}</b><span>外の流れ</span></div>
                 <div class="pillar"><span>月柱</span><b>${monthLabel}</b><span>関係の環境</span></div>
                 <div class="pillar"><span>日柱</span><b>${dayLabel}</b><span>近い関係</span></div>

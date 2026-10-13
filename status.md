@@ -3026,3 +3026,14 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - Goal/plan: append supplied third20s clip after existing15s+25s in single optimized faststart file. Preserve CTA/layout/reduced-motion/loop; source URLs only in canonical and mirror.
 - Media: originals re-encoded once to406x720 H264/AAC24fps;60.192s/3023944bytes vs originals9282519bytes,67% smaller. Full decode and39s/43s/58s frames verified. Blob cmdg/entry-trilogy-20261012.mp4; immutable1year cache. Rollback previous entry-sequence URL.
 - Build/tests/review/production pending.
+
+
+## 2026-10-13 — EN/JA full-reading accessibility and title correction
+- Scope: `.vercel-localized/{en,ja}/cmdg/index.html` titles, language/OG/Twitter metadata and nine accessible-label literals per locale. No Korean page, input enum, chart/time-zone calculation, account state, billing or saved-customer record changes.
+- Based on latest `origin/main` 98487ef9, preserving eight newer commits before editing. Branch `aside/i18n-birth-a11y-20261013`.
+- TDD: initial title/label checks RED in both languages; additional metadata checks RED; final six related suites 49 PASS, FAIL0, SKIP0. `prepare-vercel-public.mjs` and `tsc --noEmit` PASS.
+- Independent read-only review PASS after fixing an overbroad ARIA test regex; scanner intentionally checks existing double-quoted attributes/simple interpolation, not every possible template grammar. Customer-title escaping retained.
+- Project design/coding registry files and CreamAI reviewer scripts are missing from this checkout: NOT_RUN. Existing layout/image styling unchanged. Grok reviewer not retried after observed credit403; independent code-review session substituted.
+- Generated Search Console verification file line-ending-only rewrite excluded/restored to HEAD before shipping. Untracked historic diagnostics preserved, not staged.
+- Deployment: pending ordinary scoped main push and live/mobile checks at time of this record. No PR merge, force push, branch deletion, infrastructure, SQL, provider test or customer analysis executed.
+- Remaining: broader visible placeholder/copy audit, authenticated/profile E2E, all-image audit, stored localized report copies/DB gate, native consultation semantic approval and real foreign-currency settlement. This slice is not a complete overseas launch.

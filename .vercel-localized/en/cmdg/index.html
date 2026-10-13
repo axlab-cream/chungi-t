@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
 <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1" defer></script>
@@ -7,25 +7,25 @@
 <script src="/js/umsh-auth-session.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Four Pillars Reading · saju</title>
+    <title>Four Pillars Reading | Fate Shop</title>
     <!-- umsh-share-card: 주소를 공유하면 항상 같은 배너와 문구가 함께 나간다. 카카오톡은
          og:* 를 읽고 이미지를 URL 단위로 캐시하므로, 배너를 바꿀 때는 ?v= 를 올린다. -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Fortune Shop" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:title" content="Fortune Shop - We sell fate." />
+    <meta property="og:site_name" content="Fate Shop" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Four Pillars Reading | Fate Shop" />
     <meta property="og:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
     <meta property="og:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
     <meta property="og:image:secure_url" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="600" />
-    <meta property="og:image:alt" content="An Fortune Shop counselor holding a feng shui compass, with the Fortune Shop logo" />
+    <meta property="og:image:alt" content="A Fate Shop counselor holding a feng shui compass, with the Fate Shop logo" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Fortune Shop - We sell fate." />
+    <meta name="twitter:title" content="Four Pillars Reading | Fate Shop" />
     <meta name="twitter:description" content="The chart speaks first about what&#39;s on your mind now. Take out the outlook you wonder about, one slot at a time: love, money, work, and compatibility." />
     <meta name="twitter:image" content="https://umsh.kr/assets/umsh-kakao-share.jpg?v=20260904-wide" />
-    <meta name="description" content="Cheonmyeong Four Pillars immersive consultation" />
+    <meta name="description" content="Four Pillars readings and chart-based consultations from Fate Shop." />
     <style>
       @font-face {
         font-family: "Maru Buri";
@@ -4634,7 +4634,7 @@
                   <span>${escapeHtml(historySubtitle(entry))}</span>
                   <span class="history-id">ID ${escapeHtml(formatReportId(entry.reportId))}</span>
                 </button>
-                <button class="history-remove" type="button" aria-label="${escapeHtml(entry.title || "Saved reading")} 삭제" data-history-delete="${escapeHtml(entry.reportId)}">×</button>
+                <button class="history-remove" type="button" aria-label="Delete saved reading: ${escapeHtml(entry.title || "Saved reading")}" data-history-delete="${escapeHtml(entry.reportId)}">×</button>
               </div>
             `).join("")
           : `
@@ -6075,7 +6075,7 @@
             <div class="status">${state.name || "Name"} · ${state.gender ? birthGenderLabel(state.gender) : "Gender"}</div>
             <h1>Your birth date opens this year's pattern</h1>
             <p>Set solar or lunar, and the reading starts with the Day Master and luck-pillar direction.</p>
-            <div class="segmented" role="group" aria-label="달력 선택">
+            <div class="segmented" role="group" aria-label="Calendar type">
               <button type="button" data-key="calendar" data-value="solar" aria-pressed="${state.calendar === "solar"}">Solar</button>
               <button type="button" data-key="calendar" data-value="lunar" aria-pressed="${state.calendar === "lunar"}">Lunar</button>
             </div>
@@ -6168,7 +6168,7 @@
                   <input id="partnerRelationship" type="text" placeholder="예: 썸, 짝사랑, 전연인" value="${escapeHtml(state.partnerRelationship)}" autocomplete="off" />
                 </div>
               </div>
-              <div class="choices two" role="group" aria-label="상대 달력 선택">
+              <div class="choices two" role="group" aria-label="Partner's calendar type">
                 <button class="choice ${state.partnerCalendar === "Solar" ? "is-selected" : ""}" type="button" data-key="partnerCalendar" data-value="Solar" aria-pressed="${state.partnerCalendar === "Solar"}">Solar</button>
                 <button class="choice ${state.partnerCalendar === "Lunar" ? "is-selected" : ""}" type="button" data-key="partnerCalendar" data-value="Lunar" aria-pressed="${state.partnerCalendar === "Lunar"}">Lunar</button>
               </div>
@@ -6179,11 +6179,11 @@
                   <div class="field-error" id="partnerBirth-error" aria-live="polite"></div>
                 </div>
               </div>
-              <div class="choices two" role="group" aria-label="상대 성별 선택">
+              <div class="choices two" role="group" aria-label="Partner's gender">
                 <button class="choice ${state.partnerGender === "Male" ? "is-selected" : ""}" type="button" data-key="partnerGender" data-value="Male" aria-pressed="${state.partnerGender === "Male"}">Male</button>
                 <button class="choice ${state.partnerGender === "Female" ? "is-selected" : ""}" type="button" data-key="partnerGender" data-value="Female" aria-pressed="${state.partnerGender === "Female"}">Female</button>
               </div>
-              <div class="choices two" role="group" aria-label="상대 Enter birth time 여부">
+              <div class="choices two" role="group" aria-label="Partner's birth time availability">
                 <button class="choice ${state.partnerBirthTimeKnown === true ? "is-selected" : ""}" type="button" data-key="partnerBirthTimeKnown" data-value="true" aria-pressed="${state.partnerBirthTimeKnown === true}">Enter birth time</button>
                 <button class="choice ${state.partnerBirthTimeKnown !== true ? "is-selected" : ""}" type="button" data-key="partnerBirthTimeKnown" data-value="false" aria-pressed="${state.partnerBirthTimeKnown !== true}">Birth time unknown</button>
               </div>
@@ -6364,13 +6364,13 @@
           ? ["Sign-in required", "Chart registration required", protectedLabel]
           : ["Free daily reading", "Save reading", "Stay logged in for 30 days"];
         stage.innerHTML = `
-          <section class="panel auth-card" role="dialog" aria-label="회원가입">
+          <section class="panel auth-card" role="dialog" aria-label="Create an account">
             <div class="auth-card-head">
               <span class="auth-card-kicker">FORTUNE SHOP · SIGN UP</span>
               <h2>${title}</h2>
               <p>${description}</p>
             </div>
-            <div class="auth-benefits" aria-label="회원가입 혜택">
+            <div class="auth-benefits" aria-label="Account benefits">
               ${benefitLabels.map((label) => `<span>${escapeHtml(label)}</span>`).join("")}
             </div>
             <div class="auth-provider-list">
@@ -6692,7 +6692,7 @@
               <span class="chapter">Free summary</span>
               <h2>This year's connection<br /><span class="red">timing</span>is the side that does not miss</h2>
               <p>${loveText}</p>
-              <div class="sub-result-summary" aria-label="연애운 요약">
+              <div class="sub-result-summary" aria-label="Love reading summary">
                 <div class="sub-result-card"><strong>My standard</strong><span>${birthLabel} · based on the ${dayLabel} day branch</span></div>
                 <div class="sub-result-card"><strong>Attraction timing</strong><span>${escapeHtml(dohwa.dohwaBranch)} attraction · ${escapeHtml(dohwa.monthHint)}</span></div>
                 <div class="sub-result-card"><strong>Spouse star</strong><span>The connection type is read through the ${spouseStar} flow</span></div>
@@ -6702,7 +6702,7 @@
             <section class="story-section" data-sample-section="love-context-proof">
               <span class="chapter">From what you entered</span>
               <h2>Your chart and relationship status<br />are read together</h2>
-              <div class="saju-table" aria-label="사주팔자">
+              <div class="saju-table" aria-label="Four Pillars chart">
                 <div class="pillar"><span>年柱</span><b>${yearLabel}</b><span>Outside flow</span></div>
                 <div class="pillar"><span>月柱</span><b>${monthLabel}</b><span>Relationship setting</span></div>
                 <div class="pillar"><span>日柱</span><b>${dayLabel}</b><span>Close relationship</span></div>
