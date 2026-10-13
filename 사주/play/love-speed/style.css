@@ -11,3 +11,5 @@
 .sheet .eyebrow{text-align:center;margin-bottom:0}.sheet-note{text-align:center;margin:0 0 6px}
 @keyframes sheet-up{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+/* 안드로이드 선택 목록은 글자색을 따르지 않아 어두운 바탕이면 안 보인다(umsh-chrome.css 참고). */
+select option,select optgroup{background-color:#fff7df!important;color:#17130b!important}
