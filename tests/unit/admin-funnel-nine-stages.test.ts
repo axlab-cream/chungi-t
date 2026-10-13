@@ -64,6 +64,19 @@ test('input submit counts as input done only on the last input page', async () =
   assert.deepEqual((await twoStep.targets()).filter(([t]) => String(t).startsWith('funnel:')), [])
 })
 
+test('quit fortune input is one page now, so its first page submit is input done', async () => {
+  // 2026-10-13: 퇴사운 03 은 02 로 돌려보내는 빈 화면이 됐는데 두 장 입력으로 남아 있어 입력 완료가 늘 0이었다.
+  assert.doesNotMatch(read('사주/work/quit/03-step-3-service-input/index.html'), /<form/)
+  const quit = tracker('/work/quit/02-step-2-saju-input/index.html')
+  quit.fire('submit')
+  assert.deepEqual((await quit.targets()).filter(([t]) => String(t).startsWith('funnel:')), [['funnel:input_done', 'quit_fortune']])
+})
+
+test('signup funnel shows real new accounts next to the screen-recorded completes', () => {
+  const admin = read('admin-ui/index.html')
+  assert.ok(admin.includes("'같은 기간 실제로 새로 만든 계정(회원 목록 기준): '"))
+})
+
 test('a link to the payment page from a service screen counts as a buy click, once', async () => {
   const page = tracker('/love/signal/04-step-4-report/index.html')
   const link = { getAttribute: (k: string) => (k === 'href' ? '/payment?product=couple_signal&reportId=PRIVATE' : null), closest: (sel: string) => (sel === 'a[href]' ? link : null) }
