@@ -4068,6 +4068,8 @@
       const ACTIVE_REPORT_KEY = "cheongi_active_report_id";
       const AUTH_PENDING_KEY = "cheongi_pending_analysis_after_auth";
       const AUTH_FORM_KEY = "cheongi_pending_analysis_form";
+      // 가입 전 티저에서 "운명 거래하기"를 눌러 가입한 경우, 로그인 뒤 결과가 아니라 결제 화면으로 보낸다.
+      const AUTH_PURCHASE_KEY = "cheongi_pending_purchase_after_auth";
       const PAID_REPORTS_KEY = "cheongi_paid_report_ids_v1";
       const USER_PROFILE_CACHE_KEY = "cheongi_user_birth_profile_v1";
       const AUTH_DEVICE_SESSION_KEY = "cheongi_auth_device_session_started_at_v1";
@@ -5033,15 +5035,72 @@
         }
       }
 
+      // 천명사주는 가입 전에도 결제 유도 화면(티저)까지 본다. 가입은 "운명 거래하기"를 누를 때 요구한다.
+      // 연애운은 입력이 계정 프로필에 묶여 있어 기존대로 시작 전에 가입을 받는다.
+      function isGuestTeaserFlow() {
+        return !isLoveThisYearService();
+      }
+
+      function wantsPurchaseAfterAuth() {
+        return sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1";
+      }
+
+      function consumePurchaseAfterAuth() {
+        const wanted = sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1";
+        sessionStorage.removeItem(AUTH_PURCHASE_KEY);
+        return wanted;
+      }
+
+      function beginGuestTeaser() {
+        sessionStorage.removeItem(AUTH_PURCHASE_KEY);
+        // 비회원은 서버·캐시 프로필을 불러오지 않는다(공용 기기에서 이전 사용자의 정보가 보이지 않게).
+        if (!hasUsableProfileState()) {
+          showNudge("사주 정보를 먼저 입력해주세요.");
+          go("name");
+          return;
+        }
+        go("loading");
+        analyzeBirth({ guest: true })
+          .then(() => go("result"))
+          .catch((err) => {
+            go("concern");
+            showNudge(err.message || "사주 분석에 실패했습니다.");
+          });
+      }
+
+      // 결제 화면은 회원만 연다. 비회원이면 입력값을 보관하고 가입·로그인 화면을 띄운 뒤, 돌아오면 결제 화면으로 이어 준다.
+      async function openPurchaseOrAuth() {
+        const session = await currentAuthSession().catch(() => null);
+        if (session?.access_token) {
+          if (state.guestPreview) {
+            // 가입 전에 본 티저에는 회원 소유 리포트가 없다. 같은 입력으로 다시 분석한 뒤 결제로 간다.
+            sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
+            beginAnalysisAfterAuth();
+            return;
+          }
+          go("purchase");
+          return;
+        }
+        persistAuthFormState();
+        sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
+        showAuthGate("전체 풀이를 보려면 먼저 가입하거나 로그인해 주세요.");
+      }
+
       async function beginAnalysisAfterAuth() {
         let session = null;
         try {
           session = await currentAuthSession();
         } catch (err) {
-          showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
-          return;
+          if (!isGuestTeaserFlow()) {
+            showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
+            return;
+          }
         }
         if (!session?.access_token) {
+          if (isGuestTeaserFlow()) {
+            beginGuestTeaser();
+            return;
+          }
           showAuthGate();
           return;
         }
@@ -5075,7 +5134,7 @@
             // 분석이 성공한 뒤에 지운다. 미리 지우면 실패했을 때 입력값이 사라져
             // 재시도할수록 같은 실패를 반복하게 된다.
             sessionStorage.removeItem(AUTH_FORM_KEY);
-            go("result");
+            go(consumePurchaseAfterAuth() ? "purchase" : "result");
           })
           .catch((err) => {
             // 순서가 중요하다. go() 가 stage.innerHTML 을 갈아끼우므로 안내를 먼저
@@ -5374,6 +5433,11 @@
 
       /** Sends the reader to the real checkout, bound to the reading they just previewed. */
       async function startCheckout() {
+        const session = await currentAuthSession().catch(() => null);
+        if (!session?.access_token || state.guestPreview) {
+          openPurchaseOrAuth();
+          return;
+        }
         const config = await loadPaymentConfig();
         const productKey = checkoutProductKey();
         if (!config?.checkoutEnabled || !productKey) {
@@ -5505,6 +5569,7 @@
           : "모름";
         applyServiceDefaults({ preserveConcern: true });
         state.analysis = analysis;
+        state.guestPreview = false;
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
@@ -5710,6 +5775,7 @@
         state.partnerBirthTimeKnown = false;
         applyServiceDefaults();
         state.analysis = null;
+        state.guestPreview = false;
         state.todayFortune = null;
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
@@ -5935,7 +6001,7 @@
             }
             return;
           }
-          go("purchase");
+          openPurchaseOrAuth();
         }
         if (action === "open-settings") {
           location.href = "/vault";
@@ -5963,7 +6029,7 @@
           const index = Number(event.target.closest("[data-report-index]")?.dataset.reportIndex ?? 0);
           loadReportPage(index);
         }
-        if (action === "open-purchase") go("purchase");
+        if (action === "open-purchase") openPurchaseOrAuth();
         if (action === "toggle-agree-all") {
           const checked = Boolean(event.target.closest("[data-action='toggle-agree-all']")?.querySelector("input")?.checked);
           AGREE_KEYS.forEach((key) => {
@@ -6035,7 +6101,10 @@
               location.href = "/";
               return;
             }
-            go("concern");
+            // 결과(티저)를 보다가 가입을 미룬 경우에는 그 결과로 돌려보낸다. 그 밖에는 기존처럼 고민 입력으로 간다.
+            const backToResult = sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1" && Boolean(state.analysis);
+            sessionStorage.removeItem(AUTH_PURCHASE_KEY);
+            go(backToResult ? "result" : "concern");
           }
         }
       });
@@ -6303,7 +6372,8 @@
         };
       }
 
-      async function analyzeBirth() {
+      async function analyzeBirth(options = {}) {
+        const guest = options.guest === true;
         const birth = parseBirthInput();
         const context = {
           serviceKey: state.serviceKey,
@@ -6315,7 +6385,8 @@
           work: state.work,
           partner: getPartnerContext(),
         };
-        await saveCurrentUserProfile();
+        // 비회원 티저는 계정에 아무것도 저장하지 않는다.
+        if (!guest) await saveCurrentUserProfile();
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
@@ -6325,11 +6396,12 @@
         const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
           method: "POST",
           headers,
-          body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context }),
+          body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context, ...(guest ? { guestTeaser: true } : {}) }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "분석 실패");
         state.analysis = json;
+        state.guestPreview = json.guestPreview === true;
         const reportId = json.report?.reportId || "";
         const stored = readReportHistory().find((item) => item.reportId === reportId);
         setActiveReportId(reportId);
@@ -7070,7 +7142,7 @@
               <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="cmdg-entry-action">
-              <button class="primary-cta" type="button" data-action="enter"><span class="cta-label">내 사주 확인하기</span></button>
+              <button class="primary-cta" type="button" data-action="enter"><span class="cta-label">운명록 확인하기</span></button>
             </div>
           </article>
         `;
@@ -7466,14 +7538,20 @@
             });
         }
         const protectedLabel = protectedEntryLabel();
-        const title = wantsTodayEntry()
+        // 결과(티저)에서 "운명 거래하기"를 눌러 온 경우: 이미 해석을 본 뒤이므로 결제로 이어진다는 안내로 바꾼다.
+        const purchaseIntent = wantsPurchaseAfterAuth();
+        const title = purchaseIntent
+          ? "가입하고<br />운명록을 확인하세요"
+          : wantsTodayEntry()
           ? "오늘의 운을 보려면<br />먼저 가입해주세요"
           : wantsProtectedProfileEntry()
             ? `${protectedLabel}${objectParticle(protectedLabel)} 열려면<br />먼저 로그인해주세요`
             : isStandaloneSignupFlow()
               ? "회원가입 후<br />운을 열어보세요"
               : "먼저 가입하고<br />해석을 시작합니다";
-        const description = wantsTodayEntry()
+        const description = purchaseIntent
+          ? "가입하거나 로그인하면 바로 결제 화면으로 이어집니다. 방금 입력한 사주는 같은 계정에서 이어서 볼 수 있습니다."
+          : wantsTodayEntry()
           ? "소셜 계정으로 가입하면 무료 오늘운을 열람하고, 이어지는 풀이를 같은 계정에 보관할 수 있습니다."
           : wantsProtectedProfileEntry()
             ? `${protectedLabel}${topicParticle(protectedLabel)} 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`

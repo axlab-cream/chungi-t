@@ -4629,6 +4629,33 @@ app.post('/api/today/fortune', async (req, res) => {
   }
 })
 
+/**
+ * 가입 전에도 천명사주 결제 유도 화면(티저)을 볼 수 있게 한다.
+ * 종합 해석(천명사주)의 입력만 받고, 다른 서비스·상대방 입력이 붙은 요청은 그대로 로그인을 요구한다.
+ */
+function isGuestTeaserRequest(req: Request, context: SajuReportContext): boolean {
+  return req.body?.guestTeaser === true && !context.serviceKey && !context.partner
+}
+
+/**
+ * 비회원 티저 응답. 사주표·오행·대운처럼 계산으로 나오는 값만 담고 아무것도 저장하지 않는다.
+ * 리포트 ID·본문 섹션은 비워 두므로 가입 뒤 같은 입력으로 다시 분석해 회원 소유 리포트를 만든다.
+ */
+function buildGuestTeaserPayload(birth: BirthInput, context: SajuReportContext) {
+  const analysis = analyzeSaju(birth)
+  const template = buildTemplateSajuReport(analysis, birth, enrichReportContext(context))
+  const report = {
+    ...template,
+    reportId: '',
+    resultId: '',
+    publicId: '',
+    status: 'pending',
+    sections: [],
+    progress: { complete: 0, total: template.sections.length },
+  } as SajuReport
+  return { ...buildUiAnalysisPayload(analysis, birth, report), guestPreview: true }
+}
+
 function wantsPreview(req: Request): boolean {
   return req.body?.preview === true || req.query.preview === '1'
 }
@@ -5419,6 +5446,11 @@ app.post('/api/saju/analyze', async (req, res) => {
     }
     const owner = await verifySupabaseUser(req)
     if (!authConfig().developmentReportAccess && !owner) {
+      if (isGuestTeaserRequest(req, context)) {
+        res.setHeader('Cache-Control', 'private, no-store')
+        res.json(buildGuestTeaserPayload(birth, context))
+        return
+      }
       res.status(401).json({ error: '회원가입 후 해석을 시작해 주세요.' })
       return
     }

@@ -164,7 +164,7 @@ test('actual modal counts entry and reopening, not config/error rerenders', () =
   const { api, events } = setup()
   const stage = { innerHTML: '', querySelector() { return this.innerHTML.includes('role="dialog"') ? {} : null } }
   const ctx: any = { stage, window: { UMSHAnalytics: api }, authConfigData: {}, authGateMessage: '',
-    protectedEntryLabel: () => '', wantsTodayEntry: () => false, wantsProtectedProfileEntry: () => false,
+    protectedEntryLabel: () => '', wantsTodayEntry: () => false, wantsPurchaseAfterAuth: () => false, wantsProtectedProfileEntry: () => false,
     isStandaloneSignupFlow: () => true, escapeHtml: (s: string) => s, renderAuthProviderButton: () => '', shouldUseGoogleIdentity: () => false }
   runInNewContext(pageFunction('function renderLogin()', 'function renderLoading()'), ctx)
   ctx.renderLogin()
