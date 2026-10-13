@@ -97,6 +97,7 @@ function writeMediaCatalog() {
 // never survive into Production by accident.
 rmSync(publicRoot, { recursive: true, force: true })
 mkdirSync(publicRoot, { recursive: true })
+writeFileSync(join(publicRoot, 'google21bc8e3161f818eb.html'), 'google-site-verification: google21bc8e3161f818eb.html')
 rmSync(join(root, '.vercel-runtime'), { recursive: true, force: true })
 copySelectedFiles(sajuRoot, runtimeSajuRoot, ['.html', '.css', '.js', '.mjs', '.json', '.txt', '.xml'])
 
