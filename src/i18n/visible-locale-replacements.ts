@@ -233,7 +233,7 @@ export function formatReferencePrice(amountWon: number, locale: 'en' | 'ja'): st
     minimumFractionDigits: locale === 'en' ? 2 : 0,
     maximumFractionDigits: locale === 'en' ? 2 : 0,
   }).format(absolute)
-  return locale === 'en' ? `Approx. ${sign}$${value} USD` : `約 ${sign}¥${value} JPY`
+  return locale === 'en' ? `${sign}$${value} USD` : `${sign}¥${value} JPY`
 }
 
 /** Only display text/attributes change. Scripts, JSON-LD, CSS and machine values stay in KRW. */
