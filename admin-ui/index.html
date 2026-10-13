@@ -3774,10 +3774,13 @@
           });
           var list = state.items.filter(function (item) { return state.group === 'all' || (SUPPORT_GROUPS[state.group] || []).indexOf(item.status) >= 0; });
           if (!list.length) { card.replaceChildren(memberEmpty(state.group === 'waiting' ? '답변을 기다리는 문의가 없습니다.' : '해당하는 문의가 없습니다.')); return; }
-          var table = memberTable(['접수일', '종류', '우선순위', '상태', '연결', '담당', '최근 변경'], list, function (item) {
+          // 2026-10-13 요청: 결제 목록처럼 누가 보낸 문의인지(이름·회원 ID·이메일)를 먼저 보여 준다.
+          var table = memberTable(['접수일', '이름', '회원 ID', '이메일', '종류', '우선순위', '상태', '연결', '담당', '최근 변경'], list, function (item) {
             var priority = SUPPORT_PRIORITY_VIEW[item.priority] || { label: item.priority, tone: '' };
-            var links = [item.memberId ? '회원' : null, item.orderId ? '결제' : null, item.reportId ? '리포트' : null].filter(Boolean).join('·');
-            return [memberWhen(item.createdAt), MEMBER_SUPPORT_CATEGORY[item.category] || item.category, memberChip(priority.label, priority.tone), supportStatusChip(item.status), links || '—', item.assigneeEmail ? item.assigneeEmail.split('@')[0] : '미배정', memberWhen(item.updatedAt)];
+            var links = [item.orderId ? '결제' : null, item.reportId ? '리포트' : null].filter(Boolean).join('·');
+            var idCell = '—';
+            if (item.memberId) { idCell = copyChip(item.memberId, String(item.memberId).slice(0, 8)); idCell.title = item.memberId; }
+            return [memberWhen(item.createdAt), item.memberId ? (item.memberName || '이름 미등록') : '회원 아님', idCell, item.memberEmail || '—', MEMBER_SUPPORT_CATEGORY[item.category] || item.category, memberChip(priority.label, priority.tone), supportStatusChip(item.status), links || '—', item.assigneeEmail ? item.assigneeEmail.split('@')[0] : '미배정', memberWhen(item.updatedAt)];
           }, function (item) { renderSupportCaseDetail(body, item, load); });
           var inner = table.querySelector('table'); if (inner) inner.removeAttribute('data-plain');
           card.replaceChildren(table);
@@ -3805,7 +3808,8 @@
         left.append(h1, dlRows([
           ['종류', MEMBER_SUPPORT_CATEGORY[item.category] || item.category], ['상태', supportStatusChip(item.status)], ['우선순위', memberChip(priority.label, priority.tone)],
           ['접수일', memberWhen(item.createdAt)], ['담당', item.assigneeEmail || '미배정'],
-          ['회원', item.memberId ? adminLink('회원 상세 보기', '/members?id=' + encodeURIComponent(item.memberId)) : '연결 안 됨'],
+          ['회원', item.memberId ? adminLink((item.memberName || '이름 미등록') + ' · 회원 상세 보기', '/members?id=' + encodeURIComponent(item.memberId)) : '연결 안 됨'],
+          ['회원 ID', item.memberId ? copyChip(item.memberId) : '—'], ['이메일', item.memberEmail ? copyChip(item.memberEmail) : '—'],
           ['결제', item.orderId ? adminLink('결제 상세 보기', '/payments?id=' + encodeURIComponent(item.orderId)) : '연결 안 됨'],
           ['리포트', item.reportId ? adminLink('리포트 상세 보기', '/reports?id=' + encodeURIComponent(item.reportId)) : '연결 안 됨'],
         ]));

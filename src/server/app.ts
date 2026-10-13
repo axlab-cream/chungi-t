@@ -65,7 +65,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, memberNamesByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, memberContactsByIds, memberNamesByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { searchAdminAuditEvents } from '../admin/audit-store.js'
@@ -3599,9 +3599,18 @@ app.get('/api/admin/v1/me', async (req, res) => {
 /** Actual account roster for the settings screen. Password hashes never leave the server. */
 app.get('/api/admin/v1/support', async (req, res) => {
   if (!await requireStaff(req, res, 'support:read')) return
-  try { res.json({ cases: await listSupportCases() }) }
+  try { res.json({ cases: await withSupportMembers(await listSupportCases()) }) }
   catch { res.status(503).json({ code: 'SUPPORT_CASE_LOOKUP_FAILED', error: '고객 지원 저장소를 불러오지 못했습니다.' }) }
 })
+
+/** 2026-10-13: 누가 보낸 문의인지 목록에서 바로 보이게 회원 이름·이메일을 붙인다. 조회에 실패하면 비워 두고 목록은 그대로 준다. */
+async function withSupportMembers<T extends { memberId: string | null }>(cases: T[]): Promise<Array<T & { memberName: string | null; memberEmail: string | null }>> {
+  const contacts = await memberContactsByIds(cases.map((item) => item.memberId ?? '')).catch(() => new Map<string, { name: string | null; email: string | null }>())
+  return cases.map((item) => {
+    const contact = item.memberId ? contacts.get(item.memberId.toLowerCase()) : undefined
+    return { ...item, memberName: contact?.name ?? null, memberEmail: contact?.email ?? null }
+  })
+}
 
 /** 문의 한 건(2026-10 7단계). 목록(최근 100건) 밖의 문의도 링크(?id=)로 열 수 있게 한다. */
 app.get('/api/admin/v1/support/:id', async (req, res) => {
@@ -3611,7 +3620,7 @@ app.get('/api/admin/v1/support/:id', async (req, res) => {
   try {
     const supportCase = await getSupportCase(id)
     if (!supportCase) { res.status(404).json({ code: 'SUPPORT_CASE_NOT_FOUND', error: '해당 문의를 찾지 못했습니다.' }); return }
-    res.json({ supportCase })
+    res.json({ supportCase: (await withSupportMembers([supportCase]))[0] })
   } catch { res.status(503).json({ code: 'SUPPORT_CASE_LOOKUP_FAILED', error: '문의를 불러오지 못했습니다.' }) }
 })
 
