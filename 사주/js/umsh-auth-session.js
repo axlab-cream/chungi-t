@@ -300,6 +300,91 @@
     }
   }
 
+  /*
+   * 2026-10-14 3단계: 비회원 → 회원 이어받기. docs/auth/guest-member-plan.md
+   * 같은 탭(sessionStorage)에 비회원 세션이 남아 있고 회원(SNS) 세션이 생기면, 비회원으로 본 결과와 사주 정보를
+   * 회원 계정으로 옮긴다. 공용 PC에서 다음 사람이 남의 결과를 가져가지 않게 옮기기 전에 묻는다(결제 화면은 묻지 않음 —
+   * 방금 본 결과를 사려는 본인이다). 이름·생일은 띄우지 않고 개수만 보인다.
+   */
+  function storedTokens(store, wantAnonymous) {
+    var tokens = [];
+    try {
+      for (var i = 0; i < store.length; i += 1) {
+        var key = store.key(i);
+        if (!isAuthTokenKey(key)) continue;
+        var parsed = JSON.parse(store.getItem(key) || 'null');
+        var session = parsed && (parsed.currentSession || parsed);
+        if (!session || !session.access_token || !session.user) continue;
+        if ((session.user.is_anonymous === true) === wantAnonymous) tokens.push(session.access_token);
+      }
+    } catch (_error) { /* 저장소가 막힌 브라우저 */ }
+    return tokens;
+  }
+
+  function dropGuestSession() {
+    guestTokenKeys().forEach(function (key) { safeRemove(global.sessionStorage, key); });
+    safeRemove(global.localStorage, GUEST_ACTIVE_KEY);
+  }
+
+  function loadSheet() {
+    if (global.UMSHGuestSaveSheet || !global.document) return Promise.resolve(global.UMSHGuestSaveSheet);
+    return new Promise(function (resolve) {
+      var script = global.document.createElement('script');
+      script.src = '/js/umsh-guest-save-sheet.js?v=20261014c';
+      script.onload = function () { resolve(global.UMSHGuestSaveSheet); };
+      script.onerror = function () { resolve(null); };
+      global.document.head.appendChild(script);
+    });
+  }
+
+  var claiming = null;
+  function claimGuestNow(options) {
+    if (claiming) return claiming;
+    var guestToken = storedTokens(global.sessionStorage, true)[0];
+    var memberToken = storedTokens(global.localStorage, false)[0];
+    if (!guestToken || !memberToken) return Promise.resolve({ skipped: true });
+    function post(body) {
+      return fetch('/api/auth/claim-guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + memberToken },
+        body: JSON.stringify(body),
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (json) { return { ok: response.ok, status: response.status, body: json }; });
+      });
+    }
+    claiming = (async function () {
+      try {
+        var plan = await post({ guestToken: guestToken, dryRun: true });
+        if (!plan.ok) {
+          // 비회원 토큰이 만료·무효면 더 할 일이 없다. 서버·네트워크 오류면 다음 페이지에서 다시 시도한다.
+          if (plan.status === 400) dropGuestSession();
+          return { error: true };
+        }
+        var count = Number(plan.body.reports) || 0;
+        var hasProfile = plan.body.profile === 'copied';
+        if (!count && !hasProfile) { dropGuestSession(); return { moved: 0 }; }
+        var agree = true;
+        var onPayment = /^\/payment(\/|$)/.test(String(global.location && global.location.pathname || ''));
+        if (!(options && options.silent) && !onPayment) {
+          var sheet = await loadSheet();
+          agree = sheet && sheet.confirmClaim ? await sheet.confirmClaim({ reports: count, profile: hasProfile }) : true;
+        }
+        if (!agree) { dropGuestSession(); return { declined: true }; }
+        var done = await post({ guestToken: guestToken });
+        if (done.ok) dropGuestSession();
+        try {
+          if (global.UMSHTrack && typeof global.UMSHTrack.push === 'function') global.UMSHTrack.push('cta_click', { target: done.ok ? 'signup:guest_claimed' : 'signup:guest_claim_failed' });
+        } catch (_error) { /* 측정은 흐름을 막지 않는다 */ }
+        return done.body;
+      } catch (_error) {
+        return { error: true };
+      } finally {
+        claiming = null;
+      }
+    })();
+    return claiming;
+  }
+
   function watchSignedIn(auth, onSession) {
     if (!auth || auth.watching || !auth.client || !auth.client.auth || !auth.client.auth.onAuthStateChange) return;
     auth.watching = true;
@@ -335,6 +420,7 @@
     bindServiceSession: bindServiceSession,
     watchSignedIn: watchSignedIn,
     ensureGuestSession: ensureGuestSession,
+    claimGuestNow: claimGuestNow,
     isGuestSession: isGuestSession,
     isMemberSession: isMemberSession,
     purgeGuest: purgeGuest,
@@ -343,4 +429,9 @@
   };
 
   try { sweepGuestResidue(); } catch (_error) { /* 저장소가 막힌 브라우저 */ }
+  // 로그인에서 돌아온 페이지: 회원 세션이 저장되는 데 시간이 걸릴 수 있어 두 번 살핀다.
+  if (typeof fetch === 'function' && global.document) {
+    setTimeout(function () { claimGuestNow(); }, 1500);
+    setTimeout(function () { claimGuestNow(); }, 5000);
+  }
 })(typeof window !== 'undefined' ? window : globalThis);

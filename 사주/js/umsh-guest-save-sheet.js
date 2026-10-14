@@ -34,6 +34,7 @@
     '.umsh-gs-btn.naver{background:#03c75a;color:#fff}',
     '.umsh-gs-btn.google{background:#fff;color:#1f1f1f;border-color:#747775}',
     '.umsh-gs-wide{min-height:50px;font-size:15px}',
+    '.umsh-gs-btn.save{background:#d6b26e;color:#15100d}',
     '.umsh-gs-alt{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;font-size:13px;color:rgba(246,234,214,.66)}',
     '.umsh-gs-alt a{color:#f6ead6;text-decoration:underline;text-underline-offset:3px}',
     '.umsh-gs-later{display:block;margin:8px auto 0;padding:6px 12px;border:0;background:transparent;color:rgba(246,234,214,.6);font:inherit;font-size:13px;cursor:pointer}',
@@ -189,5 +190,41 @@
     }
   }
 
-  global.UMSHGuestSaveSheet = { open: open, openWhenSeen: openWhenSeen };
+  /**
+   * 3단계: 로그인 직후 "방금 본 결과를 내 계정에 저장할까요?" — 공용 PC에서 남의 결과를 가져가지 않게 묻는다.
+   * 이름·생년월일은 보이지 않고 개수만 보인다. 저장하면 true, 아니면 false.
+   */
+  function confirmClaim(plan) {
+    plan = plan || {};
+    injectStyle();
+    return new Promise(function (resolve) {
+      var backdrop = document.createElement('div');
+      backdrop.className = 'umsh-gs-backdrop';
+      var sheet = document.createElement('section');
+      sheet.className = 'umsh-gs';
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-labelledby', 'umsh-gs-claim-title');
+      var what = plan.reports ? '비회원으로 본 결과 ' + plan.reports + '개' + (plan.profile ? '와 입력한 사주 정보' : '') : '비회원으로 입력한 사주 정보';
+      sheet.innerHTML = '<span class="umsh-gs-handle" aria-hidden="true"></span>'
+        + '<p class="umsh-gs-title" id="umsh-gs-claim-title">방금 본 결과를 내 계정에 저장할까요?</p>'
+        + '<p class="umsh-gs-sub">' + what + '를 로그인한 계정으로 옮겨요. 내가 본 게 아니면 저장하지 마세요.</p>'
+        + '<div class="umsh-gs-row" style="--umsh-gs-cols:1"><button type="button" class="umsh-gs-btn save" data-answer="yes">내 계정에 저장</button></div>'
+        + '<button type="button" class="umsh-gs-later" data-answer="no">저장하지 않기</button>';
+      document.body.appendChild(backdrop);
+      document.body.appendChild(sheet);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { sheet.classList.add('is-open'); backdrop.classList.add('is-open'); }); });
+      function finish(answer) {
+        sheet.classList.remove('is-open');
+        backdrop.classList.remove('is-open');
+        setTimeout(function () { sheet.remove(); backdrop.remove(); }, 280);
+        resolve(answer);
+      }
+      sheet.addEventListener('click', function (event) {
+        var target = event.target.closest('[data-answer]');
+        if (target) finish(target.getAttribute('data-answer') === 'yes');
+      });
+    });
+  }
+
+  global.UMSHGuestSaveSheet = { open: open, openWhenSeen: openWhenSeen, confirmClaim: confirmClaim };
 })(window);

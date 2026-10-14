@@ -895,6 +895,66 @@ export async function deleteReportRecord(reportId: string, owner: ReportOwner): 
   return Number(result.rowCount ?? 0) > 0
 }
 
+/**
+ * 2026-10-14 비회원(익명 계정)이 SNS 로그인하면 비회원으로 만든 리포트를 회원 계정으로 옮긴다.
+ * 행의 주인(user_id)과 본문에 든 주인(payload.owner)을 함께 바꾼다 — 소유권 검사는 둘 다 본다.
+ * 계획: docs/auth/guest-member-plan.md §6 (3단계). 옮긴 건수를 돌려준다.
+ */
+export async function transferReportOwnership(fromOwnerId: string, to: ReportOwner): Promise<number> {
+  if (!fromOwnerId || !to?.id || fromOwnerId === to.id) return 0
+  const owner = { id: to.id, ...(to.email ? { email: to.email } : {}), ...(to.provider ? { provider: to.provider } : {}) }
+
+  if (localFiles || storageMode() === 'memory') {
+    const records = localFiles ? await localFiles.list() : Array.from(memoryReports.values())
+    let moved = 0
+    for (const record of records.filter((item) => item.owner?.id === fromOwnerId)) {
+      const next = cloneRecord(record)
+      next.owner = { ...owner }
+      next.revision = (record.revision ?? 0) + 1
+      if (localFiles) { if (!await localFiles.compareAndSwap(next, record.revision)) continue }
+      else memoryReports.set(next.reportId, next)
+      moved += 1
+    }
+    return moved
+  }
+
+  if (storageMode() === 'supabase') {
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('user_id', `eq.${fromOwnerId}`)
+    url.searchParams.set('select', 'report_id,payload')
+    url.searchParams.set('limit', '200')
+    const response = await fetch(url, { headers: supabaseHeaders() })
+    if (!response.ok) throw new Error('비회원 리포트를 불러오지 못했습니다.')
+    const rows = await response.json() as Array<{ report_id: string; payload: ReportRecord }>
+    let moved = 0
+    for (const row of rows) {
+      const target = new URL(supabaseRestUrl)
+      target.searchParams.set('report_id', `eq.${row.report_id}`)
+      target.searchParams.set('user_id', `eq.${fromOwnerId}`)
+      const patched = await fetch(target, {
+        method: 'PATCH',
+        headers: { ...supabaseHeaders(), 'content-type': 'application/json', prefer: 'return=minimal' },
+        body: JSON.stringify({ user_id: to.id, user_email: to.email ?? null, auth_provider: to.provider ?? null, payload: { ...row.payload, owner } }),
+      })
+      if (!patched.ok) throw new Error('비회원 리포트를 회원 계정으로 옮기지 못했습니다.')
+      moved += 1
+    }
+    return moved
+  }
+
+  if (!pool) return 0
+  await ensureDb()
+  const result = await pool.query(
+    `
+      UPDATE cheongi_reports
+      SET user_id = $2, user_email = $3, auth_provider = $4, payload = jsonb_set(payload, '{owner}', $5::jsonb), updated_at = NOW()
+      WHERE user_id = $1
+    `,
+    [fromOwnerId, to.id, to.email ?? null, to.provider ?? null, JSON.stringify(owner)],
+  )
+  return result.rowCount ?? 0
+}
+
 export async function saveReportRecord(record: ReportRecord, insertOnly = true): Promise<ReportRecord> {
   if (!insertOnly) throw new Error('기존 리포트 변경에는 충돌 검사를 지원하는 mutateReportRecord를 사용하세요.')
   assertDurableReportStorage()

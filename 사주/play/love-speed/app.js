@@ -60,6 +60,24 @@
     on('login', () => { track('login'); save(); if (!storageOK) { document.getElementById('gate-error').textContent = '브라우저 저장 공간을 사용할 수 없어 답변을 보관하지 못했어요. 저장을 허용한 뒤 다시 눌러주세요.'; return; } location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('love-speed', '/play/love-speed/') : '/signup?entry=love-speed&returnTo=' + encodeURIComponent('/play/love-speed/') + '#login'; });
     on('retry', resolveResult);
   }
+  // 회원 결과는 계정(Supabase user_metadata.play_results)에 남겨 보관함에서 다시 연다(2026-10-14, DB 변경 없이).
+  function saveResultToAccount(data, session) {
+    if (!session || window.UMSHAuthSession.isGuestSession?.(session) || !auth.client?.auth?.updateUser) return;
+    const previous = session.user?.user_metadata?.play_results || {};
+    auth.client.auth.updateUser({ data: { play_results: { ...previous, 'love-speed': { ...data, savedAt: new Date().toISOString() } } } }).catch(() => undefined);
+  }
+
+  // 보관함의 "다시 보기"(?saved=1): 계정에 남긴 결과를 그대로 보여 준다. 없거나 로그인 전이면 첫 화면.
+  async function openSaved() {
+    try {
+      if (!auth.config) auth.config = await fetch('/api/auth/config').then((response) => response.json());
+      const session = await window.UMSHAuthSession?.bindServiceSession(auth, 1600);
+      const saved = window.UMSHAuthSession?.isMemberSession?.(session) ? session.user?.user_metadata?.play_results?.['love-speed'] : null;
+      if (saved && Object.hasOwn(types, saved.type) && saved.stats) { result = saved; renderResult(saved); return; }
+    } catch { /* 첫 화면으로 */ }
+    home();
+  }
+
   // 비회원 결과 화면: 결과를 다 본 뒤 "SNS로 로그인하면 이 결과가 저장돼요" 바텀시트. 로그인하면 답변을 들고 돌아와 같은 결과를 연다.
   function offerGuestSave(data) {
     window.UMSHGuestSaveSheet?.openWhenSeen({
@@ -103,6 +121,7 @@
       if (!Object.hasOwn(types, data.type) || !data.stats || Object.values(data.stats).some(n => !Number.isFinite(n) || n < 0 || n > 100)) throw Error('결과를 확인하지 못했어요. 다시 시도해주세요.');
       result = data; renderResult(data);
       if (window.UMSHAuthSession.isGuestSession?.(session)) offerGuestSave(data);
+      else saveResultToAccount(data, session);
     } catch (error) { if (current === generation) gate(error.name === 'TimeoutError' ? '연결이 늦어지고 있어요. 잠시 후 다시 확인해주세요.' : '결과를 불러오지 못했어요. 답변은 유지되어 있으니 다시 확인해주세요.'); }
     finally { busy = false; }
   }
@@ -152,6 +171,7 @@
   function sampleResult(type = 'spark') { renderResult({ ...types[type], type }, true); }
   if (preview) { sampleResult(); return; }
   try { const saved = JSON.parse(sessionStorage.getItem(KEY)); if (saved && Date.now()-saved.at < 7200000 && Date.now() >= saved.at && Array.isArray(saved.answers) && saved.answers.length <= 5 && saved.answers.every(a => Number.isInteger(a) && a >= 0 && a <= 3) && (saved.mbti === null || /^[EI][NS][TF][JP]$/.test(saved.mbti))) state = saved; else clear(); } catch { clear(); }
+  if (new URLSearchParams(location.search).get('saved') === '1') { history.replaceState(null, '', location.pathname); openSaved(); return; }
   const shared = new URLSearchParams(location.search).get('type');
   // Remove arbitrary tracking/PII parameters before any authentication redirect or share action.
   history.replaceState(null, '', location.pathname + (Object.hasOwn(types, shared) ? '?type='+shared : ''));
