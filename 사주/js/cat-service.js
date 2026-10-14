@@ -27,6 +27,8 @@
     profile: 'cheongi_user_birth_profile_v1',
     payload: 'cat_compatibility_step2_payload',
     report: 'umsh:report:cat_compatibility',
+    // 비회원이 04 의 결제 버튼을 눌러 가입하러 갔다는 표시. 돌아오면 결제로 이어 준다.
+    purchaseAfterAuth: 'umsh:match-cat:purchase-after-auth',
   };
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -254,7 +256,12 @@
     const request = buildRequest();
     if (!request) throw new Error('고양이 정보를 다시 확인해 주세요.');
     const session = await initAuth();
-    if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+    if (!session) {
+      // 가입 전에도 티저까지 본다(천명사주와 같은 순서). 입력은 sessionStorage 에 남고 04 가 거기서 읽는다.
+      if (!request.selfBirth) throw new Error('가입 전에는 보호자의 생년월일시를 직접 입력해 주세요.');
+      location.assign(teaserUrl(''));
+      return;
+    }
     const response = await api('/api/match/cat/analyze', {
       method: 'POST', body: JSON.stringify({ ...request, preview: true }),
     });
@@ -264,6 +271,23 @@
   }
 
   window.UMSHCatService = Object.assign(window.UMSHCatService || {}, { createPreviewFromPayload });
+
+  /** 비회원 티저 요청. 서버는 아무것도 저장하지 않고 앞 두 항목과 목차만 돌려준다. 보호자 사주는 직접 입력한 값만 쓴다. */
+  async function loadGuestTeaser(request) {
+    if (!request?.selfBirth) return { reason: 'input' };
+    try {
+      const response = await api('/api/match/cat/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ ...request, preview: true, guestTeaser: true }),
+      });
+      const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+      return accepted?.preview ? { ...accepted, guest: true } : { reason: 'error' };
+    } catch (error) {
+      // 입력이 틀린 경우(400)는 입력 화면으로 되돌리고 서버 문구를 그대로 보여 준다.
+      if (error.status === 400) return { reason: 'input', message: error.message };
+      return { reason: 'error', message: error.message };
+    }
+  }
 
   let reportPromise = null;
 
@@ -276,6 +300,8 @@
 
       const session = await initAuth();
       if (!session) {
+        // 04 티저는 가입 없이 연다(저장된 번호로 여는 화면은 계정의 화면이라 로그인을 요구한다). 05·06 도 그대로 로그인을 요구한다.
+        if (/\/04-step-4-report\//.test(location.pathname) && !new URLSearchParams(location.search).get('reportId')) return loadGuestTeaser(buildRequest());
         reportPromise = null;
         return { reason: 'login' };
       }
@@ -410,9 +436,23 @@
       setText('#state-pill', '무료 공개');
       setText('#state-title', '핵심 결론을 먼저 열었습니다');
       setText('#state-copy', GATE_COPY.payment);
-      takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
-        location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
-      });
+      const payNow = () => location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+      const pay = outcome.guest
+        // 가입은 여기서 받는다. 돌아오면 아래 purchaseAfterAuth 로 결제까지 이어 준다.
+        ? () => { writeJson('sessionStorage', STORAGE.purchaseAfterAuth, '1'); location.assign(loginUrl()); }
+        : payNow;
+      takeOverCta(`전체 보기 (${SERVICE.price})`, pay);
+      if (outcome.guest) {
+        // 공용 스크립트가 결제 링크를 그리는 경우에도 비회원이면 결제 대신 가입으로 보낸다.
+        document.addEventListener('click', (event) => {
+          if (!event.target.closest?.('.umsh-preview-checkout, #umsh-preview-checkout')) return;
+          event.preventDefault();
+          pay();
+        }, true);
+      } else if (readJson('sessionStorage', STORAGE.purchaseAfterAuth)) {
+        try { window.sessionStorage.removeItem(STORAGE.purchaseAfterAuth); } catch { /* 저장소가 막혀 있으면 버튼을 한 번 더 누르면 된다. */ }
+        payNow();
+      }
       return;
     }
 

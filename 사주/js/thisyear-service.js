@@ -24,6 +24,8 @@
   const STORAGE = {
     draft: 'umsh:love_thisyear:session_draft',
     report: 'umsh:report:love_this_year',
+    // 비회원이 04 의 결제 버튼을 눌러 가입하러 갔다는 표시. 돌아오면 결제로 이어 준다.
+    purchaseAfterAuth: 'umsh:love-this-year:purchase-after-auth',
   };
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -161,8 +163,18 @@
     const form = $('#loveIntakeForm');
     if (!form) return;
 
+    // 저장된 사주가 없으면(비회원이거나 아직 등록 전) "저장된 기본 프로필 사용"은 고를 수 없다. 직접 입력으로 고정한다.
+    const hideSavedProfileChoice = () => {
+      form.querySelector('[data-field="profile_mode"]')?.closest('.form-section')?.classList.add('is-hidden');
+      const manual = form.querySelector('input[name="profile_mode"][value="new_profile"]');
+      if (manual && !manual.checked) {
+        manual.checked = true;
+        manual.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    };
+
     const session = await initAuth();
-    if (!session) return;
+    if (!session) { hideSavedProfileChoice(); return; }
 
     let profile = null;
     try {
@@ -170,7 +182,7 @@
     } catch {
       return;
     }
-    if (!profile?.birth) return;
+    if (!profile?.birth) { hideSavedProfileChoice(); return; }
 
     const saved = form.querySelector('input[name="profile_mode"][value="saved_profile"]');
     if (saved && !saved.checked) {
@@ -272,9 +284,12 @@
     showAnalysisLoading();
     const session = await initAuth();
     if (!session) {
-      // 입력값은 이미 sessionStorage 에 있어 로그인 뒤 이 화면으로 돌아오면 그대로 채워진다.
-      // 오류 문구만 띄우면 버튼 아래에 있는 사람에게는 아무 반응이 없는 것처럼 보인다.
-      location.assign(loginUrl());
+      // 가입 전에도 티저까지 본다(천명사주와 같은 순서). 입력은 sessionStorage 의 draft 에 있고 04 가 거기서 읽는다.
+      if (!buildGuestRequest(draft)) {
+        document.querySelector('[data-thisyear-loading]')?.remove();
+        throw new Error('가입 전에는 생년월일시를 직접 입력해 주세요.');
+      }
+      location.assign(teaserUrl(''));
       return null;
     }
     const response = await api('/api/love/this-year/analyze', { method: 'POST', body: JSON.stringify(request) });
@@ -285,6 +300,27 @@
     if (!reportId) throw new Error('생성된 무료 해석 번호를 확인하지 못했습니다. 다시 눌러 주세요.');
     location.assign(teaserUrl(reportId));
     return response;
+  }
+
+  /** 비회원은 계정 사주가 없으니 draft 의 직접 입력값만 쓴다. 입력이 모자라면 null. */
+  function buildGuestRequest(draft) {
+    const request = buildRequest(draft && { ...draft, profile_mode: 'new_profile' });
+    return request?.selfBirth ? { ...request, guestTeaser: true } : null;
+  }
+
+  /** 비회원 티저 요청. 서버는 아무것도 저장하지 않고 앞 두 항목과 목차만 돌려준다. */
+  async function loadGuestTeaser() {
+    const request = buildGuestRequest(readJson('sessionStorage', STORAGE.draft));
+    if (!request) return { reason: 'input' };
+    try {
+      const response = await api('/api/love/this-year/analyze', { method: 'POST', body: JSON.stringify(request) });
+      const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+      return accepted?.preview ? { ...accepted, guest: true } : { reason: 'error' };
+    } catch (error) {
+      // 입력이 틀린 경우(400)는 입력 화면으로 되돌리고 서버 문구를 그대로 보여 준다.
+      if (error.status === 400) return { reason: 'input', message: error.message };
+      return { reason: 'error', message: error.message };
+    }
   }
 
   window.UMSHThisYearService = Object.assign(window.UMSHThisYearService || {}, { createPreviewFromDraft });
@@ -303,6 +339,8 @@
 
       const session = await initAuth();
       if (!session) {
+        // 04 티저는 가입 없이 연다. 05·06 은 결제한 계정의 화면이라 그대로 로그인을 요구한다.
+        if (/\/04-step-4-report\//.test(location.pathname)) return loadGuestTeaser();
         reportPromise = null;
         return { reason: 'login' };
       }
@@ -412,9 +450,61 @@
     location.assign(`/love/this-year/05-step-5-chat/chat.html?${params.toString()}#step-5-chat`);
   }
 
+  /**
+   * 결제 링크는 공용 스크립트가 그린다. 비회원이 누르면 결제 대신 가입으로 보내고,
+   * 가입 뒤 돌아오면(표시가 남아 있으면) 다시 누르게 하지 않고 결제로 잇는다.
+   */
+  function routePurchase(outcome, pay) {
+    if (outcome.guest) {
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest?.('.umsh-preview-checkout, #umsh-preview-checkout')) return;
+        event.preventDefault();
+        writeJson('sessionStorage', STORAGE.purchaseAfterAuth, '1');
+        location.assign(loginUrl());
+      }, true);
+    } else if (readJson('sessionStorage', STORAGE.purchaseAfterAuth)) {
+      try { window.sessionStorage.removeItem(STORAGE.purchaseAfterAuth); } catch { /* 저장소가 막혀 있으면 버튼을 한 번 더 누르면 된다. */ }
+      pay();
+    }
+  }
+
+  /** 안내만 띄운다. 공용 스크립트가 채우는 미리보기 자리가 비어 있을 때 쓴다. */
+  function showSlimNotice(message, href, label) {
+    const host = $('#umsh-preview-host') || $('#step-4-report');
+    if (!host) return;
+    const notice = document.createElement('div');
+    notice.className = 'thisyear-slim-notice';
+    const copy = document.createElement('p');
+    copy.textContent = message;
+    const action = document.createElement('a');
+    action.href = href;
+    action.textContent = label;
+    notice.append(copy, action);
+    host.replaceChildren(notice);
+  }
+
+  /**
+   * 04 에 #freeSummary 가 없는 화면. 저장된 번호(reportId)로 열린 회원 화면은 공용 스크립트가 채운다.
+   * 번호가 없으면(가입 전이거나, 가입하고 돌아온 직후) 이 입력 draft 로 직접 요청해 같은 자리를 채운다.
+   */
+  async function enhanceInPlaceTeaser() {
+    const params = new URLSearchParams(location.search);
+    // 결제 뒤 복귀(orderId·paid)도 공용 스크립트의 몫이다. 여기서 미리보기로 덮으면 열린 해석이 닫힌다.
+    if (params.get('reportId') || params.get('orderId') || params.get('paid') === '1') return;
+    const outcome = await loadReport();
+    const pay = () => location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+    if (outcome.preview) { routePurchase(outcome, pay); return; }
+    if (outcome.report) return;
+    const reason = outcome.reason || 'error';
+    if (reason === 'profile') showSlimNotice(GATE_COPY.profile, `/profile?returnTo=${encodeURIComponent(location.pathname)}`, '내 사주 등록하기');
+    else if (reason === 'input') showSlimNotice(outcome.message || GATE_COPY.input, '/love/this-year/02-step-2-saju-input/index.html', '입력 화면으로 가기');
+    else showSlimNotice(outcome.message || GATE_COPY.error, location.href, '다시 시도하기');
+  }
+
   async function enhanceTeaser() {
+    if (!$('#step-4-report')) return;
     const summary = $('#freeSummary');
-    if (!summary || !$('#step-4-report')) return;
+    if (!summary) { await enhanceInPlaceTeaser(); return; }
 
     await resumeAfterPayment();
     const outcome = await loadReport();
@@ -437,9 +527,9 @@
         return;
       }
       setStatus('핵심 결론을 먼저 열었습니다', '무료 공개', GATE_COPY.payment);
-      takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
-        location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
-      });
+      const pay = () => location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+      takeOverCta(`전체 보기 (${SERVICE.price})`, pay);
+      routePurchase(outcome, pay);
       return;
     }
 
@@ -452,7 +542,7 @@
           enhanceTeaser();
         });
       } else {
-        summary.textContent = GATE_COPY[reason] || GATE_COPY.error;
+        summary.textContent = ((reason === 'input' || reason === 'error') && outcome.message) || GATE_COPY[reason] || GATE_COPY.error;
       }
       signals.forEach((signal) => {
         const body = signal.querySelector('span');

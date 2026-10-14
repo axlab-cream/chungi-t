@@ -28,6 +28,8 @@
     input: 'umsh_marry_input_payload',
     report: 'umsh_marry_report_v1',
     reportContext: 'umsh_marry_report_context',
+    // 비회원이 04 의 결제 버튼을 눌러 가입하러 갔다는 표시. 돌아오면 결제로 이어 준다.
+    purchaseAfterAuth: 'umsh:match-marry:purchase-after-auth',
     accessState: 'umsh_marry_access_state',
     generationState: 'umsh_marry_generation_state',
     networkState: 'umsh_marry_network_state',
@@ -330,11 +332,36 @@
     const loading = ensureAnalysisLoading();
     loading?.classList.add('is-visible');
     const session = await initAuth();
-    if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+    if (!session) {
+      // 가입 전에도 티저까지 본다(천명사주와 같은 순서). 입력은 sessionStorage 에 남고 04 가 거기서 읽는다.
+      if (!request.selfBirth) {
+        loading?.classList.remove('is-visible');
+        throw new Error('가입 전에는 내 생년월일시를 직접 입력해 주세요.');
+      }
+      location.assign(teaserUrl(''));
+      return;
+    }
     const response = await api('/api/match/marry/analyze', { method: 'POST', body: JSON.stringify(request) });
     const reportId = response.reportId || response.resultId || response.report?.reportId || '';
     if (!reportId) throw new Error('생성된 결혼궁합 번호를 확인하지 못했습니다.');
     location.assign(teaserUrl(reportId));
+  }
+
+  /** 비회원 티저 요청. 서버는 아무것도 저장하지 않고 앞 두 항목과 목차만 돌려준다. 내 사주는 직접 입력한 값만 쓴다. */
+  async function loadGuestTeaser(request) {
+    if (!request.selfBirth) return { reason: 'input' };
+    try {
+      const response = await api('/api/match/marry/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ ...request, preview: true, guestTeaser: true }),
+      });
+      const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+      return accepted?.preview ? { ...accepted, guest: true } : { reason: 'error' };
+    } catch (error) {
+      // 입력이 틀린 경우(400)는 입력 화면으로 되돌리고 서버 문구를 그대로 보여 준다.
+      if (error.status === 400) return { reason: 'input', message: error.message };
+      return { reason: 'error', message: error.message };
+    }
   }
 
   let reportPromise = null;
@@ -382,6 +409,8 @@
 
       const session = await initAuth();
       if (!session) {
+        // 04 티저는 가입 없이 연다. 05·06 은 결제한 계정의 화면이라 그대로 로그인을 요구한다.
+        if (/\/04-step-4-report(?:\/|$)/.test(location.pathname)) return loadGuestTeaser(request);
         reportPromise = null;
         return { reason: 'login' };
       }
@@ -499,6 +528,20 @@
     }
 
     if (outcome.preview) {
+      const payNow = () => location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+      if (outcome.guest) {
+        // 공용 스크립트가 그리는 결제 링크는 비회원이면 결제 대신 가입으로 보낸다. 돌아오면 아래에서 결제로 잇는다.
+        document.addEventListener('click', (event) => {
+          if (!event.target.closest?.('.umsh-preview-checkout, #umsh-preview-checkout')) return;
+          event.preventDefault();
+          writeJson('sessionStorage', STORAGE.purchaseAfterAuth, '1');
+          location.assign(loginUrl());
+        }, true);
+      } else if (!window.UMSHReportAccess?.isEntitled?.(outcome) && readJson('sessionStorage', STORAGE.purchaseAfterAuth)) {
+        try { window.sessionStorage.removeItem(STORAGE.purchaseAfterAuth); } catch { /* 저장소가 막혀 있으면 버튼을 한 번 더 누르면 된다. */ }
+        payNow();
+        return;
+      }
       if (outcome.payload) {
         const entitled = window.UMSHReportAccess?.isEntitled?.(outcome) === true;
         const previewCta = window.UMSHReportAccess?.previewCta?.(outcome.payload);

@@ -33,6 +33,8 @@
     selectedSection: 'umsh:work_move:selected_section_v1',
     userProfile: 'cheongi_user_birth_profile_v1',
     cheongiAnalysis: 'cheongi_analysis',
+    // 비회원이 04 의 결제 버튼을 눌러 가입하러 갔다는 표시. 돌아오면 결제로 이어 준다.
+    purchaseAfterAuth: 'umsh:work-move:purchase-after-auth',
   };
 
   const SERVICE = {
@@ -406,6 +408,8 @@
         workMove: payload.workMove,
         input: payload.input,
         preview: true,
+        // 가입 전에도 티저까지 본다(천명사주와 같은 순서). 서버는 아무것도 저장하지 않고 앞 두 항목과 목차만 돌려준다.
+        ...(session?.access_token ? {} : { guestTeaser: true }),
       }),
     });
     const json = await response.json().catch(() => ({}));
@@ -624,8 +628,42 @@ function firstSentence(text) {
     return reportAccess()?.acceptAnalyze?.(payload?.analysis)?.preview || payload?.analysis?.preview || null;
   }
 
+  /**
+   * 번호(reportId)가 없는 04: 가입 전이거나, 가입하고 돌아온 직후다. 02 에서 저장한 입력으로 다시 요청해
+   * 공용 스크립트가 미리보기를 그리게 한다. 번호가 있는 화면과 결제 뒤 복귀는 공용 스크립트가 채운다.
+   */
+  async function ensureTeaserWithoutId() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('reportId') || params.get('orderId') || params.get('paid') === '1') return;
+    const payload = readPayload();
+    if (!payload?.birth || !payload.workMove) return;
+    const session = await getAuthSession();
+    let analysis;
+    try {
+      analysis = await requestAnalysis(payload);
+    } catch (error) {
+      const note = $('.submit-note') || $('#step-4-report');
+      if (note) note.setAttribute('data-guest-error', error instanceof Error ? error.message : '');
+      return;
+    }
+    if (!session?.access_token) {
+      // 결제 링크는 공용 스크립트가 그린다. 비회원이 누르면 결제 대신 가입으로 보내고, 돌아오면 아래에서 결제로 잇는다.
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest?.('.umsh-preview-checkout, #umsh-preview-checkout, [data-action="purchase"]')) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        sessionSet(STORAGE.purchaseAfterAuth, '1');
+        location.assign(loginUrl());
+      }, true);
+    } else if (sessionGet(STORAGE.purchaseAfterAuth) && !reportAccess()?.isEntitled?.(analysis)) {
+      try { sessionStorage.removeItem(STORAGE.purchaseAfterAuth); } catch { /* 저장소가 막혀 있으면 버튼을 한 번 더 누르면 된다. */ }
+      location.assign(analysis?.paymentUrl || `/payment?product=work_move&returnTo=${encodeURIComponent('/work/move/04-step-4-report/index.html')}`);
+    }
+  }
+
   function setupStep4() {
     if (!$('#step-4-report')) return;
+    ensureTeaserWithoutId();
     const report = readReport();
     const setText = (id, text) => {
       const node = document.getElementById(id);

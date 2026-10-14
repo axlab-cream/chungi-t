@@ -4965,8 +4965,58 @@ async function serveSavedChat(req: Request, res: Response, record: ReportRecord,
   res.status(result.status === 'failed' ? (generate ? 502 : 200) : result.status === 'complete' ? 200 : 202).json({ ...result, report: toClientReport(saved ?? record), context: clientReportContext(record), birth: record.birth })
 }
 
+/**
+ * 가입 전에도 결제 유도 화면(티저)을 볼 수 있게 한다. 천명사주와 같은 방식이다.
+ * 토큰이 없고 guestTeaser + preview 로 온 요청만 받는다. 토큰이 있으면(만료·위조 포함) 기존대로 회원 경로가 판정한다.
+ */
+function isGuestPreviewRequest(req: Request): boolean {
+  return !bearerToken(req) && req.body?.guestTeaser === true && req.body?.preview === true
+}
+
+/**
+ * 전문 서비스 분석 경로의 로그인 확인. 회원이면 소유자, 비회원 티저 요청이면 undefined, 거절했으면(응답을 이미 보냄) null.
+ * 비회원은 sendSpecializedPreview 에서 저장 없이 미리보기만 받고 끝나므로 이후의 결제·생성 경로에는 닿지 않는다.
+ */
+async function specializedOwner(req: Request, res: Response): Promise<ReportOwner | undefined | null> {
+  if (isGuestPreviewRequest(req)) return undefined
+  return requireSupabaseUser(req, res)
+}
+
+/** 비회원이 요청에 실어 보낸 사주(birth·name)를 계정 프로필과 같은 모양으로 만든다. 저장하지 않는다. */
+function guestBirthProfile(body: Record<string, unknown>): UserBirthProfile {
+  const birthBody = asObject(body.birth)
+  const birth = parseBirth({ ...(Object.keys(birthBody).length ? birthBody : body), birthTimeKnown: body.birthTimeKnown !== false })
+  if (!validDateParts(birth.year, birth.month, birth.day) || birth.year < 1900 || birth.year > new Date().getFullYear()) {
+    throw new InputError('생년월일을 다시 확인해 주세요.')
+  }
+  const name = trimmedString(body.name)
+  const now = new Date().toISOString()
+  return { userId: '', name: isValidProfileName(name) ? name : '나', birth, birthTimeKnown: body.birthTimeKnown !== false, context: {}, createdAt: now, updatedAt: now }
+}
+
+/**
+ * 비회원 전문 서비스 티저. 계산값과 앞 두 항목·목차만 담고 아무것도 저장하지 않는다.
+ * 리포트 ID·결제 주소는 비워 두므로 가입 뒤 같은 입력으로 다시 분석해 회원 소유 리포트를 만든다.
+ */
+function guestSpecializedPreview(params: Parameters<typeof createOrGetReportRecord>[0]) {
+  const now = new Date().toISOString()
+  const record: ReportRecord = {
+    reportId: '', birth: params.birth, context: params.context, analysis: params.analysis, report: params.templateReport,
+    status: 'pending', createdAt: now, updatedAt: now,
+  }
+  return {
+    ...savedPreviewResponse(record),
+    reportId: '', resultId: '', publicId: '', publicUrl: undefined, paymentUrl: undefined, guestPreview: true,
+  }
+}
+
 async function sendSpecializedPreview(req: Request, res: Response, params: Parameters<typeof createOrGetReportRecord>[0]): Promise<boolean> {
   if (!wantsPreview(req)) return false
+  if (!params.owner) {
+    res.setHeader('Cache-Control', 'private, no-store')
+    res.json(guestSpecializedPreview(params))
+    return true
+  }
   let freeSearch: ServicePreviewQuota | undefined
   const quotaService = params.context.serviceKey === 'job_choice' || params.context.serviceKey === 'money_save' || params.context.serviceKey === WORK_MOVE_SERVICE_KEY || params.context.serviceKey === 'match_couple' || params.context.serviceKey === 'marry_match' || params.context.serviceKey === 'love_this_year' || params.context.serviceKey === 'cat_compatibility' || params.context.serviceKey === 'couple_signal'
     ? params.context.serviceKey : undefined
@@ -5051,9 +5101,9 @@ app.post(/\/api\/.*\/analyze$/, async (req, res, next) => {
 
 app.post('/api/money/save/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
-    const profile = await getUserBirthProfile(owner)
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
+    const profile = (owner ? await getUserBirthProfile(owner) : guestBirthProfile(req.body))
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '소비성향을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5062,9 +5112,10 @@ app.post('/api/money/save/analyze', async (req, res) => {
     const input = parseMoneySaveRequest(req.body)
     const context = { ...buildMoneySaveContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMoneySaveReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMoneySaveReportId(owner?.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildMoneySaveReport(analysis, profile.birth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'money_save', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5084,10 +5135,11 @@ app.post('/api/money/save/analyze', async (req, res) => {
 
 app.post('/api/match/couple/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
     const input = parseCoupleMatchRequest(req.body)
-    const profile = await getUserBirthProfile(owner)
+    if (!owner && !input.selfBirth) throw new InputError('생년월일시를 입력해 주세요.')
+    const profile = (owner ? await getUserBirthProfile(owner) : null)
     if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '커플궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5097,7 +5149,7 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
     const selectedName = input.selfBirth ? (input.selfName || '나') : profile!.name
     const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
-      userId: owner.id,
+      userId: owner?.id ?? '',
       name: selectedName,
       birth: selectedBirth,
       birthTimeKnown: selectedBirthTimeKnown,
@@ -5108,9 +5160,10 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const analysis = analyzeSaju(selectedBirth)
     const context = { ...buildCoupleMatchContext(selectedName, input, partnerAnalysis, analysis), birthTimeKnown: selectedBirthTimeKnown }
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCoupleMatchReportId(owner.id, selectedBirth, input), selectedBirthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCoupleMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildCoupleMatchReport(analysis, partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'match_couple', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5163,9 +5216,9 @@ app.post('/api/work/job/analyze', async (req, res) => {
 
 app.post('/api/work/quit/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
-    const profile = await getUserBirthProfile(owner)
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
+    const profile = (owner ? await getUserBirthProfile(owner) : guestBirthProfile(req.body))
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '퇴사운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5174,9 +5227,10 @@ app.post('/api/work/quit/analyze', async (req, res) => {
     const input = parseWorkQuitRequest(req.body)
     const context = { ...buildWorkQuitContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWorkQuitReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createWorkQuitReportId(owner?.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildWorkQuitReport(analysis, profile.birth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'quit_fortune', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5196,9 +5250,9 @@ app.post('/api/work/quit/analyze', async (req, res) => {
 
 app.post('/api/work/job-choice/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
-    const profile = await getUserBirthProfile(owner)
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
+    const profile = (owner ? await getUserBirthProfile(owner) : guestBirthProfile(req.body))
     if (!profile) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '직장 선택 풀이를 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5207,9 +5261,10 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
     const input = parseJobChoiceRequest(req.body)
     const context = { ...buildJobChoiceContext(profile.name, input), birthTimeKnown: profile.birthTimeKnown }
     const analysis = analyzeSaju(profile.birth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createJobChoiceReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createJobChoiceReportId(owner?.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildJobChoiceReport(analysis, profile.birth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: profile.birth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'job_choice', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5229,10 +5284,11 @@ app.post('/api/work/job-choice/analyze', async (req, res) => {
 
 app.post('/api/match/cat/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
     const input = parseCatCompatRequest(req.body)
-    const profile = await getUserBirthProfile(owner)
+    if (!owner && !input.selfBirth) throw new InputError('생년월일시를 입력해 주세요.')
+    const profile = (owner ? await getUserBirthProfile(owner) : null)
     if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '고양이 궁합을 보려면 집사님의 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5242,7 +5298,7 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
     const selectedName = input.selfBirth ? (input.selfName || '보호자') : profile!.name
     const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
-      userId: owner.id,
+      userId: owner?.id ?? '',
       name: selectedName,
       birth: selectedBirth,
       birthTimeKnown: selectedBirthTimeKnown,
@@ -5252,9 +5308,10 @@ app.post('/api/match/cat/analyze', async (req, res) => {
     }
     const context = { ...buildCatCompatContext(selectedName, input), birthTimeKnown: selectedBirthTimeKnown }
     const analysis = analyzeSaju(selectedBirth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCatCompatReportId(owner.id, selectedBirth, input), selectedBirthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCatCompatReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildCatCompatReport(analysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'cat_compatibility', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5386,10 +5443,11 @@ app.post('/api/me/lucky/analyze', async (req, res) => {
 
 app.post('/api/match/marry/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
     const input = parseMarryMatchRequest(req.body)
-    const profile = await getUserBirthProfile(owner)
+    if (!owner && !input.selfBirth) throw new InputError('생년월일시를 입력해 주세요.')
+    const profile = (owner ? await getUserBirthProfile(owner) : null)
     if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '결혼궁합을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5399,7 +5457,7 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
     const selectedName = input.selfBirth ? (input.selfName || '나') : profile!.name
     const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
-      userId: owner.id,
+      userId: owner?.id ?? '',
       name: selectedName,
       birth: selectedBirth,
       birthTimeKnown: selectedBirthTimeKnown,
@@ -5410,9 +5468,10 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const analysis = analyzeSaju(selectedBirth)
     const context = { ...buildMarryMatchContext(selectedName, input, partnerAnalysis, analysis), birthTimeKnown: selectedBirthTimeKnown }
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner.id, selectedBirth, input), selectedBirthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildMarryMatchReport(analysis, partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'marry_match', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5466,10 +5525,11 @@ app.post('/api/love/mind/analyze', async (req, res) => {
 
 app.post('/api/love/signal/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
-    const profile = await getUserBirthProfile(owner)
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
+    const profile = (owner ? await getUserBirthProfile(owner) : null)
     const input = parseLoveSignalRequest(req.body)
+    if (!owner && !input.selfBirth) throw new InputError('생년월일시를 입력해 주세요.')
     if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '관계 신호를 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5479,7 +5539,7 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
     const selectedName = input.selfBirth ? (input.selfName || '나') : profile!.name
     const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
-      userId: owner.id,
+      userId: owner?.id ?? '',
       name: selectedName,
       birth: selectedBirth,
       birthTimeKnown: selectedBirthTimeKnown,
@@ -5490,9 +5550,10 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     const partnerAnalysis = analyzeSaju(input.partnerBirth)
     const context = { ...buildLoveSignalContext(selectedName, input, partnerAnalysis), birthTimeKnown: selectedBirthTimeKnown }
     const analysis = analyzeSaju(selectedBirth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSignalReportId(owner.id, selectedBirth, input), selectedBirthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSignalReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildLoveSignalReport(analysis, partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'couple_signal', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5512,14 +5573,15 @@ app.post('/api/love/signal/analyze', async (req, res) => {
 
 app.post('/api/love/this-year/analyze', async (req, res) => {
   try {
-    const owner = await requireSupabaseUser(req, res)
-    if (!owner) return
+    const owner = await specializedOwner(req, res)
+    if (owner === null) return
     const body = { ...((req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>) }
-    const profile = await getUserBirthProfile(owner)
+    const profile = (owner ? await getUserBirthProfile(owner) : null)
     if (!trimmedString(body.gender) && !trimmedString(body.genderBasis) && profile?.birth.gender) {
       body.gender = profile.birth.gender
     }
     const input = parseLoveThisYearRequest(body)
+    if (!owner && !input.selfBirth) throw new InputError('생년월일시를 입력해 주세요.')
     if (!profile && !input.selfBirth) {
       res.status(409).json({ code: 'PROFILE_REQUIRED', error: '올해 연애운을 보려면 기본 사주 정보를 먼저 등록해 주세요.' })
       return
@@ -5529,7 +5591,7 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
     const selectedBirthTimeKnown = input.selfBirth ? input.selfBirthTimeKnown !== false : profile!.birthTimeKnown
     const selectedName = input.selfBirth ? (input.selfName || '나') : profile!.name
     const selectedProfile: UserBirthProfile = profile && !input.selfBirth ? profile : {
-      userId: owner.id,
+      userId: owner?.id ?? '',
       name: selectedName,
       birth: selectedBirth,
       birthTimeKnown: selectedBirthTimeKnown,
@@ -5540,9 +5602,10 @@ app.post('/api/love/this-year/analyze', async (req, res) => {
     const resolvedInput = input.genderBasis ? input : { ...input, genderBasis: selectedBirth.gender }
     const context = { ...buildLoveThisYearContext(selectedName, resolvedInput), birthTimeKnown: selectedBirthTimeKnown }
     const analysis = analyzeSaju(selectedBirth)
-    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveThisYearReportId(owner.id, selectedBirth, resolvedInput), selectedBirthTimeKnown))
+    const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveThisYearReportId(owner?.id, selectedBirth, resolvedInput), selectedBirthTimeKnown))
     const templateReport = buildLoveThisYearReport(analysis, selectedBirth, context, resolvedInput, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
+    if (!owner) return
     if (!await ensurePaidServiceAccess(req, res, owner, 'love_this_year', reportId, lineageId)) return
     const progressive = await beginSpecializedProgressiveReport({
       reportId,
@@ -5648,6 +5711,18 @@ app.post('/api/saju/analyze', async (req, res) => {
     }
     const owner = await verifySupabaseUser(req)
     if (!authConfig().developmentReportAccess && !owner) {
+      // 이직: 가입 전에도 티저까지. 로그인한 사람의 미리보기와 같은 응답이지만 아무것도 저장하지 않는다.
+      if (isGuestPreviewRequest(req) && context.serviceKey === WORK_MOVE_SERVICE_KEY) {
+        const enriched = enrichReportContext(context)
+        const analysis = analyzeSaju(birth)
+        const templateReport = buildTemplateSajuReport(analysis, birth, enriched)
+        res.setHeader('Cache-Control', 'private, no-store')
+        res.json({
+          ...buildUiAnalysisPayload(analysis, birth, { ...templateReport, sections: [] } as SajuReport, enriched.birthTimeKnown !== false),
+          ...guestSpecializedPreview({ reportId: '', birth, context: enriched, analysis, templateReport }),
+        })
+        return
+      }
       if (isGuestTeaserRequest(req, context)) {
         res.setHeader('Cache-Control', 'private, no-store')
         res.json(buildGuestTeaserPayload(birth, context))

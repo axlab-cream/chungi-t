@@ -34,6 +34,14 @@
   if (!onInput && !onTeaser) return;
 
   var doc = global.document;
+  /**
+   * 천명사주처럼 가입 전에도 티저까지 보여 주는 서비스는 스크립트 태그에 data-guest-teaser="<로컬 프로필 sessionStorage 키>" 를 단다.
+   * 비로그인이어도 02·04 에서 로그인으로 보내지 않는다(가입은 04 의 결제 CTA 에서 받는다).
+   * 로그인했지만 계정에 사주가 없는 사람은, 02 에서 입력해 둔 로컬 프로필이 있으면 04 가 계정에 저장하므로 되돌리지 않는다.
+   */
+  var guestScript = doc.currentScript && doc.currentScript.hasAttribute('data-guest-teaser') ? doc.currentScript : null;
+  var guestTeaser = Boolean(guestScript);
+  var guestProfileKey = guestScript ? guestScript.getAttribute('data-guest-teaser') : '';
   /** 검사가 늦어도 빈 화면으로 두지 않는다. 이 시각이 지나면 판정을 포기하고 연다. */
   var GIVE_UP_MS = 2500;
   /** supabase·umsh-auth-session 은 body 끝에서 실려 head 시점에는 없다. 그래서 기다린다. */
@@ -128,6 +136,13 @@
     }
   }
 
+  /** 비회원으로 02 에 입력해 둔 사주가 이 탭에 남아 있는가. */
+  function hasLocalGuestProfile() {
+    if (!guestProfileKey) return false;
+    try { return Boolean(global.sessionStorage.getItem(guestProfileKey)); }
+    catch (_error) { return false; }
+  }
+
   async function check(deadline) {
     try {
       var config = await fetch('/api/auth/config').then(function (response) { return response.json(); });
@@ -152,6 +167,7 @@
       }
 
       if (!session) {
+        if (guestTeaser) return reveal();
         // 판정을 포기한 뒤라면 사용자는 이미 화면을 보고 있다. 그때 튕기면 타이핑을 뺏는다.
         if (settled || alreadySent()) return reveal();
         markSent();
@@ -164,6 +180,8 @@
       // 예전에는 입력 없이 들어와 "입력값 없음" 복구 패널을 보는 경로가 있었는데,
       // 그건 티저가 아니라 막다른 길이다. 입력 화면으로 되돌린다.
       if (onTeaser && !(await hasSajuProfile(session))) {
+        // 가입 직후: 계정엔 아직 없지만 비회원으로 입력해 둔 사주가 있으면 04 가 계정에 저장한다.
+        if (hasLocalGuestProfile()) return reveal();
         if (settled || alreadySent()) return reveal();
         markSent();
         global.location.replace(inputUrl());
