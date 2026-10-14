@@ -67,7 +67,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, memberContactsByIds, memberNamesByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { searchAdminAuditEvents } from '../admin/audit-store.js'
@@ -2985,9 +2985,16 @@ app.get('/api/admin/v1/orders', async (req, res) => {
     })
     // 2026-10-12: 목록에서 누가 결제했는지 바로 보이게 회원 이름과 회원 이메일을 붙인다(회원 관리와 같은 공개 범위).
     // 이름 조회가 실패해도 결제 목록은 그대로 보여 준다.
-    const names = await memberNamesByIds(page.orders.map((order) => order.ownerId)).catch(() => new Map<string, string>())
+    // 2026-10-14: 이메일은 회원 계정 이메일을 쓴다. 예전에는 결제 때 기록한 값이 비면 결제창에 입력한 이메일(buyerEmail)이 대신 보여서
+    // 같은 회원 ID인데 줄마다 이메일이 달라 보였다. 결제창 입력 이메일은 buyerEmailMasked 로 따로 준다.
+    const contacts = await memberContactsByIds(page.orders.map((order) => order.ownerId)).catch(() => new Map<string, { name: string | null; email: string | null }>())
     res.json({
-      orders: page.orders.map((order) => ({ ...toAdminPaymentOrderDto(order), ownerName: names.get(String(order.ownerId).toLowerCase()) ?? null, ownerEmail: order.ownerEmail ?? null })),
+      orders: page.orders.map((order) => {
+        const contact = contacts.get(String(order.ownerId).toLowerCase())
+        const ownerEmail = contact?.email ?? order.ownerEmail ?? null
+        const buyerEmailDiffers = Boolean(order.buyerEmail) && order.buyerEmail.trim().toLowerCase() !== (ownerEmail ?? '').trim().toLowerCase()
+        return { ...toAdminPaymentOrderDto(order), ownerName: contact?.name ?? null, ownerEmail, buyerEmailDiffers }
+      }),
       ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
       storage: getPaymentStorageMode(),
     })
