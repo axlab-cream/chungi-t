@@ -3833,6 +3833,12 @@
       .sample-enter .primary-cta,
       .sticky-story-cta .primary-cta,
       .cmdg-entry-action .primary-cta {
+        /* 글자는 flex 로 가운데에 둔다. 인라인 글자 + text-align 은 글자가 칸보다 길거나
+           브라우저가 칸 폭을 다르게 계산할 때 한쪽으로 쏠린다. flex 는 넘쳐도 양쪽으로 똑같이 넘친다. */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
         min-height: 0;
         aspect-ratio: 1270 / 289;
         padding: 0 13%;
@@ -4017,7 +4023,7 @@
         }
       }
     </style>
-  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261012e"></script></head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261014a"></script></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -6230,7 +6236,7 @@
 
       function validateTime(value) {
         const raw = String(value || "").trim();
-        if (!raw) return "태어난 시간을 입력하거나 시간모름을 선택해주세요.";
+        if (!raw) return "태어난 시간을 입력하거나 몰라요를 선택해주세요.";
         const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
         if (!match) return "태어난 시간은 13:30처럼 입력해주세요.";
         const hour = Number(match[1]);
@@ -7287,7 +7293,7 @@
           <section class="panel">
             <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
             <h1>태어난 시각 · 선택</h1>
-            <p id="birthtime-help">시각을 모르면 아래의 시각 모름을 선택해 주세요. 추측해서 입력하지 않아도 됩니다. 알고 있으면 시각에 따라 달라지는 항목도 함께 살펴볼 수 있어요.</p>
+            <p id="birthtime-help">모르면 '몰라요'를 눌러 주세요. 추측해서 입력하지 않아도 돼요.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="birthtime">태어난 시간</label>
@@ -7296,7 +7302,7 @@
               </div>
             </div>
             <div class="actions">
-              <button class="ghost" type="button" data-action="time-unknown">시각을 모르겠어요</button>
+              <button class="ghost" type="button" data-action="time-unknown">몰라요</button>
               <button class="next-cta" type="button" data-action="time-next">다음으로</button>
             </div>
           </section>

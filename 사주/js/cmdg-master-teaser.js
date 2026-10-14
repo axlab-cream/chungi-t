@@ -54,7 +54,7 @@
       relationship[rel]||'사주만으로 상대의 마음이나 앞으로 만날 사람을 알 수는 없어. 실제 대화와 행동을 함께 봐야 해.',
       '어떤 사랑을 해 왔는지는 이 숫자만으로 알 수 없어. 최근 편했던 순간과 서운했던 순간을 하나씩 떠올려 봐. 상대에게 바라는 것과 스스로 지킬 것을 나누는 데서 시작하는 거야.'
     ]);
-    var pillars='<ol class="intro-pillars" aria-label="사주 기둥">'+['year','month','day','hour'].map(function(k,i){return '<li><strong>'+esc(k==='hour'&&unknown?'시간 모름':a.pillars[k]&&(a.pillars[k].ko||koPillar(a.pillars[k].hanja))||'미확인')+'</strong>'+['년','월','일','시'][i]+'</li>';}).join('')+'</ol>';
+    var pillars='<ol class="intro-pillars" aria-label="사주 기둥">'+['year','month','day','hour'].filter(function(k){return !(k==='hour'&&unknown);}).map(function(k,i){return '<li><strong>'+esc(a.pillars[k]&&(a.pillars[k].ko||koPillar(a.pillars[k].hanja))||'미확인')+'</strong>'+['년','월','일','시'][i]+'</li>';}).join('')+'</ol>';
     var values={name:esc(name),pillars:pillars,personality:personal,flow:flow,wealth:wealth,love:love,concern:esc(concern),flowQuote:esc(current?'지금의 '+koPillar(current.pillar)+' 흐름에서':'지금의 흐름부터')+'<br>다음 선택을 살펴보자',wealthQuote:esc(names[day]+'와 '+names[wealthKey]+'의 관계')+'<br>돈을 대하는 방식을 보자'};
     return '<article class="story sample-story sub-result cmdg-master-teaser">'+TEMPLATE.replace(/@@(\w+)@@/g,function(_,k){return values[k]||'';})+'</article>';
   }
