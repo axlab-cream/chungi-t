@@ -84,6 +84,11 @@ describe('[TASK] CI 워크플로 계약', () => {
       }
     })
 
+    it('PR 과 main 에서 한 번씩만 돈다', () => {
+      // 모든 브랜치 push 에서도 돌면 PR 이 열린 브랜치는 같은 코드를 두 번 검사한다.
+      assert.ok(ci.includes('on:\n  push:\n    branches: [main]\n  pull_request:\n'), 'CI 실행 조건이 main push + pull_request 가 아니다')
+    })
+
     it('Node 버전을 `.nvmrc` 한 곳에서 읽는다', () => {
       assert.match(ci, /node-version-file: \.nvmrc/)
       assert.match(read('.nvmrc').trim(), /^\d+$/)
