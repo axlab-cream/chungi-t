@@ -4892,10 +4892,12 @@
       }
 
       function googleIdentityOrigins() {
+        // 구글 팝업(GIS)은 구글 콘솔의 "승인된 자바스크립트 원본"에 등록된 주소에서만 열린다.
+        // 로컬(localhost:8790)은 등록돼 있지 않아 400 origin_mismatch 로 막히므로 여기서 뺀다.
+        // 목록에 없는 주소는 카카오·네이버와 같은 Supabase OAuth 리다이렉트로 로그인한다.
         return new Set([
           "https://umsh.kr",
           "https://www.umsh.kr",
-          "http://localhost:8790",
         ]);
       }
 
