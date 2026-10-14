@@ -59,6 +59,11 @@ test('every dated admin screen gets the shared date bar, and old per-screen date
   }
   assert.ok(admin.includes("{ path: '', label: '운영 현황', dates: { label: '기간', maxDays: 92"))
   assert.ok(admin.includes('mount(panel, def.tabs[route.tabIndex].load);'))
+  // 방문·전환도 같은 막대(기본 최근 7일, 최대 92일)를 쓰고, 콘텐츠 관리는 최근 변경으로 거른다.
+  assert.ok(admin.includes("label: '방문 · 전환', dates: { label: '방문 시각', fallback: '7d', maxDays: 92"))
+  assert.ok(admin.includes("var query = adminRangeQuery('');"))
+  assert.doesNotMatch(admin, /admin-funnel-period|data-funnel-range/)
+  assert.ok(admin.includes("dates: { label: '최근 변경', tip: '최근 변경 시각 기준으로, 불러온 콘텐츠"))
   assert.doesNotMatch(admin, /type = 'date'/)
   for (const call of ["'/api/admin/v1/support' + adminRangeQuery('?')", "'/api/admin/v1/jobs' + adminRangeQuery('?')", "'/api/admin/v1/incidents' + adminRangeQuery('?')", "pushRequest('?limit=100' + adminRangeQuery('&'))", "'/api/admin/v1/dashboard' + adminRangeQuery('?')", "'/api/admin/v1/payments/revenue' + adminRangeQuery('?')"]) {
     assert.ok(admin.includes(call), call)

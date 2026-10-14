@@ -76,10 +76,9 @@ test('loadMediaCatalog 는 실제 미디어 엔드포인트를 부르고 미사�
 
 test('loadFunnelAnalytics 는 실제 퍼널 엔드포인트를 기간과 함께 부르고, 서비스별 페이지뷰를 표시한다', () => {
   const body = source.slice(source.indexOf('async function loadFunnelAnalytics'), source.indexOf('async function loadReleaseInfo'))
-  // 2026-10-08: 기간은 미리 정한 기간(period=) 또는 직접 고른 날짜·시간(from·to)으로 조회 주소에 실린다.
+  // 2026-10-14: 기간은 공통 기간 막대에서 고르고(기본 최근 7일), from·to 로 조회 주소에 실린다.
   assert.match(body, /fetch\('\/api\/admin\/v1\/funnel\?' \+ query/)
-  assert.match(body, /return 'period=' \+ encodeURIComponent\(period\);/)
-  assert.match(body, /'from=' \+ encodeURIComponent\(new Date\(from\)\.toISOString\(\)\)/)
+  assert.match(body, /var query = adminRangeQuery\(''\);/)
   assert.match(body, /payload\.overview/)
   assert.match(body, /payload\.services/)
   assert.match(body, /payload\.steps/)

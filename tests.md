@@ -4,7 +4,8 @@
 
 - [PASS] 신규 admin-date-range 5/5(기간 해석·경계·대시보드 비교·화면 연결·서버 연결), 갱신 admin-orders·admin-workspace-data-routes 50/50, tsc
 - [PASS] 로컬 브라우저: 날짜 메뉴 15곳 막대 표시, 방문·전환·프롬프트·서비스는 없음, 고른 기간이 다른 메뉴로 이어짐, 요청에 from/to, 390px 가로 넘침 0, 화면 오류 0
-- [FAIL·기존] localized-partner-restore 36건(origin/main 에서도 실패, 이 변경과 무관)
+- [PASS] 추가: admin·analytics 220/220, 방문·전환 기본 7일·어제=KST 0시~24시, 콘텐츠 관리 막대·기간 이어짐 브라우저 확인
+- [FAIL·기존] localized-partner-restore 36건, teaser-preview-bind 1건(origin/main 에서도 실패, 이 변경과 무관). 전체 2,289/2,326
 
 ## 2026-10-13 — 퇴사운 입력 완료·네이버 가입 완료 보정
 

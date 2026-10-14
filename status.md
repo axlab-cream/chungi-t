@@ -7,7 +7,8 @@
 - [DONE] 서버: src/admin/date-range.ts(시작 포함·끝 미포함, 최대 400일, 422 INVALID_RANGE). 고객 지원·환불·작업 대기열·장애·푸시가 from/to 를 받음(기간 지정 시 상한 300~500건). AI 실패 현황·대시보드는 최대 92일.
 - [FIX] 결제 내역 기간이 갱신 시각(updated_at)에 걸려 화면의 결제일과 어긋나던 것을 만든 시각(created_at)으로.
 - 화면별 날짜 입력(회원·리포트·변경 이력·결제 내역)과 매출·AI 실패의 기간 버튼은 공통 막대로 대체.
-- 기존 실패(이 작업과 무관): tests/unit/localized-partner-restore.test.ts 36건이 origin/main 에서도 실패.
+- [DONE] 추가: 방문·전환도 공통 막대(기본 최근 7일, 최대 92일, 예전 기본은 최근 24시간), 콘텐츠 관리는 최근 변경 기준(불러온 200건 안).
+- 기존 실패(이 작업과 무관): localized-partner-restore 36건, teaser-preview-bind 1건(올해 연애운 selfBirthTimeKnown)이 origin/main 에서도 실패.
 
 ## 2026-10-13 — 퇴사운 입력 완료·네이버 가입 완료 보정
 

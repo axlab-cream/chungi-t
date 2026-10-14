@@ -921,7 +921,7 @@
       var ADMIN_ROUTE_LIST = [
         { path: '', key: 'overview', title: '대시보드', detail: '오늘의 운영 상황을 확인합니다.', tabs: [
           { path: '', label: '운영 현황', dates: { label: '기간', maxDays: 92, tip: '기간을 고르면 그 기간과 바로 앞 같은 길이 기간을 비교합니다. 위쪽 "처리 필요"는 기간과 상관없이 지금 남은 일입니다. 전체 기간이면 오늘과 어제 이 시각을 비교합니다.' }, load: function (body) { loadLiveOverview(body); } },
-          { path: '/analytics', label: '방문 · 전환', load: function (body) { loadFunnelAnalytics(body); } },
+          { path: '/analytics', label: '방문 · 전환', dates: { label: '방문 시각', fallback: '7d', maxDays: 92, tip: '최대 92일까지 볼 수 있습니다. 결제 완료·가입 수도 같은 기간으로 셉니다.' }, load: function (body) { loadFunnelAnalytics(body); } },
         ] },
         { path: '/members', key: 'members', title: '회원 관리', detail: '회원의 가입·결제·리포트 이력을 확인합니다.', dates: { label: '가입일' }, load: function (body) { loadLiveMembers(body); } },
         { path: '/support', key: 'support', title: '고객 지원', detail: '문의 접수부터 처리 완료까지 관리합니다.', dates: { label: '접수일', tip: '기간을 고르면 그 기간에 접수된 문의를 최대 500건, 전체 기간이면 최근에 손댄 100건을 보여 줍니다.' }, load: function (body) { loadSupportCases(body); } },
@@ -931,7 +931,7 @@
           { path: '/revenue', label: '매출', dates: { label: '결제일', fallback: '30d' }, load: function (body) { loadRevenue(body); } },
         ] },
         { path: '/services', key: 'services', title: '서비스 관리', detail: '판매·노출·가격을 관리합니다.', load: function (body) { loadLiveServices(body); } },
-        { path: '/content', key: 'content', title: '콘텐츠 관리', detail: '서비스 안에서 쓰는 안내·배너·문구를 관리합니다.', load: function (body) { loadLiveContent(body); } },
+        { path: '/content', key: 'content', title: '콘텐츠 관리', detail: '서비스 안에서 쓰는 안내·배너·문구를 관리합니다.', dates: { label: '최근 변경', tip: '최근 변경 시각 기준으로, 불러온 콘텐츠(최근 200건) 안에서 거릅니다.' }, load: function (body) { loadLiveContent(body); } },
         { path: '/consultation', key: 'consultation', title: '상담 관리', detail: '천명상담 배너와 상담자 설정을 관리합니다.', load: function (body) { loadConsultationManager(body); } },
         { path: '/media', key: 'media', title: '미디어 관리', detail: '사이트에 올라간 이미지와 사용 위치를 봅니다.', load: function (body) { loadMediaCatalog(body); } },
         { path: '/reports', key: 'reports', title: '리포트 관리', detail: '리포트 생성 내역과 상태를 확인합니다.', dates: { label: '만든 날' }, load: function (body) { loadLiveReports(body); } },
@@ -2381,12 +2381,12 @@
           var listResponse = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
           if (!listResponse.ok) throw new Error('CONTENT_LOOKUP_FAILED');
           var listPayload = await listResponse.json();
-          var items = Array.isArray(listPayload.items) ? listPayload.items : [];
+          var items = (Array.isArray(listPayload.items) ? listPayload.items : []).filter(function (item) { return adminInRange(item.updatedAt); });
           if (listPayload.versionStore !== 'ready') throw new Error('CONTENT_STORE_UNAVAILABLE');
           var table = document.createElement('table'); table.className = 'admin-table';
           table.innerHTML = '<thead><tr><th scope="col">종류</th><th scope="col">대상 서비스</th><th scope="col">위치</th><th scope="col">제목</th><th scope="col">상태</th><th scope="col">개정</th><th scope="col">최근 변경</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">등록된 콘텐츠 초안·게시본이 없습니다.</td>'; rows.appendChild(empty); }
+          if (!items.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">' + (adminRange() ? '고른 기간에 바뀐 콘텐츠가 없습니다.' : '등록된 콘텐츠 초안·게시본이 없습니다.') + '</td>'; rows.appendChild(empty); }
           items.forEach(function (item) {
             var row = document.createElement('tr');
             [CONTENT_TYPE_LABELS[item.contentType] || item.contentType, item.serviceKey || '전체', item.placement, item.payload.title, CONTENT_STATE_LABELS[item.state] || item.state, item.revision, memberWhen(item.updatedAt)].forEach(function (value) {
@@ -3931,7 +3931,7 @@
       /*
        * 2026-10-14 관리자 전 화면 날짜 검색(사용자 요청). 날짜가 있는 메뉴는 모두 화면 맨 위 같은 자리에 같은 기간 막대를 둔다.
        * 고른 기간은 이 탭(sessionStorage)에 남아서 다른 메뉴로 옮겨도 이어진다. 경계는 시작 포함, 끝 미포함.
-       * 방문·전환은 자체 기간 막대(날짜·시간)가 이미 있어 여기서 빼 둔다.
+       * 방문·전환도 같은 막대를 쓴다(기본 최근 7일, 최대 92일).
        */
       var ADMIN_RANGE_STORE = 'umsh:admin:range';
       var ADMIN_RANGE_PRESETS = [['', '전체 기간'], ['today', '오늘'], ['yesterday', '어제'], ['7d', '최근 7일'], ['30d', '최근 30일'], ['month', '이번 달'], ['lastmonth', '지난 달'], ['custom', '직접 선택']];
@@ -4370,9 +4370,7 @@
         // 2026-10-08: 표를 한 화면에 모두 쌓으면 스크롤이 끝없이 길어진다(사용자 지적).
         //   요약 카드는 늘 보이고, 아래는 보기 버튼으로 하나만 고른다. 기간을 바꿔도 고른 보기는 유지한다.
         var filters = document.createElement('form'); filters.className = 'admin-filterbar';
-        // 2026-10-08: 날짜·시간을 직접 골라 조회한다(최대 92일). 미리 정한 기간은 그대로 둔다.
-        filters.innerHTML = '<select id="admin-funnel-period" name="period" aria-label="기간"><option value="today">오늘</option><option value="day" selected>최근 24시간</option><option value="week">최근 7일</option><option value="month">최근 30일</option><option value="custom">직접 선택</option></select>'
-          + '<span data-funnel-range hidden style="display:inline-flex;align-items:center;gap:6px"><input type="datetime-local" name="from" aria-label="시작 날짜·시간"><span aria-hidden="true">~</span><input type="datetime-local" name="to" aria-label="끝 날짜·시간"><button type="submit" class="admin-button">조회</button></span>';
+        // 2026-10-14: 기간은 화면 맨 위 공통 기간 막대에서 고른다(다른 메뉴와 같은 기간이 이어진다).
         // 2026-10-08: 요약을 첫 화면으로. 숫자 카드 8개 + 구매 퍼널 + 인기 서비스 + 가입 방식이 한 화면에 들어간다.
         var FUNNEL_VIEWS = [['summary', '요약'], ['purchase', '구매 퍼널'], ['signup', '가입 퍼널'], ['acquisition', '유입 채널'], ['performance', '서비스 성과'], ['pages', '페이지 조회'], ['ctas', '많이 눌린 버튼'], ['play', '무료 테스트']];
         var viewSeg = document.createElement('div'); viewSeg.className = 'admin-seg'; viewSeg.setAttribute('role', 'group'); viewSeg.setAttribute('aria-label', '보기');
@@ -4802,24 +4800,9 @@
           if (payload.truncated) addLiveError(body, '수집 이벤트가 조회 상한(' + count(payload.sampled) + '건)에 도달했습니다. 선택 기간 전체를 보려면 기간을 줄여 주세요.');
         }
         /** 화면의 기간 선택을 조회 주소로 바꾼다. '오늘'은 한국 시간 0시부터, 직접 선택은 입력한 날짜·시간(이 컴퓨터 시간대). */
-        function periodQuery(period) {
-          if (period === 'today') {
-            var now = new Date();
-            var kst = new Date(now.getTime() + 9 * 3600000);
-            var midnight = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate()) - 9 * 3600000;
-            return 'from=' + encodeURIComponent(new Date(midnight).toISOString()) + '&to=' + encodeURIComponent(new Date(now.getTime() + 60000).toISOString());
-          }
-          if (period === 'custom') {
-            var from = filters.querySelector('[name="from"]').value; var to = filters.querySelector('[name="to"]').value;
-            if (!from || !to) return null;
-            return 'from=' + encodeURIComponent(new Date(from).toISOString()) + '&to=' + encodeURIComponent(new Date(to).toISOString());
-          }
-          return 'period=' + encodeURIComponent(period);
-        }
-        async function load(period) {
+        async function load() {
           funnelState.payload = null; body.replaceChildren();
-          var query = periodQuery(period);
-          if (!query) { status.hidden = false; status.textContent = '시작과 끝 날짜·시간을 고른 뒤 조회를 눌러 주세요.'; return; }
+          var query = adminRangeQuery('');
           status.hidden = false; status.textContent = '퍼널 통계를 불러오는 중입니다.';
           try {
             var response = await fetch('/api/admin/v1/funnel?' + query, { credentials: 'same-origin' });
@@ -4841,24 +4824,8 @@
           Array.from(viewSeg.children).forEach(function (node) { node.setAttribute('aria-pressed', node === button ? 'true' : 'false'); });
           render();
         });
-        var rangeBox = filters.querySelector('[data-funnel-range]');
-        filters.querySelector('select').addEventListener('change', function (event) {
-          var value = event.target.value;
-          rangeBox.hidden = value !== 'custom';
-          rangeBox.style.display = value === 'custom' ? 'inline-flex' : 'none';
-          if (value === 'custom') {
-            // 처음 열면 최근 7일을 채워 둔다.
-            var pad = function (n) { return String(n).padStart(2, '0'); };
-            var local = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
-            var fromInput = filters.querySelector('[name="from"]'); var toInput = filters.querySelector('[name="to"]');
-            if (!fromInput.value) fromInput.value = local(new Date(Date.now() - 7 * 86400000));
-            if (!toInput.value) toInput.value = local(new Date());
-          }
-          load(value);
-        });
-        filters.addEventListener('submit', function (event) { event.preventDefault(); load(filters.querySelector('select').value); });
-        rangeBox.style.display = 'none';
-        await load('day');
+        filters.addEventListener('submit', function (event) { event.preventDefault(); });
+        await load();
       }
       async function loadReleaseInfo(body) {
         try {
