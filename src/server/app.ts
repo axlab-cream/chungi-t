@@ -138,6 +138,7 @@ import {
   createInicisMobilePaymentFields,
   createInicisPaymentFields,
   createPaymentOrderId,
+  InicisApprovalUncertainError,
   inicisResultIsSuccess,
   publicInicisConfig,
   type InicisCancellationContext,
@@ -4344,6 +4345,15 @@ app.post('/api/payment/inicis/return', async (req, res) => {
   let approvalSourceRef = ''
   let cancellation: InicisCancellationContext | undefined
   const body = req.body as Record<string, unknown>
+  // 승인 요청 뒤 결과를 모르거나(응답 지연·통신 오류), 승인은 됐는데 주문과 다르면 실패로
+  // 끝내지 않고 아래 catch 에서 망취소한다. 이니시스 매뉴얼의 망취소 대상과 같다.
+  const markUncertainApproval = (error: unknown): never => {
+    if (error instanceof InicisApprovalUncertainError) {
+      providerApproved = true
+      if (error.tid) approvalSourceRef = error.tid
+    }
+    throw error
+  }
   const orderId = trimmedString(body.orderNumber || body.merchantData || body.oid || body.P_NOTI || body.P_OID)
   if (!orderId) {
     res.redirect(303, paymentOrderRedirect('', 'failed', '결제 주문번호를 확인하지 못했습니다.'))
@@ -4386,14 +4396,14 @@ app.post('/api/payment/inicis/return', async (req, res) => {
       if (!tid || !requestUrl) throw new Error('모바일 결제 승인 정보를 받지 못했습니다.')
       if (!Number.isFinite(returnedAmount) || returnedAmount !== order.amount) throw new Error('인증 결과의 결제금액이 일치하지 않습니다.')
       cancellation = { mode: 'mobile', order, idcName, tid, requestUrl }
-      approval = await approveInicisMobilePayment({ order, tid, requestUrl, idcName })
+      approval = await approveInicisMobilePayment({ order, tid, requestUrl, idcName }).catch(markUncertainApproval)
     } else {
       const authToken = trimmedString(body.authToken)
       const authUrl = trimmedString(body.authUrl)
       const cancelUrl = trimmedString(body.netCancelUrl)
       if (!authToken || !authUrl || !cancelUrl) throw new Error('결제 승인 또는 망취소 정보를 받지 못했습니다.')
       cancellation = { mode: 'pc', order, idcName, authToken, cancelUrl }
-      approval = await approveInicisPayment({ order, authToken, authUrl, idcName })
+      approval = await approveInicisPayment({ order, authToken, authUrl, idcName }).catch(markUncertainApproval)
     }
     providerApproved = true
 
