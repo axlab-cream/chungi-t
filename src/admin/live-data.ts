@@ -6,6 +6,8 @@ import { serviceTitleForKey } from '../server/service-directory.js'
 type RestRow = Record<string, unknown>
 
 export type AdminMemberSummary = {
+  /** 2026-10-14 회원(SNS 로그인) / 비회원(익명 계정, 사주만 입력). 어드민 회원 목록에서 둘 다 보여 주고 구분한다. */
+  accountType?: 'member' | 'guest'
   /** Page-relative display ordinal (offset + index + 1) — not a stored membership number, shifts if the page or sort order changes. */
   no?: number
   /** Raw, unmasked user_id — this screen is a deliberate lookup (list page or exact-ID search), not a scan-safe public listing. */
@@ -157,6 +159,23 @@ async function countRows(table: string, key: string, filters: Record<string, str
 const MEMBER_PROFILE_FILTER = { 'profile_payload->>account_type': 'is.null' }
 const GUEST_PROFILE_FILTER = { 'profile_payload->>account_type': 'eq.guest' }
 
+function accountTypeOf(value: unknown): 'member' | 'guest' {
+  return value === 'guest' ? 'guest' : 'member'
+}
+
+/** 주어진 계정 중 비회원(익명 계정) 프로필인 것. 리포트 목록의 회원/비회원 표시에 쓴다. */
+async function guestUserIds(ids: string[]): Promise<Set<string>> {
+  const valid = [...new Set(ids.filter((id) => UUID_PATTERN.test(id)).map((id) => id.toLowerCase()))]
+  if (!valid.length) return new Set()
+  const url = new URL(tableUrl('cheongi_user_profiles'))
+  url.searchParams.set('select', 'user_id')
+  url.searchParams.set('user_id', `in.(${valid.join(',')})`)
+  for (const [column, filter] of Object.entries(GUEST_PROFILE_FILTER)) url.searchParams.append(column, filter)
+  const response = await fetch(url, { headers: serviceHeaders() })
+  if (!response.ok) return new Set()
+  return new Set((await response.json() as RestRow[]).map((row) => clipped(row.user_id, '').toLowerCase()))
+}
+
 function clipped(value: unknown, fallback: string): string {
   const text = typeof value === 'string' ? value.trim() : ''
   return text ? text.slice(0, 120) : fallback
@@ -276,6 +295,8 @@ export type MemberListQuery = {
   from?: string
   to?: string
   sort?: 'recent' | 'joined' | 'joined_asc' | 'name' | 'name_desc'
+  /** member = SNS 회원만, guest = 비회원만, 없으면 전체. */
+  kind?: 'member' | 'guest'
   limit?: number
   offset?: number
 }
@@ -304,9 +325,11 @@ async function settledOwnerIds(): Promise<string[]> {
  */
 export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ members: AdminMemberSummary[]; total: number }> {
   const url = new URL(tableUrl('cheongi_user_profiles'))
-  url.searchParams.set('select', 'user_id,name,created_at,updated_at')
+  url.searchParams.set('select', 'user_id,name,created_at,updated_at,accountType:profile_payload->>account_type')
   url.searchParams.set('order', MEMBER_SORTS[query.sort ?? 'recent'] ?? MEMBER_SORTS.recent)
-  for (const [column, filter] of Object.entries(MEMBER_PROFILE_FILTER)) url.searchParams.append(column, filter)
+  // 2026-10-14: 비회원도 목록에 보인다. 구분(kind)을 고르면 그쪽만.
+  const kindFilter = query.kind === 'guest' ? GUEST_PROFILE_FILTER : query.kind === 'member' ? MEMBER_PROFILE_FILTER : ({} as Record<string, string>)
+  for (const [column, filter] of Object.entries(kindFilter)) url.searchParams.append(column, filter)
   const safeLimit = Math.min(Math.max(Math.trunc(query.limit ?? 20) || 20, 1), 100)
   const safeOffset = Math.max(Math.trunc(query.offset ?? 0) || 0, 0)
   url.searchParams.set('limit', String(safeLimit))
@@ -337,6 +360,7 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
     const userId = clipped(row.user_id, '')
     const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
     return {
+      accountType: accountTypeOf(row.accountType),
       notifications: notificationsFor(prefs, userId),
       no: safeOffset + index + 1,
       id: userId,
@@ -433,13 +457,14 @@ export function countLiveGuests(): Promise<number> {
 
 export async function findLiveMember(memberId: string): Promise<AdminMemberSummary | null> {
   const url = new URL(tableUrl('cheongi_user_profiles'))
-  url.searchParams.set('user_id', `eq.${memberId}`); url.searchParams.set('select', 'user_id,name,created_at,updated_at'); url.searchParams.set('limit', '1')
+  url.searchParams.set('user_id', `eq.${memberId}`); url.searchParams.set('select', 'user_id,name,created_at,updated_at,accountType:profile_payload->>account_type'); url.searchParams.set('limit', '1')
   const response = await fetch(url, { headers: serviceHeaders() }); if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
   const row = (await response.json() as RestRow[])[0]
   if (!row) return null
   const userId = clipped(row.user_id, '')
   const [auth, purchases, prefs] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId), memberNotifications([userId])])
   return {
+    accountType: accountTypeOf(row.accountType),
     notifications: notificationsFor(prefs, userId),
     id: userId,
     name: clipped(row.name, '이름 미등록'),
@@ -533,6 +558,8 @@ export type AdminReportRow = {
   /** 사주를 본 사람 이름(리포트 입력값). 계정 이름과 다를 수 있다. */
   subjectName: string
   userId: string | null
+  /** 리포트 주인이 회원인지 비회원(익명 계정)인지. 계정이 없으면 null. */
+  accountType: 'member' | 'guest' | null
   memberEmail: string | null
   orderId: string | null
   serviceKey: string
@@ -570,14 +597,17 @@ export async function searchLiveReports(query: ReportListQuery = {}): Promise<{ 
   const rows = await response.json() as RestRow[]
   const range = response.headers.get('content-range')?.split('/')[1]
   const total = range && /^\d+$/.test(range) ? Number(range) : safeOffset + rows.length
+  const guests = await guestUserIds(rows.map((row) => clipped(row.user_id, '')))
   return {
     total,
     reports: rows.map((row) => {
       const serviceKey = clipped(row.reportService, '')
+      const userId = clipped(row.user_id, '') || null
       return {
         id: clipped(row.report_id, ''),
         subjectName: clipped(row.subjectName, '이름 미확인'),
-        userId: clipped(row.user_id, '') || null,
+        userId,
+        accountType: userId ? (guests.has(userId.toLowerCase()) ? 'guest' : 'member') : null,
         memberEmail: row.user_email ? maskEmail(row.user_email) : null,
         orderId: clipped(row.order_id, '') || null,
         serviceKey: serviceKey || '기록 없음',
@@ -842,6 +872,8 @@ export type AdminMemberBirth = {
  */
 export type AdminMemberProfile = {
   userId: string
+  /** 2026-10-14 회원(SNS 로그인) / 비회원(익명 계정). */
+  accountType: 'member' | 'guest'
   email: string | null
   name: string | null
   birth: AdminMemberBirth | null
@@ -866,7 +898,7 @@ type AuthAdminUser = { id: string; email?: string; banned_until?: string | null;
 
 async function fetchMemberProfileRow(userId: string): Promise<RestRow | null> {
   const url = new URL(tableUrl('cheongi_user_profiles'))
-  url.searchParams.set('select', 'user_id,name,birth_year,birth_month,birth_day,birth_hour,birth_minute,gender,calendar,is_leap_month,birth_time_known,created_at,updated_at')
+  url.searchParams.set('select', 'user_id,name,birth_year,birth_month,birth_day,birth_hour,birth_minute,gender,calendar,is_leap_month,birth_time_known,created_at,updated_at,accountType:profile_payload->>account_type')
   url.searchParams.set('user_id', `eq.${userId}`)
   url.searchParams.set('limit', '1')
   const response = await fetch(url, { headers: serviceHeaders() })
@@ -891,6 +923,7 @@ function memberIsBanned(bannedUntil: string | null | undefined): boolean {
 function memberProfileFromRow(userId: string, row: RestRow | null, authUser: AuthAdminUser | null, notifications: AdminMemberNotifications | null = null): AdminMemberProfile {
   return {
     userId,
+    accountType: row?.accountType === 'guest' || (authUser as { is_anonymous?: boolean } | null)?.is_anonymous === true ? 'guest' : 'member',
     email: typeof authUser?.email === 'string' ? authUser.email : null,
     name: row && typeof row.name === 'string' ? row.name : null,
     birth: row ? {

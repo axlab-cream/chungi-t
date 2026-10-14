@@ -71,3 +71,15 @@ test('한 저장소가 실패해도 나머지는 보여 주고, 실패한 부분
   assert.equal(board.todo.find((item) => item.key === 'refund-approval')?.count, -1)
   assert.equal(board.kpis.find((item) => item.key === 'revenue')?.today, 15000)
 })
+
+test('2026-10-14 비회원 집계를 넘기면 신규 회원 옆에 신규 비회원 칸이 생긴다', async () => {
+  const dashboard = await buildDashboard(deps({ countGuestsCreated: async (from) => from.toISOString() === '2026-10-05T15:00:00.000Z' ? 12 : 9 }), NOW)
+  const keys = dashboard.kpis.map((item) => item.key)
+  assert.equal(keys.indexOf('guests'), keys.indexOf('members') + 1)
+  const guests = dashboard.kpis.find((item) => item.key === 'guests')!
+  assert.equal(guests.label, '신규 비회원')
+  assert.equal(guests.today, 12)
+  assert.equal(guests.yesterday, 9)
+  assert.equal(guests.href, '/members?kind=guest')
+  assert.ok(!(await buildDashboard(deps(), NOW)).kpis.some((item) => item.key === 'guests'), '집계를 안 넘기면 칸을 만들지 않는다')
+})
