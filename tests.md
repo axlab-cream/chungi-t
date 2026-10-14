@@ -1,5 +1,10 @@
 # Tests
 
+## 2026-10-14 — main CI 복구(태어난 시각 모름 반영 후 테스트 갱신)
+
+- [PASS] localized-partner-restore 36건: 복원 함수가 새로 부르는 resolveBirthTimeKnown·isKnownBirthTime 을 테스트 실행 환경에 함께 싣지 않아 ReferenceError. 실제 함수를 같이 실음(서비스 코드 변경 없음).
+- [PASS] teaser-preview-bind 1건: 올해 연애운이 이제 모름을 그대로 넘긴다(selfBirthTimeKnown: birthTimeKnown). 늘 true 를 기대하던 검사를 새 동작으로 갱신.
+
 ## 2026-10-14 — 관리자 전 화면 날짜 검색
 
 - [PASS] 신규 admin-date-range 5/5(기간 해석·경계·대시보드 비교·화면 연결·서버 연결), 갱신 admin-orders·admin-workspace-data-routes 50/50, tsc
