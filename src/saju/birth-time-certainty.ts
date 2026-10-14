@@ -10,6 +10,13 @@ export function readBirthClock(source: Record<string, unknown>, known: boolean):
   return { hour, minute }
 }
 
+/** 출생 시각 없이도 정해지는 운만 고른다: 조회 연도와 그 해의 간지. */
+function timeIndependentFortune(fortune: Record<string, unknown>): Record<string, unknown> | undefined {
+  const picked: Record<string, unknown> = {}
+  for (const key of ['currentYear', 'yearPillar']) if (fortune[key] !== undefined) picked[key] = fortune[key]
+  return Object.keys(picked).length ? picked : undefined
+}
+
 /** Public projection only: preserve internal/stored charts and original customer reading text. */
 export function projectUnknownBirthTime<T extends Record<string, unknown>>(payload: T, known: boolean): T {
   if (known) return payload
@@ -26,7 +33,8 @@ export function projectUnknownBirthTime<T extends Record<string, unknown>>(paylo
     weakElement: undefined,
     usefulGod: undefined,
     tenGods: undefined,
-    fortune: undefined,
+    // 올해 기운(세운)은 출생 시각과 무관해 남긴다. 대운 시작·전환처럼 시각에 흔들리는 값은 모두 뺀다.
+    fortune: timeIndependentFortune(object(payload.fortune)),
     preview: undefined,
     summary: undefined,
     uncertainty: {
