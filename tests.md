@@ -3,6 +3,9 @@
 ## 2026-10-14 — main CI 복구(태어난 시각 모름 반영 후 테스트 갱신)
 
 - [PASS] localized-partner-restore 36건: 복원 함수가 새로 부르는 resolveBirthTimeKnown·isKnownBirthTime 을 테스트 실행 환경에 함께 싣지 않아 ReferenceError. 실제 함수를 같이 실음(서비스 코드 변경 없음).
+- [PASS] 서비스 검수 check:jobchoice: 2d0ca9e9 에서 02 입력 화면의 jobchoice-report-store.js 연결이 빠져 실패. 원래 자리(페이지 스크립트 앞)에 되돌림.
+- [PASS] 생성물 최신 검사: 빌드가 네이버 인증 파일을 끝 줄바꿈 없이 쓰는데 저장소 파일엔 줄바꿈이 있어 git diff 실패. 빌드 출력과 같게 맞춤(내용 동일).
+- [PASS] 로컬에서 CI 전 단계 재현: 서비스 검수·SEO·20개 서비스 QA·배포 빌드 후 git diff 깨끗
 - [PASS] teaser-preview-bind 1건: 올해 연애운이 이제 모름을 그대로 넘긴다(selfBirthTimeKnown: birthTimeKnown). 늘 true 를 기대하던 검사를 새 동작으로 갱신.
 
 ## 2026-10-14 — 관리자 전 화면 날짜 검색
