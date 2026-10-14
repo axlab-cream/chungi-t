@@ -22,11 +22,14 @@ export interface DashboardDeps {
   listSupportCases(): Promise<SupportCase[]>
   countFailedReports(): Promise<number>
   listRecentPushes(): Promise<PushNotificationRecord[]>
+  /** 기간을 고른 경우: 비교 기간 시작~끝 사이에 만들어진 환불·문의. 없으면 위 최근 목록으로 센다. */
+  listRefundsCreated?(): Promise<RefundRequest[]>
+  listSupportCreated?(): Promise<SupportCase[]>
 }
 
 export type DashboardKpi = { key: string; label: string; today: number; yesterday: number; unit: '명' | '건' | '원'; href: string }
 export type DashboardTodo = { key: string; label: string; count: number; hint: string; href: string; tone: 'error' | 'warn' | 'info' }
-export type Dashboard = { kpis: DashboardKpi[]; todo: DashboardTodo[]; errors: string[]; windows: { todayFrom: string; now: string; yesterdayFrom: string; yesterdayTo: string } }
+export type Dashboard = { kpis: DashboardKpi[]; todo: DashboardTodo[]; errors: string[]; windows: { todayFrom: string; now: string; yesterdayFrom: string; yesterdayTo: string; custom?: boolean } }
 
 const DAY = 86_400_000
 const KST = 9 * 3_600_000
@@ -39,18 +42,24 @@ export function kstDayStart(now: Date): Date {
 const SETTLED = new Set(['paid', 'viewed'])
 const OPEN_SUPPORT = new Set(['received', 'triaged', 'assigned', 'investigating', 'reopened'])
 
-export async function buildDashboard(deps: DashboardDeps, now = new Date()): Promise<Dashboard> {
-  const todayFrom = kstDayStart(now)
-  const yesterdayFrom = new Date(todayFrom.getTime() - DAY)
-  const yesterdayTo = new Date(now.getTime() - DAY)
+/**
+ * range 를 주면(2026-10-14 날짜 검색) "고른 기간"과 "바로 앞 같은 길이 기간"을 비교한다.
+ * 필드 이름(today/yesterday)은 화면 호환을 위해 그대로 두고, windows 에 실제 경계를 싣는다.
+ */
+export async function buildDashboard(deps: DashboardDeps, now = new Date(), range?: { from: string; to: string }): Promise<Dashboard> {
+  const todayFrom = range ? new Date(range.from) : kstDayStart(now)
+  const until = range ? new Date(range.to) : now
+  const span = until.getTime() - todayFrom.getTime()
+  const yesterdayFrom = range ? new Date(todayFrom.getTime() - span) : new Date(todayFrom.getTime() - DAY)
+  const yesterdayTo = range ? todayFrom : new Date(now.getTime() - DAY)
   const errors: string[] = []
   async function part<T>(name: string, run: () => Promise<T>, fallback: T): Promise<T> {
     try { return await run() } catch { errors.push(name); return fallback }
   }
   const [membersToday, membersYesterday, reportsToday, reportsYesterday, orders, unsettled, refunds, support, failedReports, pushes] = await Promise.all([
-    part('members', () => deps.countMembersCreated(todayFrom, now), -1),
+    part('members', () => deps.countMembersCreated(todayFrom, until), -1),
     part('members', () => deps.countMembersCreated(yesterdayFrom, yesterdayTo), -1),
-    part('reports', () => deps.countReportsCreated(todayFrom, now), -1),
+    part('reports', () => deps.countReportsCreated(todayFrom, until), -1),
     part('reports', () => deps.countReportsCreated(yesterdayFrom, yesterdayTo), -1),
     part('payments', () => deps.listOrdersSince(yesterdayFrom), null as PaymentOrder[] | null),
     part('payments', () => deps.countUnsettledOrders(), -1),
@@ -59,9 +68,13 @@ export async function buildDashboard(deps: DashboardDeps, now = new Date()): Pro
     part('reports', () => deps.countFailedReports(), -1),
     part('messages', () => deps.listRecentPushes(), null as PushNotificationRecord[] | null),
   ])
+  const [refundsCreated, supportCreated] = await Promise.all([
+    deps.listRefundsCreated ? part('refunds', () => deps.listRefundsCreated!(), null as RefundRequest[] | null) : Promise.resolve(refunds),
+    deps.listSupportCreated ? part('support', () => deps.listSupportCreated!(), null as SupportCase[] | null) : Promise.resolve(support),
+  ])
   const inWindow = (iso: string, from: Date, to: Date) => { const at = Date.parse(iso); return Number.isFinite(at) && at >= from.getTime() && at < to.getTime() }
   const paid = (from: Date, to: Date) => (orders ?? []).filter((order) => SETTLED.has(order.status) && inWindow(order.createdAt, from, to))
-  const paidToday = paid(todayFrom, now)
+  const paidToday = paid(todayFrom, until)
   const paidYesterday = paid(yesterdayFrom, yesterdayTo)
   const sum = (list: PaymentOrder[]) => list.reduce((total, order) => total + order.amount, 0)
   const payers = (list: PaymentOrder[]) => new Set(list.map((order) => order.ownerId)).size
@@ -72,8 +85,8 @@ export async function buildDashboard(deps: DashboardDeps, now = new Date()): Pro
     { key: 'payers', label: '결제 회원', today: orders ? payers(paidToday) : -1, yesterday: orders ? payers(paidYesterday) : -1, unit: '명', href: '/payments' },
     { key: 'revenue', label: '결제액', today: orders ? sum(paidToday) : -1, yesterday: orders ? sum(paidYesterday) : -1, unit: '원', href: '/payments/revenue' },
     { key: 'reports', label: '리포트 생성', today: reportsToday, yesterday: reportsYesterday, unit: '건', href: '/reports' },
-    { key: 'refunds', label: '환불 요청', today: count(refunds, (item) => item.createdAt, todayFrom, now), yesterday: count(refunds, (item) => item.createdAt, yesterdayFrom, yesterdayTo), unit: '건', href: '/payments/refunds' },
-    { key: 'support', label: '문의', today: count(support, (item) => item.createdAt, todayFrom, now), yesterday: count(support, (item) => item.createdAt, yesterdayFrom, yesterdayTo), unit: '건', href: '/support' },
+    { key: 'refunds', label: '환불 요청', today: count(refundsCreated, (item) => item.createdAt, todayFrom, until), yesterday: count(refundsCreated, (item) => item.createdAt, yesterdayFrom, yesterdayTo), unit: '건', href: '/payments/refunds' },
+    { key: 'support', label: '문의', today: count(supportCreated, (item) => item.createdAt, todayFrom, until), yesterday: count(supportCreated, (item) => item.createdAt, yesterdayFrom, yesterdayTo), unit: '건', href: '/support' },
   ]
 
   const openSupport = (support ?? []).filter((item) => OPEN_SUPPORT.has(item.status))
@@ -87,5 +100,5 @@ export async function buildDashboard(deps: DashboardDeps, now = new Date()): Pro
     { key: 'support-open', label: '답변 안 한 문의', count: support ? openSupport.length : -1, hint: urgentSupport ? `그중 급함·높음 ${urgentSupport}건` : '해결·종료 전 문의입니다.', href: '/support', tone: urgentSupport ? 'error' : 'info' },
     { key: 'push-failed', label: '실패한 메시지(7일)', count: pushes ? failedPushes.length : -1, hint: '전부 실패했거나 절반 넘게 실패한 발송입니다.', href: '/messages', tone: 'warn' },
   ]
-  return { kpis, todo, errors: [...new Set(errors)], windows: { todayFrom: todayFrom.toISOString(), now: now.toISOString(), yesterdayFrom: yesterdayFrom.toISOString(), yesterdayTo: yesterdayTo.toISOString() } }
+  return { kpis, todo, errors: [...new Set(errors)], windows: { todayFrom: todayFrom.toISOString(), now: until.toISOString(), yesterdayFrom: yesterdayFrom.toISOString(), yesterdayTo: yesterdayTo.toISOString(), ...(range ? { custom: true } : {}) } }
 }

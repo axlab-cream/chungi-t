@@ -1,3 +1,4 @@
+import type { AdminRange } from './date-range.js'
 import { configuredEnv } from '../env/load.js'
 import { listAllPaymentOrders, listPaymentOrders, type PaymentOrder } from '../payment/order-store.js'
 import { serviceTitleForKey } from '../server/service-directory.js'
@@ -604,9 +605,11 @@ export type GenerationFailureStats = {
  * AI 운영 › 실패 현황(2026-10 5단계). 별도 로그 표가 없어서, 기간 안에 손댄 리포트의 시도 기록(attempts[])을 모아
  * 시도 수·실패 수·유형별·서비스별·날짜별로 센다. 최근 손댄 리포트 200건까지만 훑는다(본문이 커서).
  */
-export async function generationFailureStats(days = 7): Promise<GenerationFailureStats> {
+export async function generationFailureStats(days = 7, range?: AdminRange | null): Promise<GenerationFailureStats> {
   const safeDays = Math.min(Math.max(Math.trunc(days) || 7, 1), 90)
-  const since = Date.now() - safeDays * 86_400_000
+  // 2026-10-14: 날짜를 직접 고르면 그 기간의 시도만 센다. 그 기간 이후에 다시 손댄 리포트도 시도 기록은 남아 있어 updated_at 은 시작만 건다.
+  const since = range ? Date.parse(range.from) : Date.now() - safeDays * 86_400_000
+  const until = range ? Date.parse(range.to) : Infinity
   const url = new URL(tableUrl('cheongi_reports'))
   url.searchParams.set('select', 'report_id,user_email,updated_at,reportService:payload->context->>serviceKey,sections:payload->report->sections')
   url.searchParams.set('updated_at', `gte.${new Date(since).toISOString()}`)
@@ -632,7 +635,7 @@ export async function generationFailureStats(days = 7): Promise<GenerationFailur
       const list = Array.isArray(section.attempts) ? section.attempts as RestRow[] : []
       for (const attempt of list) {
         const started = Date.parse(String(attempt.startedAt ?? ''))
-        if (!Number.isFinite(started) || started < since) continue
+        if (!Number.isFinite(started) || started < since || started >= until) continue
         const failed = attempt.status === 'failed'
         attempts += 1
         const usage = (attempt.tokenUsage ?? {}) as Record<string, unknown>

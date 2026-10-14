@@ -607,6 +607,9 @@
     .admin-link-button { border: 0; background: none; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: var(--admin-focus); cursor: pointer; white-space: nowrap; }
     .admin-mini-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--admin-line); font-size: 13px; }
     .admin-range { display: inline-flex; align-items: center; gap: 6px; color: var(--admin-text-muted); }
+    .admin-daterange { padding: 8px 12px; border: 1px solid var(--admin-line); border-radius: 10px; background: var(--admin-surface); }
+    .admin-daterange > strong { font-size: 13px; }
+    .admin-daterange-summary { color: var(--admin-text-muted); font-size: 12px; }
     .admin-more { display: flex; justify-content: center; padding: 12px; }
     .admin-kpis.admin-kpis-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 10px; }
     .admin-kpis small { display: block; margin-top: 2px; color: var(--admin-text-muted); font-size: 11.5px; }
@@ -917,36 +920,36 @@
       var adminRoutes = {};
       var ADMIN_ROUTE_LIST = [
         { path: '', key: 'overview', title: '대시보드', detail: '오늘의 운영 상황을 확인합니다.', tabs: [
-          { path: '', label: '운영 현황', load: function (body) { loadLiveOverview(body); } },
+          { path: '', label: '운영 현황', dates: { label: '기간', maxDays: 92, tip: '기간을 고르면 그 기간과 바로 앞 같은 길이 기간을 비교합니다. 위쪽 "처리 필요"는 기간과 상관없이 지금 남은 일입니다. 전체 기간이면 오늘과 어제 이 시각을 비교합니다.' }, load: function (body) { loadLiveOverview(body); } },
           { path: '/analytics', label: '방문 · 전환', load: function (body) { loadFunnelAnalytics(body); } },
         ] },
-        { path: '/members', key: 'members', title: '회원 관리', detail: '회원의 가입·결제·리포트 이력을 확인합니다.', load: function (body) { loadLiveMembers(body); } },
-        { path: '/support', key: 'support', title: '고객 지원', detail: '문의 접수부터 처리 완료까지 관리합니다.', load: function (body) { loadSupportCases(body); } },
+        { path: '/members', key: 'members', title: '회원 관리', detail: '회원의 가입·결제·리포트 이력을 확인합니다.', dates: { label: '가입일' }, load: function (body) { loadLiveMembers(body); } },
+        { path: '/support', key: 'support', title: '고객 지원', detail: '문의 접수부터 처리 완료까지 관리합니다.', dates: { label: '접수일', tip: '기간을 고르면 그 기간에 접수된 문의를 최대 500건, 전체 기간이면 최근에 손댄 100건을 보여 줍니다.' }, load: function (body) { loadSupportCases(body); } },
         { path: '/payments', key: 'payments', title: '결제 관리', detail: '결제 내역과 환불, 매출을 한곳에서 봅니다.', tabs: [
-          { path: '', label: '결제 내역', load: function (body) { loadPaymentsHistory(body); } },
-          { path: '/refunds', label: '환불', load: function (body) { loadRefundsQueue(body); } },
-          { path: '/revenue', label: '매출', load: function (body) { loadRevenue(body); } },
+          { path: '', label: '결제 내역', dates: { label: '결제일' }, load: function (body) { loadPaymentsHistory(body); } },
+          { path: '/refunds', label: '환불', dates: { label: '요청일' }, load: function (body) { loadRefundsQueue(body); } },
+          { path: '/revenue', label: '매출', dates: { label: '결제일', fallback: '30d' }, load: function (body) { loadRevenue(body); } },
         ] },
         { path: '/services', key: 'services', title: '서비스 관리', detail: '판매·노출·가격을 관리합니다.', load: function (body) { loadLiveServices(body); } },
         { path: '/content', key: 'content', title: '콘텐츠 관리', detail: '서비스 안에서 쓰는 안내·배너·문구를 관리합니다.', load: function (body) { loadLiveContent(body); } },
         { path: '/consultation', key: 'consultation', title: '상담 관리', detail: '천명상담 배너와 상담자 설정을 관리합니다.', load: function (body) { loadConsultationManager(body); } },
         { path: '/media', key: 'media', title: '미디어 관리', detail: '사이트에 올라간 이미지와 사용 위치를 봅니다.', load: function (body) { loadMediaCatalog(body); } },
-        { path: '/reports', key: 'reports', title: '리포트 관리', detail: '리포트 생성 내역과 상태를 확인합니다.', load: function (body) { loadLiveReports(body); } },
+        { path: '/reports', key: 'reports', title: '리포트 관리', detail: '리포트 생성 내역과 상태를 확인합니다.', dates: { label: '만든 날' }, load: function (body) { loadLiveReports(body); } },
         { path: '/ai', key: 'ai', title: 'AI 운영', detail: '생성 실패와 작업 대기열, 프롬프트를 관리합니다.', tabs: [
-          { path: '', label: '실패 현황', load: function (body) { loadAiFailures(body); } },
-          { path: '/jobs', label: '작업 대기열', load: function (body) { loadOpsJobs(body); } },
+          { path: '', label: '실패 현황', dates: { label: '시도 시각', fallback: '7d', maxDays: 92 }, load: function (body) { loadAiFailures(body); } },
+          { path: '/jobs', label: '작업 대기열', dates: { label: '마지막 처리', tip: '작업이 마지막으로 처리된 시각 기준입니다. 기간을 고르면 최대 500건, 전체 기간이면 최근 100건입니다.' }, load: function (body) { loadOpsJobs(body); } },
           { path: '/prompts', label: '프롬프트', load: function (body) { loadLivePrompts(body); } },
           { path: '/corpus', label: '참고 자료', load: function (body) { loadLiveCorpus(body); } },
-          { path: '/quality', label: '품질 점검', load: function (body) { loadQualityEvaluations(body); } },
+          { path: '/quality', label: '품질 점검', dates: { label: '최근 변경', tip: '최근에 손댄 리포트 200건 안에서 기간으로 거릅니다.' }, load: function (body) { loadQualityEvaluations(body); } },
           { path: '/release', label: '배포 정보', load: function (body) { loadReleaseInfo(body); } },
         ] },
-        { path: '/messages', key: 'messages', title: '푸시', detail: '앱 설치 기기에 푸시를 보내고 결과를 확인합니다. 카카오 채널 메시지는 파트너센터에서 보냅니다.', load: function (body) { loadMessagesManager(body); } },
-        { path: '/popup', key: 'popup', title: '팝업', detail: '첫 페이지 팝업의 이미지와 노출 기간을 관리합니다.', load: function (body) { loadPopupManager(body); } },
-        { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '이용권·질문권·할인 쿠폰을 발급하고 사용 현황을 봅니다.', load: function (body) { loadCouponManager(body); } },
+        { path: '/messages', key: 'messages', title: '푸시', detail: '앱 설치 기기에 푸시를 보내고 결과를 확인합니다. 카카오 채널 메시지는 파트너센터에서 보냅니다.', dates: { label: '만든 날' }, load: function (body) { loadMessagesManager(body); } },
+        { path: '/popup', key: 'popup', title: '팝업', detail: '첫 페이지 팝업의 이미지와 노출 기간을 관리합니다.', dates: { label: '노출 기간', tip: '고른 기간에 하루라도 노출되는(될) 팝업만 보입니다.' }, load: function (body) { loadPopupManager(body); } },
+        { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '이용권·질문권·할인 쿠폰을 발급하고 사용 현황을 봅니다.', dates: { label: '사용 기간', tip: '고른 기간에 하루라도 쓸 수 있는 쿠폰만 보입니다.' }, load: function (body) { loadCouponManager(body); } },
         { path: '/admins', key: 'admins', title: '관리자', detail: '관리자 계정을 추가하고 비밀번호·사용 여부를 관리합니다.', load: function (body) { loadAdminAccounts(body); } },
         { path: '/logs', key: 'logs', title: '로그', detail: '누가 무엇을 바꿨는지와 장애 기록을 봅니다.', tabs: [
-          { path: '', label: '변경 이력', load: function (body) { loadLiveAudit(body); } },
-          { path: '/incidents', label: '장애 기록', load: function (body) { loadIncidents(body); } },
+          { path: '', label: '변경 이력', dates: { label: '기록 시각' }, load: function (body) { loadLiveAudit(body); } },
+          { path: '/incidents', label: '장애 기록', dates: { label: '발생 기록' }, load: function (body) { loadIncidents(body); } },
         ] },
       ];
       var ADMIN_ROUTE_ALIASES = {
@@ -1456,16 +1459,12 @@
           button.addEventListener('click', function () { memberListState.paid = entry[0]; memberListState.offset = 0; refresh(); });
           seg.appendChild(button);
         });
-        var from = document.createElement('input'); from.type = 'date'; from.setAttribute('aria-label', '가입일 시작'); from.value = memberListState.from;
-        var to = document.createElement('input'); to.type = 'date'; to.setAttribute('aria-label', '가입일 끝'); to.value = memberListState.to;
-        var range = document.createElement('span'); range.className = 'admin-range'; range.append(document.createTextNode('가입일'), from, document.createTextNode('~'), to);
         var sort = document.createElement('select'); sort.setAttribute('aria-label', '정렬');
         [['recent', '최근 활동순'], ['joined', '최근 가입순'], ['joined_asc', '오래된 가입순'], ['name', '이름 가나다순'], ['name_desc', '이름 역순']].forEach(function (entry) { var option = document.createElement('option'); option.value = entry[0]; option.textContent = entry[1]; sort.appendChild(option); });
         sort.value = memberListState.sort;
         var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
-        filters.append(search, submit, seg, range, sort);
+        filters.append(search, submit, seg, sort);
         filters.addEventListener('submit', function (event) { event.preventDefault(); memberListState.q = search.value.trim(); memberListState.offset = 0; refresh(); });
-        [from, to].forEach(function (input) { input.addEventListener('change', function () { memberListState.from = from.value; memberListState.to = to.value; memberListState.offset = 0; refresh(); }); });
         sort.addEventListener('change', function () { memberListState.sort = sort.value; memberListState.offset = 0; refresh(); });
         var section = document.createElement('section'); section.className = 'admin-section';
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
@@ -1485,8 +1484,7 @@
         var params = new URLSearchParams({ limit: String(memberListState.limit), offset: String(memberListState.offset), sort: memberListState.sort });
         if (memberListState.q) params.set('q', memberListState.q);
         if (memberListState.paid) params.set('paid', memberListState.paid);
-        if (memberListState.from) params.set('from', new Date(memberListState.from + 'T00:00:00+09:00').toISOString());
-        if (memberListState.to) params.set('to', new Date(new Date(memberListState.to + 'T00:00:00+09:00').getTime() + 86400000).toISOString());
+        adminRangeParams(params);
         section.setAttribute('aria-busy', 'true');
         try {
           var response = await fetch('/api/admin/v1/members?' + params.toString(), { credentials: 'same-origin' });
@@ -1499,7 +1497,7 @@
           table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col">풀이·결제 알림</th><th scope="col">이벤트 알림</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!members.length) {
-            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="12">' + (memberListState.q || memberListState.paid || memberListState.from || memberListState.to ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="12">' + (memberListState.q || memberListState.paid || adminRange() ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
           }
           members.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
@@ -1910,12 +1908,8 @@
           button.addEventListener('click', function () { reportListState.status = entry[0]; reportListState.offset = 0; refresh(); });
           seg.appendChild(button);
         });
-        var from = document.createElement('input'); from.type = 'date'; from.setAttribute('aria-label', '만든 날 시작'); from.value = reportListState.from;
-        var to = document.createElement('input'); to.type = 'date'; to.setAttribute('aria-label', '만든 날 끝'); to.value = reportListState.to;
-        var range = document.createElement('span'); range.className = 'admin-range'; range.append(document.createTextNode('만든 날'), from, document.createTextNode('~'), to);
-        filters.append(search, submit, seg, range);
+        filters.append(search, submit, seg);
         filters.addEventListener('submit', function (event) { event.preventDefault(); reportListState.q = search.value.trim(); reportListState.offset = 0; refresh(); });
-        [from, to].forEach(function (input) { input.addEventListener('change', function () { reportListState.from = from.value; reportListState.to = to.value; reportListState.offset = 0; refresh(); }); });
         var section = document.createElement('section'); section.className = 'admin-section';
         section.appendChild(memberEmpty('불러오는 중입니다.'));
         body.append(filters, section);
@@ -1931,8 +1925,7 @@
         var params = new URLSearchParams({ limit: String(reportListState.limit), offset: String(reportListState.offset) });
         if (reportListState.status) params.set('status', reportListState.status);
         if (reportListState.q) params.set('q', reportListState.q);
-        if (reportListState.from) params.set('from', new Date(reportListState.from + 'T00:00:00+09:00').toISOString());
-        if (reportListState.to) params.set('to', new Date(new Date(reportListState.to + 'T00:00:00+09:00').getTime() + 86400000).toISOString());
+        adminRangeParams(params);
         try {
           var response = await fetch('/api/admin/v1/reports?' + params.toString(), { credentials: 'same-origin' });
           if (!response.ok) throw new Error('LIVE_REPORT_LOOKUP_FAILED');
@@ -1942,7 +1935,7 @@
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
           table.innerHTML = '<thead><tr><th scope="col">만든 날</th><th scope="col">입력 이름</th><th scope="col">서비스</th><th scope="col">상태</th><th scope="col">회원 계정</th><th scope="col">최근 변경</th><th scope="col"></th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!reports.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">' + (reportListState.q || reportListState.status || reportListState.from || reportListState.to ? '조건에 맞는 리포트가 없습니다.' : '생성된 리포트가 아직 없습니다.') + '</td>'; rows.appendChild(empty); }
+          if (!reports.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">' + (reportListState.q || reportListState.status || adminRange() ? '조건에 맞는 리포트가 없습니다.' : '생성된 리포트가 아직 없습니다.') + '</td>'; rows.appendChild(empty); }
           reports.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             var view = REPORT_STATUS_VIEW[item.status] || REPORT_STATUS_VIEW.unknown;
@@ -1983,14 +1976,9 @@
        */
       async function loadAiFailures(body) {
         body.replaceChildren();
-        var state = { days: 7 };
+        // 2026-10-14: 기간은 화면 맨 위 공통 기간 막대에서 고른다(기본 최근 7일, 최대 92일).
         var filters = document.createElement('div'); filters.className = 'admin-filterbar';
-        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '기간');
-        [[1, '최근 24시간'], [7, '최근 7일'], [30, '최근 30일']].forEach(function (entry) {
-          var button = document.createElement('button'); button.type = 'button'; button.dataset.days = String(entry[0]); button.textContent = entry[1];
-          button.addEventListener('click', function () { state.days = entry[0]; load(); }); seg.appendChild(button);
-        });
-        filters.append(seg, adminTip('최근에 손댄 리포트 200건의 생성 시도 기록을 모아 셉니다. 실패한 시도가 있어도 자동으로 다시 시도해 결국 완성된 리포트가 많습니다.'));
+        filters.append(adminTip('최근에 손댄 리포트 200건의 생성 시도 기록을 모아 셉니다. 실패한 시도가 있어도 자동으로 다시 시도해 결국 완성된 리포트가 많습니다.'));
         var kpis = document.createElement('div'); kpis.className = 'admin-kpis admin-kpis-4';
         var grid = document.createElement('div'); grid.className = 'admin-ai-grid';
         var recent = document.createElement('section'); recent.className = 'admin-section';
@@ -1998,10 +1986,9 @@
         body.append(filters, kpis, grid, recentTitle, recent);
         function card(title, node) { var block = document.createElement('div'); block.className = 'admin-block'; var section = document.createElement('section'); section.className = 'admin-section'; section.appendChild(node); block.append(adminBlockTitle(title), section); block.box = section; return block; }
         async function load() {
-          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.days === String(state.days) ? 'true' : 'false'); });
           recent.replaceChildren(memberEmpty('불러오는 중입니다.'));
           try {
-            var response = await fetch('/api/admin/v1/ai/failures?days=' + state.days, { credentials: 'same-origin' });
+            var response = await fetch('/api/admin/v1/ai/failures?days=7' + adminRangeQuery('&'), { credentials: 'same-origin' });
             var data = await response.json().catch(function () { return {}; });
             if (!response.ok) throw new Error(data.error || 'AI 실패 현황을 불러오지 못했습니다.');
             var rate = data.attempts ? Math.round(data.failures / data.attempts * 1000) / 10 : 0;
@@ -2065,7 +2052,7 @@
         body.append(todoSection, kpiSection, foot);
         var refresh = adminPageAction('dashboard-refresh', '새로고침', null, { onClick: function () { loadLiveOverview(body); } });
         try {
-          var response = await fetch('/api/admin/v1/dashboard', { credentials: 'same-origin' });
+          var response = await fetch('/api/admin/v1/dashboard' + adminRangeQuery('?'), { credentials: 'same-origin' });
           var data = await response.json().catch(function () { return {}; });
           if (!response.ok) throw new Error(data.error || '대시보드를 불러오지 못했습니다.');
           var head = document.createElement('h3'); head.className = 'admin-dash-title'; head.textContent = '처리 필요';
@@ -2081,8 +2068,9 @@
           });
           head.appendChild(memberChip(pending ? '지금 ' + pending + '건' : '처리할 일 없음', pending ? 'warn' : 'ok'));
           todoSection.replaceChildren(head, grid);
-          var kHead = document.createElement('h3'); kHead.className = 'admin-dash-title'; kHead.textContent = '오늘';
-          kHead.appendChild(adminTip('오늘 0시부터 지금까지를, 어제 0시부터 어제 이 시각까지와 비교합니다.'));
+          var customWindow = !!(data.windows && data.windows.custom);
+          var kHead = document.createElement('h3'); kHead.className = 'admin-dash-title'; kHead.textContent = customWindow ? '선택 기간' : '오늘';
+          kHead.appendChild(adminTip(customWindow ? '고른 기간을 바로 앞 같은 길이 기간과 비교합니다.' : '오늘 0시부터 지금까지를, 어제 0시부터 어제 이 시각까지와 비교합니다.'));
           var kGrid = document.createElement('div'); kGrid.className = 'admin-dash-kpi-grid';
           data.kpis.forEach(function (item) {
             var card = document.createElement('a'); card.className = 'admin-dash-card admin-dash-kpi'; card.href = ADMIN_BASE + item.href;
@@ -2094,7 +2082,7 @@
               var diff = item.today - item.yesterday;
               var arrow = document.createElement('em'); arrow.setAttribute('data-trend', diff > 0 ? 'up' : diff < 0 ? 'down' : 'same');
               arrow.textContent = diff > 0 ? '▲ ' + diff.toLocaleString('ko-KR') : diff < 0 ? '▼ ' + Math.abs(diff).toLocaleString('ko-KR') : '같음';
-              compare.append(document.createTextNode('어제 이 시각 ' + fmt(item.yesterday) + ' '), arrow);
+              compare.append(document.createTextNode((customWindow ? '직전 같은 기간 ' : '어제 이 시각 ') + fmt(item.yesterday) + ' '), arrow);
             } else compare.textContent = '불러오지 못했습니다';
             card.append(label, value, compare); kGrid.appendChild(card);
           });
@@ -2535,6 +2523,7 @@
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.state === listFilter.state ? 'true' : 'false'); });
           if (!listSection.hasAttribute('data-ready')) return;
           var shown = items.filter(function (item) {
+            if (!adminOverlapsRange(item.scheduledAt, (item.payload || {}).campaignEndAt)) return false;
             if (listFilter.state && popupStateLabel(item) !== listFilter.state) return false;
             return !listFilter.q || String((item.payload || {}).title || '').toLocaleLowerCase().indexOf(listFilter.q) >= 0;
           });
@@ -2793,7 +2782,7 @@
         }
         async function load() {
           try {
-            var data = await pushRequest('?limit=100');
+            var data = await pushRequest('?limit=100' + adminRangeQuery('&'));
             state.items = Array.isArray(data.items) ? data.items : [];
             render();
           } catch (error) {
@@ -3071,6 +3060,7 @@
           return { key: 'live', label: '발급 중', tone: 'ok' };
         }
         function render(items) {
+          items = items.filter(function (item) { return adminOverlapsRange(item.startsAt, item.expiresAt); });
           list.replaceChildren();
           var bar = couponBar; bar.replaceChildren();
           var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '쿠폰 상태');
@@ -3339,28 +3329,24 @@
         [['', '모든 영역'], ['member.', '회원'], ['refund.', '결제·환불'], ['report.', '리포트'], ['coupon.', '쿠폰'], ['service.', '서비스'], ['content.', '콘텐츠·팝업'], ['prompt.', '프롬프트'], ['support.', '고객 지원'], ['incident.', '장애'], ['admin.', '관리자'], ['ops.', '작업 대기열']].forEach(function (entry) { var option = document.createElement('option'); option.value = entry[0]; option.textContent = entry[1]; area.appendChild(option); });
         area.value = auditState.area;
         var actor = document.createElement('input'); actor.type = 'search'; actor.placeholder = '관리자 이메일 일부'; actor.setAttribute('aria-label', '관리자'); actor.value = auditState.actor;
-        var from = document.createElement('input'); from.type = 'date'; from.setAttribute('aria-label', '시작일'); from.value = auditState.from;
-        var to = document.createElement('input'); to.type = 'date'; to.setAttribute('aria-label', '종료일'); to.value = auditState.to;
-        var range = document.createElement('span'); range.className = 'admin-range'; range.append(from, document.createTextNode('~'), to);
         var all = document.createElement('label'); all.className = 'admin-check'; var allBox = document.createElement('input'); allBox.type = 'checkbox'; allBox.checked = auditState.all; all.append(allBox, document.createTextNode(' 시작 기록도 보기'));
         var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
-        filters.append(actor, submit, area, range, all, adminTip('관리자 화면에서 바꾼 것은 모두 여기에 남습니다. 작업 하나에 시작·완료 두 줄이 쌓여서, 기본은 완료된 것만 보여 줍니다.'));
-        function apply() { auditState.area = area.value; auditState.actor = actor.value.trim(); auditState.from = from.value; auditState.to = to.value; auditState.all = allBox.checked; auditState.offset = 0; render(); }
+        filters.append(actor, submit, area, all, adminTip('관리자 화면에서 바꾼 것은 모두 여기에 남습니다. 작업 하나에 시작·완료 두 줄이 쌓여서, 기본은 완료된 것만 보여 줍니다.'));
+        function apply() { auditState.area = area.value; auditState.actor = actor.value.trim(); auditState.all = allBox.checked; auditState.offset = 0; render(); }
         filters.addEventListener('submit', function (event) { event.preventDefault(); apply(); });
-        [area, from, to, allBox].forEach(function (control) { control.addEventListener('change', apply); });
+        [area, allBox].forEach(function (control) { control.addEventListener('change', apply); });
         var section = document.createElement('section'); section.className = 'admin-section'; section.appendChild(memberEmpty('불러오는 중입니다.'));
         body.append(filters, section);
         async function render() {
           var params = new URLSearchParams({ limit: String(auditState.limit), offset: String(auditState.offset) });
           if (auditState.area) params.set('area', auditState.area);
           if (auditState.actor) params.set('actor', auditState.actor);
-          if (auditState.from) params.set('from', new Date(auditState.from + 'T00:00:00+09:00').toISOString());
-          if (auditState.to) params.set('to', new Date(new Date(auditState.to + 'T00:00:00+09:00').getTime() + 86400000).toISOString());
+          adminRangeParams(params);
           if (auditState.all) params.set('result', 'all');
           try {
             var payload = await adminJson('/api/admin/v1/audit?' + params.toString());
             var events = Array.isArray(payload.events) ? payload.events : []; var total = Number(payload.total || 0);
-            if (!events.length) { section.replaceChildren(memberEmpty(auditState.area || auditState.actor || auditState.from || auditState.to ? '조건에 맞는 변경 이력이 없습니다.' : '아직 기록된 변경이 없습니다.')); return; }
+            if (!events.length) { section.replaceChildren(memberEmpty(auditState.area || auditState.actor || adminRange() ? '조건에 맞는 변경 이력이 없습니다.' : '아직 기록된 변경이 없습니다.')); return; }
             var table = memberTable(['시각', '관리자', '작업', '대상', '결과'], events, function (item) {
               var name = document.createElement('span'); name.textContent = AUDIT_ACTION_LABELS[item.action] || item.action; name.appendChild(adminTip(item.action));
               var target = (AUDIT_TARGET_LABELS[item.targetType] || item.targetType) + ' · ' + (String(item.targetId).length > 14 ? String(item.targetId).slice(0, 12) + '…' : item.targetId);
@@ -3453,7 +3439,7 @@
         listSection.innerHTML = '<p class="admin-empty">작업 큐를 불러오는 중입니다.</p>';
         body.appendChild(listSection);
         try {
-          var response = await fetch('/api/admin/v1/jobs', { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED');
+          var response = await fetch('/api/admin/v1/jobs' + adminRangeQuery('?'), { credentials: 'same-origin' }); if (!response.ok) throw new Error('OPS_LIST_FAILED');
           var payload = await response.json(); var jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
           // ops.pause 는 작업이 아니라 현재 일시정지 상태를 보존하는 제어 마커다. 위 제어 버튼으로만 보인다.
           var visibleJobs = jobs.filter(function (item) { return item.kind !== 'ops.pause'; });
@@ -3787,7 +3773,7 @@
         }
         async function load() {
           try {
-            var payload = await adminJson('/api/admin/v1/support');
+            var payload = await adminJson('/api/admin/v1/support' + adminRangeQuery('?'));
             state.items = Array.isArray(payload.cases) ? payload.cases : [];
             render();
           } catch (_error) { card.replaceChildren(memberEmpty('고객 지원 목록을 불러오지 못했습니다.')); }
@@ -3891,7 +3877,7 @@
         createSection.appendChild(createForm); body.replaceChildren(); body.appendChild(createSection); adminPageAction('incident-create', '＋ 장애 등록', createSection, { primary: true });
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<p class="admin-empty">장애 기록을 불러오는 중입니다.</p>'; body.appendChild(listSection);
         try {
-          var listResponse = await fetch('/api/admin/v1/incidents', { credentials: 'same-origin' }); if (!listResponse.ok) throw new Error('INCIDENT_LOOKUP_FAILED');
+          var listResponse = await fetch('/api/admin/v1/incidents' + adminRangeQuery('?'), { credentials: 'same-origin' }); if (!listResponse.ok) throw new Error('INCIDENT_LOOKUP_FAILED');
           var listPayload = await listResponse.json(); var incidents = Array.isArray(listPayload.incidents) ? listPayload.incidents : [];
           var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">제목</th><th scope="col">심각도</th><th scope="col">상태</th><th scope="col">영향 범위</th><th scope="col">담당자</th><th scope="col">최근 변경</th><th scope="col">처리</th></tr></thead>';
           var rows = document.createElement('tbody');
@@ -3942,6 +3928,98 @@
         section.appendChild(noteForm);
         section.scrollIntoView({ block: 'nearest' });
       }
+      /*
+       * 2026-10-14 관리자 전 화면 날짜 검색(사용자 요청). 날짜가 있는 메뉴는 모두 화면 맨 위 같은 자리에 같은 기간 막대를 둔다.
+       * 고른 기간은 이 탭(sessionStorage)에 남아서 다른 메뉴로 옮겨도 이어진다. 경계는 시작 포함, 끝 미포함.
+       * 방문·전환은 자체 기간 막대(날짜·시간)가 이미 있어 여기서 빼 둔다.
+       */
+      var ADMIN_RANGE_STORE = 'umsh:admin:range';
+      var ADMIN_RANGE_PRESETS = [['', '전체 기간'], ['today', '오늘'], ['yesterday', '어제'], ['7d', '최근 7일'], ['30d', '최근 30일'], ['month', '이번 달'], ['lastmonth', '지난 달'], ['custom', '직접 선택']];
+      var currentAdminRangeConfig = null;
+      function adminRangeChoice() {
+        try { var saved = JSON.parse(sessionStorage.getItem(ADMIN_RANGE_STORE) || 'null'); if (saved && typeof saved.preset === 'string') return saved; } catch (_error) { /* 저장소가 막혀도 전체 기간으로 */ }
+        return { preset: '', from: '', to: '' };
+      }
+      function saveAdminRangeChoice(choice) { try { sessionStorage.setItem(ADMIN_RANGE_STORE, JSON.stringify(choice)); } catch (_error) { /* 무시 */ } }
+      function kstDayStartMs(ms) { var shifted = ms + 9 * 3600000; return shifted - (shifted % 86400000) - 9 * 3600000; }
+      /** 고른 값 → { from, to }(Date). 전체 기간이면 화면 기본값(fallback), 그것도 없으면 null. */
+      function adminRangeOf(choice, fallback) {
+        var preset = choice.preset || fallback || '';
+        var now = Date.now(); var today = kstDayStartMs(now); var kst = new Date(now + 9 * 3600000);
+        var monthStart = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), 1) - 9 * 3600000;
+        // "지금까지"인 기간은 끝을 1분 뒤로 둔다. 방금 생긴 기록이 끝 미포함 경계에 걸려 빠지지 않게.
+        var soon = now + 60000;
+        if (preset === 'today') return { from: new Date(today), to: new Date(soon) };
+        if (preset === 'yesterday') return { from: new Date(today - 86400000), to: new Date(today) };
+        if (preset === '7d') return { from: new Date(now - 7 * 86400000), to: new Date(soon) };
+        if (preset === '30d') return { from: new Date(now - 30 * 86400000), to: new Date(soon) };
+        if (preset === 'month') return { from: new Date(monthStart), to: new Date(soon) };
+        if (preset === 'lastmonth') return { from: new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth() - 1, 1) - 9 * 3600000), to: new Date(monthStart) };
+        if (preset === 'custom') {
+          var from = Date.parse(choice.from); var to = Date.parse(choice.to);
+          if (isFinite(from) && isFinite(to) && from < to) return { from: new Date(from), to: new Date(to) };
+        }
+        return null;
+      }
+      /** 지금 화면에 적용할 기간. 날짜 막대가 없는 화면이면 null. */
+      function adminRange() { return currentAdminRangeConfig ? adminRangeOf(adminRangeChoice(), currentAdminRangeConfig.fallback) : null; }
+      function adminRangeParams(params) { var range = adminRange(); if (range) { params.set('from', range.from.toISOString()); params.set('to', range.to.toISOString()); } return params; }
+      function adminRangeQuery(prefix) { var text = adminRangeParams(new URLSearchParams()).toString(); return text ? prefix + text : ''; }
+      /** 화면에서 거르는 목록용: 시각이 기간 안인가. */
+      function adminInRange(iso) { var range = adminRange(); if (!range) return true; var at = Date.parse(iso || ''); return isFinite(at) && at >= range.from.getTime() && at < range.to.getTime(); }
+      /** 기간이 있는 항목(팝업 노출·쿠폰 사용 기간)이 고른 기간과 하루라도 겹치는가. 끝이 없으면 계속 이어지는 것으로 본다. */
+      function adminOverlapsRange(startIso, endIso) {
+        var range = adminRange(); if (!range) return true;
+        var start = Date.parse(startIso || ''); var end = Date.parse(endIso || '');
+        return (isFinite(start) ? start : -Infinity) < range.to.getTime() && (isFinite(end) ? end : Infinity) >= range.from.getTime();
+      }
+      function adminLocalInput(date) { var pad = function (n) { return String(n).padStart(2, '0'); }; return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes()); }
+      function adminRangeText(range) {
+        if (!range) return '기간 제한 없음';
+        var f = function (date) { return date.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }); };
+        return f(range.from) + ' ~ ' + f(range.to);
+      }
+      function buildAdminRangeBar(config, onChange) {
+        var choice = adminRangeChoice();
+        var bar = document.createElement('form'); bar.className = 'admin-filterbar admin-daterange'; bar.setAttribute('role', 'search'); bar.setAttribute('data-admin-daterange', '');
+        var title = document.createElement('strong'); title.textContent = '조회 기간 · ' + config.label;
+        var select = document.createElement('select'); select.setAttribute('aria-label', '조회 기간');
+        ADMIN_RANGE_PRESETS.forEach(function (entry) {
+          var option = document.createElement('option'); option.value = entry[0];
+          var fallbackName = config.fallback ? (ADMIN_RANGE_PRESETS.filter(function (item) { return item[0] === config.fallback; })[0] || [])[1] : '';
+          option.textContent = entry[0] === '' && fallbackName ? '기본(' + fallbackName + ')' : entry[1];
+          select.appendChild(option);
+        });
+        select.value = choice.preset;
+        var from = document.createElement('input'); from.type = 'datetime-local'; from.setAttribute('aria-label', '시작');
+        var to = document.createElement('input'); to.type = 'datetime-local'; to.setAttribute('aria-label', '끝');
+        var apply = document.createElement('button'); apply.type = 'submit'; apply.className = 'admin-button'; apply.textContent = '조회';
+        var custom = document.createElement('span'); custom.className = 'admin-range'; custom.append(from, document.createTextNode('~'), to, apply);
+        var summary = document.createElement('span'); summary.className = 'admin-daterange-summary';
+        function sync() {
+          custom.hidden = select.value !== 'custom';
+          summary.textContent = select.value === 'custom' ? '' : adminRangeText(adminRangeOf({ preset: select.value }, config.fallback));
+        }
+        var current = adminRangeOf(choice, config.fallback) || { from: new Date(Date.now() - 7 * 86400000), to: new Date() };
+        from.value = adminLocalInput(current.from); to.value = adminLocalInput(current.to);
+        select.addEventListener('change', function () {
+          sync();
+          if (select.value === 'custom') { from.focus(); return; }
+          saveAdminRangeChoice({ preset: select.value, from: '', to: '' }); onChange();
+        });
+        bar.addEventListener('submit', function (event) {
+          event.preventDefault();
+          var start = new Date(from.value); var end = new Date(to.value);
+          var maxDays = config.maxDays || 400;
+          if (!isFinite(start.getTime()) || !isFinite(end.getTime()) || start >= end) { adminToast('시작이 끝보다 앞서야 합니다.', 'error'); return; }
+          if (end - start > maxDays * 86400000) { adminToast('이 화면은 최대 ' + maxDays + '일까지 조회할 수 있습니다.', 'error'); return; }
+          saveAdminRangeChoice({ preset: 'custom', from: start.toISOString(), to: end.toISOString() }); onChange();
+        });
+        bar.append(title, select, custom, summary);
+        if (config.tip) bar.appendChild(adminTip(config.tip));
+        sync();
+        return bar;
+      }
       function renderWorkspace(route) {
         setText('[data-admin-workspace-title]', route.title);
         setText('[data-admin-workspace-detail]', route.detail || '');
@@ -3951,7 +4029,16 @@
         body.replaceChildren();
         var def = route.route;
         if (!def) { addLiveError(body, '이 메뉴는 아직 준비 중입니다. 임의 수치나 예시 행은 표시하지 않습니다.'); return; }
-        if (!def.tabs) { def.load(body); return; }
+        var dateConfig = (def.tabs ? def.tabs[route.tabIndex].dates : def.dates) || null;
+        currentAdminRangeConfig = dateConfig;
+        function mount(host, load) {
+          if (!dateConfig) { load(host); return; }
+          // 화면 함수는 받은 상자를 비우고 다시 그린다. 기간 막대는 그 바깥에 둬서 지워지지 않게 한다.
+          var inner = document.createElement('div');
+          host.append(buildAdminRangeBar(dateConfig, function () { renderWorkspace(currentAdminRoute()); }), inner);
+          load(inner);
+        }
+        if (!def.tabs) { mount(body, def.load); return; }
         // 화면 안 탭. 탭마다 주소가 있어서 새로고침해도 같은 탭이 열린다.
         var tabs = document.createElement('nav'); tabs.className = 'admin-tabs'; tabs.setAttribute('aria-label', route.title + ' 탭');
         def.tabs.forEach(function (tab, index) {
@@ -3961,7 +4048,7 @@
         });
         var panel = document.createElement('div');
         body.append(tabs, panel);
-        def.tabs[route.tabIndex].load(panel);
+        mount(panel, def.tabs[route.tabIndex].load);
       }
 
       /*
@@ -4079,11 +4166,7 @@
           var button = document.createElement('button'); button.type = 'button'; button.dataset.status = entry[0]; button.textContent = entry[1];
           button.addEventListener('click', function () { state.status = entry[0]; load(true); }); seg.appendChild(button);
         });
-        var from = document.createElement('input'); from.type = 'date'; from.setAttribute('aria-label', '시작일');
-        var to = document.createElement('input'); to.type = 'date'; to.setAttribute('aria-label', '종료일');
-        var range = document.createElement('span'); range.className = 'admin-range'; range.append(from, document.createTextNode('~'), to);
-        [from, to].forEach(function (input) { input.addEventListener('change', function () { state.from = from.value; state.to = to.value; load(true); }); });
-        filters.append(seg, range);
+        filters.append(seg);
         var card = document.createElement('section'); card.className = 'admin-section';
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.'; card.appendChild(status);
         body.append(filters, card);
@@ -4094,8 +4177,7 @@
             for (var page = 0; page < 5; page += 1) {
               var params = new URLSearchParams({ limit: '100' });
               if (state.status) params.set('status', state.status);
-              if (state.from) params.set('from', new Date(state.from + 'T00:00:00+09:00').toISOString());
-              if (state.to) params.set('to', new Date(new Date(state.to + 'T00:00:00+09:00').getTime() + 86400000).toISOString());
+              adminRangeParams(params);
               if (state.cursor) params.set('cursor', state.cursor);
               var data = await adminJson('/api/admin/v1/orders?' + params.toString());
               state.orders = state.orders.concat(data.orders || []); state.cursor = data.nextCursor || null;
@@ -4216,7 +4298,7 @@
           table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); card.replaceChildren(scroll);
         }
         async function load() {
-          try { state.items = (await adminJson('/api/admin/v1/refunds?limit=200')).refunds || []; render(); }
+          try { state.items = (await adminJson('/api/admin/v1/refunds?limit=500' + adminRangeQuery('&'))).refunds || []; render(); }
           catch (error) { var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '환불 요청을 불러오지 못했습니다. ' + error.message; card.replaceChildren(failed); }
         }
         await load();
@@ -4224,13 +4306,9 @@
 
       async function loadRevenue(body) {
         body.replaceChildren();
-        var state = { preset: '30', by: 'day', data: null };
+        // 2026-10-14: 기간은 화면 맨 위 공통 기간 막대에서 고른다(기본 최근 30일).
+        var state = { by: 'day', data: null };
         var filters = document.createElement('div'); filters.className = 'admin-filterbar';
-        var period = document.createElement('div'); period.className = 'admin-seg'; period.setAttribute('aria-label', '기간');
-        [['7', '최근 7일'], ['30', '최근 30일'], ['thisMonth', '이번 달'], ['lastMonth', '지난 달'], ['90', '최근 90일']].forEach(function (entry) {
-          var button = document.createElement('button'); button.type = 'button'; button.dataset.preset = entry[0]; button.textContent = entry[1];
-          button.addEventListener('click', function () { state.preset = entry[0]; load(); }); period.appendChild(button);
-        });
         var by = document.createElement('div'); by.className = 'admin-seg'; by.setAttribute('aria-label', '묶음');
         [['day', '일별'], ['month', '월별'], ['service', '서비스별'], ['method', '결제 수단별']].forEach(function (entry) {
           var button = document.createElement('button'); button.type = 'button'; button.dataset.by = entry[0]; button.textContent = entry[1];
@@ -4238,23 +4316,15 @@
         });
         var download = document.createElement('button'); download.type = 'button'; download.className = 'admin-button'; download.setAttribute('data-variant', 'quiet'); download.textContent = 'CSV 내려받기';
         download.style.marginLeft = 'auto';
-        filters.append(period, by, download);
+        filters.append(by, download);
         var kpis = document.createElement('div'); kpis.className = 'admin-kpis admin-kpis-4';
         var card = document.createElement('section'); card.className = 'admin-section';
         body.append(filters, kpis, card);
-        function windowFor(preset) {
-          var now = new Date(); var kst = new Date(now.getTime() + 9 * 3600000);
-          var startOfMonth = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), 1) - 9 * 3600000;
-          if (preset === 'thisMonth') return { from: new Date(startOfMonth), to: now };
-          if (preset === 'lastMonth') return { from: new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth() - 1, 1) - 9 * 3600000), to: new Date(startOfMonth) };
-          return { from: new Date(now.getTime() - Number(preset) * 86400000), to: now };
-        }
         function rowsFor() {
           if (!state.data) return [];
           return state.by === 'day' ? state.data.byDay : state.by === 'month' ? state.data.byMonth : state.by === 'service' ? state.data.byService : state.data.byMethod.map(function (row) { return Object.assign({}, row, { key: payMethodLabel(row.key) }); });
         }
         function render() {
-          period.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.preset === state.preset ? 'true' : 'false'); });
           by.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.by === state.by ? 'true' : 'false'); });
           if (!state.data) return;
           kpis.replaceChildren();
@@ -4284,8 +4354,7 @@
         });
         async function load() {
           render(); card.innerHTML = '<p class="admin-empty">집계하는 중입니다.</p>';
-          var range = windowFor(state.preset);
-          try { state.data = await adminJson('/api/admin/v1/payments/revenue?from=' + encodeURIComponent(range.from.toISOString()) + '&to=' + encodeURIComponent(range.to.toISOString())); render(); }
+          try { state.data = await adminJson('/api/admin/v1/payments/revenue' + adminRangeQuery('?')); render(); }
           catch (error) { var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '매출을 불러오지 못했습니다. ' + error.message; card.replaceChildren(failed); kpis.replaceChildren(); }
         }
         await load();
@@ -4809,7 +4878,7 @@
           var response = await fetch('/api/admin/v1/evaluations', { credentials: 'same-origin' });
           if (!response.ok) throw new Error('QUALITY_REVIEW_LOOKUP_FAILED');
           var payload = await response.json();
-          var reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
+          var reviews = (Array.isArray(payload.reviews) ? payload.reviews : []).filter(function (item) { return adminInRange(item.updatedAt); });
           addLiveTable(body, '2·3차 재검증으로 완성된 항목', ['리포트', '회원', '서비스', '항목', '분류', '검증 단계', '남은 지적', '최근 변경'], reviews, function (item) { return [item.reportId, item.member, item.serviceKey, item.sectionId, item.classification, item.reviewMode === 'repaired' ? '2차 편집' : '3차 안전검수', item.reviewNotes, item.updatedAt]; }, '최근 리포트 중 1차 엄격 검수를 그대로 통과하지 못한 항목이 없습니다.');
         } catch (_error) { addLiveError(body, '품질 검토 기록을 불러오지 못했습니다.'); }
       }
