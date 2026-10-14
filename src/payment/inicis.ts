@@ -259,11 +259,11 @@ const INICIS_APPROVAL_URLS: Record<InicisEndpointMode, Record<string, string>> =
 /**
  * 받은 승인 URL 이 표와 다를 때 막을지 여부.
  *
- * 우리 테스트는 PC 승인 경로를 `/stdpay/payAuth` 로 가정해 왔고 권고 메일은 `/api/payAuth`
- * 라서, 운영에서 실제 값을 확인하기 전에 막으면 결제가 전부 실패할 수 있다. 지금은 호스트
- * 검사로 막고 경로 차이는 로그로만 남긴다. 운영 로그로 표가 맞다고 확인되면 true 로 바꾼다.
+ * 처음(PR #116)에는 실제 경로를 몰라 로그만 남겼다. 2026-10-13·14 운영 실결제(모바일 1건,
+ * PC 2건)에서 `[inicis-approval-url]` 경고가 없어 표와 같다고 확인했고, 그 뒤 차단으로 바꿨다.
+ * 다시 관찰만 하려면 false 로 되돌린다.
  */
-export const INICIS_ENFORCE_EXACT_APPROVAL_URL = false
+export const INICIS_ENFORCE_EXACT_APPROVAL_URL = true
 
 function isInicisTestMid(mid: string): boolean {
   return mid.startsWith('INIpayTest')

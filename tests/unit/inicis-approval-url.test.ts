@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import test from 'node:test'
 import {
+  INICIS_ENFORCE_EXACT_APPROVAL_URL,
   allowedInicisIdcNames,
   approveInicisMobilePayment,
   approveInicisPayment,
@@ -126,5 +127,21 @@ test('모바일 망취소는 P_REQ_URL 호스트를 쓰고, 결제 요청 때와
     assert.equal(body.get('P_OID'), 'UMSHmobilecancel')
     const timestamp = body.get('P_TIMESTAMP') ?? ''
     assert.equal(body.get('P_CHKFAKE'), createHash('sha512').update(`19900UMSHmobilecancel${timestamp}test-mobile-hash-key`).digest('base64'))
+  })
+})
+
+test('기본 설정은 표와 경로가 다른 승인 URL을 막는다', async () => {
+  await withEnv(KEYS, async () => {
+    assert.equal(INICIS_ENFORCE_EXACT_APPROVAL_URL, true)
+    let called = false
+    await assert.rejects(
+      () => approveInicisPayment({ order: order('UMSHpcpath'), authToken: 'token', authUrl: 'https://fcstdpay.inicis.com/stdpay/payAuth', idcName: 'fc' }, async () => { called = true; return Response.json({}) }),
+      /등록된 주소/,
+    )
+    await assert.rejects(
+      () => approveInicisMobilePayment({ order: order('UMSHmopath'), tid: 'INIMX_AUTH', requestUrl: 'https://fcmobile.inicis.com/smart/other.ini', idcName: 'fc' }, async () => { called = true; return new Response('') }),
+      /등록된 주소/,
+    )
+    assert.equal(called, false)
   })
 })
