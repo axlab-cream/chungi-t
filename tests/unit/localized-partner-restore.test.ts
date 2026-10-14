@@ -31,6 +31,8 @@ function runtime(locale: string) {
     sourceRange(html, '      function currentService() {', '      function servicePathForCurrentPage() {'),
     sourceRange(html, '      function pad2(value) {', '      function historySubtitle(entry) {'),
     sourceRange(html, '      function normalizeBirthGender(value) {', '      async function analyzeBirth() {'),
+    // 2026-10-14: 저장된 풀이 복원이 태어난 시각을 모름으로 존중하도록(2d0ca9e9) 이 두 함수를 부른다. 실제 함수를 함께 싣는다.
+    sourceRange(html, '      function resolveBirthTimeKnown(payload) {', '      function renderUnknownTimeResult() {'),
   ].join('\n'), sandbox)
   return {
     state,
