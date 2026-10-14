@@ -507,12 +507,68 @@ export function createInicisSandboxAdapter(params: {
   }
 }
 
+/**
+ * 승인 요청은 보냈지만 결제가 됐는지 확정할 수 없거나, 승인은 됐는데 우리 주문과 맞지 않는 경우.
+ *
+ * 이니시스 매뉴얼은 "승인결과 미수신"과 "승인 후 DB 저장 실패"를 망취소 대상으로 든다.
+ * 이 오류를 받은 쪽은 실패로 끝내지 말고 망취소를 보내야 한다. 이니시스가 승인 실패를
+ * 분명히 돌려준 경우(돈이 나가지 않음)는 일반 Error 로 남긴다.
+ */
+export class InicisApprovalUncertainError extends Error {
+  constructor(message: string, readonly tid?: string) {
+    super(message)
+    this.name = 'InicisApprovalUncertainError'
+  }
+}
+
+/**
+ * 승인·망취소 응답 대기 시간. 망취소는 인증 후 10분 안에만 되므로(모바일 승인TID 기준은 1분),
+ * 응답을 오래 기다리다 그 시간을 놓치지 않게 짧게 끊고 바로 망취소한다.
+ */
+export const INICIS_APPROVAL_TIMEOUT_MS = 10_000
+
+async function postToInicis(
+  transport: InicisTransport,
+  url: string,
+  body: URLSearchParams,
+  timeoutMs: number,
+): Promise<{ response: Response, raw: Record<string, string> }> {
+  const controller = new AbortController()
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort()
+      reject(new InicisApprovalUncertainError('이니시스 응답이 늦어 결제 결과를 확인하지 못했습니다.'))
+    }, timeoutMs)
+  })
+  try {
+    return await Promise.race([
+      (async () => {
+        const response = await transport(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+          body,
+          signal: controller.signal,
+        })
+        return { response, raw: await readInicisResponse(response) }
+      })(),
+      timeout,
+    ])
+  } catch (error) {
+    if (error instanceof InicisApprovalUncertainError) throw error
+    // 연결이 끊기거나 응답을 읽지 못하면 이니시스가 승인했는지 알 수 없다.
+    throw new InicisApprovalUncertainError('이니시스와 통신하지 못해 결제 결과를 확인하지 못했습니다.')
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
+
 export async function approveInicisPayment(params: {
   order: PaymentOrder
   authToken: string
   authUrl: string
   idcName: string
-}, transport: InicisTransport = fetch): Promise<InicisApprovalResult> {
+}, transport: InicisTransport = fetch, timeoutMs = INICIS_APPROVAL_TIMEOUT_MS): Promise<InicisApprovalResult> {
   const current = config()
   if (!current.enabled) throw new Error('이니시스 결제 설정이 없습니다.')
   const authUrl = resolveInicisApprovalUrl(params.authUrl, params.idcName, 'pc')
@@ -527,23 +583,22 @@ export async function approveInicisPayment(params: {
     format: 'JSON',
     price: String(params.order.amount),
   })
-  const response = await transport(authUrl, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-    body,
-  })
-  const raw = await readInicisResponse(response)
+  const { raw } = await postToInicis(transport, authUrl, body, timeoutMs)
   const resultCode = raw.resultCode || raw.P_STATUS || ''
   const resultMessage = raw.resultMsg || raw.P_RMESG1 || '승인 결과를 확인하지 못했습니다.'
   const returnedOrder = raw.MOID || raw.orderNumber || raw.P_OID || ''
   const returnedAmount = raw.TotPrice || raw.P_AMT || raw.price || ''
-  if (!response.ok || resultCode !== '0000') throw new Error(resultMessage)
-  if (!returnedOrder || returnedOrder !== safeOrderId(params.order.orderId)) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
-  if (!returnedAmount || Number(returnedAmount) !== params.order.amount) throw new Error('승인 결과의 결제금액이 일치하지 않습니다.')
+  const tid = raw.tid || raw.P_APPL_TID || raw.P_TID
+  // 결과 코드가 없으면 승인 여부를 모른다. 코드가 있고 성공이 아니면 돈이 나가지 않은 실패다.
+  if (!resultCode) throw new InicisApprovalUncertainError(resultMessage)
+  if (resultCode !== '0000') throw new Error(resultMessage)
+  // 여기부터는 이니시스가 승인했다. 우리 주문과 다르면 실패로 끝내지 말고 망취소한다.
+  if (!returnedOrder || returnedOrder !== safeOrderId(params.order.orderId)) throw new InicisApprovalUncertainError('승인 결과의 주문번호가 일치하지 않습니다.', tid)
+  if (!returnedAmount || Number(returnedAmount) !== params.order.amount) throw new InicisApprovalUncertainError('승인 결과의 결제금액이 일치하지 않습니다.', tid)
   return {
     resultCode,
     resultMessage,
-    tid: raw.tid || raw.P_APPL_TID || raw.P_TID,
+    tid,
     payMethod: raw.payMethod || raw.P_TYPE,
     approvalCode: raw.applNum || raw.P_AUTH_NO,
     raw,
@@ -555,21 +610,17 @@ export async function approveInicisMobilePayment(params: {
   tid: string
   requestUrl: string
   idcName: string
-}, transport: InicisTransport = fetch): Promise<InicisApprovalResult> {
+}, transport: InicisTransport = fetch, timeoutMs = INICIS_APPROVAL_TIMEOUT_MS): Promise<InicisApprovalResult> {
   const current = config()
   if (!current.mobileEnabled) throw new Error('이니시스 모바일 결제 설정이 없습니다.')
   const requestUrl = resolveInicisApprovalUrl(params.requestUrl, params.idcName, 'mobile')
-  const response = await transport(requestUrl, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-    body: new URLSearchParams({ P_MID: current.mid, P_TID: params.tid }),
-  })
-  const raw = await readInicisResponse(response)
+  const { raw } = await postToInicis(transport, requestUrl, new URLSearchParams({ P_MID: current.mid, P_TID: params.tid }), timeoutMs)
   const resultCode = raw.P_STATUS || raw.resultCode || ''
   const resultMessage = raw.P_RMESG1 || raw.resultMsg || '모바일 승인 결과를 확인하지 못했습니다.'
-  if (!response.ok || resultCode !== '00') throw new Error(resultMessage)
-  if (!raw.P_OID || raw.P_OID !== safeOrderId(params.order.orderId)) throw new Error('승인 결과의 주문번호가 일치하지 않습니다.')
-  if (!raw.P_AMT || Number(raw.P_AMT) !== params.order.amount) throw new Error('승인 결과의 결제금액이 일치하지 않습니다.')
+  if (!resultCode) throw new InicisApprovalUncertainError(resultMessage)
+  if (resultCode !== '00') throw new Error(resultMessage)
+  if (!raw.P_OID || raw.P_OID !== safeOrderId(params.order.orderId)) throw new InicisApprovalUncertainError('승인 결과의 주문번호가 일치하지 않습니다.', raw.P_TID)
+  if (!raw.P_AMT || Number(raw.P_AMT) !== params.order.amount) throw new InicisApprovalUncertainError('승인 결과의 결제금액이 일치하지 않습니다.', raw.P_TID)
   return {
     resultCode,
     resultMessage,
@@ -594,7 +645,7 @@ function pcApprovalBody(authToken: string, amount: number, signKey: string): URL
   })
 }
 
-export async function cancelInicisApproval(params: InicisCancellationContext, transport: InicisTransport = fetch): Promise<InicisNetworkCancelResult> {
+export async function cancelInicisApproval(params: InicisCancellationContext, transport: InicisTransport = fetch, timeoutMs = INICIS_APPROVAL_TIMEOUT_MS): Promise<InicisNetworkCancelResult> {
   const current = config()
   let url: string
   let body: URLSearchParams
@@ -620,12 +671,15 @@ export async function cancelInicisApproval(params: InicisCancellationContext, tr
       P_CHKFAKE: sha512Base64(`${params.order.amount}${oid}${timestamp}${current.hashKey}`),
     })
   }
-  const response = await transport(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-    body,
-  })
-  const raw = await readInicisResponse(response)
+  // 망취소도 응답을 무한정 기다리지 않는다. 결과를 모르면 실패로 돌려주고, 복구 쪽이 주문을
+  // approving(정산 대기)으로 남겨 관리자가 확인하게 한다.
+  let response: Response
+  let raw: Record<string, string>
+  try {
+    ({ response, raw } = await postToInicis(transport, url, body, timeoutMs))
+  } catch (error) {
+    return { success: false, resultCode: 'NETWORK', resultMessage: error instanceof Error ? error.message : '망취소 결과를 확인하지 못했습니다.', raw: {} }
+  }
   const resultCode = raw.resultCode || raw.P_STATUS || ''
   const resultMessage = raw.resultMsg || raw.P_RMESG1 || '망취소 결과를 확인하지 못했습니다.'
   return { success: response.ok && (resultCode === '0000' || resultCode === '00'), resultCode, resultMessage, raw }
