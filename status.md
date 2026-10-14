@@ -1,5 +1,13 @@
 # Status
 
+## 2026-10-14 — 카카오 챗봇 "상주 천명" AI 스킬 서버 (브랜치 claude/kakao-chatbot-ai)
+
+- [DECIDED] 10/12 "스킬 서버 연동 안 함" 번복. 제미나이(웹 천명상담과 같은 키·모델), 생각 강도 low, 손님당 매일 10번 무료, 소진·궁합 맛보기 뒤 "더 궁금해? 궁금하면 운명상회로 들어와봐." 안내(사용자 결정).
+- [DONE] `POST /api/kakao/skill`(src/kakao/), 마이그레이션 파일, 단위 테스트, 문서 `docs/admin-ops/kakao-chatbot-ai-skill-20261014.md`. 로컬 커밋.
+- [DONE] 10-15 typecheck 통과, `tests/unit/kakao-skill.test.ts` 9/9 통과(안내 문구 비교를 정규식→문자열 포함으로 고침).
+- [GATE H1] 원격 push·PR·머지. [GATE H2] 마이그레이션 운영 적용. [TODO] Vercel `KAKAO_SKILL_SECRET`, 챗봇 관리자센터 스킬 등록·폴백/우리궁합 블록 연결·콜백 켜기·배포.
+- [NOTE] 콜백은 별도 신청 없이 블록 더보기 > Callback 설정에서 바로 켜짐(2026-10-14 확인, 아직 끄진 상태).
+
 ## 2026-10-14 — 관리자 결제 취소 → 이니시스 실제 취소 (PR #147)
 
 - [DONE] 17:44 PR #147 머지(7326db6, main). PR CI 3/3 통과. main 의 #147 CI는 뒤이은 #145·#146 머지로 중단(cancelled)됐고, 이를 포함한 main 8543ab6 CI 2/2 통과, Vercel Production 배포 Ready.

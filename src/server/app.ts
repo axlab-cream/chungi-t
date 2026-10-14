@@ -14,6 +14,7 @@ import { authenticateConsultation } from '../consultation/auth.js'
 import { synthesizeConsultation } from '../consultation/voice.js'
 import { DEFAULT_CONSULTATION_SETTINGS, getConsultationSettings } from '../consultation/settings.js'
 import { getConsultationContentSnapshot } from '../admin/content-store.js'
+import { kakaoSkillHandler } from '../kakao/skill.js'
 import '../env/load.js'
 import { localizedPages } from './localized-pages.js'
 import type { ServerResponse } from 'node:http'
@@ -360,6 +361,8 @@ app.use(['/api/consultation/context', '/api/consultation/chat'], (_req, res, nex
   next()
 })
 app.use('/api/consultation', express.json({ limit: '4mb' }), consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
+// 카카오톡 채널 챗봇 "상주 천명" 스킬 서버. 비밀 헤더(KAKAO_SKILL_SECRET)로만 받는다. src/kakao/skill.ts
+app.post('/api/kakao/skill', express.json({ limit: '256kb' }), kakaoSkillHandler())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 // 푸시 발송(src/push/google-auth.ts)은 이 헤더의 OIDC 토큰으로 구글 인증을 받는다. 모듈 시점에는
