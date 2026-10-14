@@ -4023,7 +4023,7 @@
         }
       }
     </style>
-  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261014a"></script></head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261014b"></script></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -8251,7 +8251,8 @@
       }
 
       function renderResult() {
-        if (state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) { renderUnknownTimeResult(); return; }
+        // 시간을 몰라도 천명사주는 티저로 간다(티저가 시주·오행·대운 없이 읽는다). 연애운이거나 티저가 없을 때만 안내 화면이다.
+        if ((state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) && (isLoveThisYearService() || !window.UmshMasterTeaser)) { renderUnknownTimeResult(); return; }
         if (!isLoveThisYearService() && window.UmshMasterTeaser) {
           stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
           // 티저는 화면을 통째로 다시 그린다. 그 뒤에 걸어야 플로팅 전환이 산다.

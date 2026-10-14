@@ -31,3 +31,11 @@ test('unknown public structured analysis cannot expose provisional hour-derived 
   assert.equal(source.birth.hour,12)
   assert.equal(source.pillars.hour.hanja,'PROVISIONAL')
 })
+
+test('unknown public analysis keeps the time-independent yearly fortune and drops everything timing-dependent',()=>{
+  const fortune={currentYear:2026,yearPillar:'丙午',currentDaewoon:'PROVISIONAL',daewoon:[{pillar:'PROVISIONAL'}],startAge:9,startAgeText:'PROVISIONAL',direction:'forward',samjae:{state:'PROVISIONAL'}}
+  const result:any=projectUnknownBirthTime({birth:{year:1990,hour:12,minute:0},pillars:{year:{hanja:'YEAR'},day:{hanja:'DAY'},hour:{hanja:'PROVISIONAL'}},fortune,report:{sections:[]}},false)
+  assert.deepEqual(result.fortune,{currentYear:2026,yearPillar:'丙午'})
+  assert.ok(!JSON.stringify(result).includes('PROVISIONAL'))
+  assert.equal((projectUnknownBirthTime({birth:{},pillars:{},report:{}},false) as any).fortune,undefined,'no fortune in, no fortune out')
+})
