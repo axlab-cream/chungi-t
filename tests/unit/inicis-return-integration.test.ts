@@ -19,7 +19,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
   if (origin && url.origin === origin) return nativeFetch(input, init)
   providerCalls.push(url.href)
-  if (url.href === 'https://fcstdpay.inicis.com/stdpay/payAuth') {
+  if (url.href === 'https://fcstdpay.inicis.com/api/payAuth') {
     return Response.json({ resultCode: '0000', resultMsg: 'success', tid: 'pc-approved-tid', MOID: 'UMSH-pc-return', TotPrice: '19900', payMethod: 'Card', applNum: '12345678' })
   }
   if (url.href === 'https://fcmobile.inicis.com/smart/payReq.ini') {
@@ -66,7 +66,7 @@ describe('KG이니시스 PC·모바일 승인 콜백', { concurrency: false }, (
     await orderStore.savePaymentOrder(order('UMSH-pc-return'))
     const response = await nativeFetch(`${origin}/api/payment/inicis/return`, {
       method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ resultCode: '0000', mid: 'testmid', orderNumber: 'UMSH-pc-return', authToken: 'pc-auth-token', idc_name: 'fc', authUrl: 'https://fcstdpay.inicis.com/stdpay/payAuth', netCancelUrl: 'https://fcstdpay.inicis.com/stdpay/netCancel' }),
+      body: new URLSearchParams({ resultCode: '0000', mid: 'testmid', orderNumber: 'UMSH-pc-return', authToken: 'pc-auth-token', idc_name: 'fc', authUrl: 'https://fcstdpay.inicis.com/api/payAuth', netCancelUrl: 'https://fcstdpay.inicis.com/stdpay/netCancel' }),
     })
     assert.equal(response.status, 303)
     assert.equal((await orderStore.getPaymentOrder('UMSH-pc-return'))?.status, 'paid')
@@ -80,6 +80,6 @@ describe('KG이니시스 PC·모바일 승인 콜백', { concurrency: false }, (
     })
     assert.equal(response.status, 303)
     assert.equal((await orderStore.getPaymentOrder('UMSH-mobile-return'))?.status, 'paid')
-    assert.deepEqual(providerCalls, ['https://fcstdpay.inicis.com/stdpay/payAuth', 'https://fcmobile.inicis.com/smart/payReq.ini'])
+    assert.deepEqual(providerCalls, ['https://fcstdpay.inicis.com/api/payAuth', 'https://fcmobile.inicis.com/smart/payReq.ini'])
   })
 })

@@ -69,7 +69,7 @@ test('PC 승인 서명은 이니시스 NVP key=value 순서를 사용한다', as
   process.env.INICIS_SIGNKEY = 'test-sign-key'
   const order = { orderId: 'UMSHpc-signature', ownerId: 'owner-1', buyerEmail: 'buyer@example.com', buyerTel: '01012345678', productKey: 'home_pungsu', productTitle: '집 풍수', amount: 19900, status: 'approving', createdAt: '', updatedAt: '' } as PaymentOrder
   try {
-    await approveInicisPayment({ order, authToken: 'pc-auth-token', authUrl: 'https://fcstdpay.inicis.com/stdpay/payAuth', idcName: 'fc' }, async (_url, init) => {
+    await approveInicisPayment({ order, authToken: 'pc-auth-token', authUrl: 'https://fcstdpay.inicis.com/api/payAuth', idcName: 'fc' }, async (_url, init) => {
       const body = init.body as URLSearchParams
       const timestamp = body.get('timestamp') ?? ''
       assert.equal(body.get('signature'), createHash('sha256').update(`authToken=pc-auth-token&timestamp=${timestamp}`).digest('hex'))
