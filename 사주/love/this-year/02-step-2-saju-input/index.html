@@ -978,8 +978,17 @@
           document.querySelector("[data-thisyear-loading]")?.remove();
           submitButton.disabled = false;
           submitButton.textContent = "올해 연애 흐름 보기";
-          errorBox.innerHTML = `<strong>무료 해석을 준비하지 못했습니다.</strong><ul><li>${escapeHtml(error?.message || "잠시 후 다시 눌러 주세요.")}</li></ul>`;
+          // 저장된 프로필 사용을 골랐는데 계정에 사주가 없으면, 직접 입력 칸을 열어 준다.
+          if (error?.code === "PROFILE_REQUIRED" && currentProfileMode() === "saved_profile") {
+            setRadio("profile_mode", "new_profile");
+            syncProfileMode();
+            errorBox.innerHTML = `<strong>계정에 저장된 사주 정보가 없어요.</strong><ul><li>아래에 생년월일시를 입력한 뒤 다시 눌러 주세요.</li></ul>`;
+          } else {
+            errorBox.innerHTML = `<strong>무료 해석을 준비하지 못했습니다.</strong><ul><li>${escapeHtml(error?.message || "잠시 후 다시 눌러 주세요.")}</li></ul>`;
+          }
           errorBox.classList.add("is-visible");
+          // 오류 상자는 폼 맨 위에 있어 버튼을 누른 위치에서는 보이지 않는다.
+          errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }
 
@@ -1144,7 +1153,7 @@
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js"></script>
-    <script src="/js/thisyear-service.js?v=20261014-unknown-time" defer=""></script>
+    <script src="/js/thisyear-service.js?v=20261014-submit-feedback" defer=""></script>
   
 
 <script>(()=>{const time=document.getElementById('birthTime'),unknown=document.getElementById('birthTimeUnknown');unknown.addEventListener('change',()=>{time.disabled=unknown.checked;if(unknown.checked)time.value='';});})();</script></body></html>
