@@ -98,6 +98,58 @@ export async function approveRefundRequest(input: { refundId: string, actorEmail
 }
 
 /**
+ * 결제사 환불 실행 시작(2026-10). requested·approved → processing.
+ *
+ * 2026-10-14 운영 결정으로 관리자 한 사람이 바로 환불(결제 취소)할 수 있다. 그래서 이 전이는
+ * approve_refund_request RPC 의 "요청자≠승인자" 검사를 거치지 않는다. 실행한 관리자를
+ * approved_by_email 에 남기고, 누가 왜 했는지는 감사 기록(refund.execute)이 정본이다.
+ * revision·state 조건부 갱신이라 두 번 눌러도 결제사 호출은 한 번만 나간다.
+ */
+export async function startRefundExecution(input: { refundId: string, actorEmail: string, expectedRevision: number }): Promise<RefundRequest> {
+  if (!input.refundId || !/^\S+@\S+\.\S+$/.test(input.actorEmail) || !Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) throw new Error('REFUND_INPUT_INVALID')
+  const actorEmail = input.actorEmail.trim().toLowerCase()
+  const now = new Date().toISOString()
+  if (base && key) {
+    const params = new URLSearchParams({ id: `eq.${input.refundId}`, state: 'in.(requested,approved)', revision: `eq.${input.expectedRevision}`, select: refundColumns })
+    const response = await fetch(`${base}/rest/v1/refund_requests?${params.toString()}`, { method: 'PATCH', headers: { ...headers(), prefer: 'return=representation' }, body: JSON.stringify({ state: 'processing', approved_by_email: actorEmail, approved_at: now, revision: input.expectedRevision + 1, updated_at: now }) })
+    if (!response.ok) throw refundFailure(await response.text(), 'REFUND_EXECUTE_FAILED')
+    const rows = await response.json() as Record<string, unknown>[]
+    if (!rows.length) {
+      const current = await getRefundRequest(input.refundId)
+      if (!current) throw new Error('REFUND_NOT_FOUND')
+      throw new Error(['requested', 'approved'].includes(current.state) ? 'REFUND_REVISION_CONFLICT' : 'REFUND_NOT_REQUESTED')
+    }
+    return fromRow(rows[0])
+  }
+  if (!canUseTestStore()) throw new Error('REFUND_STORE_UNAVAILABLE')
+  const found = Array.from(testRequests.entries()).find(([, value]) => value.id === input.refundId)
+  if (!found) throw new Error('REFUND_NOT_FOUND'); const [mapKey, current] = found
+  if (current.state !== 'requested' && current.state !== 'approved') throw new Error('REFUND_NOT_REQUESTED')
+  if (current.revision !== input.expectedRevision) throw new Error('REFUND_REVISION_CONFLICT')
+  const next = { ...current, state: 'processing' as const, approvedByEmail: actorEmail, approvedAt: now, updatedAt: now, revision: current.revision + 1 }
+  testRequests.set(mapKey, next); return { ...next }
+}
+
+/** 결제사 응답을 기록한다. processing → succeeded·failed·unknown. */
+export async function finishRefundExecution(input: { refundId: string, expectedRevision: number, state: 'succeeded' | 'failed' | 'unknown' }): Promise<RefundRequest> {
+  const now = new Date().toISOString()
+  if (base && key) {
+    const params = new URLSearchParams({ id: `eq.${input.refundId}`, state: 'eq.processing', revision: `eq.${input.expectedRevision}`, select: refundColumns })
+    const response = await fetch(`${base}/rest/v1/refund_requests?${params.toString()}`, { method: 'PATCH', headers: { ...headers(), prefer: 'return=representation' }, body: JSON.stringify({ state: input.state, revision: input.expectedRevision + 1, updated_at: now }) })
+    if (!response.ok) throw refundFailure(await response.text(), 'REFUND_EXECUTE_FAILED')
+    const rows = await response.json() as Record<string, unknown>[]
+    if (!rows.length) throw new Error('REFUND_REVISION_CONFLICT')
+    return fromRow(rows[0])
+  }
+  if (!canUseTestStore()) throw new Error('REFUND_STORE_UNAVAILABLE')
+  const found = Array.from(testRequests.entries()).find(([, value]) => value.id === input.refundId)
+  if (!found) throw new Error('REFUND_NOT_FOUND'); const [mapKey, current] = found
+  if (current.state !== 'processing' || current.revision !== input.expectedRevision) throw new Error('REFUND_REVISION_CONFLICT')
+  const next = { ...current, state: input.state, updatedAt: now, revision: current.revision + 1 }
+  testRequests.set(mapKey, next); return { ...next }
+}
+
+/**
  * 환불 요청 반려(2026-10 관리자 개편). 아직 승인 전(requested)이고 버전이 맞을 때만 rejected 로 닫는다.
  * 처리한 관리자는 approved_by_email 칸에 남긴다(화면에서는 "처리자"). 누가 왜 했는지는 감사 기록이 정본이다.
  */

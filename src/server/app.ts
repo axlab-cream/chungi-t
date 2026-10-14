@@ -112,7 +112,8 @@ import { toAdminPaymentOrderDto } from '../payment/order-admin-dto.js'
 import { projectApprovedPayment } from '../payment/payment-projection.js'
 import { backfillReportCompletions, describeReportCompletion, enqueueReportCompletion, maintainReportCompletionQueue, PURGEABLE_JOB_STATES, purgeReportCompletionJobsForOwner, restartReportCompletion } from '../report/report-completion-job.js'
 import { backfillCmdgServiceKeyIfMatching } from '../report/report-data-repair.js'
-import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests, rejectRefundRequest } from '../payment/refund-store.js'
+import { approveRefundRequest, createRefundRequest, getRefundRequest, listRefundRequests, rejectRefundRequest, startRefundExecution } from '../payment/refund-store.js'
+import { executeInicisRefund, isInicisRefundConfigured, refundUnsupportedReason } from '../payment/inicis-refund.js'
 import {
   buildUserBirthProfile,
   checkUserProfileStorageReadiness,
@@ -3048,6 +3049,10 @@ const REFUND_FAILURES: Record<string, { status: number; error: string }> = {
   IDEMPOTENCY_IN_PROGRESS: { status: 409, error: '같은 요청이 아직 처리 중입니다. 결과를 확인한 뒤 다시 시도해 주세요.' },
   REFUND_INPUT_INVALID: { status: 422, error: '요청 값을 확인해 주세요.' },
   REFUND_STORE_UNAVAILABLE: { status: 503, error: '환불 기록을 불러오지 못했습니다. 아무것도 처리하지 않았습니다.' },
+  REFUND_PG_NOT_CONFIGURED: { status: 503, error: '이니시스 취소 API 키(INICIS_INIAPI_KEY)가 설정되지 않아 결제를 취소할 수 없습니다. 아무것도 처리하지 않았습니다.' },
+  REFUND_PROVIDER_UNSUPPORTED: { status: 409, error: '이니시스 카드 결제만 여기서 취소할 수 있습니다. 앱(구글) 결제는 Play Console 에서 환불해 주세요.' },
+  REFUND_TID_MISSING: { status: 409, error: '이니시스 거래번호가 없는 주문이라 취소할 수 없습니다. 이니시스 상점관리자에서 확인해 주세요.' },
+  REFUND_PARTIAL_UNSUPPORTED: { status: 409, error: '여기서는 전체 금액 취소만 됩니다. 부분 환불은 이니시스 상점관리자에서 처리해 주세요.' },
 }
 
 function respondRefundFailure(res: Response, error: unknown, fallback: string): void {
@@ -3104,6 +3109,59 @@ app.post('/api/admin/v1/refunds/:refundId/approve', async (req, res) => {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.approve', idempotencyKey, body: { refundId, expectedRevision, reason }, target: { type: 'refund_request', id: refundId } }, async () => approveRefundRequest({ refundId, actorEmail: membership.email, expectedRevision }))
     res.status(command.replayed ? 200 : 202).json({ refund: command.result, replayed: command.replayed, pgCalled: false })
   } catch (error) { respondRefundFailure(res, error, 'REFUND_APPROVE_FAILED') }
+})
+
+/**
+ * 관리자 환불 = 이니시스 결제 취소(2026-10-14). 관리자 한 사람이 경고 팝업을 확인하면 바로 실행한다.
+ *
+ * 순서: 주문·결제사 확인 → 환불 기록(requested) → processing 으로 잠금 → INIAPI 전체취소 →
+ * succeeded·failed·unknown 기록 → 성공이면 주문 cancelled. processing 잠금이 조건부 갱신이라
+ * 같은 환불에 결제사 호출이 두 번 나가지 않고, 멱등 키로 같은 클릭의 재전송은 저장된 결과를 돌려준다.
+ */
+async function assertInicisRefundable(order: PaymentOrder, amount: number): Promise<void> {
+  if (order.status !== 'paid' && order.status !== 'viewed') throw new Error('REFUND_ORDER_NOT_REFUNDABLE')
+  const unsupported = refundUnsupportedReason(order)
+  if (unsupported) throw new Error(unsupported)
+  // 전체취소만 연다. 다른 환불이 이미 잡혀 있으면 createRefundRequest 가 금액 초과로 막는다.
+  if (amount !== order.amount) throw new Error('REFUND_PARTIAL_UNSUPPORTED')
+  if (!isInicisRefundConfigured()) throw new Error('REFUND_PG_NOT_CONFIGURED')
+}
+
+app.post('/api/admin/v1/orders/:orderId/refunds', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:approve'); if (!membership) return
+  const orderId = trimmedString(req.params.orderId); const body = asObject(req.body)
+  const reason = trimmedString(body.reason); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!orderId || !reason || reason.length > 240 || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_REQUEST', error: '사유, 주문 revision, 멱등 키를 확인해 주세요.' }); return }
+  try {
+    const order = await getPaymentOrder(orderId)
+    if (!order) { res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' }); return }
+    await assertInicisRefundable(order, order.amount)
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.execute', idempotencyKey, body: { orderId, reason, expectedRevision }, target: { type: 'payment_order', id: orderId } }, async () => {
+      const requested = await createRefundRequest({ orderId, amount: order.amount, reason, actorEmail: membership.email, idempotencyKey, orderAmount: order.amount, orderRevision: expectedRevision })
+      const processing = await startRefundExecution({ refundId: requested.id, actorEmail: membership.email, expectedRevision: requested.revision })
+      return executeInicisRefund({ refund: processing, order })
+    })
+    res.json({ ...command.result, replayed: command.replayed, pgCalled: true })
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_EXECUTE_FAILED') }
+})
+
+/** 예전 방식(요청만 남김)으로 쌓인 환불 요청을 이니시스 취소로 마무리한다. 실행자는 요청자와 같아도 된다. */
+app.post('/api/admin/v1/refunds/:refundId/execute', async (req, res) => {
+  const membership = await requireStaff(req, res, 'refunds:approve'); if (!membership) return
+  const refundId = trimmedString(req.params.refundId); const body = asObject(req.body); const expectedRevision = Number(body.expectedRevision); const idempotencyKey = adminCommandKey(req)
+  if (!refundId || !Number.isInteger(expectedRevision) || expectedRevision < 0 || idempotencyKey.length < 8) { res.status(422).json({ code: 'INVALID_REFUND_EXECUTE', error: '환불 요청과 버전을 확인해 주세요.' }); return }
+  try {
+    const refund = await getRefundRequest(refundId)
+    if (!refund) throw new Error('REFUND_NOT_FOUND')
+    const order = await getPaymentOrder(refund.orderId)
+    if (!order) throw new Error('REFUND_ORDER_NOT_FOUND')
+    await assertInicisRefundable(order, refund.amount)
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), { actorEmail: membership.email, action: 'refund.execute', idempotencyKey, body: { refundId, expectedRevision }, target: { type: 'refund_request', id: refundId } }, async () => {
+      const processing = await startRefundExecution({ refundId, actorEmail: membership.email, expectedRevision })
+      return executeInicisRefund({ refund: processing, order })
+    })
+    res.json({ ...command.result, replayed: command.replayed, pgCalled: true })
+  } catch (error) { respondRefundFailure(res, error, 'REFUND_EXECUTE_FAILED') }
 })
 
 /** 환불 요청 반려(2026-10). 승인 전 요청만, 버전이 맞을 때만. 결제사 환불은 일어나지 않는다. */

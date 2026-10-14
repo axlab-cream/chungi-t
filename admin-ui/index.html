@@ -1137,7 +1137,7 @@
             var button = document.createElement('button'); button.type = 'button'; button.className = 'admin-button'; button.textContent = action.label;
             if (!action.primary) button.setAttribute('data-variant', 'quiet');
             if (action.danger) button.setAttribute('data-tone', 'danger');
-            button.addEventListener('click', function () { action.onClick(dialog); });
+            button.addEventListener('click', function () { action.onClick(dialog, button); });
             foot.appendChild(button);
           });
           dialog.appendChild(foot);
@@ -3617,14 +3617,14 @@
       }
       async function loadRefunds(body, onSaved) {
         body.replaceChildren();
-        var requestSection = document.createElement('section'); requestSection.className = 'admin-section'; requestSection.innerHTML = '<header class="admin-section-head"><h3>결제 번호로 환불 요청</h3></header>';
+        var requestSection = document.createElement('section'); requestSection.className = 'admin-section'; requestSection.innerHTML = '<header class="admin-section-head"><h3>결제 번호로 결제 취소</h3></header>';
         var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
-        form.innerHTML = '<div class="admin-field" data-span="2"><label>결제 번호</label><input required name="orderId" autocomplete="off" placeholder="결제 상세에서 복사한 번호"></div><div class="admin-field"><label>요청 금액</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="결제 확인 후 자동 입력"></div><div class="admin-field"><label>사유</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">결제 확인</button><button class="admin-button" type="submit" name="submit">환불 요청 저장</button></div><p class="admin-note" role="status" data-refund-request-result>결제를 확인하면 금액이 자동으로 채워집니다. 결제 내역 탭에서 행을 눌러 요청하는 편이 더 쉽습니다.</p>';
+        form.innerHTML = '<div class="admin-field" data-span="2"><label>결제 번호</label><input required name="orderId" autocomplete="off" placeholder="결제 상세에서 복사한 번호"></div><div class="admin-field"><label>취소 금액(전체)</label><input required name="amount" type="number" min="1" step="1" inputmode="numeric" readonly placeholder="결제 확인 후 자동 입력"></div><div class="admin-field"><label>사유</label><select name="reasonCode"><option value="duplicate_payment">중복 결제</option><option value="customer_request">고객 요청</option><option value="service_issue">서비스 이슈</option><option value="other">기타</option></select></div><div class="admin-field" data-span="2"><label>상세 사유</label><input required name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 입력"></div><div class="admin-actions"><button class="admin-button" type="button" name="lookup">결제 확인</button><button class="admin-button" type="submit" name="submit">결제 취소</button></div><p class="admin-note" role="status" data-refund-request-result>결제를 확인하면 금액이 자동으로 채워집니다. 결제 내역 탭에서 행을 눌러 요청하는 편이 더 쉽습니다.</p>';
         var order = null; var result = form.querySelector('[data-refund-request-result]'); var lookup = form.elements.lookup; var submit = form.elements.submit;
         async function lookupOrder() { var orderId = form.elements.orderId.value.trim(); if (!orderId) { result.textContent = '결제 번호를 입력해 주세요.'; return; } lookup.disabled = true; result.textContent = '결제를 확인하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(orderId), { credentials: 'same-origin' }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok || !payload.order) throw new Error(payload.error || '결제를 찾지 못했습니다.'); order = payload.order; form.elements.amount.value = String(order.amount); result.textContent = '확인됨: ' + (order.productTitle || '') + ' ' + Number(order.amount).toLocaleString('ko-KR') + '원. 환불 가능 금액은 저장할 때 다시 확인합니다.'; } catch (error) { order = null; result.textContent = error instanceof Error ? error.message : '결제를 확인하지 못했습니다.'; } finally { lookup.disabled = false; } }
         lookup.addEventListener('click', lookupOrder);
-        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } if (!await adminConfirm(Number(amount).toLocaleString('ko-KR') + '원 환불 요청을 남깁니다. 저장한 요청은 지울 수 없고, 반려로만 닫을 수 있습니다.', { title: '환불 요청', okLabel: '요청 저장', danger: true, irreversible: true })) return; submit.disabled = true; result.textContent = '환불 요청을 기록하는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '환불 요청을 저장하지 못했습니다.'); result.textContent = '환불 요청을 기록했습니다. 다른 관리자의 승인이 필요하며 결제사 환불은 아직 실행되지 않았습니다.'; form.reset(); order = null; if (onSaved) { document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); }); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); onSaved(); } else await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '환불 요청을 저장하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
-        requestSection.appendChild(form); body.appendChild(requestSection); adminPageAction('refund-request', '＋ 환불 요청', requestSection, { primary: true });
+        form.addEventListener('submit', async function (event) { event.preventDefault(); if (!order || order.orderId !== form.elements.orderId.value.trim()) { await lookupOrder(); if (!order) return; } var amount = Number(form.elements.amount.value); var reason = form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(); if (!Number.isSafeInteger(amount) || amount <= 0 || !form.elements.description.value.trim()) { result.textContent = '요청 금액과 상세 사유를 확인해 주세요.'; return; } if (cancelUnsupportedNote(order)) { result.textContent = cancelUnsupportedNote(order); return; } if (!await confirmPaymentCancel(amount, '결제 취소')) return; submit.disabled = true; result.textContent = '이니시스에 결제 취소를 보내는 중입니다.'; try { var response = await fetch('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refunds', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ reason: reason, expectedRevision: order.revision }) }); var payload = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(payload.error || '결제를 취소하지 못했습니다.'); result.textContent = payload.message || '처리했습니다.'; form.reset(); order = null; if (onSaved) { document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); }); toastRefundOutcome(payload); onSaved(); } else await loadRefunds(body); } catch (error) { result.textContent = error instanceof Error ? error.message : '결제를 취소하지 못했습니다. 입력값을 유지했습니다.'; } finally { submit.disabled = false; } });
+        requestSection.appendChild(form); body.appendChild(requestSection); adminPageAction('refund-request', '＋ 결제 취소', requestSection, { primary: true });
         if (onSaved) return;
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<header class="admin-section-head"><h3>환불 요청</h3><span class="admin-chip">결제사 환불은 별도 처리</span></header><p class="admin-empty">환불 요청을 불러오는 중입니다.</p>'; body.appendChild(listSection);
         try { var response = await fetch('/api/admin/v1/refunds', { credentials: 'same-origin' }); if (!response.ok) throw new Error('REFUND_LIST_FAILED'); var payload = await response.json(); var refunds = Array.isArray(payload.refunds) ? payload.refunds : []; var table = document.createElement('table'); table.className = 'admin-table'; table.innerHTML = '<thead><tr><th scope="col">요청 ID</th><th scope="col">주문</th><th scope="col">금액</th><th scope="col">처리 상태</th><th scope="col">요청자 · 승인자</th><th scope="col">최근 변경</th><th scope="col">검토</th></tr></thead>'; var rows = document.createElement('tbody'); if (!refunds.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">아직 환불 요청이 없습니다. 주문 확인 후 요청을 등록할 수 있습니다.</td>'; rows.appendChild(empty); } refunds.forEach(function (refund) { var row = document.createElement('tr'); var state = refundStatus(refund.state); [[refund.id, true], [refund.orderId, true], [Number(refund.amount).toLocaleString('ko-KR') + '원'], [state.text], [(refund.requestedByEmail || '—') + ' · ' + (refund.approvedByEmail || '미승인')], [formatRefundDate(refund.updatedAt)]].forEach(function (entry, index) { var cell = document.createElement('td'); if (index === 3) { var label = document.createElement('span'); label.className = 'admin-status'; label.dataset.tone = state.tone; label.textContent = entry[0]; cell.appendChild(label); } else { cell.textContent = entry[0]; if (index === 2) cell.className = 'admin-amount'; } row.appendChild(cell); }); var action = document.createElement('td'); var inspect = document.createElement('button'); inspect.className = 'admin-button'; inspect.type = 'button'; inspect.textContent = refund.state === 'requested' ? '승인 검토' : '상세 확인'; inspect.addEventListener('click', function () { var previous = body.querySelector('[data-refund-detail]'); if (previous) previous.remove(); var detail = document.createElement('div'); detail.dataset.refundDetail = 'true'; body.appendChild(detail); renderRefundApproval(detail, refund); detail.scrollIntoView({ block: 'nearest' }); }); action.appendChild(inspect); row.appendChild(action); rows.appendChild(row); }); table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table); listSection.replaceChildren(listSection.firstElementChild, scroll); } catch (_error) { var notice = listSection.querySelector('.admin-empty'); if (notice) notice.textContent = '환불 요청 목록을 불러오지 못했습니다.'; }
@@ -4068,8 +4068,9 @@
 
       /*
        * 결제 › 결제 관리 (2026-10 개편 3단계). 탭: 결제 내역 · 환불 · 매출.
-       * 결제 내역 행 → 결제 상세 팝업 → [환불 요청]. 환불 행 → 환불 상세 팝업 → [승인] / [반려].
-       * 결제사(이니시스·구글) 환불은 여기서 실행되지 않는다. 승인은 "환불해도 된다"는 기록이다.
+       * 결제 내역 행 → 결제 상세 팝업 → [결제 취소]. 환불 행 → 환불 상세 팝업 → [결제 취소 실행] / [반려].
+       * 2026-10-14: 결제 취소는 경고 팝업을 확인하면 이니시스 전체취소(INIAPI)를 바로 보낸다(관리자 한 사람).
+       * 구글 앱 결제는 Play Console 에서, 부분 환불은 이니시스 상점관리자에서 처리한다.
        */
       var ORDER_STATUS = {
         ready: { label: '결제 대기', tone: '' }, approving: { label: '승인 중', tone: 'info' }, paid: { label: '결제 완료', tone: 'ok' },
@@ -4116,24 +4117,39 @@
       }
       function adminLink(label, path) { var a = document.createElement('a'); a.className = 'admin-link'; a.href = ADMIN_BASE + path; a.textContent = label; return a; }
 
+      /** 결제 취소 직전 경고. 확인을 눌러야만 이니시스로 취소가 나간다. */
+      function confirmPaymentCancel(amount, title) {
+        return adminConfirm('이니시스에 실제 결제 취소를 보냅니다. 고객에게 ' + won(amount) + '이 환불되고, 이 결제로 열린 풀이·상담권은 더 이상 쓸 수 없습니다. 정말 취소하시겠습니까?', { title: title || '결제 취소', okLabel: '결제 취소', danger: true, irreversible: true });
+      }
+      /** 서버가 돌려준 결제사 처리 결과를 그대로 알린다. 확인 필요(unknown)는 경고로 남긴다. */
+      function toastRefundOutcome(data) {
+        var message = (data && data.message) || '처리 결과를 확인해 주세요.';
+        adminToast(message, data && data.outcome === 'succeeded' ? undefined : 'error');
+      }
+      function cancelUnsupportedNote(order) {
+        var method = String(order.payMethod || '').toUpperCase();
+        if (method === 'GOOGLE_PLAY') return '앱(구글) 결제는 여기서 취소할 수 없습니다. Play Console 에서 환불해 주세요.';
+        if (method === 'TEST') return '테스트 결제라 취소할 실제 결제가 없습니다.';
+        return '';
+      }
+
       async function openRefundRequestForm(order, onDone) {
         var form = document.createElement('form'); form.className = 'admin-refund-form'; form.noValidate = true;
-        form.innerHTML = '<div class="admin-field"><label>환불 금액</label><input name="amount" inputmode="numeric" required></div>'
+        form.innerHTML = '<div class="admin-field"><label>취소 금액(전체)</label><input name="amount" inputmode="numeric" readonly></div>'
           + '<div class="admin-field"><label>사유</label><select name="reasonCode">' + Object.keys(REFUND_REASONS).map(function (key) { return '<option value="' + key + '">' + REFUND_REASONS[key] + '</option>'; }).join('') + '</select></div>'
           + '<div class="admin-field" data-span="2"><label>상세 사유</label><input name="description" maxlength="200" placeholder="내부 확인에 필요한 사실만 적어 주세요"></div>';
-        form.elements.amount.value = String(order.amount);
-        var lead = document.createElement('p'); lead.className = 'admin-note'; lead.textContent = order.productTitle + ' · ' + won(order.amount) + ' 결제에 대한 환불 요청을 남깁니다. 다른 관리자가 승인해야 하고, 결제사 환불은 승인 뒤 따로 처리합니다.';
+        form.elements.amount.value = won(order.amount);
+        var lead = document.createElement('p'); lead.className = 'admin-note'; lead.textContent = order.productTitle + ' · ' + won(order.amount) + ' 결제를 이니시스에서 전체 취소합니다. 부분 환불은 이니시스 상점관리자에서 처리해 주세요.';
         var wrap = document.createElement('div'); wrap.append(lead, form);
-        openAdminModal({ title: '환불 요청', body: wrap, actions: [
-          { label: '취소', onClick: function (d) { d.close(); } },
-          { label: '요청 저장', primary: true, onClick: async function (d) {
-            var amount = Number(String(form.elements.amount.value).replace(/[^0-9]/g, ''));
-            if (!amount || amount > order.amount) { adminToast('환불 금액을 확인해 주세요. 결제 금액을 넘을 수 없습니다.', 'error'); return; }
-            if (!await adminConfirm(won(amount) + ' 환불 요청을 남깁니다. 저장한 요청은 지울 수 없고, 반려로만 닫을 수 있습니다.', { title: '환불 요청', okLabel: '요청 저장', danger: true, irreversible: true })) return;
+        openAdminModal({ title: '결제 취소', body: wrap, actions: [
+          { label: '닫기', onClick: function (d) { d.close(); } },
+          { label: '결제 취소', danger: true, primary: true, onClick: async function (d, button) {
+            if (!await confirmPaymentCancel(order.amount, '결제 취소')) return;
+            if (button) button.disabled = true;
             try {
-              await adminJson('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refund-requests', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amount: amount, reason: form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(), expectedRevision: order.revision }) });
-              d.close(); adminToast('환불 요청을 남겼습니다. 다른 관리자의 승인을 기다립니다.'); if (onDone) onDone();
-            } catch (error) { adminToast(error.message, 'error'); }
+              var data = await adminJson('/api/admin/v1/orders/' + encodeURIComponent(order.orderId) + '/refunds', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ reason: form.elements.reasonCode.value + ': ' + form.elements.description.value.trim(), expectedRevision: order.revision }) });
+              d.close(); toastRefundOutcome(data); if (onDone) onDone();
+            } catch (error) { if (button) button.disabled = false; adminToast(error.message, 'error'); }
           } },
         ] });
       }
@@ -4166,7 +4182,11 @@
         });
         wrap.append(left, right);
         var actions = [{ label: '닫기', onClick: function (d) { d.close(); } }];
-        if (order.status === 'paid' || order.status === 'viewed') actions.push({ label: '환불 요청', primary: true, onClick: function (d) { d.close(); openRefundRequestForm(order, reload); } });
+        if (order.status === 'paid' || order.status === 'viewed') {
+          var unsupported = cancelUnsupportedNote(order);
+          if (unsupported) { var why = document.createElement('p'); why.className = 'admin-note'; why.textContent = unsupported; left.appendChild(why); }
+          else actions.push({ label: '결제 취소', danger: true, primary: true, onClick: function (d) { d.close(); openRefundRequestForm(order, reload); } });
+        }
         openAdminModal({ title: order.productTitle + ' · ' + won(order.amount), subtitle: (ORDER_STATUS[order.status] || { label: order.status }).label + ' · ' + new Date(order.createdAt).toLocaleString('ko-KR'), body: wrap, actions: actions });
       }
 
@@ -4259,8 +4279,10 @@
           ['요청일', new Date(refund.createdAt).toLocaleString('ko-KR')], ['최근 변경', new Date(refund.updatedAt).toLocaleString('ko-KR')],
         ]));
         var note = document.createElement('p'); note.className = 'admin-note';
-        note.textContent = refund.state === 'requested'
-          ? (refund.requestedByEmail === me ? '본인이 남긴 요청은 승인할 수 없습니다. 다른 관리자가 승인해야 합니다. 반려(요청 취소)는 할 수 있습니다.' : '승인하면 "환불해도 된다"는 기록이 남습니다. 결제사 환불은 승인 뒤 결제사 관리자 화면에서 처리합니다.')
+        note.textContent = refund.state === 'requested' || refund.state === 'approved'
+          ? '[결제 취소 실행]을 누르고 경고를 확인하면 이니시스에 전체 취소를 보냅니다. 취소하지 않으려면 반려하세요.'
+          : refund.state === 'unknown' ? '이니시스 응답을 받지 못했습니다. 이니시스 상점관리자에서 이 결제가 취소됐는지 확인해 주세요.'
+          : refund.state === 'failed' ? '이니시스가 취소를 거절했습니다. 결제는 그대로입니다.'
           : '이미 처리된 요청입니다.';
         wrap.appendChild(note);
         var actions = [{ label: '닫기', onClick: function (d) { d.close(); } }];
@@ -4269,10 +4291,12 @@
             if (!await adminConfirm('이 환불 요청을 반려합니다. 결제는 그대로 유지되고, 반려한 요청은 다시 열 수 없습니다(필요하면 새로 요청).', { title: '환불 요청 반려', okLabel: '반려', danger: true, irreversible: true })) return;
             try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/reject', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision }) }); d.close(); adminToast('반려했습니다.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
           } });
-          if (refund.requestedByEmail !== me) actions.push({ label: '승인', primary: true, onClick: async function (d) {
-            var reason = await adminPrompt('승인 근거를 적어 주세요. 승인 기록은 지울 수 없습니다.', { title: '환불 승인', okLabel: '승인', placeholder: '예: 중복 결제 확인' });
-            if (reason === null) return; if (!reason.trim()) { adminToast('승인 근거를 적어 주세요.', 'error'); return; }
-            try { await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/approve', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision, reason: reason.trim() }) }); d.close(); adminToast('승인했습니다. 결제사 환불은 따로 처리해 주세요.'); reload(); } catch (error) { adminToast(error.message, 'error'); }
+        }
+        if (refund.state === 'requested' || refund.state === 'approved') {
+          actions.push({ label: '결제 취소 실행', danger: true, primary: true, onClick: async function (d, button) {
+            if (!await confirmPaymentCancel(refund.amount, '결제 취소 실행')) return;
+            if (button) button.disabled = true;
+            try { var data = await adminJson('/api/admin/v1/refunds/' + encodeURIComponent(refund.id) + '/execute', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: refund.revision }) }); d.close(); toastRefundOutcome(data); reload(); } catch (error) { if (button) button.disabled = false; adminToast(error.message, 'error'); }
           } });
         }
         openAdminModal({ title: '환불 요청 · ' + won(refund.amount), subtitle: (REFUND_STATE[refund.state] || { label: refund.state }).label, body: wrap, actions: actions });

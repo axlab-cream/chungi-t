@@ -118,8 +118,8 @@ export interface InicisSandboxAdapter {
 }
 
 const INICIS_SANDBOX_API_BASE_URL = 'https://stginiapi.inicis.com'
-const INICIS_SANDBOX_INQUIRY_URL = `${INICIS_SANDBOX_API_BASE_URL}/v2/pg/inquiry`
-const INICIS_SANDBOX_REFUND_URL = `${INICIS_SANDBOX_API_BASE_URL}/v2/pg/refund`
+/** 운영 INIAPI(취소·조회). 매뉴얼 manual.inicis.com/pay/cancel.html 의 운영환경 URL. */
+export const INICIS_LIVE_API_BASE_URL = 'https://iniapi.inicis.com'
 
 function envValue(value: string | undefined, fallback: string): string {
   return value?.trim() || fallback
@@ -435,7 +435,12 @@ export function createInicisSandboxAdapter(params: {
   clientIp: string
   transport: InicisSandboxTransport
   now?: () => Date
+  /** 기본은 스테이징. 관리자 환불 실행만 운영 주소를 넘긴다. */
+  baseUrl?: string
 }): InicisSandboxAdapter {
+  const baseUrl = params.baseUrl ?? INICIS_SANDBOX_API_BASE_URL
+  const inquiryUrl = `${baseUrl}/v2/pg/inquiry`
+  const refundUrl = `${baseUrl}/v2/pg/refund`
   const mid = requiredInicisApiField(params.mid, '이니시스 MID', 10)
   const iniApiKey = requiredInicisApiField(params.iniApiKey, 'INIAPI Key', 256)
   const clientIp = requiredInicisApiField(params.clientIp, '가맹점 서버 IP', 45)
@@ -463,7 +468,7 @@ export function createInicisSandboxAdapter(params: {
         ? { tid: requiredInicisApiField(tid, 'TID', 40) }
         : { oid: requiredInicisApiField(oid, '주문번호', 80) }
       const raw = await sendSandboxRequest({
-        url: INICIS_SANDBOX_INQUIRY_URL,
+        url: inquiryUrl,
         body: createRequest('inquiry', data),
         timeoutMs: boundedTimeout(input.timeoutMs),
         transport: params.transport,
@@ -487,7 +492,7 @@ export function createInicisSandboxAdapter(params: {
         msg: requiredInicisApiField(input.reason, '취소 사유', 80),
       }
       const raw = await sendSandboxRequest({
-        url: INICIS_SANDBOX_REFUND_URL,
+        url: refundUrl,
         body: createRequest('refund', data),
         timeoutMs: boundedTimeout(input.timeoutMs),
         transport: params.transport,
