@@ -194,7 +194,7 @@
       });
       const payload = await response.json().catch(() => ({}));
       if (session?.user?.id !== paymentOwnerId) { testPopup?.close(); throw new Error('로그인 계정이 변경되었습니다. 화면을 새로고침해 주세요.'); }
-      if (!response.ok) throw Object.assign(new Error(payload.error || '결제 주문을 만들지 못했습니다.'), { code: payload.code });
+      if (!response.ok) throw Object.assign(new Error(payload.error || '결제 주문을 만들지 못했습니다.'), { code: payload.code, orderId: payload.orderId });
       if (paymentConfig.testMode) {
         testPopup.location.replace(`/payment/test?orderId=${encodeURIComponent(payload.order.orderId)}`);
         setStatus('테스트 결제창을 열었습니다. 팝업에서 승인해 주세요.');
@@ -228,6 +228,7 @@
       setStatus('이니시스 결제창을 여는 중입니다.');
       global.INIStdPay.pay(sendForm);
     } catch (error) {
+      if (error.code === 'ALREADY_PAID') { testPopup?.close(); showAlreadyPaid(error.orderId); return; }
       setStatus(error.code === 'PROFILE_REQUIRED' ? '결제 전에 사주 프로필을 먼저 등록해 주세요.' : error.message);
       button.disabled = session?.user?.id !== paymentOwnerId;
     }
@@ -334,6 +335,52 @@
     return true;
   }
 
+  /** 결제 완료 화면의 "전체 풀이보기"와 같은 주소. payment-result.js 의 paidReadingUrl 과 규칙이 같다. */
+  function paidReadingUrl(orderId) {
+    const template = String(product?.readingPath || '').trim();
+    const params = new URLSearchParams({ paid: '1' });
+    if (orderId) params.set('orderId', orderId);
+    if (!template) return reportId ? `/r/${encodeURIComponent(reportId)}` : '/';
+    const hashAt = template.indexOf('#');
+    const address = hashAt >= 0 ? template.slice(0, hashAt) : template;
+    const hash = hashAt >= 0 ? template.slice(hashAt) : '';
+    if (reportId && !address.includes('reportId=')) params.set('reportId', reportId);
+    return `${address}${address.includes('?') ? '&' : '?'}${params.toString()}${hash}`;
+  }
+
+  /**
+   * 이미 결제한 풀이면 결제창 대신 풀이로 안내한다(2026-10). 결제 완료 화면에서 브라우저 뒤로
+   * 가기를 누르면 이 화면이 다시 열려서, 같은 풀이를 한 번 더 결제할 수 있었다.
+   */
+  function showAlreadyPaid(orderId) {
+    button.hidden = true;
+    if (freeCouponButton) freeCouponButton.hidden = true;
+    setStatus('이미 결제한 풀이입니다. 다시 결제하지 않아도 됩니다.');
+    if (form.querySelector('[data-already-paid]')) return;
+    const link = document.createElement('a');
+    link.className = 'payment-submit';
+    link.setAttribute('data-already-paid', '');
+    link.href = paidReadingUrl(orderId);
+    link.textContent = '풀이 보기';
+    status?.insertAdjacentElement('beforebegin', link);
+  }
+
+  async function checkAlreadyPaid() {
+    if (!reportId || !product || product.key === 'cheonmyeong_consultation' || !session) return false;
+    try {
+      const params = new URLSearchParams({ productKey: product.key, reportId });
+      const response = await fetch(`/api/payment/purchase-status?${params}`, { headers: authHeaders(), cache: 'no-store' });
+      if (!response.ok) return false;
+      const payload = await response.json();
+      if (!payload.paid) return false;
+      showAlreadyPaid(payload.orderId);
+      return true;
+    } catch (_error) {
+      // 조회에 실패해도 결제는 막지 않는다. 서버가 주문을 만들 때 한 번 더 확인한다.
+      return false;
+    }
+  }
+
   async function init() {
     // Keep the caller's own return path across the PG round-trip, so a reader lands back
     // on the exact step they left instead of the product's generic entry page.
@@ -359,6 +406,7 @@
     }
     await initAuth();
     if (!session) return;
+    if (await checkAlreadyPaid()) return;
     form.buyerEmail.value = session.user?.email || '';
     await loadCoupons();
     const recovered = await recoverAppPurchases();
@@ -373,4 +421,6 @@
   }
 
   init().catch((error) => setStatus(error.message || '결제 화면을 불러오지 못했습니다.'));
+  // 뒤로 가기로 메모리에 남아 있던 화면이 그대로 되살아나면(bfcache) init 이 다시 돌지 않는다.
+  global.addEventListener('pageshow', (event) => { if (event.persisted) checkAlreadyPaid(); });
 })(window);
