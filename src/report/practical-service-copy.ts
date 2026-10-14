@@ -42,7 +42,8 @@ export function workSymbol(analysis: SajuAnalysis, kind: 'role' | 'money' | 'lea
     timing: ['식상(食傷, 생각을 표현하고 결과로 만드는 방식을 살피는 상징)', ['식신', '상관'], '준비한 내용이 확인 가능한 결과물로 남았는지'],
   } as const
   const [term, stars, question] = vocabulary[kind]
-  if (birthTimeKnown === false) return `전통 명리에서 ${term}을 참고합니다. 출생 시간을 모르므로 임시 시각이 포함된 십성 요약의 유무나 개수는 개인 근거로 사용하지 않습니다. 이 상징은 ${question} 돌아보는 질문으로만 사용하며, 실제 입력과 확인 가능한 조건을 우선합니다.`
+  // 시간을 모르면 십성(시주 포함 8글자로 정해짐)을 근거로 쓰지 않는다. 그 사실을 섹션마다 되풀이해 알리지 않는다.
+  if (birthTimeKnown === false) return `전통 명리에서 ${term}을 참고합니다. 이 상징은 ${question} 돌아보는 질문으로만 사용하며, 실제 입력과 확인 가능한 조건을 우선합니다.`
   const present = analysis.tenGods.filter((star) => (stars as readonly string[]).includes(star))
   const signal = present.length ? `제공된 십성(十星, 일간을 기준으로 다른 기운과의 관계를 나눈 열 가지 분류) 요약에는 ${[...new Set(present)].join('·')} 항목이 이 묶음에 들어갑니다.` : '제공된 십성(十星, 일간을 기준으로 다른 기운과의 관계를 나눈 열 가지 분류) 요약에는 이 묶음이 따로 나타나지 않습니다. 그것이 명식 전체에 전혀 없다는 뜻은 아닙니다.'
   return `전통 명리에서 ${term}을 참고합니다. ${signal} 이 상징은 ${question} 돌아보는 질문으로 사용합니다. 성향이나 결과를 이 값 하나로 판정하지 않고, 아래의 실제 장면이 확인될 때만 해석을 연결합니다.`

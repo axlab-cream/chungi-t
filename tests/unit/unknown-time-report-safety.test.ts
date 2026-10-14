@@ -61,7 +61,8 @@ test('unknown job-choice opening and all fallback sections do not count provisio
   const second = buildJobChoiceReport(changed, birth, { ...unknown, serviceKey: 'job_choice' }, input, 'same-report')
   assert.equal(first.reportId, 'same-report')
   assert.deepEqual(first.sections.map(s => s.interpretation), second.sections.map(s => s.interpretation))
-  assert.ok(first.sections.every(s => /출생 시간/.test(s.interpretation)))
+  // 임시 십성을 근거로 쓰지 않는 것은 위 deepEqual 이 보장한다. 그 사실을 섹션마다 되풀이해 알리지는 않는다.
+  assert.ok(first.sections.every(s => !/출생 시간을 모르므로/.test(s.interpretation)))
   const known = buildJobChoiceReport({ ...analysis, tenGods: ['정관'] }, birth, { ...unknown, birthTimeKnown: true, serviceKey: 'job_choice' }, input)
   assert.match(known.sections[0].interpretation, /정관/)
 })
