@@ -25,3 +25,6 @@
 *.mp4   binary
 *.webm  binary
 *.mhtml binary
+
+# 되돌리기 패치는 줄 끝(CR/LF)이 한 글자라도 바뀌면 적용되지 않는다. 자동 변환하지 않는다.
+docs/legacy/*.patch -text
