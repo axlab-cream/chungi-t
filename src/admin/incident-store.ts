@@ -1,3 +1,4 @@
+import { applyRange, type AdminRange } from './date-range.js'
 import { configuredEnv } from '../env/load.js'
 
 type Row = Record<string, unknown>
@@ -57,11 +58,13 @@ function updateNote(row: Row): IncidentUpdateNote {
   return { id: String(row.id), incidentId: String(row.incident_id), author: String(row.author_email), text: String(row.text), createdAt: String(row.created_at) }
 }
 
-export async function listIncidents(limit = 100): Promise<AdminIncident[]> {
+/** 기간을 주면 발생 기록 시각(created_at) 기준으로 최대 300건. */
+export async function listIncidents(limit = 100, range?: AdminRange | null): Promise<AdminIncident[]> {
   const request = new URL(table('admin_incidents'))
   request.searchParams.set('select', SELECT)
   request.searchParams.set('order', 'status.asc,created_at.desc')
-  request.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 100)))
+  request.searchParams.set('limit', String(Math.min(Math.max(range ? 300 : limit, 1), range ? 300 : 100)))
+  applyRange(request, 'created_at', range)
   const response = await fetch(request, { headers: headers() })
   if (!response.ok) throw new Error('INCIDENT_LOOKUP_FAILED')
   return (await response.json() as Row[]).map(incident)
