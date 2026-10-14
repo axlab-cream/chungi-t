@@ -138,9 +138,10 @@ function tableUrl(table: string): string {
   return `${supabaseUrl}/rest/v1/${table}`
 }
 
-async function countRows(table: string, key: string): Promise<number> {
+async function countRows(table: string, key: string, filters: Record<string, string> = {}): Promise<number> {
   const url = new URL(tableUrl(table))
   url.searchParams.set('select', key)
+  for (const [column, filter] of Object.entries(filters)) url.searchParams.append(column, filter)
   url.searchParams.set('limit', '1')
   const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
   if (!response.ok) throw new Error('LIVE_DATA_COUNT_FAILED')
@@ -148,6 +149,13 @@ async function countRows(table: string, key: string): Promise<number> {
   if (total && /^\d+$/.test(total)) return Number(total)
   return (await response.json() as unknown[]).length
 }
+
+/**
+ * 2026-10-13 비회원(익명 계정)도 사주 프로필을 저장한다(profile_payload.account_type = 'guest').
+ * 회원 목록·회원 수에는 표시 없는 행만, 비회원 수에는 표시 있는 행만 센다.
+ */
+const MEMBER_PROFILE_FILTER = { 'profile_payload->>account_type': 'is.null' }
+const GUEST_PROFILE_FILTER = { 'profile_payload->>account_type': 'eq.guest' }
 
 function clipped(value: unknown, fallback: string): string {
   const text = typeof value === 'string' ? value.trim() : ''
@@ -229,6 +237,7 @@ export async function listLiveMembers(limit = 20, offset = 0): Promise<AdminMemb
   const url = new URL(tableUrl('cheongi_user_profiles'))
   url.searchParams.set('select', 'user_id,name,created_at,updated_at')
   url.searchParams.set('order', 'updated_at.desc')
+  for (const [column, filter] of Object.entries(MEMBER_PROFILE_FILTER)) url.searchParams.append(column, filter)
   const safeLimit = Math.min(Math.max(limit, 1), 50)
   const safeOffset = Math.max(offset, 0)
   url.searchParams.set('limit', String(safeLimit))
@@ -297,6 +306,7 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
   const url = new URL(tableUrl('cheongi_user_profiles'))
   url.searchParams.set('select', 'user_id,name,created_at,updated_at')
   url.searchParams.set('order', MEMBER_SORTS[query.sort ?? 'recent'] ?? MEMBER_SORTS.recent)
+  for (const [column, filter] of Object.entries(MEMBER_PROFILE_FILTER)) url.searchParams.append(column, filter)
   const safeLimit = Math.min(Math.max(Math.trunc(query.limit ?? 20) || 20, 1), 100)
   const safeOffset = Math.max(Math.trunc(query.offset ?? 0) || 0, 0)
   url.searchParams.set('limit', String(safeLimit))
@@ -413,7 +423,12 @@ export async function memberContactsByIds(ids: string[]): Promise<Map<string, Me
 }
 
 export function countLiveMembers(): Promise<number> {
-  return countRows('cheongi_user_profiles', 'user_id')
+  return countRows('cheongi_user_profiles', 'user_id', MEMBER_PROFILE_FILTER)
+}
+
+/** 사주 정보를 넣었지만 SNS 로그인은 안 한 비회원 수. */
+export function countLiveGuests(): Promise<number> {
+  return countRows('cheongi_user_profiles', 'user_id', GUEST_PROFILE_FILTER)
 }
 
 export async function findLiveMember(memberId: string): Promise<AdminMemberSummary | null> {
@@ -685,9 +700,10 @@ export async function generationFailureStats(days = 7, range?: AdminRange | null
 }
 
 /** 대시보드(6단계): 기간 안에 만든 행 수. created_at 범위 + exact count 헤더만 쓴다. */
-async function countCreatedBetween(table: string, key: string, from: Date, to: Date): Promise<number> {
+async function countCreatedBetween(table: string, key: string, from: Date, to: Date, filters: Record<string, string> = {}): Promise<number> {
   const url = new URL(tableUrl(table))
   url.searchParams.set('select', key)
+  for (const [column, filter] of Object.entries(filters)) url.searchParams.append(column, filter)
   url.searchParams.set('limit', '1')
   url.searchParams.append('created_at', `gte.${from.toISOString()}`)
   url.searchParams.append('created_at', `lt.${to.toISOString()}`)
@@ -699,7 +715,11 @@ async function countCreatedBetween(table: string, key: string, from: Date, to: D
 }
 
 export function countMembersCreated(from: Date, to: Date): Promise<number> {
-  return countCreatedBetween('cheongi_user_profiles', 'user_id', from, to)
+  return countCreatedBetween('cheongi_user_profiles', 'user_id', from, to, MEMBER_PROFILE_FILTER)
+}
+
+export function countGuestsCreated(from: Date, to: Date): Promise<number> {
+  return countCreatedBetween('cheongi_user_profiles', 'user_id', from, to, GUEST_PROFILE_FILTER)
 }
 
 export function countReportsCreated(from: Date, to: Date): Promise<number> {
@@ -984,7 +1004,7 @@ export async function setMemberBanned(userId: string, banned: boolean): Promise<
  * 정렬 순서에 기대지 않고 쪽마다 끝까지 훑는다. 상한(쪽 수)에 닿으면 truncated 로 알린다.
  * 계정별 정보는 내보내지 않고 수와 가입 수단별 수만 돌려준다.
  */
-export function countSignups(users: Array<{ created_at?: string | null; app_metadata?: { provider?: unknown } | null }>, since: string, until?: string): { signups: number; byProvider: Record<string, number> } {
+export function countSignups(users: Array<{ created_at?: string | null; is_anonymous?: boolean | null; app_metadata?: { provider?: unknown } | null }>, since: string, until?: string): { signups: number; byProvider: Record<string, number> } {
   const from = Date.parse(since)
   const to = until ? Date.parse(until) : Infinity
   const byProvider: Record<string, number> = {}
@@ -992,6 +1012,8 @@ export function countSignups(users: Array<{ created_at?: string | null; app_meta
   for (const user of users) {
     const at = Date.parse(user.created_at ?? '')
     if (!(at >= from) || !(at < to)) continue
+    // 비회원(익명 계정)은 가입이 아니다.
+    if (user.is_anonymous === true) continue
     signups += 1
     const raw = typeof user.app_metadata?.provider === 'string' ? user.app_metadata.provider : 'unknown'
     const provider = raw === 'custom:naver' ? 'naver' : raw
@@ -1003,7 +1025,7 @@ export function countSignups(users: Array<{ created_at?: string | null; app_meta
 export async function signupStats(since: string, maxPages = 20, until?: string): Promise<{ signups: number; byProvider: Record<string, number>; truncated: boolean }> {
   if (!supabaseUrl) throw new Error('LIVE_DATA_STORE_UNAVAILABLE')
   const perPage = 500
-  const users: Array<{ created_at?: string | null; app_metadata?: { provider?: unknown } | null }> = []
+  const users: Array<{ created_at?: string | null; is_anonymous?: boolean | null; app_metadata?: { provider?: unknown } | null }> = []
   let truncated = true
   for (let page = 1; page <= maxPages; page += 1) {
     const response = await fetch(`${supabaseUrl}/auth/v1/admin/users?page=${page}&per_page=${perPage}`, { headers: serviceHeaders() })

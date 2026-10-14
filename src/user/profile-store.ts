@@ -49,6 +49,8 @@ type UserProfileRow = {
     life_context?: UserLifeContext
     birth_time_zone?: string
     birth_time_disambiguation?: BirthInput['birthTimeDisambiguation']
+    /** 'guest' = SNS 로그인 전 비회원(익명 계정). 관리자 회원 수에서 빼고 비회원 수로 센다. */
+    account_type?: 'guest'
   }
   created_at: string
   updated_at: string
@@ -272,6 +274,8 @@ export async function saveUserBirthProfile(profile: UserBirthProfile, owner: Rep
     lifeContext: profile.lifeContext === undefined ? previous?.lifeContext : profile.lifeContext,
   }
   const row = profileToRow(next)
+  // 회원으로 저장하면 표시가 빠진다. 익명 계정에 SNS를 이어 붙여 같은 id로 회원이 된 경우도 다음 저장에서 회원이 된다.
+  if (owner.isAnonymous) row.profile_payload = { ...row.profile_payload, account_type: 'guest' }
 
   if (storageMode() === 'memory') {
     memoryProfiles.set(owner.id, cloneProfile(next))
