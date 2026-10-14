@@ -44,7 +44,7 @@ async function harness(replies: Reply[], items: unknown[] = []) {
   const calls: { url: string; method: string; body?: Record<string, unknown>; key?: string }[] = []
   let sequence = 0
   let editor: Element | undefined
-  const context = vm.createContext({ adminConfirm: async () => true, adminTip: () => new Element('button'), memberChip: () => new Element('span'), memberWhen: () => '—', iconizeButtons: () => {}, showSectionModal: () => {}, adminPageAction: (_key: string, _label: string, section: Element) => { editor = section }, document: { createElement: (tag: string) => new Element(tag) }, crypto: { randomUUID: () => `synthetic-key-${++sequence}` }, fetch: async (url: string, options: { method?: string; body?: string; headers?: Record<string, string> } = {}) => {
+  const context = vm.createContext({ adminCount: () => null, adminConfirm: async () => true, adminTip: () => new Element('button'), memberChip: () => new Element('span'), memberWhen: () => '—', iconizeButtons: () => {}, showSectionModal: () => {}, adminPageAction: (_key: string, _label: string, section: Element) => { editor = section }, document: { createElement: (tag: string) => new Element(tag) }, crypto: { randomUUID: () => `synthetic-key-${++sequence}` }, fetch: async (url: string, options: { method?: string; body?: string; headers?: Record<string, string> } = {}) => {
     calls.push({ url, method: options.method ?? 'GET', body: options.body ? JSON.parse(options.body) : undefined, key: options.headers?.['Idempotency-Key'] })
     if (calls.length === 1) return { ok: true, json: async () => ({ versionStore: 'ready', items, defaults: DEFAULT_CONSULTATION_SETTINGS }) }
     const reply = replies.shift(); if (!reply || reply.error) throw new Error('synthetic network error')

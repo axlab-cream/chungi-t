@@ -379,6 +379,19 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
   return { members, total }
 }
 
+/**
+ * 2026-10-14 요청: 회원 관리에서 전체 몇 명인지, 거른 결과가 몇 명인지 함께 본다.
+ * 조건 없이 센 전체(회원+비회원)와 회원·비회원 수. 목록 조회와 별개라 실패하면 화면은 거른 수만 보여 준다.
+ */
+export async function countMemberKinds(): Promise<{ all: number; member: number; guest: number }> {
+  const [all, member, guest] = await Promise.all([
+    countRows('cheongi_user_profiles', 'user_id'),
+    countLiveMembers(),
+    countLiveGuests(),
+  ])
+  return { all, member, guest }
+}
+
 export type AdminMemberReport = { reportId: string; serviceTitle: string; status: string; createdAt: string; updatedAt: string }
 
 /** 회원 상세 › 리포트 탭. 본문·생년월일은 싣지 않고 상태(payload.status)·서비스만 JSON 경로로 뽑는다. */
@@ -759,7 +772,7 @@ export async function countGuestConversions(from: Date, to: Date): Promise<numbe
   const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
   if (!response.ok) throw new Error('LIVE_DATA_COUNT_FAILED')
   const total = response.headers.get('content-range')?.split('/')[1]
-  if (total && /^d+$/.test(total)) return Number(total)
+  if (total && /^\d+$/.test(total)) return Number(total)
   return (await response.json() as unknown[]).length
 }
 

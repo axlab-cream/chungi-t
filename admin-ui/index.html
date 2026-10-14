@@ -386,6 +386,9 @@
     .admin-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
     .admin-filterbar[hidden] { display: none; }
     .admin-filterbar input[data-table-search] { min-width: 220px; }
+    /* 2026-10-14: 목록 전체 수 · 조건에 맞는 수. 검색줄 오른쪽 끝에 둔다. */
+    .admin-count { margin-left: auto; font-size: 13px; color: var(--admin-text-muted); white-space: nowrap; }
+    .admin-count b { margin-left: 3px; color: var(--admin-text); font-weight: 700; }
     .admin-block-title { margin: 22px 0 8px; font-size: 15px; font-weight: 700; color: var(--admin-text); }
     .admin-block-title:first-child { margin-top: 4px; }
     .admin-block { display: flex; flex-direction: column; min-width: 0; }
@@ -487,7 +490,7 @@
     .admin-table th[aria-sort='descending']::after { content: '↓'; color: var(--admin-focus); }
     .admin-table th.admin-sortable:hover { color: var(--admin-text); }
     .admin-table tr[hidden] { display: none; }
-    .admin-table-tools { display: flex; justify-content: flex-start; padding: 10px 12px 6px; }
+    .admin-table-tools { display: flex; justify-content: flex-start; align-items: center; gap: 8px; padding: 10px 12px 6px; }
     .admin-table-tools input { width: 240px; }
     .admin-icon-button { display: inline-grid; place-items: center; width: 30px; height: 30px; min-height: 30px; padding: 0; border: 1px solid var(--admin-line); border-radius: 6px; background: var(--admin-surface) !important; color: var(--admin-text-muted) !important; cursor: pointer; vertical-align: middle; }
     .admin-icon-button + .admin-icon-button, .admin-icon-button + .admin-button, .admin-button + .admin-icon-button { margin-left: 4px; }
@@ -1299,6 +1302,28 @@
           th.addEventListener('keydown', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); sortBy(); } });
         });
       }
+      /**
+       * 2026-10-14 요청: 목록마다 전체 몇 건인지, 지금 조건(상태 탭·검색·기간)에 맞는 게 몇 건인지 검색줄 오른쪽에 같이 보여 준다.
+       * 화면이 전체 수를 먼저 적어 두면(owner 'page') 표 검색(enhanceTable)은 그 위에 검색으로 남은 수만 고쳐 쓴다.
+       * total 을 모르면(서버가 세지 못함, 서버가 기간으로 이미 거른 목록) 조건에 맞는 수만 보여 준다.
+       */
+      function adminCount(bar, total, matched, unit, filtered, owner) {
+        if (!bar) return null;
+        var node = null;
+        Array.prototype.forEach.call(bar.children, function (child) { if (child.classList.contains('admin-count')) node = child; });
+        if (!node) { node = document.createElement('span'); node.className = 'admin-count'; node.setAttribute('role', 'status'); bar.appendChild(node); }
+        if (total == null && !filtered) total = matched;
+        node.dataset.total = total == null ? '' : String(total); node.dataset.unit = unit || '건';
+        node.dataset.filtered = filtered ? '1' : ''; node.dataset.owner = owner || 'page';
+        paintAdminCount(node, matched, Boolean(filtered));
+        return node;
+      }
+      function paintAdminCount(node, matched, filtered) {
+        var unit = node.dataset.unit || '건'; node.replaceChildren();
+        function part(label, value) { var b = document.createElement('b'); b.textContent = Number(value || 0).toLocaleString('ko-KR') + unit; node.append(label, b); }
+        if (node.dataset.total !== '') part('전체', node.dataset.total);
+        if (filtered || node.dataset.total === '') { if (node.childNodes.length) node.append(' · '); part('조건에 맞는', matched); }
+      }
       function enhanceTable(table) {
         if (table.hasAttribute('data-enhanced')) return;
         var tbody = table.tBodies[0]; var head = table.tHead;
@@ -1336,6 +1361,10 @@
           var tools = document.createElement('div'); tools.className = 'admin-table-tools'; tools.appendChild(search);
           holder.parentNode.insertBefore(tools, holder);
         }
+        // 화면이 적어 둔 전체 수가 있으면 그대로 쓰고, 없으면 이 표의 줄 수가 전체다.
+        var countBar = bar || tools; var countNode = null;
+        Array.prototype.forEach.call(countBar.children, function (child) { if (child.classList.contains('admin-count') && child.dataset.owner === 'page') countNode = child; });
+        if (!countNode) countNode = adminCount(countBar, rows.length, rows.length, table.dataset.countUnit, false, 'table');
         // 아래: 건수 · 페이지 · 한 화면 개수(오른쪽 아래)
         var foot = document.createElement('div'); foot.className = 'admin-pager';
         var info = document.createElement('span');
@@ -1362,6 +1391,7 @@
           visible.slice(from, to).forEach(function (row) { row.hidden = false; });
           if (!visible.length) tbody.appendChild(emptyRow); else if (emptyRow.parentNode) emptyRow.remove();
           info.textContent = visible.length ? visible.length.toLocaleString('ko-KR') + '건 중 ' + (from + 1) + '–' + Math.min(to, visible.length) : '0건';
+          paintAdminCount(countNode, visible.length, countNode.dataset.filtered === '1' || Boolean(state.query));
           current.textContent = (state.page + 1) + ' / ' + pages;
           prev.disabled = state.page === 0; next.disabled = state.page >= pages - 1;
         }
@@ -1466,7 +1496,7 @@
         if (linkedKind === 'member' || linkedKind === 'guest') memberListState.kind = linkedKind;
         var kindSeg = document.createElement('div'); kindSeg.className = 'admin-seg'; kindSeg.setAttribute('role', 'group'); kindSeg.setAttribute('aria-label', '회원 구분');
         [['', '전체'], ['member', '회원'], ['guest', '비회원']].forEach(function (entry) {
-          var button = document.createElement('button'); button.type = 'button'; button.dataset.kind = entry[0]; button.textContent = entry[1];
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.kind = entry[0]; button.dataset.label = entry[1]; button.textContent = entry[1];
           button.addEventListener('click', function () { memberListState.kind = entry[0]; memberListState.offset = 0; refresh(); });
           kindSeg.appendChild(button);
         });
@@ -1505,6 +1535,13 @@
           var payload = await response.json();
           var members = Array.isArray(payload.members) ? payload.members : [];
           var total = Number(payload.total || 0);
+          // 2026-10-14 요청: 전체 회원 수와 지금 조건에 맞는 회원 수를 검색줄 오른쪽에, 회원·비회원 수는 구분 버튼에 붙인다.
+          var counts = payload.counts || null;
+          adminCount(body.querySelector('form.admin-filterbar'), counts ? counts.all : null, total, '명', Boolean(memberListState.q || memberListState.paid || memberListState.kind || adminRange()));
+          if (counts) body.querySelectorAll('.admin-seg[aria-label="회원 구분"] button').forEach(function (button) {
+            var n = button.dataset.kind === 'member' ? counts.member : button.dataset.kind === 'guest' ? counts.guest : counts.all;
+            button.textContent = button.dataset.label + ' ' + Number(n || 0).toLocaleString('ko-KR');
+          });
           // 서버가 거르고 나눈 페이지라 화면 쪽 정렬·페이지(enhanceTable)는 겹치지 않게 끈다.
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
           table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">구분</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col">풀이·결제 알림</th><th scope="col">이벤트 알림</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
@@ -1555,7 +1592,7 @@
           var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           var pager = document.createElement('div'); pager.className = 'admin-pager';
           var first = total ? memberListState.offset + 1 : 0; var last = Math.min(total, memberListState.offset + members.length);
-          var summary = document.createElement('span'); summary.textContent = '총 ' + total.toLocaleString('ko-KR') + '명 중 ' + first + '–' + last;
+          var summary = document.createElement('span'); summary.textContent = total.toLocaleString('ko-KR') + '명 중 ' + first + '–' + last;
           var buttons = document.createElement('div'); buttons.className = 'admin-pager-buttons';
           var pageCount = Math.max(1, Math.ceil(total / memberListState.limit));
           var currentPage = Math.floor(memberListState.offset / memberListState.limit) + 1;
@@ -1956,6 +1993,7 @@
           var payload = await response.json();
           var reports = Array.isArray(payload.reports) ? payload.reports : [];
           var total = Number(payload.total || 0);
+          adminCount(section.previousElementSibling, typeof payload.overall === 'number' ? payload.overall : null, total, '건', Boolean(reportListState.q || reportListState.status || adminRange()));
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
           table.innerHTML = '<thead><tr><th scope="col">만든 날</th><th scope="col">입력 이름</th><th scope="col">서비스</th><th scope="col">상태</th><th scope="col">구분</th><th scope="col">회원 계정</th><th scope="col">최근 변경</th><th scope="col"></th></tr></thead>';
           var rows = document.createElement('tbody');
@@ -1976,7 +2014,7 @@
           var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           var pager = document.createElement('div'); pager.className = 'admin-pager';
           var first = total ? reportListState.offset + 1 : 0; var last = Math.min(total, reportListState.offset + reports.length);
-          var summary = document.createElement('span'); summary.textContent = '총 ' + total.toLocaleString('ko-KR') + '건 중 ' + first + '–' + last;
+          var summary = document.createElement('span'); summary.textContent = total.toLocaleString('ko-KR') + '건 중 ' + first + '–' + last;
           var buttons = document.createElement('div'); buttons.className = 'admin-pager-buttons';
           var pageCount = Math.max(1, Math.ceil(total / reportListState.limit));
           var prev = document.createElement('button'); prev.type = 'button'; prev.textContent = '‹'; prev.setAttribute('aria-label', '이전 페이지'); prev.disabled = reportListState.offset <= 0;
@@ -2163,12 +2201,16 @@
             serviceSeg.replaceChildren();
             [['all', '전체', services.length], ['selling', '판매 중', services.filter(function (item) { return item.saleAvailable; }).length], ['stopped', '판매 중단', services.filter(function (item) { return !item.saleAvailable; }).length], ['hidden', '숨김', services.filter(function (item) { return !item.discoveryVisible; }).length]].forEach(function (entry) {
               var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + ' ' + entry[2]; button.setAttribute('aria-pressed', serviceFilter === entry[0] ? 'true' : 'false');
-              button.addEventListener('click', function () { serviceFilter = entry[0]; drawServiceSeg(); renderServiceTable(services.filter(function (item) { return serviceFilter === 'all' || (serviceFilter === 'selling' ? item.saleAvailable : serviceFilter === 'stopped' ? !item.saleAvailable : !item.discoveryVisible); })); });
+              button.addEventListener('click', function () {
+                serviceFilter = entry[0]; drawServiceSeg();
+                var shown = services.filter(function (item) { return serviceFilter === 'all' || (serviceFilter === 'selling' ? item.saleAvailable : serviceFilter === 'stopped' ? !item.saleAvailable : !item.discoveryVisible); });
+                adminCount(serviceBar, services.length, shown.length, '개', serviceFilter !== 'all'); renderServiceTable(shown);
+              });
               serviceSeg.appendChild(button);
             });
           }
           drawServiceSeg(); var serviceBar = document.createElement('div'); serviceBar.className = 'admin-filterbar'; serviceBar.appendChild(serviceSeg); body.insertBefore(serviceBar, listSection);
-          renderServiceTable(services);
+          adminCount(serviceBar, services.length, services.length, '개', false); renderServiceTable(services);
           var bulkButton = initSection.querySelector('[data-bulk-init]'); var bulkResult = initSection.querySelector('[data-bulk-init-result]');
           var targets = services.filter(function (item) { return !item.publishedVersion && !item.draftVersion; });
           bulkButton.textContent = targets.length ? ('발행 기록 없는 ' + targets.length + '개 서비스 초기화') : '초기화할 대상이 없습니다';
@@ -2551,6 +2593,7 @@
             if (listFilter.state && popupStateLabel(item) !== listFilter.state) return false;
             return !listFilter.q || String((item.payload || {}).title || '').toLocaleLowerCase().indexOf(listFilter.q) >= 0;
           });
+          adminCount(filters, items.length, shown.length, '개', Boolean(listFilter.state || listFilter.q || adminRange()));
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
           table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">노출 기간</th><th scope="col" class="admin-num">버튼 클릭<br><small>최근 30일</small></th><th scope="col">상태</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
@@ -2751,6 +2794,7 @@
           filters.hidden = state.view !== 'history';
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false'); });
           var list = state.items.filter(matches);
+          if (state.view === 'history') adminCount(filters, state.items.filter(function (item) { return item.status !== 'scheduled' && item.status !== 'draft'; }).length, list.length, '건', state.status !== 'all' || Boolean(state.query));
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
           var head = state.view === 'scheduled'
             ? ['예약 시각', '채널', '메시지', '대상', '상태', '작성자']
@@ -3088,6 +3132,7 @@
           return { key: 'live', label: '발급 중', tone: 'ok' };
         }
         function render(items) {
+          var allCount = items.length;
           items = items.filter(function (item) { return adminOverlapsRange(item.startsAt, item.expiresAt); });
           list.replaceChildren();
           var bar = couponBar; bar.replaceChildren();
@@ -3100,6 +3145,7 @@
           });
           bar.appendChild(seg);
           var shown = items.filter(function (item) { return listState.filter === 'all' || couponState(item).key === listState.filter; });
+          adminCount(bar, allCount, shown.length, '개', listState.filter !== 'all' || Boolean(adminRange()));
           if (!shown.length) { list.appendChild(memberEmpty(items.length ? '해당하는 쿠폰이 없습니다.' : '아직 발급한 쿠폰이 없습니다.')); return; }
           list.appendChild(memberTable(['쿠폰', '코드', '종류', '적용 서비스', '혜택', '#등록', '#사용', '#사용률', '기간', '상태', '관리'], shown, function (item) {
             var p = snapshot.products.find(function (p) { return p.key === item.productKey; });
@@ -3165,6 +3211,7 @@
             if (listFilter.state && item.state !== listFilter.state) return false;
             var parsed = item.settings || {}; return !listFilter.q || ((parsed.name || '') + ' ' + (parsed.bannerTitle || '')).toLocaleLowerCase().indexOf(listFilter.q) >= 0;
           });
+          adminCount(filters, rowsData.length, shown.length, '개', Boolean(listFilter.state || listFilter.q));
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
           table.innerHTML = '<thead><tr><th scope="col">상태</th><th scope="col">상담자</th><th scope="col">홈 배너 제목</th><th scope="col">상담 이용</th><th scope="col" class="admin-num">버전</th><th scope="col">마지막 수정</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
@@ -3374,6 +3421,7 @@
           try {
             var payload = await adminJson('/api/admin/v1/audit?' + params.toString());
             var events = Array.isArray(payload.events) ? payload.events : []; var total = Number(payload.total || 0);
+            adminCount(filters, typeof payload.overall === 'number' ? payload.overall : null, total, '건', Boolean(auditState.area || auditState.actor || adminRange()));
             if (!events.length) { section.replaceChildren(memberEmpty(auditState.area || auditState.actor || adminRange() ? '조건에 맞는 변경 이력이 없습니다.' : '아직 기록된 변경이 없습니다.')); return; }
             var table = memberTable(['시각', '관리자', '작업', '대상', '결과'], events, function (item) {
               var name = document.createElement('span'); name.textContent = AUDIT_ACTION_LABELS[item.action] || item.action; name.appendChild(adminTip(item.action));
@@ -3381,7 +3429,7 @@
               return [memberWhen(item.createdAt), item.actor, name, target, item.result === 'succeeded' ? memberChip('완료', 'ok') : memberChip('시작', '')];
             });
             var pager = document.createElement('div'); pager.className = 'admin-pager';
-            var summary = document.createElement('span'); summary.textContent = '총 ' + total.toLocaleString('ko-KR') + '건 중 ' + (auditState.offset + 1) + '–' + Math.min(total, auditState.offset + events.length);
+            var summary = document.createElement('span'); summary.textContent = total.toLocaleString('ko-KR') + '건 중 ' + (auditState.offset + 1) + '–' + Math.min(total, auditState.offset + events.length);
             var buttons = document.createElement('div'); buttons.className = 'admin-pager-buttons';
             var prev = document.createElement('button'); prev.type = 'button'; prev.textContent = '‹'; prev.setAttribute('aria-label', '이전 페이지'); prev.disabled = auditState.offset <= 0;
             var next = document.createElement('button'); next.type = 'button'; next.textContent = '›'; next.setAttribute('aria-label', '다음 페이지'); next.disabled = auditState.offset + auditState.limit >= total;
@@ -3788,6 +3836,8 @@
             button.textContent = button.textContent.replace(/ \d+$/, '') + (count ? ' ' + count : '');
           });
           var list = state.items.filter(function (item) { return state.group === 'all' || (SUPPORT_GROUPS[state.group] || []).indexOf(item.status) >= 0; });
+          // 기간을 고르면 서버가 이미 거른 목록이라 전체 수는 모른다.
+          adminCount(filters, adminRange() ? null : state.items.length, list.length, '건', state.group !== 'all' || Boolean(adminRange()));
           if (!list.length) { card.replaceChildren(memberEmpty(state.group === 'waiting' ? '답변을 기다리는 문의가 없습니다.' : '해당하는 문의가 없습니다.')); return; }
           // 2026-10-13 요청: 결제 목록처럼 누가 보낸 문의인지(이름·회원 ID·이메일)를 먼저 보여 준다.
           var table = memberTable(['접수일', '이름', '회원 ID', '이메일', '가입 SNS', '종류', '우선순위', '상태', '연결', '담당', '최근 변경'], list, function (item) {
@@ -4214,7 +4264,8 @@
         var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '결제 상태');
         [['', '전체'], ['paid', '결제 완료'], ['ready', '결제 대기'], ['cancelled', '취소·환불'], ['failed', '실패']].forEach(function (entry) {
           var button = document.createElement('button'); button.type = 'button'; button.dataset.status = entry[0]; button.textContent = entry[1];
-          button.addEventListener('click', function () { state.status = entry[0]; load(true); }); seg.appendChild(button);
+          button.dataset.label = entry[1];
+          button.addEventListener('click', function () { state.status = entry[0]; render(); }); seg.appendChild(button);
         });
         filters.append(seg);
         var card = document.createElement('section'); card.className = 'admin-section';
@@ -4226,7 +4277,6 @@
           try {
             for (var page = 0; page < 5; page += 1) {
               var params = new URLSearchParams({ limit: '100' });
-              if (state.status) params.set('status', state.status);
               adminRangeParams(params);
               if (state.cursor) params.set('cursor', state.cursor);
               var data = await adminJson('/api/admin/v1/orders?' + params.toString());
@@ -4238,13 +4288,21 @@
           } catch (error) { var failed = document.createElement('p'); failed.className = 'admin-empty'; failed.textContent = '결제 내역을 불러오지 못했습니다. ' + error.message; card.replaceChildren(failed); }
         }
         function render() {
+          // 2026-10-14: 전체 수와 상태별 수를 보이려고 상태는 서버가 아니라 화면에서 거른다(불러오는 범위는 같다).
+          var list = state.orders.filter(function (order) { return !state.status || order.status === state.status; });
+          seg.querySelectorAll('button').forEach(function (button) {
+            var n = button.dataset.status ? state.orders.filter(function (order) { return order.status === button.dataset.status; }).length : state.orders.length;
+            button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false');
+            button.textContent = button.dataset.label + (n ? ' ' + n.toLocaleString('ko-KR') : '');
+          });
+          adminCount(filters, adminRange() ? null : state.orders.length, list.length, '건', Boolean(state.status || adminRange()));
           var refundByOrder = {};
           state.refunds.forEach(function (refund) { (refundByOrder[refund.orderId] = refundByOrder[refund.orderId] || []).push(refund); });
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable';
           table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">가입 SNS</th><th scope="col">서비스</th><th scope="col" class="admin-num">금액</th><th scope="col">결제 수단</th><th scope="col">결제일</th><th scope="col">상태</th><th scope="col">환불</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!state.orders.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="10">조건에 맞는 결제가 없습니다.</td>'; rows.appendChild(empty); }
-          state.orders.forEach(function (order) {
+          if (!list.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="10">조건에 맞는 결제가 없습니다.</td>'; rows.appendChild(empty); }
+          list.forEach(function (order) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             function td(value, cls) { var cell = document.createElement('td'); if (cls) cell.className = cls; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); }
             // 2026-10-12 요청: 누가 결제했는지(이름·회원 ID·이메일)를 먼저, 결제일은 결제 수단 오른쪽에 둔다.
@@ -4341,6 +4399,7 @@
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable';
           table.innerHTML = '<thead><tr><th scope="col">요청일</th><th scope="col">결제</th><th scope="col" class="admin-num">금액</th><th scope="col">사유</th><th scope="col">상태</th><th scope="col">요청자</th><th scope="col">처리자</th></tr></thead>';
           var rows = document.createElement('tbody'); var list = state.items.filter(matches);
+          adminCount(filters, adminRange() ? null : state.items.length, list.length, '건', state.filter !== 'all' || Boolean(adminRange()));
           if (!list.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">해당하는 환불 요청이 없습니다.</td>'; rows.appendChild(empty); }
           list.forEach(function (refund) {
             var row = document.createElement('tr'); row.tabIndex = 0;
