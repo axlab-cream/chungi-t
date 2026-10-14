@@ -945,7 +945,7 @@
         ] },
         { path: '/messages', key: 'messages', title: '푸시', detail: '앱 설치 기기에 푸시를 보내고 결과를 확인합니다. 카카오 채널 메시지는 파트너센터에서 보냅니다.', dates: { label: '만든 날' }, load: function (body) { loadMessagesManager(body); } },
         { path: '/popup', key: 'popup', title: '팝업', detail: '첫 페이지 팝업의 이미지와 노출 기간을 관리합니다.', dates: { label: '노출 기간', tip: '고른 기간에 하루라도 노출되는(될) 팝업만 보입니다.' }, load: function (body) { loadPopupManager(body); } },
-        { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '이용권·질문권·할인 쿠폰을 발급하고 사용 현황을 봅니다.', dates: { label: '사용 기간', tip: '고른 기간에 하루라도 쓸 수 있는 쿠폰만 보입니다.' }, load: function (body) { loadCouponManager(body); } },
+        { path: '/coupons', key: 'coupons', title: '쿠폰', detail: '쿠폰을 만들어 두고 사용 현황을 봅니다. 회원에게 주는 건 회원 관리 › 회원 상세 › 쿠폰 탭에서 합니다.', dates: { label: '사용 기간', tip: '고른 기간에 하루라도 쓸 수 있는 쿠폰만 보입니다.' }, load: function (body) { loadCouponManager(body); } },
         { path: '/admins', key: 'admins', title: '관리자', detail: '관리자 계정을 추가하고 비밀번호·사용 여부를 관리합니다.', load: function (body) { loadAdminAccounts(body); } },
         { path: '/logs', key: 'logs', title: '로그', detail: '누가 무엇을 바꿨는지와 장애 기록을 봅니다.', tabs: [
           { path: '', label: '변경 이력', dates: { label: '기록 시각' }, load: function (body) { loadLiveAudit(body); } },
@@ -1655,24 +1655,34 @@
         try { snapshot = await adminJson('/api/admin/v1/coupons'); } catch (error) { status.textContent = error.message; return; }
         var now = Date.now();
         var ownedIds = owned.map(function (item) { return item.campaignId; });
-        var choices = (snapshot.items || []).filter(function (c) { return c.enabled && Date.parse(c.expiresAt) > now && (c.claimCount || 0) < c.maxClaims && ownedIds.indexOf(c.id) < 0; })
-          .sort(function (a, b) { return (b.grantOnly ? 1 : 0) - (a.grantOnly ? 1 : 0) || String(b.createdAt).localeCompare(String(a.createdAt)); });
-        if (!choices.length) {
-          status.textContent = '지금 지급할 수 있는 쿠폰이 없습니다. 쿠폰 화면에서 "회원 지급 전용"을 켜고 먼저 만들어 주세요.';
-          var go = document.createElement('a'); go.className = 'admin-button'; go.setAttribute('data-variant', 'quiet'); go.href = ADMIN_BASE + '/coupons'; go.textContent = '쿠폰 만들러 가기';
-          wrap.appendChild(go); return;
+        // 2026-10-14: 줄 수 없는 쿠폰을 말없이 빼면 "쿠폰이 안 보인다"가 된다. 모두 보여 주고 못 주는 이유를 붙여 고를 수 없게 한다.
+        function blocked(c) {
+          if (ownedIds.indexOf(c.id) >= 0) return '이미 받은 쿠폰';
+          if (!c.enabled) return '중단된 쿠폰';
+          if (Date.parse(c.expiresAt) <= now) return '기간 만료';
+          if ((c.claimCount || 0) >= c.maxClaims) return '한도 소진 ' + (c.claimCount || 0) + '/' + c.maxClaims + '명';
+          return '';
         }
+        var all = (snapshot.items || []).slice().sort(function (a, b) { return (blocked(a) ? 1 : 0) - (blocked(b) ? 1 : 0) || (b.grantOnly ? 1 : 0) - (a.grantOnly ? 1 : 0) || String(b.createdAt).localeCompare(String(a.createdAt)); });
+        var choices = all.filter(function (c) { return !blocked(c); });
+        var goCreate = document.createElement('a'); goCreate.className = 'admin-link'; goCreate.href = ADMIN_BASE + '/coupons'; goCreate.textContent = '쿠폰 메뉴에서 새 쿠폰 만들기';
+        if (!all.length) { status.textContent = '아직 만든 쿠폰이 없습니다. 쿠폰 메뉴에서 먼저 만들어 주세요.'; wrap.appendChild(goCreate); return; }
         function benefit(c) { return Number(c.value).toLocaleString('ko-KR') + (c.kind === 'percent_off' ? '%' : c.kind === 'amount_off' ? '원' : c.kind === 'consultation_questions' ? '회' : '장'); }
         status.textContent = '';
         var field = document.createElement('div'); field.className = 'admin-field';
         var label = document.createElement('label'); label.htmlFor = 'coupon-grant-campaign'; label.textContent = '지급할 쿠폰';
         select = document.createElement('select'); select.id = label.htmlFor;
-        choices.forEach(function (c) {
-          var option = document.createElement('option'); option.value = c.id;
-          option.textContent = (c.grantOnly ? '[지급 전용] ' : '') + c.title + ' · ' + (MEMBER_COUPON_KIND[c.kind] || c.kind) + ' ' + benefit(c) + ' · 남은 ' + (c.maxClaims - (c.claimCount || 0)) + '장';
+        all.forEach(function (c) {
+          var option = document.createElement('option'); option.value = c.id; var reason = blocked(c); option.disabled = Boolean(reason);
+          option.textContent = (reason ? '[지급 불가 · ' + reason + '] ' : c.grantOnly ? '[지급 전용] ' : '') + c.title + ' · ' + (MEMBER_COUPON_KIND[c.kind] || c.kind) + ' ' + benefit(c) + (reason ? '' : ' · 남은 ' + (c.maxClaims - (c.claimCount || 0)) + '명');
           select.appendChild(option);
         });
+        if (choices.length) select.value = choices[0].id;
         field.append(label, select);
+        if (!choices.length) {
+          status.textContent = '지금 줄 수 있는 쿠폰이 없습니다. 아래 목록에서 이유를 확인하고, 쿠폰 메뉴에서 새로 만들어 주세요.';
+          wrap.append(field, goCreate); select.disabled = true; return;
+        }
         var detail = document.createElement('p'); detail.className = 'admin-note';
         function describe() {
           var c = choices.find(function (item) { return item.id === select.value; }); if (!c) return;
@@ -1684,7 +1694,7 @@
         select.addEventListener('change', function () { key = crypto.randomUUID(); describe(); });
         describe();
         var warn = document.createElement('p'); warn.className = 'admin-confirm-warn'; warn.textContent = '지급하면 되돌릴 수 없습니다. 회원의 MY › 내 쿠폰에 바로 들어갑니다.';
-        wrap.append(field, detail, warn);
+        wrap.append(field, detail, warn, goCreate);
         submit.disabled = false;
       }
 
@@ -3028,11 +3038,14 @@
         function randomGrantCode() { var letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; var bytes = crypto.getRandomValues(new Uint8Array(10)); return 'GIFT-' + Array.from(bytes, function (b) { return letters[b % letters.length]; }).join(''); }
         function updateGrantOnly() { code.readOnly = grantOnly.checked; if (grantOnly.checked) code.value = randomGrantCode(); else if (/^GIFT-/.test(code.value)) code.value = ''; }
         grantOnly.addEventListener('change', updateGrantOnly);
+        // 2026-10-14: 쿠폰 메뉴는 만들어 두는 곳이고 지급은 회원 상세에서 하므로, 기본값을 "회원 지급 전용"으로 둔다.
+        grantOnly.checked = true; grantOnly.defaultChecked = true; updateGrantOnly();
         var kinds = { service_free: '무료 이용권', consultation_questions: '상담 질문권', amount_off: '금액 할인', percent_off: '비율 할인' };
         var kind = field('kind', '쿠폰 종류', 'select'); Object.keys(kinds).forEach(function (key) { option(kind, key, kinds[key]); });
         var product = field('productKey', '적용 서비스', 'select');
         var value = field('value', '혜택 수량 · 할인값', 'number', { min: '1', step: '1' }); value.value = '1';
-        field('maxClaims', '전체 등록 한도 (1–20,000명)', 'number', { min: '1', max: '20000', step: '1' }).value = '1';
+        // 2026-10-14: 기본 한도가 1명이라 한 명에게 주면 바로 소진됐다. 받을 수 있는 인원으로 이름을 바꾸고 기본 1,000명으로 둔다.
+        var maxClaims = field('maxClaims', '받을 수 있는 인원 (1–20,000명)', 'number', { min: '1', max: '20000', step: '1' }); maxClaims.value = '1000'; maxClaims.defaultValue = '1000';
         field('startsAt', '사용 시작 (현재 기기 시간대)', 'datetime-local'); field('expiresAt', '사용 종료 (현재 기기 시간대)', 'datetime-local');
         var help = document.createElement('p'); help.className = 'admin-note'; help.dataset.span = '2'; form.appendChild(help);
         function updateKind() {
@@ -3051,7 +3064,8 @@
         var couponBar = document.createElement('div'); couponBar.className = 'admin-filterbar'; body.append(couponBar, listSection); adminPageAction('coupon-issue', '＋ 쿠폰 발급', section, { primary: true }); var busy = false, saveKey = crypto.randomUUID();
         form.addEventListener('input', function () { saveKey = crypto.randomUUID(); });
         // 2026-10 7단계: 카드 나열 대신 표. 상태(발급 중·예정·만료·중단)로 거르고 등록·사용률을 한눈에 본다.
-        var listState = { filter: 'live' };
+        // 2026-10-14 요청: 어드민의 상태 탭은 모두 "전체"를 맨 앞·기본으로 둔다.
+        var listState = { filter: 'all' };
         function couponState(item) {
           var now = Date.now();
           if (!item.enabled) return { key: 'stopped', label: '중단', tone: '' };
@@ -3064,7 +3078,7 @@
           list.replaceChildren();
           var bar = couponBar; bar.replaceChildren();
           var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '쿠폰 상태');
-          [['live', '발급 중'], ['scheduled', '시작 전'], ['ended', '만료'], ['stopped', '중단'], ['all', '전체']].forEach(function (entry) {
+          [['all', '전체'], ['live', '발급 중'], ['scheduled', '시작 전'], ['ended', '만료'], ['stopped', '중단']].forEach(function (entry) {
             var count = entry[0] === 'all' ? items.length : items.filter(function (item) { return couponState(item).key === entry[0]; }).length;
             var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + (count ? ' ' + count : '');
             button.setAttribute('aria-pressed', listState.filter === entry[0] ? 'true' : 'false');
@@ -3078,7 +3092,7 @@
             var used = item.kind === 'service_free' ? item.usedCount : item.reservedCount;
             var claimed = Number.isInteger(item.claimCount) ? item.claimCount : 0;
             var st = couponState(item);
-            var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'admin-link-button'; stop.textContent = item.enabled ? '사용 중단' : '—'; stop.disabled = !item.enabled;
+            var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'admin-button'; stop.setAttribute('data-variant', 'quiet'); stop.textContent = '중단하기'; stop.hidden = !item.enabled;
             var disableKey = crypto.randomUUID();
             stop.addEventListener('click', async function () {
               if (stop.disabled) return; if (!await adminConfirm('"' + item.title + '" 쿠폰의 신규 등록과 미사용 혜택을 중단할까요? 이미 사용한 무료 풀이 열람은 유지됩니다.', { title: '쿠폰 사용 중단', okLabel: '사용 중단', danger: true })) return;
