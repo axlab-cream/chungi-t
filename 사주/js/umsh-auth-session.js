@@ -4,6 +4,109 @@
   var DEVICE_KEY = 'cheongi_auth_device_session_started_at_v1';
   var DEVICE_MS = 30 * 24 * 60 * 60 * 1000;
 
+  /*
+   * 2026-10-14 비회원(Supabase 익명 계정). 계획: docs/auth/guest-member-plan.md
+   * - 비회원 세션은 sessionStorage 에만 둔다. 창을 닫으면 사라진다(공용 PC 보호).
+   * - 1시간 동안 쓰지 않으면 지운다. 크롬 "이전 세션 이어 열기"로 sessionStorage 가 되살아나도 막힌다.
+   * - 비회원이 남긴 생년월일 캐시(localStorage)도 같이 지운다.
+   * - 회원(SNS) 세션은 예전처럼 localStorage 에 둔다. 결제·운명록처럼 자체 클라이언트를 쓰는 화면은
+   *   localStorage 만 보므로 비회원을 로그아웃 상태로 보고 로그인을 요구한다.
+   */
+  var GUEST_ACTIVE_KEY = 'umsh_guest_active_at_v1';
+  var GUEST_IDLE_MS = 60 * 60 * 1000;
+  var GUEST_RESIDUE_KEYS = ['cheongi_user_birth_profile_v1'];
+
+  function isAuthTokenKey(key) {
+    return /^sb-.+-auth-token$/.test(String(key || ''));
+  }
+
+  function storedSessionIsAnonymous(value) {
+    try {
+      var parsed = JSON.parse(value || 'null');
+      var session = parsed && (parsed.currentSession || parsed);
+      return Boolean(session && session.user && session.user.is_anonymous === true);
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function safeGet(store, key) { try { return store.getItem(key); } catch (_error) { return null; } }
+  function safeSet(store, key, value) { try { store.setItem(key, value); } catch (_error) { /* 저장소가 막힌 브라우저 */ } }
+  function safeRemove(store, key) { try { store.removeItem(key); } catch (_error) { /* 저장소가 막힌 브라우저 */ } }
+
+  function touchGuest() { safeSet(global.localStorage, GUEST_ACTIVE_KEY, String(Date.now())); }
+
+  function guestIdleExpired() {
+    var last = Number(safeGet(global.localStorage, GUEST_ACTIVE_KEY));
+    return Number.isFinite(last) && last > 0 && Date.now() - last > GUEST_IDLE_MS;
+  }
+
+  function guestTokenKeys() {
+    var keys = [];
+    try {
+      for (var i = 0; i < global.sessionStorage.length; i += 1) {
+        var key = global.sessionStorage.key(i);
+        if (isAuthTokenKey(key)) keys.push(key);
+      }
+    } catch (_error) { /* 저장소가 막힌 브라우저 */ }
+    return keys;
+  }
+
+  /** 비회원 흔적(세션·생년월일 캐시)을 지운다. 회원 세션(localStorage 토큰)은 건드리지 않는다. */
+  function purgeGuest() {
+    guestTokenKeys().forEach(function (key) { safeRemove(global.sessionStorage, key); });
+    GUEST_RESIDUE_KEYS.forEach(function (key) { safeRemove(global.localStorage, key); });
+    safeRemove(global.localStorage, GUEST_ACTIVE_KEY);
+  }
+
+  /**
+   * 페이지를 열 때 한 번: 비회원 표시가 남아 있는데 비회원 세션이 없거나(창을 닫았음) 1시간이 지났으면
+   * 앞사람의 흔적이다. 지운다.
+   */
+  function sweepGuestResidue() {
+    if (!safeGet(global.localStorage, GUEST_ACTIVE_KEY)) return;
+    if (!guestTokenKeys().length || guestIdleExpired()) purgeGuest();
+  }
+
+  /** Supabase 클라이언트 저장소. 비회원 세션만 sessionStorage 로 보낸다. */
+  var guestAwareStorage = {
+    getItem: function (key) {
+      if (!isAuthTokenKey(key)) return safeGet(global.localStorage, key);
+      var member = safeGet(global.localStorage, key);
+      if (member && !storedSessionIsAnonymous(member)) return member;
+      var guest = safeGet(global.sessionStorage, key);
+      if (!guest) return member;
+      if (guestIdleExpired()) { purgeGuest(); return null; }
+      touchGuest();
+      return guest;
+    },
+    setItem: function (key, value) {
+      if (!isAuthTokenKey(key)) { safeSet(global.localStorage, key, value); return; }
+      if (storedSessionIsAnonymous(value)) {
+        safeSet(global.sessionStorage, key, value);
+        if (storedSessionIsAnonymous(safeGet(global.localStorage, key))) safeRemove(global.localStorage, key);
+        touchGuest();
+        return;
+      }
+      safeSet(global.localStorage, key, value);
+      safeRemove(global.sessionStorage, key);
+      safeRemove(global.localStorage, GUEST_ACTIVE_KEY);
+    },
+    removeItem: function (key) {
+      safeRemove(global.localStorage, key);
+      if (isAuthTokenKey(key)) safeRemove(global.sessionStorage, key);
+    },
+  };
+
+  function isGuestSession(session) {
+    return Boolean(session && session.access_token && session.user && session.user.is_anonymous === true);
+  }
+
+  /** SNS 로그인 회원인지. 비회원(익명 계정)도 access_token 을 가지므로 토큰만 보면 안 된다. */
+  function isMemberSession(session) {
+    return Boolean(session && session.access_token && !isGuestSession(session));
+  }
+
   function clearDeviceAuthSession() {
     try {
       global.localStorage.removeItem(DEVICE_KEY);
@@ -30,7 +133,7 @@
   function trackSignupIfNew(session) {
     try {
       var user = session && session.user;
-      if (!user || !user.id) return;
+      if (!user || !user.id || user.is_anonymous === true) return;
       var createdAt = Date.parse(user.created_at || '');
       var lastSignIn = Date.parse(user.last_sign_in_at || '');
       if (!Number.isFinite(createdAt) || !Number.isFinite(lastSignIn)) return;
@@ -53,6 +156,8 @@
       clearDeviceAuthSession();
       return 0;
     }
+    // 비회원 세션의 수명은 30일 기기 기준이 아니라 1시간 미사용 기준이다(guestAwareStorage).
+    if (isGuestSession(session)) return 0;
     trackSignupIfNew(session);
     var existing = deviceSessionStartedAt();
     if (existing) return existing;
@@ -79,7 +184,7 @@
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: 'pkce',
-        storage: global.localStorage,
+        storage: guestAwareStorage,
       },
     });
     sharedClient = client;
@@ -93,6 +198,7 @@
       clearDeviceAuthSession();
       return null;
     }
+    if (isGuestSession(session)) return session;
     var startedAt = deviceSessionStartedAt() || rememberDeviceAuthSession(session);
     if (Date.now() - startedAt <= DEVICE_MS) return session;
     clearDeviceAuthSession();
@@ -168,6 +274,32 @@
     return auth.session;
   }
 
+  /**
+   * 무료 화면용: 회원이든 비회원이든 세션을 돌려준다. 없으면 비회원(익명) 세션을 만든다.
+   * 서버가 비회원 로그인을 켜 두지 않았으면(config.guestSignIn) 만들지 않고 null — 예전처럼 로그인으로 보낸다.
+   */
+  async function ensureGuestSession(auth, timeoutMs) {
+    var session = await bindServiceSession(auth, timeoutMs);
+    if (session) return session;
+    if (!auth || !auth.config || !auth.config.guestSignIn) return null;
+    if (!auth.client) auth.client = createClient(global.supabase, auth.config.url, auth.config.publishableKey);
+    if (!auth.client || !auth.client.auth || typeof auth.client.auth.signInAnonymously !== 'function') return null;
+    try {
+      var result = await auth.client.auth.signInAnonymously();
+      var created = result && result.data && result.data.session;
+      if (!created || !created.access_token) return null;
+      touchGuest();
+      auth.session = created;
+      if (global.UMSHReportAccess) global.UMSHReportAccess.setOwner(created.user && created.user.id);
+      try {
+        if (global.UMSHTrack && typeof global.UMSHTrack.push === 'function') global.UMSHTrack.push('cta_click', { target: 'signup:guest' });
+      } catch (_error) { /* 측정은 흐름을 막지 않는다 */ }
+      return created;
+    } catch (_error) {
+      return null;
+    }
+  }
+
   function watchSignedIn(auth, onSession) {
     if (!auth || auth.watching || !auth.client || !auth.client.auth || !auth.client.auth.onAuthStateChange) return;
     auth.watching = true;
@@ -202,5 +334,13 @@
     resolveLiveSession: resolveLiveSession,
     bindServiceSession: bindServiceSession,
     watchSignedIn: watchSignedIn,
+    ensureGuestSession: ensureGuestSession,
+    isGuestSession: isGuestSession,
+    isMemberSession: isMemberSession,
+    purgeGuest: purgeGuest,
+    guestAwareStorage: guestAwareStorage,
+    GUEST_IDLE_MS: GUEST_IDLE_MS,
   };
+
+  try { sweepGuestResidue(); } catch (_error) { /* 저장소가 막힌 브라우저 */ }
 })(typeof window !== 'undefined' ? window : globalThis);

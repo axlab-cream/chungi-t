@@ -151,6 +151,7 @@
     </main>
 
     <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-guest-save-sheet.js?v=20261014"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/service-step-url.js"></script>
     <script src="/js/service-public-detail.js"></script>
@@ -158,7 +159,8 @@
       const state = { supabase: null, session: null };
 
       async function initAuth() {
-        const config = await fetch('/api/auth/config').then(response => response.json());
+        const config = state.config || await fetch('/api/auth/config').then(response => response.json());
+        state.config = config;
         if (!config.enabled || !window.UMSHAuthSession || !window.supabase) return null;
         if (!state.supabase) {
           state.supabase = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
@@ -186,6 +188,11 @@
         window.UMSHServiceSteps?.markAuth();
         try {
           const result = await initAuth().catch(() => null);
+          // 2026-10-14 비회원도 오늘운을 본다(서버가 비회원 로그인을 켜 둔 경우). 계획: docs/auth/guest-member-plan.md
+          if (result && !result.session?.access_token && window.UMSHAuthSession?.ensureGuestSession) {
+            result.session = await window.UMSHAuthSession.ensureGuestSession({ config: state.config, client: state.supabase, session: null }, 0);
+            state.session = result.session;
+          }
           if (!result?.session?.access_token) { openTodayLogin(); return; }
           const response = await window.UMSHReportAccess.fetch('/api/today/fortune', {
             method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + result.session.access_token }, body: '{}',
@@ -196,6 +203,9 @@
             return;
           }
           if (!response.ok) throw new Error(payload.error || '오늘운을 불러오지 못했습니다.');
+          if (window.UMSHAuthSession?.isGuestSession?.(result.session)) {
+            window.UMSHGuestSaveSheet?.openWhenSeen({ entry: 'today', resultKey: 'today:' + new Date().toISOString().slice(0, 10), returnTo: '/today/free?start=1', anchor: '.umsh-daily-reading > :last-child' });
+          }
         } catch(error) {
           let status=document.querySelector('[data-today-status]');
           if(!status){status=document.createElement('p');status.dataset.todayStatus='';status.setAttribute('role','status');document.querySelector('.scroll').appendChild(status);}

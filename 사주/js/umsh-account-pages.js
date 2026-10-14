@@ -40,7 +40,9 @@
     if (global.UMSHAuthSession && global.UMSHAuthSession.enforceDeviceAuthSession) {
       session = await global.UMSHAuthSession.enforceDeviceAuthSession(session, client);
     }
-    if (!session || !session.access_token) {
+    // 비회원(익명 계정)은 회원 화면에 들어오지 못한다. 사주 정보 입력(/profile)처럼 allowGuest 인 화면만 연다.
+    var guest = global.UMSHAuthSession && global.UMSHAuthSession.isGuestSession && global.UMSHAuthSession.isGuestSession(session);
+    if (!session || !session.access_token || (guest && !(options && options.allowGuest))) {
       if (!optional) loginRedirect(entry);
       return null;
     }

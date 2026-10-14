@@ -423,7 +423,9 @@
             if (!config?.enabled || !window.supabase || !window.UMSHAuthSession) return null;
             const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
             const { data } = await client.auth.getSession();
-            return await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+            const live = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
+            // 보관함은 회원 전용이다(2026-10-14 결정). 비회원(익명 계정)은 로그인 안내를 본다.
+            return window.UMSHAuthSession.isGuestSession?.(live) ? null : live;
           } catch {
             return null;
           }

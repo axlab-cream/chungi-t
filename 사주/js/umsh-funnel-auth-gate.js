@@ -18,6 +18,10 @@
    *
    * **로그인되어 있으면 아무 일도 하지 않는다** — 그대로 사주 입력 화면이다.
    *
+   * 2026-10-14 비회원: 서버가 비회원 로그인을 켜 두었으면(config.guestSignIn) 로그인으로 보내지 않고
+   * 비회원(익명) 세션을 만들어 통과시킨다. 04 무료 결과에서는 "SNS로 로그인하면 이 결과가 저장돼요"
+   * 바텀시트를 띄운다. 계획: docs/auth/guest-member-plan.md
+   *
    * 실패하면 열어 준다. 설정 조회가 죽든 스크립트가 없든 로그인이 꺼져 있든, 입력 화면을
    * 막아 세우는 것보다 통과시키는 쪽이 낫다. 04 티저·05 목록의 기존 차단이 그대로 남아 있다.
    */
@@ -143,6 +147,10 @@
         session = await global.UMSHAuthSession.enforceDeviceAuthSession(result.data.session, client);
       }
 
+      if (!session && config.guestSignIn && global.UMSHAuthSession.ensureGuestSession) {
+        session = await global.UMSHAuthSession.ensureGuestSession({ config: config, client: client, session: null }, 0);
+      }
+
       if (!session) {
         // 판정을 포기한 뒤라면 사용자는 이미 화면을 보고 있다. 그때 튕기면 타이핑을 뺏는다.
         if (settled || alreadySent()) return reveal();
@@ -161,10 +169,34 @@
         global.location.replace(inputUrl());
         return;
       }
+      if (onTeaser && global.UMSHAuthSession.isGuestSession && global.UMSHAuthSession.isGuestSession(session)) armGuestSaveSheet();
       return reveal();
     } catch (_error) {
       reveal();
     }
+  }
+
+  /* 무료 결과의 잠긴 목차·가격 안내. 이게 보이면 결과를 다 본 것이다(umsh-track.js 와 같은 기준). */
+  var LOCKED_SELECTOR = '.job-teaser-toc, .umsh-lf-locked, .umsh-highlight.is-locked, [data-sample-section="love-final-cta"]';
+
+  function loadSheetScript(done) {
+    if (global.UMSHGuestSaveSheet) return done();
+    var script = doc.createElement('script');
+    script.src = '/js/umsh-guest-save-sheet.js?v=20261014';
+    script.onload = done;
+    doc.head.appendChild(script);
+  }
+
+  function armGuestSaveSheet() {
+    loadSheetScript(function () {
+      if (!global.UMSHGuestSaveSheet) return;
+      global.UMSHGuestSaveSheet.openWhenSeen({
+        entry: serviceEntry(),
+        resultKey: serviceEntry() + ':04',
+        returnTo: here(),
+        anchor: LOCKED_SELECTOR,
+      });
+    });
   }
 
   hide();
