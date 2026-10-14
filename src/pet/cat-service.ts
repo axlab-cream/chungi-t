@@ -393,7 +393,8 @@ function catElementChart(analysis: SajuAnalysis) {
 
 function catTeaserInterpretation(index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): string {
   const facts = catFacts(context)
-  if (!analysis) return `[주요 포인트] ${facts.catName}와 편안해지는 순간은 더 자주 만지는 때보다, ${facts.touchStyle || '관찰한 손길 반응'}에 맞춰 멈출 때를 알아보는 장면에서 시작됩니다.\n\n[확인할 장면] 먼저 다가온 순간과 몸을 돌린 순간을 하루 동안 나눠 적어 보세요.\n\n[결정 전에 물어볼 질문] ${facts.catName}가 다가온 뒤 어느 정도의 손길에서 편안하게 머무나요?`
+  if (context.birthTimeKnown === false) analysis = undefined
+  if (!analysis) return `${context.birthTimeKnown === false ? '출생 시간을 모르므로 임시 시각 기반 전체 오행·강약으로 보호자의 돌봄 성향을 판단하지 않습니다.\n\n' : ''}[주요 포인트] ${facts.catName}와 편안해지는 순간은 더 자주 만지는 때보다, ${facts.touchStyle || '관찰한 손길 반응'}에 맞춰 멈출 때를 알아보는 장면에서 시작됩니다.\n\n[확인할 장면] 먼저 다가온 순간과 몸을 돌린 순간을 하루 동안 나눠 적어 보세요.\n\n[결정 전에 물어볼 질문] ${facts.catName}가 다가온 뒤 어느 정도의 손길에서 편안하게 머무나요?`
   const dominant = PLAIN_ELEMENT[analysis.dominantElement]
   const weak = PLAIN_ELEMENT[analysis.weakElement]
   const day = PLAIN_ELEMENT[analysis.dayMasterElement]
@@ -428,6 +429,8 @@ export function catCompatTeaserPreview(context: SajuReportContext, sectionCount:
 
 export function catCompatTeaserSection(section: SajuReportSection, index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): SajuReportSection {
   const facts = catFacts(context)
+  const unknownTime = context.birthTimeKnown === false
+  if (unknownTime) analysis = undefined
   const image = CAT_TEASER_IMAGES[index]
   const story = index === 0 ? {
     feel: `${facts.catName}가 곁에 오는데도 손을 내밀면 물러난다면, 좋아하지 않는 게 아니라 편안한 거리의 순서가 다른 것입니다.`,
@@ -462,7 +465,7 @@ export function catCompatTeaserSection(section: SajuReportSection, index: number
     ...section,
     ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
     interpretation: catTeaserInterpretation(index, analysis, context),
-    storytelling: { ...(section.storytelling ?? {}), ...story },
+    storytelling: unknownTime ? { ...story, softBridge: '출생 시간을 모르므로 임시 시각을 포함한 사주 기운은 판단하지 않고, 직접 관찰한 생활 반응을 확인합니다.' } : { ...(section.storytelling ?? {}), ...story },
   }
 }
 
@@ -489,6 +492,7 @@ function buildInterpretation(params: {
   birth: BirthInput
   input: CatCompatRequest
   chunks: RagChunk[]
+  birthTimeKnown?: boolean
   index: number
 }): string {
   const { group, itemTitle, analysis, input } = params
@@ -506,7 +510,7 @@ function buildInterpretation(params: {
   return practicalReading({
     title: itemTitle, detail: reading, current,
     evidence: group.id === 'five-elements-care'
-      ? `${elementEvidence(analysis)} 이 계산은 보호자의 사주이며 고양이의 성향이나 돌봄의 결함을 계산하지 않아요.`
+      ? `${elementEvidence(analysis, params.birthTimeKnown)} 이 계산은 보호자의 사주이며 고양이의 성향이나 돌봄의 결함을 계산하지 않아요.`
       : itemTitle === '집사 성향 DNA'
         ? `${dayMasterDefinition(analysis)} 일간의 강약으로 돌봄 능력이나 표현 습관을 단정하지 않아요. ${input.ageBand === 'unknown' ? '고양이의 나이를 모르는 상태이므로 나이별 판단도 보류해요.' : `고양이의 나이대는 “${AGE_LABEL[input.ageBand]}”으로 입력됐어요.`} 고양이의 출생 명식이나 생체리듬은 계산하지 않아요.`
         : undefined,
@@ -570,6 +574,7 @@ export function buildCatCompatReport(
           birth,
           input,
           chunks: categoryChunks,
+          birthTimeKnown: context.birthTimeKnown,
           // 대분류 안에서 항목끼리 다른 블록을 인용하도록 항목 순번으로 고른다.
           index: itemIndex,
         }),
@@ -584,7 +589,7 @@ export function buildCatCompatReport(
   return finalizeSpecializedReport({
     reportId,
     title: '반려묘 생활 궁합 해석문',
-    subtitle: `${context.name ?? '집사'}님과 ${input.catName}의 생활 박자를 사주 원국과 함께 봅니다`,
+    subtitle: context.birthTimeKnown === false ? `${context.name ?? '집사'}님과 ${input.catName}의 입력한 행동과 생활 조건을 확인합니다. 시각에 의존하는 사주 결론은 보류합니다.` : `${context.name ?? '집사'}님과 ${input.catName}의 생활 박자를 사주 원국과 함께 봅니다`,
     model: 'cat-compatibility-rag-template',
     generatedBy: 'template',
     status: 'complete',

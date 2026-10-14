@@ -24,6 +24,7 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
+import { readBirthClock, projectUnknownBirthTime } from '../saju/birth-time-certainty.js'
 import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
@@ -1111,13 +1112,20 @@ app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
 app.use(localizedPages(join(ROOT, '.vercel-localized')))
 app.use(cachedStatic(SAJU_ROOT, { index: 'index.html' }))
 
+function resolveChatBirthTimeKnown(body: Record<string, unknown>, hasParent: boolean): boolean | undefined {
+  const unknown = body.birthTimeKnown === false || asObject(body.context).birthTimeKnown === false || asObject(body.birth).birthTimeKnown === false
+  return unknown ? false : hasParent ? undefined : true
+}
+
 function parseBirth(body: Record<string, unknown>): BirthInput {
+  const clock = readBirthClock(body, body.birthTimeKnown !== false)
+  if (!clock) throw new InputError('태어난 시각을 입력하거나 시각 모름을 선택해 주세요.')
   return {
     year: Number(body.year),
     month: Number(body.month),
     day: Number(body.day),
-    hour: Number(body.hour ?? 12),
-    minute: Number(body.minute ?? 0),
+    hour: clock.hour,
+    minute: clock.minute,
     gender: (body.gender === 'female' ? 'female' : 'male') as BirthInput['gender'],
     calendar: (body.calendar === 'lunar' ? 'lunar' : 'solar') as BirthInput['calendar'],
     isLeapMonth: Boolean(body.isLeapMonth),
@@ -1344,7 +1352,7 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
   const rawServiceKey = context.serviceKey ?? context.service_key ?? body.serviceKey ?? body.service_key
   const serviceKey = normalizeServiceKey(rawServiceKey)
 
-  const birthTimeKnown = body.birthTimeKnown === false || context.birthTimeKnown === false ? false : undefined
+  const birthTimeKnown = body.birthTimeKnown === false || context.birthTimeKnown === false || asObject(body.birth).birthTimeKnown === false ? false : undefined
   const partner = serviceKey === LOVE_THIS_YEAR_SERVICE_KEY ? parseOptionalPartnerContext(context.partner ?? body.partner) : undefined
   const home = serviceKey === HOME_FIT_SERVICE_KEY ? parseHomeFitContext(context.home ?? body.home ?? context.input ?? body.input) : undefined
   const workMove = serviceKey === WORK_MOVE_SERVICE_KEY
@@ -1562,9 +1570,10 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
   const year = Number(source.year)
   const month = Number(source.month)
   const day = Number(source.day)
-  const birthTimeKnown = body.birthTimeKnown !== false
-  const hour = Number(source.hour ?? (birthTimeKnown ? Number.NaN : 12))
-  const minute = Number(source.minute ?? 0)
+  const birthTimeKnown = body.birthTimeKnown !== false && source.birthTimeKnown !== false
+  const clock = readBirthClock(source, birthTimeKnown)
+  if (!clock) throw new Error('태어난 시각을 입력하거나 시각 모름을 선택해 주세요.')
+  const { hour, minute } = clock
   const gender = source.gender
   const calendar = source.calendar
 
@@ -1651,16 +1660,16 @@ async function toUiAnalysis(
 
   const report = toClientReport(record)
   if (access) applyReportEntitlement(report, access, owner)
-  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report)
+  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report, record.context.birthTimeKnown !== false)
   if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record, access) }
   return access?.entitled
     ? { ...payload, entitled: true, unlockReason: access.reason }
     : payload
 }
 
-function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
+function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport, birthTimeKnown = true) {
   const p = analysis.fourPillars
-  return {
+  return projectUnknownBirthTime({
     birth,
     pillars: {
       year: { hanja: `${p.year.stem}${p.year.branch}`, ko: `${STEM_KO[p.year.stem]}${BRANCH_KO[p.year.branch]}` },
@@ -1683,7 +1692,7 @@ function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, repor
     preview: analysis.preview,
     report,
     summary: analysis.summary,
-  }
+  }, birthTimeKnown)
 }
 
 function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
@@ -1694,7 +1703,7 @@ function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
 }
 
 function toUiAnalysisFromRecord(record: ReportRecord) {
-  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record))
+  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record), record.context.birthTimeKnown !== false)
 }
 
 /**
@@ -4653,7 +4662,7 @@ function buildGuestTeaserPayload(birth: BirthInput, context: SajuReportContext) 
     sections: [],
     progress: { complete: 0, total: template.sections.length },
   } as SajuReport
-  return { ...buildUiAnalysisPayload(analysis, birth, report), guestPreview: true }
+  return { ...buildUiAnalysisPayload(analysis, birth, report, context.birthTimeKnown !== false), guestPreview: true }
 }
 
 function wantsPreview(req: Request): boolean {
@@ -5433,8 +5442,8 @@ app.post('/api/saju/analyze', async (req, res) => {
       return
     }
     const birthBody = asObject(req.body.birth)
-    const birth = parseBirth(Object.keys(birthBody).length ? birthBody : req.body)
     const context = parseReportContext(req.body)
+    const birth = parseBirth({ ...(Object.keys(birthBody).length ? birthBody : req.body), birthTimeKnown: context.birthTimeKnown !== false })
     const suppliedKey = requestedServiceKey
     if ((suppliedKey && suppliedKey !== 'saju_master' && !context.serviceKey) || context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY) {
       res.status(400).json({ code: 'INPUT_REQUIRED', error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
@@ -5497,7 +5506,7 @@ app.post('/api/saju/analyze', async (req, res) => {
         res.status(429).json({ code: 'FREE_PREVIEW_LIMIT', error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.', freeSearch, paymentUrl: paymentCheckoutUrl(quotaService!, record.reportId) })
         return
       }
-      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record, access, freeSearch) })
+      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }, record.context.birthTimeKnown !== false), ...savedPreviewResponse(record, access, freeSearch) })
       return
     }
     const access = await resolvePaidAccess(
@@ -5644,7 +5653,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     // 이 레코드는 findReportRecord에서 owner 소유권 검사를 이미 통과했다. 현실 기준은
     // 해당 회원의 프로필에서만 읽고, 비로그인/다른 계정의 응답에는 싣지 않는다.
     const memberContext = owner ? (await getUserBirthProfile(owner))?.lifeContext : undefined
-    const loveReportYear = record.analysis?.fortune?.currentYear ?? analysis.fortune?.currentYear
+    const loveReportYear = record.context.birthTimeKnown === false ? undefined : record.analysis?.fortune?.currentYear ?? analysis.fortune?.currentYear
     const loveMonthlySignals = record.context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY && loveReportYear
       ? calculateLoveMonthlySignals(record.birth, currentAnalysisForRecord(record), loveReportYear)
       : undefined
@@ -5891,11 +5900,12 @@ app.post('/api/chat', async (req, res) => {
       if (isConsultationRecord(parent)) { res.status(404).json({ error: '천명상담 화면에서 대화를 이어가 주세요.' }); return }
       if (!await ensurePaidServiceAccess(req, res, owner, productKeyForContext(parent.context), parent.reportId)) return
     }
+    const chatBirthTimeKnown = resolveChatBirthTimeKnown(req.body, Boolean(parentReportId))
     const result = await generateSavedChat({
       owner, parentReportId: parentReportId || undefined,
       requestId: trimmedString(req.body.requestId) || undefined,
-      birth: parentReportId ? undefined : parseBirth(req.body.birth ?? req.body),
-      birthTimeKnown: req.body.birthTimeKnown !== false,
+      birth: parentReportId ? undefined : parseBirth({ ...(req.body.birth ?? req.body), birthTimeKnown: chatBirthTimeKnown !== false }),
+      birthTimeKnown: chatBirthTimeKnown,
       message: String(req.body.message ?? '').trim(),
       history: parseConversationHistory(req.body.history),
       serviceKey: trimmedString(req.body.serviceKey || req.body.service_key) || undefined,
@@ -5904,7 +5914,7 @@ app.post('/api/chat', async (req, res) => {
     res.status(result.status === 'failed' ? 502 : result.status === 'complete' ? 200 : 202).json(result)
   } catch (err) {
     const code = err instanceof Error ? err.message : ''
-    res.status(code === 'REPORT_ACCESS_DENIED' ? 403 : /INVALID|REQUIRED/.test(code) ? 400 : 500).json({ error: code === 'REPORT_ACCESS_DENIED' ? '본인의 상담만 볼 수 있습니다.' : '상담 입력이나 저장 상태를 확인해 주세요.' })
+    res.status(code === 'REPORT_ACCESS_DENIED' ? 403 : err instanceof InputError || /INVALID|REQUIRED/.test(code) ? 400 : 500).json({ error: code === 'REPORT_ACCESS_DENIED' ? '본인의 상담만 볼 수 있습니다.' : '상담 입력이나 저장 상태를 확인해 주세요.' })
   }
 })
 

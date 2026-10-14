@@ -64,6 +64,7 @@
             <label class="payment-label">생년월일<input name="birth" type="date" min="1900-01-01" autocomplete="bday" required aria-required="true" aria-describedby="error-birth" /></label>
             <p class="field-error" id="error-birth" data-error-for="birth" hidden></p>
           </div>
+          <p id="birthtime-help">시각을 모르면 시각 모름을 선택해 주세요. 추측해서 입력하지 않아도 됩니다. 알고 있으면 시각에 따라 달라지는 항목도 볼 수 있습니다. 자미두수 명반에는 출생 시각이 필요합니다.</p>
           <div class="profile-time-choice">
             <span class="payment-label">태어난 시간</span>
             <div class="profile-toggle" role="group" aria-label="태어난 시간을 아는지 선택">
@@ -72,7 +73,7 @@
             </div>
           </div>
           <div class="profile-row profile-time-fields" data-time-fields>
-            <label class="payment-label">태어난 시각<input name="time" type="time" step="60" value="12:00" aria-describedby="error-time" /></label>
+            <label class="payment-label">태어난 시각<input name="time" type="time" step="60" aria-describedby="birthtime-help error-time" /></label>
             <p class="field-error" id="error-time" data-error-for="time" hidden></p>
           </div>
           <button class="payment-submit" type="submit">프로필 저장</button>
@@ -85,6 +86,6 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-account-pages.js?v=20261012-product-paths"></script>
-    <script src="/js/profile.js?v=20261012-leap-month"></script>
+    <script src="/js/profile.js?v=20261014-unknown-time"></script>
   </body>
 </html>

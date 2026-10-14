@@ -267,6 +267,10 @@
   function buildRequest(payload) {
     const partner = payload?.partner || {};
     if (!partner.known || !partner.birth_date) return null;
+    const partnerTimeKnown = partner.birth_time_known === 'known';
+    const partnerClock = String(partner.birth_time || '');
+    if (partnerTimeKnown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(partnerClock)) return null;
+    const [partnerHour, partnerMinute] = partnerClock.split(':').map(Number);
     const relation = payload.relationship_context || {};
     const self = payload?.self || {};
     const [selfYear, selfMonth, selfDay] = String(self.birth_date || '').split('-').map(Number);
@@ -287,10 +291,11 @@
       partnerName: partner.name || '',
       partnerBirthText: String(partner.birth_date).replace(/[^0-9]/g, ''),
       partnerBirth: {
+        ...(partnerTimeKnown ? { hour: partnerHour, minute: partnerMinute } : {}),
         gender: partner.gender === 'female' ? 'female' : 'male',
         calendar: partner.calendar === 'lunar' ? 'lunar' : 'solar',
       },
-      partnerBirthTimeKnown: partner.birth_time_known === 'known',
+      partnerBirthTimeKnown: partnerTimeKnown,
       relationshipStage: RELATION_LABEL[relation.relationship_status] || '',
       marriagePlan: FOCUS_LABEL[relation.question_focus] || '',
       concern: relation.main_concern || '',

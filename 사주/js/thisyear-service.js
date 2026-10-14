@@ -148,7 +148,7 @@
     if (!birth) return '';
     const date = `${birth.year}년 ${birth.month}월 ${birth.day}일`;
     const calendar = birth.calendar === 'lunar' ? '음력' : '양력';
-    const time = Number.isFinite(birth.hour) ? `${String(birth.hour).padStart(2, '0')}시` : BIRTH_TIME_UNKNOWN;
+    const time = profile.birthTimeKnown !== false && Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 && (birth.minute == null || (Number.isInteger(birth.minute) && birth.minute >= 0 && birth.minute <= 59)) ? `${String(birth.hour).padStart(2, '0')}시` : BIRTH_TIME_UNKNOWN;
     return `${calendar} ${date} · ${time}`;
   }
 
@@ -210,15 +210,18 @@
     if (!draft.relationship_status || !draft.partner_star_basis) return null;
     const manual = draft.profile_mode === 'new_profile';
     const dateParts = String(draft.birth_date || '').split('-').map(Number);
-    const timeParts = String(draft.birth_time || '').split(':').map(Number);
-    const selfBirth = manual && dateParts.length === 3 && timeParts.length === 2 ? {
+    const birthTimeKnown = draft.birthTimeKnown !== false;
+    const clock = String(draft.birth_time || '');
+    if (manual && birthTimeKnown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(clock)) return null;
+    const timeParts = clock.split(':').map(Number);
+    const selfBirth = manual && dateParts.length === 3 ? {
       year: dateParts[0], month: dateParts[1], day: dateParts[2],
-      hour: timeParts[0], minute: timeParts[1],
+      ...(birthTimeKnown ? { hour: timeParts[0], minute: timeParts[1] } : {}),
       gender: draft.gender,
       calendar: draft.calendar_type,
     } : null;
     return {
-      ...(selfBirth ? { selfName: draft.display_name || '', selfBirth, selfBirthTimeKnown: true } : {}),
+      ...(selfBirth ? { selfName: draft.display_name || '', selfBirth, selfBirthTimeKnown: birthTimeKnown } : {}),
       relationshipStatus: draft.relationship_status,
       partnerStarBasis: draft.partner_star_basis,
       gender: draft.gender || '',

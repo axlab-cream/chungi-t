@@ -3655,7 +3655,7 @@
             birth: saved.birth || state.birth,
             gender: saved.gender || state.gender,
             time: saved.time || state.time,
-            birthTimeKnown: saved.birthTimeKnown ?? Boolean(saved.time && saved.time !== "모름"),
+            birthTimeKnown: isKnownBirthTime(resolveBirthTimeKnown(saved), saved.time),
             name: saved.name || state.name,
             orientation: saved.orientation || state.orientation,
             relationship: saved.relationship || state.relationship,
@@ -4529,8 +4529,9 @@
         state.calendar = saved.calendar || (birth.calendar === "lunar" ? "음력" : "양력");
         state.birth = saved.birth || (birth.year ? `${birth.year}.${pad2(birth.month || 1)}.${pad2(birth.day || 1)}` : "");
         state.gender = saved.gender || (birth.gender ? (birth.gender === "female" ? "여자" : "남자") : "");
-        state.time = saved.time || (Number.isFinite(Number(birth.hour)) ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : "모름");
-        state.birthTimeKnown = saved.birthTimeKnown ?? state.time !== "모름";
+        state.time = saved.time || (Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : "모름");
+        state.birthTimeKnown = isKnownBirthTime(resolveBirthTimeKnown(payload), state.time);
+        if (!state.birthTimeKnown) state.time = "모름";
         state.name = saved.name || context.name || "";
         state.orientation = saved.orientation || context.orientation || "";
         state.relationship = saved.relationship || context.relationship || "";
@@ -6040,21 +6041,36 @@
         document.querySelector("#birth")?.focus();
       }
 
+      function resolveBirthTimeKnown(payload) {
+        const saved = payload?.birthState || {};
+        return payload?.birthTimeKnown !== false && payload?.context?.birthTimeKnown !== false && payload?.analysis?.birthTimeKnown !== false && payload?.birth?.birthTimeKnown !== false && saved.birthTimeKnown !== false && saved.context?.birthTimeKnown !== false && saved.analysis?.birthTimeKnown !== false;
+      }
+
+      function isKnownBirthTime(flag, time) { return flag !== false && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(time || "")); }
+
+      function renderUnknownTimeResult() {
+        const report = state.analysis?.report;
+        const sections = state.analysis?.birthTimeKnown === false ? (report?.sections || []).slice(0, 2).filter(section => section.status === "complete" && !section.locked && typeof section.interpretation === "string") : [];
+        const reading = sections.map(section => `<section class="story-section"><h2>${escapeHtml(section.title || section.category || "")}</h2><p>${escapeHtml(section.interpretation)}</p></section>`).join("");
+        stage.innerHTML = `<article class="story sample-story sub-result" data-birth-time-known="false">${storyTopNavMarkup(true)}<section class="story-visual visual-intro tall" data-sample-section="intro"></section><section class="story-section"><h1>시각 모름으로 보는 풀이</h1><p>출생 시각에 따라 달라지는 시주, 전체 오행 분포, 강약과 세부 운의 시기는 보류합니다. 자미두수 명반에는 출생 시각이 필요합니다. 절기 경계일의 일부 계산도 달라질 수 있습니다.</p></section>${reading || "<section class=\"story-section\"><p>저장된 공개 미리보기가 준비되면 여기에서 확인할 수 있습니다.</p></section>"}<div class="sticky-story-cta"><button class="primary-cta" type="button" data-action="open-chat">저장된 풀이 보기</button></div>${businessFooterMarkup()}</article>`;
+        setupFloatingCta(".sticky-story-cta");
+      }
+
       function renderTime() {
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
-            <h1>시간을 알면 시주까지 읽습니다</h1>
-            <p>정확한 시간이 있으면 시주를 열고, 모르면 일지와 대운 중심으로 이어갑니다.</p>
+            <h1>태어난 시각 · 선택</h1>
+            <p id="birthtime-help">시각을 모르면 아래의 시각 모름을 선택해 주세요. 추측해서 입력하지 않아도 됩니다. 알고 있으면 시각에 따라 달라지는 항목도 함께 살펴볼 수 있어요.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="birthtime">태어난 시간</label>
-                <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${state.time === "모름" ? "" : state.time}" aria-describedby="birthtime-error" />
+                <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${isKnownBirthTime(state.birthTimeKnown, state.time) ? state.time : ""}" aria-describedby="birthtime-help birthtime-error" />
                 <div class="field-error" id="birthtime-error" aria-live="polite"></div>
               </div>
             </div>
             <div class="actions">
-              <button class="ghost" type="button" data-action="time-unknown">시간모름</button>
+              <button class="ghost" type="button" data-action="time-unknown">시각을 모르겠어요</button>
               <button class="next-cta" type="button" data-action="time-next">다음으로</button>
             </div>
           </section>
@@ -6714,6 +6730,7 @@
       }
 
       function renderResult() {
+        if (state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) { renderUnknownTimeResult(); return; }
         if (isLoveThisYearService()) {
           renderLoveThisYearResult();
           return;

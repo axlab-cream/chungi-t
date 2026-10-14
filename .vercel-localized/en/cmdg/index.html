@@ -3630,7 +3630,7 @@
             birthTimeDisambiguation: saved.birthTimeDisambiguation === "earlier" || saved.birthTimeDisambiguation === "later" ? saved.birthTimeDisambiguation : "",
             gender: normalizeBirthGender(saved.gender || state.gender),
             time: saved.time || state.time,
-            birthTimeKnown: saved.birthTimeKnown ?? Boolean(saved.time && saved.time !== "모름"),
+            birthTimeKnown: isKnownBirthTime(resolveBirthTimeKnown(saved), saved.time),
             name: saved.name || state.name,
             orientation: saved.orientation || state.orientation,
             relationship: saved.relationship || state.relationship,
@@ -4508,8 +4508,9 @@
         state.calendar = normalizeBirthCalendar(saved.calendar || birth.calendar);
         state.birth = saved.birth || (birth.year ? `${birth.year}.${pad2(birth.month || 1)}.${pad2(birth.day || 1)}` : "");
         state.gender = normalizeBirthGender(saved.gender || birth.gender);
-        state.time = saved.time || (Number.isFinite(Number(birth.hour)) ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : "Unknown");
-        state.birthTimeKnown = saved.birthTimeKnown ?? state.time !== "모름";
+        state.time = saved.time || (Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : "Unknown");
+        state.birthTimeKnown = isKnownBirthTime(resolveBirthTimeKnown(payload), state.time);
+        if (!state.birthTimeKnown) state.time = "Unknown";
         state.name = saved.name || context.name || "";
         state.orientation = saved.orientation || context.orientation || "";
         state.relationship = saved.relationship || context.relationship || "";
@@ -6096,21 +6097,36 @@
         document.querySelector("#birth")?.focus();
       }
 
+      function resolveBirthTimeKnown(payload) {
+        const saved = payload?.birthState || {};
+        return payload?.birthTimeKnown !== false && payload?.context?.birthTimeKnown !== false && payload?.analysis?.birthTimeKnown !== false && payload?.birth?.birthTimeKnown !== false && saved.birthTimeKnown !== false && saved.context?.birthTimeKnown !== false && saved.analysis?.birthTimeKnown !== false;
+      }
+
+      function isKnownBirthTime(flag, time) { return flag !== false && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(time || "")); }
+
+      function renderUnknownTimeResult() {
+        const report = state.analysis?.report;
+        const sections = state.analysis?.birthTimeKnown === false ? (report?.sections || []).slice(0, 2).filter(section => section.status === "complete" && !section.locked && typeof section.interpretation === "string") : [];
+        const reading = sections.map(section => `<section class="story-section"><h2>${escapeHtml(section.title || section.category || "")}</h2><p>${escapeHtml(section.interpretation)}</p></section>`).join("");
+        stage.innerHTML = `<article class="story sample-story sub-result" data-birth-time-known="false">${storyTopNavMarkup(true)}<section class="story-visual visual-intro tall" data-sample-section="intro"></section><section class="story-section"><h1>Reading with unknown birth time</h1><p>The hour pillar, full element balance, strength and detailed personal timing are withheld. A Zi Wei chart needs a known birth time. Some calculations on solar-term boundary dates may also vary.</p></section>${reading || "<section class=\"story-section\"><p>Your saved public preview will appear here when ready.</p></section>"}<div class="sticky-story-cta"><button class="primary-cta" type="button" data-action="open-chat">View saved reading</button></div>${businessFooterMarkup()}</article>`;
+        setupFloatingCta(".sticky-story-cta");
+      }
+
       function renderTime() {
         stage.innerHTML = `
           \x3csection class="panel">
             \x3cdiv class="status">${birthCalendarLabel(state.calendar)} ${state.birth || "Birth date not entered"}\x3c/div>
-            \x3ch1>If the time is known, the reading includes the hour pillar.\x3c/h1>
-            \x3cp>If the exact time is available, the hour pillar is opened; if it is unknown, the reading continues around the day branch and the major luck cycle.\x3c/p>
+            <h1>Birth time · optional</h1>
+            <p id="birthtime-help">If you do not know, choose unknown below. You do not need to guess. A known time adds time-dependent details to the reading.</p>
             \x3cdiv class="field-grid">
               \x3cdiv class="field">
                 \x3clabel for="birthtime">Time of birth\x3c/label>
-                \x3cinput id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${state.time === "모름" ? "" : state.time}" aria-describedby="birthtime-error" />
+                \x3cinput id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${isKnownBirthTime(state.birthTimeKnown, state.time) ? state.time : ""}" aria-describedby="birthtime-help birthtime-error" />
                 \x3cdiv class="field-error" id="birthtime-error" aria-live="polite">\x3c/div>
               \x3c/div>
             \x3c/div>
             \x3cdiv class="actions">
-              \x3cbutton class="ghost" type="button" data-action="time-unknown">Time unknown\x3c/button>
+              \x3cbutton class="ghost" type="button" data-action="time-unknown">I don’t know my birth time</button>
               \x3cbutton class="next-cta" type="button" data-action="time-next">Next\x3c/button>
             \x3c/div>
           \x3c/section>
@@ -6771,6 +6787,7 @@
       }
 
       function renderResult() {
+        if (state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) { renderUnknownTimeResult(); return; }
         if (isLoveThisYearService()) {
           renderLoveThisYearResult();
           return;

@@ -29,7 +29,7 @@ for(const locale of ['en','ja']) {
     for(const name of ['buildReport','buildTeaser','buildDetail','deriveSignal','deriveBirthFacts','markPaid','hasEntitlement','DEMO_INPUT','RAG_EVIDENCE'])assert.equal(api[name],undefined,name)
     assert.equal(api.loadStoredProfile().complete,false)
     assert.equal(writes.length,0)
-    const profile={name:'Ana O’Neil',gender:'female',birthDate:'1990-01-02',birthTime:'08:20',calendarType:'lunar',birthPlace:'Tokyo',profileId:'private-profile'}
+    const profile={name:'Ana O’Neil',gender:'female',birthDate:'1990-01-02',birthTime:'08:20',birthTimeKnown:true,calendarType:'lunar',birthPlace:'Tokyo',profileId:'private-profile'}
     data.set('umsh_birth_profile',JSON.stringify(profile));assert.equal(api.loadStoredProfile().profile.calendarType,'lunar')
     assert.ok(!/[가-힣]/.test(api.profileLabel(profile)))
     const input={profileSource:'stored_profile',profile,offer:{companyName:'Owner company',roleName:'Analyst',workMode:'remote',commute:'From home',salaryFeeling:'low',decisionDate:'2026-11-01',concernPoint:'Only customer words'}}
@@ -37,7 +37,7 @@ for(const locale of ['en','ja']) {
     assert.deepEqual(JSON.parse(data.get('umsh_job_choice_input')!),input)
     assert.deepEqual(writes.sort(),['umsh_job_choice_input','umsh_job_choice_profile'].sort())
     for(const name of ['umsh_job_choice_report','umsh_job_choice_report_id','umsh_job_choice_entitlement'])assert.equal(data.has(name),false,name)
-    assert.ok(read(`.vercel-localized/${locale}/work/job-choice/02-step-2-saju-input/index.html`).includes('shared/job-choice-input.js?v=20261013-input2'))
+    assert.ok(read(`.vercel-localized/${locale}/work/job-choice/02-step-2-saju-input/index.html`).includes('shared/job-choice-input.js?v=20261014-unknown-time'))
   })
   test(`${locale}: pure signal media controller matches neutral KO behavior without app or report logic`,()=>{
     const source=read(`.vercel-localized/${locale}/love/signal/signal-video.js`)
@@ -50,19 +50,23 @@ for(const locale of ['en','ja']) {
 for (const locale of ['en','ja']) test(`${locale}: actual input-page inline submit saves only inputs and rejects missing fields/storage`, () => {
   const html=read(`.vercel-localized/${locale}/work/job-choice/02-step-2-saju-input/index.html`)
   const inline=Array.from(html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)).map(m=>m[1]).find(s=>s.includes('const form = document.getElementById("jobChoiceForm")'))!
-  for(const blockedStorage of [false,true]) {
+  for(const blockedStorage of [false,true]) for(const storedBirthTimeKnown of [true,false,null]) {
     const handlers:Record<string,Function>={};const data=new Map<string,string>();data.set('umsh_job_choice_report','saved-original-report');data.set('umsh_job_choice_report_id','original-id');data.set('umsh_job_choice_entitlement','original-marker')
     const storage={getItem:(k:string)=>data.get(k)||null,setItem:(k:string,v:string)=>{if(blockedStorage)throw Error('denied');data.set(k,v)}}
     const classes={add(){},remove(){}};const status={querySelector:()=>({textContent:''})};const toggle={addEventListener:(event:string,fn:Function)=>handlers['toggle:'+event]=fn,textContent:''};const error={textContent:'',classList:classes};const fields={classList:classes}
     const raw={name:'Ana',gender:'female',birthDate:'1990-01-02',birthTime:'08:20',calendarType:'lunar',birthPlace:'Tokyo',companyName:'User company',roleName:'Analyst',workMode:'remote',commute:'Home',salaryFeeling:'low',decisionDate:'2026-11-01',concernPoint:'User words'}
-    const form={elements:Object.fromEntries(Object.entries(raw).map(([k,value])=>[k,{value}])),addEventListener:(event:string,fn:Function)=>handlers['form:'+event]=fn}
+    if(storedBirthTimeKnown !== null) data.set('umsh_job_choice_profile',JSON.stringify({...raw,birthTime:storedBirthTimeKnown?raw.birthTime:'12:00',birthTimeKnown:storedBirthTimeKnown}));
+    const form:any={elements:{...Object.fromEntries(Object.entries(raw).map(([k,value])=>[k,{value}])),birthTimeUnknown:{checked:false,addEventListener:(event:string,fn:Function)=>handlers['unknown:'+event]=fn}},addEventListener:(event:string,fn:Function)=>handlers['form:'+event]=fn}
     const nodes:any={jobChoiceForm:form,profileFields:fields,profileStatus:status,toggleProfile:toggle,formError:error};const back={addEventListener:(event:string,fn:Function)=>handlers['back:'+event]=fn}
-    const window:any={location:{href:'start',hash:'#step-2-saju-input'},history:{replaceState(){}}};const context:any={window,document:{getElementById:(id:string)=>nodes[id]||null,querySelector:()=>back},sessionStorage:storage,localStorage:storage,fetch:()=>assert.fail('No API'),URL,URLSearchParams}
+    const window:any={location:{href:'start',hash:'#step-2-saju-input'},history:{replaceState(){}},addEventListener:(event:string,fn:Function)=>handlers['window:'+event]=fn};const context:any={window,document:{getElementById:(id:string)=>nodes[id]||null,querySelector:()=>back},sessionStorage:storage,localStorage:storage,fetch:()=>assert.fail('No API'),URL,URLSearchParams}
     vm.createContext(context);new vm.Script(read(`.vercel-localized/${locale}/work/job-choice/shared/job-choice-input.js`)).runInContext(context);context.JobChoice=window.JobChoice;new vm.Script(inline).runInContext(context)
     assert.equal(typeof handlers['form:submit'],'function');assert.equal(window.location.href,'start')
+    // A complete browser cache is not account provenance. Only the bridge's current account event enables it.
+    handlers['form:submit']({preventDefault(){}});assert.equal(window.location.href,'start');assert.equal(data.has('umsh_job_choice_input'),false);assert.ok(error.textContent)
+    if(storedBirthTimeKnown !== null) handlers['window:umsh-jobchoice-account-profile']({detail:{profile:{...raw,birthTime:storedBirthTimeKnown?raw.birthTime:'12:00',birthTimeKnown:storedBirthTimeKnown}}})
     form.elements.companyName.value='';let prevented=0;handlers['form:submit']({preventDefault(){prevented++}});assert.equal(window.location.href,'start');assert.ok(error.textContent);assert.equal(data.has('umsh_job_choice_input'),false)
     form.elements.companyName.value=raw.companyName;handlers['form:submit']({preventDefault(){prevented++}});assert.equal(prevented,2)
-    if(blockedStorage){assert.equal(window.location.href,'start');assert.ok(error.textContent)}else{assert.equal(window.location.href,'../04-step-4-report/index.html#step-4-report');assert.equal(JSON.parse(data.get('umsh_job_choice_input')!).offer.concernPoint,raw.concernPoint)}
+    if(blockedStorage || storedBirthTimeKnown === null){assert.equal(window.location.href,'start');assert.ok(error.textContent)}else{assert.equal(window.location.href,'../04-step-4-report/index.html#step-4-report');const saved=JSON.parse(data.get('umsh_job_choice_input')!);assert.equal(saved.offer.concernPoint,raw.concernPoint);assert.equal(saved.profile.birthTimeKnown,storedBirthTimeKnown);assert.equal(saved.profile.birthTime,storedBirthTimeKnown?raw.birthTime:'')}
     assert.equal(data.get('umsh_job_choice_report'),'saved-original-report');assert.equal(data.get('umsh_job_choice_report_id'),'original-id');assert.equal(data.get('umsh_job_choice_entitlement'),'original-marker')
   }
 })

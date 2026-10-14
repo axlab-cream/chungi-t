@@ -688,7 +688,7 @@
           <section class="form-section" id="newProfileFields" aria-labelledby="birthTitle">
             <div class="section-title">
               <h2 id="birthTitle">生年月日時から教えて</h2>
-              <p>桃花と今年の年運を計算するには、生まれた日付と時間が必要だ。</p>
+              <p>任意です。不明なら「出生時刻はわからない」を選んでください。推測で入力する必要はありません。わかる場合は、時刻に基づく詳しい項目も見られます。不明な場合、その項目は省きます。</p>
             </div>
             <div class="field-grid">
               <div class="field" data-field="display_name">
@@ -704,8 +704,8 @@
                 </div>
                 <div class="field" data-field="birth_time">
                   <label for="birthTime">出生時刻</label>
-                  <input id="birthTime" name="birth_time" type="time">
-                  <small>時間の流れと桃花の条件をより正確に見るために必要です。</small>
+                  <input id="birthTime" name="birth_time" type="time"><label class="birth-time-unknown" style="display:flex;align-items:center;gap:8px;min-height:44px"><input id="birthTimeUnknown" type="checkbox" style="width:20px;height:20px;min-height:20px;padding:0">出生時刻はわからない</label>
+                  <small>任意です。不明なら「出生時刻はわからない」を選んでください。推測で入力する必要はありません。わかる場合は、時刻に基づく詳しい項目も見られます。不明な場合、その項目は省きます。</small>
                 </div>
               </div>
               <div class="field" data-field="gender">
@@ -863,8 +863,8 @@
           errors.push(["birth_date", "生年月日を書いて。今年の年運を計算するには日付が必要だ。"]);
         }
 
-        if (isNewProfile && !form.birth_time.value) {
-          errors.push(["birth_time", "出生時刻を書いて。時間の流れと桃花の条件を一緒に見るには必要だ。"]);
+        if (isNewProfile && !document.getElementById('birthTimeUnknown').checked && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(form.birth_time.value)) {
+          errors.push(["birth_time", "正しい時刻（時:分）を入力するか「出生時刻はわからない」を選んでください。"]);
         }
 
         if (isNewProfile && !getRadioValue("calendar_type")) {
@@ -894,7 +894,8 @@
           profile_mode: currentProfileMode(),
           display_name: form.display_name.value.trim(),
           birth_date: form.birth_date.value,
-          birth_time: form.birth_time.value,
+          birth_time: document.getElementById('birthTimeUnknown').checked ? '' : form.birth_time.value,
+          birthTimeKnown: !document.getElementById('birthTimeUnknown').checked,
           calendar_type: getRadioValue("calendar_type"),
           gender: form.gender.value,
           partner_star_basis: PARTNER_STAR_BASIS,
@@ -918,7 +919,9 @@
           setRadio("profile_mode", draft.profile_mode);
           form.display_name.value = draft.display_name || "";
           form.birth_date.value = draft.birth_date || "";
-          form.birth_time.value = draft.birth_time || "";
+          form.birth_time.value = draft.birthTimeKnown === false ? '' : draft.birth_time || '';
+          document.getElementById('birthTimeUnknown').checked = draft.birthTimeKnown === false;
+          form.birth_time.disabled = draft.birthTimeKnown === false;
           setRadio("calendar_type", draft.calendar_type);
           form.gender.value = draft.gender || "";
           setRadio("relationship_status", draft.relationship_status);
@@ -1039,10 +1042,10 @@
             "key": "birth_time",
             "label": "出生時刻",
             "type": "time",
-            "required": true,
+            "required": false,
             "condition": "profile_mode=new_profile",
-            "why_needed": "時間の流れと桃花の条件をより詳しく見るために必要です。",
-            "error_message": "出生時刻を入力してください。"
+            "why_needed": "任意です。不明なら「出生時刻はわからない」を選んでください。推測で入力する必要はありません。わかる場合は、時刻に基づく詳しい項目も見られます。不明な場合、その項目は省きます。",
+            "error_message": "正しい時刻（時:分）を入力するか「出生時刻はわからない」を選んでください。"
           },
           {
             "key": "calendar_type",
@@ -1141,7 +1144,7 @@
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
-    <script src="/js/thisyear-service.js?v=20261008-three-voice-v1" defer=""></script>
+    <script src="/js/thisyear-service.js?v=20261014-unknown-time" defer=""></script>
 
 
-</body></html>
+<script>(()=>{const time=document.getElementById('birthTime'),unknown=document.getElementById('birthTimeUnknown');unknown.addEventListener('change',()=>{time.disabled=unknown.checked;if(unknown.checked)time.value='';});})();</script></body></html>
