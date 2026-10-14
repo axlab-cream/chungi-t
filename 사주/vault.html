@@ -325,6 +325,7 @@
           <button type="button" role="tab" data-tab="today" aria-selected="true">오늘 운</button>
           <button type="button" role="tab" data-tab="paid" aria-selected="false">구매한 운</button>
           <button type="button" role="tab" data-tab="history" aria-selected="false">추가 풀이</button>
+          <button type="button" role="tab" data-tab="tests" aria-selected="false">테스트 결과</button>
         </nav>
         <!-- 해석이 왜 오래 걸리는지 먼저 말해 준다. 말해 주지 않으면 화면이 멈춘 줄 안다. 구매한 운 탭에서만. -->
         <aside class="vault-notice" role="note" data-tab-only="paid" hidden>
@@ -736,6 +737,17 @@
                 button.setAttribute('aria-selected', button.dataset.tab === tab ? 'true' : 'false');
               });
               if (notice) notice.hidden = tab !== 'paid';
+              // 2026-10-14 무료 테스트(연애 본능·금사빠) 결과. 회원 계정(user_metadata.play_results)에 남긴 것을 다시 연다.
+              if (tab === 'tests') {
+                todayCalendar.hidden = true; todayRecentHead.hidden = true;
+                list.setAttribute('aria-label', '테스트 결과');
+                const PLAY_TITLES = { 'solo-nara': '연애 본능 테스트', 'love-speed': '금사빠·금사식 테스트' };
+                const played = Object.entries((auth.user && auth.user.user_metadata && auth.user.user_metadata.play_results) || {})
+                  .filter(([key]) => PLAY_TITLES[key])
+                  .sort((a, b) => (Date.parse(b[1] && b[1].savedAt) || 0) - (Date.parse(a[1] && a[1].savedAt) || 0));
+                list.innerHTML = played.length ? played.map(([key, item]) => { const at = stamp(item && item.savedAt); return `<a class="vault-item" href="/play/${escapeHtml(key)}/?saved=1"><article class="vault-card vault-history-card"><div class="vault-body"><span class="vault-badge">무료 테스트</span><h2 class="vault-title">${escapeHtml(PLAY_TITLES[key])}</h2><small>${escapeHtml(at ? at.day + ' ' + at.time : '')}</small><p>내 결과 다시 보기 →</p></div></article></a>`; }).join('') : empty('아직 저장된 테스트 결과가 없어요', '로그인한 상태로 무료 테스트를 하면 결과가 여기에 남아요.', '/play/solo-nara/', '연애 본능 테스트 하러 가기');
+                return;
+              }
               if (tab === 'history') {
                 todayCalendar.hidden = true; todayRecentHead.hidden = true;
                 list.setAttribute('aria-label', '추가 풀이 이력');
@@ -770,7 +782,8 @@
               calendarMonth = next.getMonth();
               renderTodayCalendar(reports.filter(isToday));
             });
-            renderCurrent(['history', 'consultation'].includes(new URLSearchParams(location.search).get('tab')) ? 'history' : 'today');
+            const linkedTab = new URLSearchParams(location.search).get('tab');
+            renderCurrent(['history', 'consultation'].includes(linkedTab) ? 'history' : linkedTab === 'tests' ? 'tests' : 'today');
 
             /**
              * 관리자 삭제. 두 번 눌러야 지운다 — 첫 탭은 「정말 삭제?」로 바뀌고 3초 안에 다시

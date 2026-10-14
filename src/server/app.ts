@@ -54,6 +54,7 @@ import {
   reportListViewState,
   reportProgressOf,
   toClientReport,
+  transferReportOwnership,
   updateReportChatHistory,
   withReportBirthCertainty,
 } from '../report/report-store.js'
@@ -67,7 +68,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { type MemberContact, countLiveMembers, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
+import { type MemberContact, countLiveMembers, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { searchAdminAuditEvents } from '../admin/audit-store.js'
@@ -119,6 +120,7 @@ import {
   checkUserProfileStorageReadiness,
   getUserBirthProfile,
   getUserProfileStorageMode,
+  markGuestProfileClaimed,
   saveUserBirthProfile,
 } from '../user/profile-store.js'
 import type { UserBirthProfile, UserLifeContext } from '../user/profile-store.js'
@@ -1488,7 +1490,10 @@ function secureStringEqual(left: string, right: string): boolean {
 }
 
 async function verifySupabaseUser(req: Request): Promise<ReportOwner | undefined> {
-  const token = bearerToken(req)
+  return verifySupabaseToken(bearerToken(req))
+}
+
+async function verifySupabaseToken(token: string): Promise<ReportOwner | undefined> {
   if (!token) return undefined
   if (!SUPABASE_URL || !SUPABASE_PUBLIC_KEY) {
     throw new Error('Supabase 인증 설정이 필요합니다.')
@@ -3600,7 +3605,7 @@ app.get('/api/admin/v1/dashboard', async (req, res) => {
   const kpiRange = range && before ? { from: before, to: range.to } : null
   try {
     const dashboard = await buildDashboard({
-      countMembersCreated, countReportsCreated, countGuestsCreated,
+      countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions,
       async listOrdersSince(from) {
         const orders: PaymentOrder[] = []
         let cursor: string | undefined
@@ -4583,6 +4588,40 @@ app.use('/api/play/love-speed', loveSpeedRouter({
   },
 }))
 app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireSupabaseUser, spec: soloNaraSpec as SoloSpec }))
+/**
+ * 2026-10-14 비회원 → 회원 이어받기(3단계, docs/auth/guest-member-plan.md).
+ * SNS 로그인한 회원 토큰(Authorization)과, 같은 브라우저 탭에 남은 비회원 토큰(body.guestToken)을 함께 받아
+ * 비회원이 만든 리포트를 회원 계정으로 옮기고, 회원에게 사주 정보가 없으면 비회원 사주 정보를 복사한다.
+ * 두 토큰을 모두 가진 사람만 옮길 수 있다. dryRun 이면 옮길 건수만 알려 준다.
+ */
+app.post('/api/auth/claim-guest', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const member = await requireMemberUser(req, res)
+    if (!member) return
+    const guestToken = trimmedString(req.body?.guestToken)
+    if (!guestToken) { res.status(400).json({ code: 'GUEST_TOKEN_REQUIRED', error: '이어받을 비회원 기록이 없습니다.' }); return }
+    const guest = await verifySupabaseToken(guestToken).catch(() => undefined)
+    if (!guest?.isAnonymous) { res.status(400).json({ code: 'NOT_GUEST', error: '비회원 기록을 확인하지 못했습니다.' }); return }
+    if (guest.id === member.id) { res.json({ reports: 0, profile: 'same' }); return }
+    const [guestReports, guestProfile, memberProfile] = await Promise.all([
+      listReportRecords(guest, 50).catch(() => []),
+      getUserBirthProfile(guest).catch(() => null),
+      getUserBirthProfile(member).catch(() => null),
+    ])
+    const profilePlan = !guestProfile ? 'none' : memberProfile ? 'kept' : 'copied'
+    if (req.body?.dryRun === true) { res.json({ reports: guestReports.length, profile: profilePlan }); return }
+    const reports = await transferReportOwnership(guest.id, member)
+    if (guestProfile && !memberProfile) {
+      await saveUserBirthProfile({ ...guestProfile, userId: member.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, member)
+    }
+    if (guestProfile) await markGuestProfileClaimed(guest, member.id).catch((err) => console.error('[claim-guest] 전환 표시 실패', err instanceof Error ? err.message : err))
+    res.json({ reports, profile: profilePlan })
+  } catch (err) {
+    respondRequestFailure(res, err, '비회원 기록 이어받기 실패')
+  }
+})
+
 app.get('/api/user/profile', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)

@@ -122,6 +122,8 @@
     authClient = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
     const result = await authClient.auth.getSession();
     session = result.data.session;
+    // 2026-10-14 비회원으로 본 결과를 사려고 로그인한 경우: 주문 전에 그 결과를 회원 계정으로 옮긴다(docs/auth/guest-member-plan.md).
+    if (session && global.UMSHAuthSession?.claimGuestNow) await global.UMSHAuthSession.claimGuestNow({ silent: true }).catch(() => undefined);
     clearOtherConsultationDraft(session?.user?.id);
     if (!session) openLogin();
     authClient.auth.onAuthStateChange((_event, nextSession) => {

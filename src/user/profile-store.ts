@@ -51,6 +51,9 @@ type UserProfileRow = {
     birth_time_disambiguation?: BirthInput['birthTimeDisambiguation']
     /** 'guest' = SNS 로그인 전 비회원(익명 계정). 관리자 회원 수에서 빼고 비회원 수로 센다. */
     account_type?: 'guest'
+    /** 비회원이 SNS 로그인해 회원이 된 경우: 옮겨 간 회원 계정과 시각. 비회원→회원 전환 집계에 쓴다. */
+    claimed_to?: string
+    claimed_at?: string
   }
   created_at: string
   updated_at: string
@@ -259,6 +262,36 @@ export async function getUserBirthProfile(owner: ReportOwner): Promise<UserBirth
     [owner.id],
   )
   return result.rows[0] ? rowToProfile(result.rows[0]) : null
+}
+
+/**
+ * 2026-10-14 비회원 프로필에 "회원으로 옮겨 감" 표시를 남긴다. 비회원 행은 지우지 않고(대표 결정: 자동 삭제 안 함)
+ * 비회원 수·전환 수를 함께 셀 수 있게 둔다. 비회원 본인 토큰으로 자기 행만 고친다.
+ */
+export async function markGuestProfileClaimed(guest: ReportOwner, memberId: string): Promise<void> {
+  const claim = { account_type: 'guest' as const, claimed_to: memberId, claimed_at: nowIso() }
+  if (storageMode() === 'memory') return
+  if (storageMode() === 'supabase') {
+    if (!guest.accessToken) return
+    const target = `${supabaseRestUrl}?user_id=eq.${encodeURIComponent(guest.id)}`
+    const current = await fetch(`${target}&select=profile_payload`, { headers: supabaseHeaders(guest.accessToken) })
+    if (!current.ok) throw new Error('비회원 프로필을 불러오지 못했습니다.')
+    const rows = await current.json() as Array<Pick<UserProfileRow, 'profile_payload'>>
+    if (!rows[0]) return
+    const response = await fetch(target, {
+      method: 'PATCH',
+      headers: { ...supabaseHeaders(guest.accessToken), 'content-type': 'application/json', prefer: 'return=minimal' },
+      body: JSON.stringify({ profile_payload: { ...(rows[0].profile_payload ?? {}), ...claim } }),
+    })
+    if (!response.ok) throw new Error('비회원 프로필에 전환 표시를 남기지 못했습니다.')
+    return
+  }
+  if (!pool) return
+  await ensureDb()
+  await pool.query(
+    "UPDATE cheongi_user_profiles SET profile_payload = profile_payload || $2::jsonb, updated_at = NOW() WHERE user_id = $1",
+    [guest.id, JSON.stringify(claim)],
+  )
 }
 
 export async function saveUserBirthProfile(profile: UserBirthProfile, owner: ReportOwner): Promise<UserBirthProfile> {

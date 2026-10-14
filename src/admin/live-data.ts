@@ -748,6 +748,21 @@ export function countMembersCreated(from: Date, to: Date): Promise<number> {
   return countCreatedBetween('cheongi_user_profiles', 'user_id', from, to, MEMBER_PROFILE_FILTER)
 }
 
+/** 2026-10-14 기간 안에 SNS 로그인해 회원이 된 비회원 수(비회원 프로필의 claimed_at 기준). */
+export async function countGuestConversions(from: Date, to: Date): Promise<number> {
+  const url = new URL(tableUrl('cheongi_user_profiles'))
+  url.searchParams.set('select', 'user_id')
+  url.searchParams.set('limit', '1')
+  for (const [column, filter] of Object.entries(GUEST_PROFILE_FILTER)) url.searchParams.append(column, filter)
+  url.searchParams.append('profile_payload->>claimed_at', `gte.${from.toISOString()}`)
+  url.searchParams.append('profile_payload->>claimed_at', `lt.${to.toISOString()}`)
+  const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('LIVE_DATA_COUNT_FAILED')
+  const total = response.headers.get('content-range')?.split('/')[1]
+  if (total && /^d+$/.test(total)) return Number(total)
+  return (await response.json() as unknown[]).length
+}
+
 export function countGuestsCreated(from: Date, to: Date): Promise<number> {
   return countCreatedBetween('cheongi_user_profiles', 'user_id', from, to, GUEST_PROFILE_FILTER)
 }

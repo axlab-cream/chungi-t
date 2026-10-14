@@ -116,3 +116,51 @@ test('켜 두었으면 익명 세션을 만들고 비회원 진입을 기록한�
   assert.equal(result, created)
   assert.deepEqual(JSON.parse(JSON.stringify(pushed)), [['cta_click', { target: 'signup:guest' }]])
 })
+
+// 2026-10-14 3단계: 로그인한 뒤 같은 탭의 비회원 기록을 회원 계정으로 옮긴다.
+function claimSetup(confirmAnswer: boolean | null, pathname = '/play/solo-nara/') {
+  const calls: Array<{ auth: string | null; body: any }> = []
+  const local = memoryStorage({ [TOKEN]: memberValue, umsh_guest_active_at_v1: String(Date.now()) })
+  const session = memoryStorage({ [TOKEN]: guestValue })
+  const fetchImpl = async (_url: string, init: any) => {
+    const body = JSON.parse(init.body)
+    calls.push({ auth: init.headers.Authorization, body })
+    return { ok: true, status: 200, json: async () => (body.dryRun ? { reports: 2, profile: 'copied' } : { reports: 2, profile: 'copied' }) }
+  }
+  const extra: Record<string, unknown> = { fetch: fetchImpl, location: { pathname } }
+  if (confirmAnswer !== null) extra.UMSHGuestSaveSheet = { confirmClaim: async () => confirmAnswer }
+  const { auth } = load(local, session, () => Date.now(), extra)
+  return { auth, calls, local, session }
+}
+
+test('회원이 저장에 동의하면 비회원 토큰으로 옮기고 같은 탭의 비회원 세션을 지운다', async () => {
+  const { auth, calls, session, local } = claimSetup(true)
+  await auth.claimGuestNow()
+  assert.equal(calls.length, 2)
+  assert.equal(calls[0].auth, 'Bearer member-tok')
+  assert.deepEqual(calls[0].body, { guestToken: 'guest-tok', dryRun: true })
+  assert.deepEqual(calls[1].body, { guestToken: 'guest-tok' })
+  assert.equal(session.getItem(TOKEN), null)
+  assert.equal(local.getItem(TOKEN), memberValue, '회원 세션은 그대로')
+})
+
+test('저장하지 않기를 고르면 옮기지 않고 비회원 세션만 지운다', async () => {
+  const { auth, calls, session } = claimSetup(false)
+  await auth.claimGuestNow()
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].body.dryRun, true)
+  assert.equal(session.getItem(TOKEN), null)
+})
+
+test('결제 화면에서는 묻지 않고 옮긴다(방금 본 결과를 사려는 본인)', async () => {
+  const { auth, calls } = claimSetup(false, '/payment/')
+  await auth.claimGuestNow()
+  assert.equal(calls.length, 2)
+})
+
+test('비회원 세션이나 회원 세션이 없으면 서버를 부르지 않는다', async () => {
+  const calls: unknown[] = []
+  const { auth } = load(memoryStorage({ [TOKEN]: memberValue }), memoryStorage(), () => Date.now(), { fetch: async () => { calls.push(1); return {} } })
+  assert.deepEqual(JSON.parse(JSON.stringify(await auth.claimGuestNow())), { skipped: true })
+  assert.equal(calls.length, 0)
+})

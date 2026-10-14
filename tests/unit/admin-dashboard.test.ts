@@ -83,3 +83,13 @@ test('2026-10-14 비회원 집계를 넘기면 신규 회원 옆에 신규 비�
   assert.equal(guests.href, '/members?kind=guest')
   assert.ok(!(await buildDashboard(deps(), NOW)).kpis.some((item) => item.key === 'guests'), '집계를 안 넘기면 칸을 만들지 않는다')
 })
+
+test('2026-10-14 비회원→회원 전환 수를 넘기면 비회원 칸 옆에 전환 칸이 생긴다', async () => {
+  const dashboard = await buildDashboard(deps({ countGuestsCreated: async () => 10, countGuestConversions: async (from) => from.toISOString() === '2026-10-05T15:00:00.000Z' ? 3 : 1 }), NOW)
+  const keys = dashboard.kpis.map((item) => item.key)
+  assert.equal(keys.indexOf('guest-conversions'), keys.indexOf('guests') + 1)
+  const conversions = dashboard.kpis.find((item) => item.key === 'guest-conversions')!
+  assert.equal(conversions.label, '비회원→회원 전환')
+  assert.equal(conversions.today, 3)
+  assert.equal(conversions.yesterday, 1)
+})
