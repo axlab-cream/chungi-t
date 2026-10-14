@@ -271,7 +271,12 @@
     if (!request) throw new Error('현재 관계 상태와 생년월일시를 다시 확인해 주세요.');
     showAnalysisLoading();
     const session = await initAuth();
-    if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+    if (!session) {
+      // 입력값은 이미 sessionStorage 에 있어 로그인 뒤 이 화면으로 돌아오면 그대로 채워진다.
+      // 오류 문구만 띄우면 버튼 아래에 있는 사람에게는 아무 반응이 없는 것처럼 보인다.
+      location.assign(loginUrl());
+      return null;
+    }
     const response = await api('/api/love/this-year/analyze', { method: 'POST', body: JSON.stringify(request) });
     const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response) || response;
     const report = accepted?.report || response?.report;

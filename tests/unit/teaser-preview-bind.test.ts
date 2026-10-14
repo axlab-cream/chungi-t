@@ -346,7 +346,9 @@ test('올해 연애운 입력은 실제 리포트를 만든 뒤 03 로딩에서 
   assert.match(thisYearClientSource, /preview: true/)
   assert.match(thisYearClientSource, /data-umsh-step', '03-loading'/)
   assert.match(thisYearClientSource, /location\.assign\(teaserUrl\(reportId\)\)/)
-  assert.match(thisYearClientSource, /selfBirthTimeKnown: true/)
+  // 2026-10-14: 태어난 시각을 모른다고 고르면 그대로 넘긴다(2d0ca9e9). 예전에는 늘 true 였다.
+  assert.match(thisYearClientSource, /const birthTimeKnown = draft\.birthTimeKnown !== false;/)
+  assert.match(thisYearClientSource, /selfBirthTimeKnown: birthTimeKnown/)
 })
 
 test('미리보기 목차 toc는 유료 본문 없이도 목록으로 받는다', () => {

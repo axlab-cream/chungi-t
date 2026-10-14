@@ -978,8 +978,15 @@
           document.querySelector("[data-thisyear-loading]")?.remove();
           submitButton.disabled = false;
           submitButton.textContent = "今年の恋愛の流れを見る";
-          errorBox.innerHTML = `\x3cstrong>無料の読みを準備できなかった。\x3c/strong>\x3cul>\x3cli>${escapeHtml(error?.message || "少し待ってからもう一度押して。")}\x3c/li>\x3c/ul>`;
+          if (error?.code === "PROFILE_REQUIRED" && currentProfileMode() === "saved_profile") {
+            setRadio("profile_mode", "new_profile");
+            syncProfileMode();
+            errorBox.innerHTML = `<strong>アカウントに保存された生年月日がありません。</strong><ul><li>下に生年月日時を入力して、もう一度押してください。</li></ul>`;
+          } else {
+            errorBox.innerHTML = `\x3cstrong>無料の読みを準備できなかった。\x3c/strong>\x3cul>\x3cli>${escapeHtml(error?.message || "少し待ってからもう一度押して。")}\x3c/li>\x3c/ul>`;
+          }
           errorBox.classList.add("is-visible");
+          errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }
 
@@ -1144,7 +1151,7 @@
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
-    <script src="/js/thisyear-service.js?v=20261014-unknown-time" defer=""></script>
+    <script src="/js/thisyear-service.js?v=20261014-submit-feedback" defer=""></script>
 
 
 <script>(()=>{const time=document.getElementById('birthTime'),unknown=document.getElementById('birthTimeUnknown');unknown.addEventListener('change',()=>{time.disabled=unknown.checked;if(unknown.checked)time.value='';});})();</script></body></html>
