@@ -139,7 +139,7 @@ test('home rail keeps both free tests rotating when the consultation promo is of
 
 test('page is readable without JS, deployable, indexed, and loads copy before the game', () => {
   const page = read('사주/play/solo-nara/index.html')
-  assert.ok(page.includes('<h1>연애할 때 드러나는 나의 숨겨진 본능은?</h1>'))
+  assert.ok(page.includes('<h1>연애할 때 나의 숨겨진 본능은?</h1>'))
   assert.ok(!page.includes('나는 솔로'), 'program name stays out of the page')
   assert.ok(page.indexOf('telemetry.js') < page.indexOf('umsh-track.js'))
   assert.ok(page.indexOf('content.js') < page.indexOf('./app.js'))

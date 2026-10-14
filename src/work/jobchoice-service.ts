@@ -260,6 +260,7 @@ function buildInterpretation(params: {
   birth: BirthInput
   input: JobChoiceRequest
   chunks: RagChunk[]
+  birthTimeKnown?: boolean
   index: number
 }): string {
   const { group, itemTitle, analysis, input } = params
@@ -277,7 +278,7 @@ function buildInterpretation(params: {
         : `검토 중인 후보는 “${input.companyName}”, 역할은 “${input.roleName}”입니다. ${quotedInput('현재 의견', input.concernPoint)} 회사의 문화나 사람에 관한 외부 확인 자료는 별도로 제공되지 않았습니다.`
   return practicalReading({
     title: itemTitle, detail: reading, current,
-    evidence: workSymbol(analysis, kind),
+    evidence: workSymbol(analysis, kind, params.birthTimeKnown),
     application: state === 'settled'
       ? '현재 입력은 문제보다 긍정적인 조건을 확인하려는 뜻을 포함합니다. 위 장면이 실제로 나타나지 않으면 위험으로 적용하지 말고, 이미 괜찮은 조건을 유지할 근거로 읽으십시오.'
       : state === 'concern'
@@ -295,13 +296,13 @@ function oneWayCommuteMinutes(value: string): number | null {
   return Number.isInteger(minutes) && minutes > 0 && minutes <= 180 ? minutes : null
 }
 
-function openingJobChoiceReading(input: JobChoiceRequest, analysis: SajuAnalysis, index: number): string {
+function openingJobChoiceReading(input: JobChoiceRequest, analysis: SajuAnalysis, index: number, birthTimeKnown?: boolean): string {
   const mode = WORK_MODE_LABEL[input.workMode]
   const salary = SALARY_LABEL[input.salaryFeeling]
   const minutes = oneWayCommuteMinutes(input.commute)
   if (index === 0) return `**${input.companyName}의 ${input.roleName} 제안에서 지금 먼저 확인할 것은 무엇일까요?** 적어 주신 근무 형태는 ${mode}, 출퇴근 조건은 “${input.commute}”, 보상 체감은 “${salary}”입니다. 특히 “${input.concernPoint}”라는 고민이 있다면 회사 이름이나 첫인상보다 실제로 맡을 일의 경계가 먼저입니다. 이 입력만으로 회사의 내부 운영을 알 수는 없으므로, 판단은 확인 가능한 조건부터 쌓아야 합니다.
 
-첫 기준은 **직무명보다 실제 산출물**입니다. ${input.roleName}이라는 이름 아래 어떤 결과물을 언제까지 내야 하는지, 누가 최종 승인하는지, 다른 팀과의 조율을 어디까지 책임지는지 물어보세요. 역할 설명이 넓어 보여도 결정권과 지원 인력이 분명하다면 성장의 여지가 있습니다. 반대로 책임만 넓고 승인권이 흐리면 기대한 자율성이 수정 요청을 처리하는 시간으로 바뀔 수 있습니다. 사주 쪽에서는 ${workSymbol(analysis, 'role')}를 참고하되, 이것만으로 특정 회사의 실제 업무 방식을 판정하지는 않습니다.
+첫 기준은 **직무명보다 실제 산출물**입니다. ${input.roleName}이라는 이름 아래 어떤 결과물을 언제까지 내야 하는지, 누가 최종 승인하는지, 다른 팀과의 조율을 어디까지 책임지는지 물어보세요. 역할 설명이 넓어 보여도 결정권과 지원 인력이 분명하다면 성장의 여지가 있습니다. 반대로 책임만 넓고 승인권이 흐리면 기대한 자율성이 수정 요청을 처리하는 시간으로 바뀔 수 있습니다. 사주 쪽에서는 ${workSymbol(analysis, 'role', birthTimeKnown)}를 참고하되, 이것만으로 특정 회사의 실제 업무 방식을 판정하지는 않습니다.
 
 두 번째 기준은 **평가와 보상이 같은 일을 가리키는지**입니다. 첫 3개월의 산출물, 평가자, 평가 시점이 문서에 있는지 확인하세요. 입력하신 보상 체감은 ${salary}이지만 실제 급여, 성과급, 수습 조건의 숫자는 제공되지 않았습니다. 보상이 좋게 느껴져도 기대 업무가 매번 바뀌면 비교 기준이 흔들립니다. 반대로 업무 범위와 평가 기준이 일치한다면 출퇴근 부담을 감수할 이유가 있는지 더 분명해집니다.
 
@@ -367,7 +368,7 @@ export function buildJobChoiceReport(
       const minutes = isOpening && openingIndex === 1 ? oneWayCommuteMinutes(input.commute) : null
       const baseInterpretation = buildInterpretation({
         group, itemTitle: item.title, itemIndex, analysis, birth, input,
-        chunks: categoryChunks, index: order + itemIndex,
+        chunks: categoryChunks, birthTimeKnown: context.birthTimeKnown, index: order + itemIndex,
       })
       sections.push({
         // 05 목차 and 06 상세 route on the design's own section ids.
@@ -384,7 +385,7 @@ export function buildJobChoiceReport(
         hook: isOpening ? (openingIndex === 0 ? '좋아 보이는 제안일수록 실제 맡을 일과 평가 기준을 먼저 확인하세요.' : '근무 형태보다 실제 출근 일정과 회복 시간을 먼저 비교하세요.') : item.title,
         patternKeys: ['work', 'job-choice', group.id],
         ragTopics: categoryChunks.slice(0, 4).map((chunk) => chunk.topic),
-        interpretation: isOpening ? `${openingJobChoiceReading(input, analysis, openingIndex)}\n\n${baseInterpretation}` : baseInterpretation,
+        interpretation: isOpening ? `${openingJobChoiceReading(input, analysis, openingIndex, context.birthTimeKnown)}\n\n${baseInterpretation}` : baseInterpretation,
         ...(minutes !== null ? { storytelling: {
           feel: '', scene: '', actions: [], imagePrompt: { ko: '', en: '' },
           chartPoints: [

@@ -1,0 +1,764 @@
+diff --git a/src/body/lucky-service.ts b/src/body/lucky-service.ts
+index d81373c9..5b4f08d3 100644
+--- a/src/body/lucky-service.ts
++++ b/src/body/lucky-service.ts
+@@ -213,10 +213,8 @@ function buildInterpretation(params: {
+   birth: BirthInput
+   balance: ElementBalance
+   chunk: RagChunk | undefined
+-  birthTimeKnown?: boolean
+ }): string {
+   const { groupId, itemTitle, analysis, balance } = params
+-  if (params.birthTimeKnown === false) return [`[안내] ${itemTitle}: 출생 시간을 모르므로 임시 시각에서 나온 용신·부족·우세 기운으로 개인에게 필요한 색·물건·방향을 추천하지 않습니다.`, '좋아하는 색이나 가지고 있는 물건에 관한 구체적인 취향 정보는 아직 입력되지 않았습니다. 오행의 상징을 본인에게 필요한 처방이나 구매 근거로 받아들이지 마세요.', '[확인할 기준] 현재 편하게 사용하는 색과 물건은 본인의 취향과 실제 사용성을 기준으로 확인합니다. 출생 시간을 모른다는 이유로 새 물건을 사거나 배치를 바꿀 필요는 없습니다.'].join('\n\n')
+   const reading = luckyDetails(ELEMENT_PROFILE[balance.fill])[itemTitle]
+   if (!reading) throw new Error(`색과 물건 항목별 해석 누락: ${itemTitle}`)
+   const basis = analysis.usefulGod
+@@ -229,7 +227,7 @@ function buildInterpretation(params: {
+       : groupId === 'place'
+         ? '방 구조·채광·소음·현재 불편은 입력되지 않았어요. 지금 자리를 확인한 맞춤 배치 판정은 보류하고 실제 조건을 비교하는 방법을 제안해요.'
+         : '좋아하는 색·가지고 있는 물건·현재 불편은 입력되지 않았어요. 이미 편한 선택이 있다면 그 취향을 존중하며 바꿔야 할 문제를 만들지 않아요.',
+-    evidence: itemTitle === '넘치는 기운 모자란 기운' ? elementEvidence(analysis, params.birthTimeKnown) : ['color', 'carry', 'balance'].includes(groupId) ? basis : undefined,
++    evidence: itemTitle === '넘치는 기운 모자란 기운' ? elementEvidence(analysis) : ['color', 'carry', 'balance'].includes(groupId) ? basis : undefined,
+     application: `이 항목은 전통 상징과 생활 선택을 구별해 읽어요. ${reading.scene.includes('실제') ? '현재 상황과 다른 예시는 적용하지 않아도 돼요.' : '작은 시도를 한 뒤 본인이 편한지를 확인하는 방식이에요.'}`,
+     closing: itemTitle === '오늘 당장 뭐 하지?' ? '물건이 액운을 막거나 재물을 부르지는 않습니다. 새 물건의 구매나 큰 공간 변경이 필요하다는 뜻도 아니에요.' : undefined,
+   })
+@@ -245,7 +243,8 @@ export function buildLuckyColorReport(
+   const balance = readBalance(analysis)
+   const query = [
+     '오행 균형 과다 부족 용신 희신 기신 색 방향 재질 형태 공간 배치 책상 침대 생활 리듬 개운',
+-    ...(context.birthTimeKnown === false ? [] : [ELEMENT_KO[balance.fill], ELEMENT_KO[balance.spare]]),
++    ELEMENT_KO[balance.fill],
++    ELEMENT_KO[balance.spare],
+     input.displayName ?? '',
+   ].join(' ')
+   const chunks = retrieveRagChunks(query, analysis, 12, context)
+@@ -286,7 +285,6 @@ export function buildLuckyColorReport(
+           birth,
+           balance,
+           chunk: itemChunks[itemIndex],
+-          birthTimeKnown: context.birthTimeKnown,
+         }),
+         generatedBy: 'template',
+         model: 'lucky-color-rag-template',
+@@ -299,7 +297,7 @@ export function buildLuckyColorReport(
+   return finalizeSpecializedReport({
+     reportId,
+     title: '나한테 운 붙는 색과 물건 해석문',
+-    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 임시 기운 기반 색·물건 추천은 보류하고 취향과 사용성을 우선합니다.' : `${context.name ?? '본인'}님의 ${ELEMENT_KO[balance.fill]} 상징을 참고해 색과 물건의 취향을 살펴봅니다`,
++    subtitle: `${context.name ?? '본인'}님의 ${ELEMENT_KO[balance.fill]} 상징을 참고해 색과 물건의 취향을 살펴봅니다`,
+     model: 'lucky-color-rag-template',
+     generatedBy: 'template',
+     status: 'complete',
+diff --git a/src/money/save-service.ts b/src/money/save-service.ts
+index be25c363..c5e0ca4b 100644
+--- a/src/money/save-service.ts
++++ b/src/money/save-service.ts
+@@ -254,16 +254,14 @@ export function moneySaveTeaserSection(
+   analysis: SajuAnalysis | undefined,
+   context: SajuReportContext,
+ ): SajuReportSection {
+-  const unknownTime = context.birthTimeKnown === false
+-  const safeAnalysis = unknownTime ? undefined : analysis
+-  const stories = moneyTeaserStories(safeAnalysis, moneySaveRequestFromContext(context))
++  const stories = moneyTeaserStories(analysis, moneySaveRequestFromContext(context))
+   const image = MONEY_TEASER_IMAGES[index]
+   const storedStory = section.storytelling
+   return {
+     ...section,
+     ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
+-    interpretation: moneyTeaserInterpretation(index, safeAnalysis, moneySaveRequestFromContext(context)) + (unknownTime ? '\n\n출생 시간을 모르므로 임시 시각 기반 시주·오행 전체 분포·강약은 이 풀이의 개인 근거로 사용하지 않습니다.' : ''),
+-    storytelling: unknownTime ? { ...stories[index], chartCaption: '', chartPoints: undefined } : {
++    interpretation: moneyTeaserInterpretation(index, analysis, moneySaveRequestFromContext(context)),
++    storytelling: {
+       ...stories[index],
+       ...(storedStory ?? {}),
+       ...(storedStory?.tableMd ? {} : { tableMd: stories[index]?.tableMd, tableCaption: stories[index]?.tableCaption }),
+@@ -422,7 +420,6 @@ function buildInterpretation(params: {
+   birth: BirthInput
+   input: MoneySaveRequest
+   chunks: RagChunk[]
+-  birthTimeKnown?: boolean
+   index: number
+ }): string {
+   const { groupId, itemTitle, analysis, input } = params
+@@ -437,9 +434,9 @@ function buildInterpretation(params: {
+         ? `${quotedInput('저축 목표', input.savingGoal)} ${quotedInput('현재 습관', input.moneyHabit)}`
+         : `${quotedInput('직접 짚은 지출 상황', input.leakPoint)} ${quotedInput('추가로 적은 상황', input.concern)}`
+   const evidence = ['ohaeng-os', 'saju-strength'].includes(groupId)
+-    ? `${elementEvidence(analysis, params.birthTimeKnown)} 신강·신약·중화는 사주 안의 힘 관계를 나타내며 체력·인격·경제 능력의 등급이 아니에요.`
++    ? `${elementEvidence(analysis)} 신강·신약·중화는 사주 안의 힘 관계를 나타내며 체력·인격·경제 능력의 등급이 아니에요.`
+     : groupId === 'expanded-reading' ? undefined
+-      : workSymbol(analysis, groupId === 'relationship-contract' ? 'people' : 'money', params.birthTimeKnown)
++      : workSymbol(analysis, groupId === 'relationship-contract' ? 'people' : 'money')
+   return practicalReading({
+     title: itemTitle, detail: reading, current, evidence,
+     application: state === 'settled'
+@@ -506,7 +503,6 @@ export function buildMoneySaveReport(
+           birth,
+           input,
+           chunks: categoryChunks,
+-          birthTimeKnown: context.birthTimeKnown,
+           index: order + itemIndex,
+         }),
+         generatedBy: 'template',
+@@ -520,7 +516,7 @@ export function buildMoneySaveReport(
+   return finalizeSpecializedReport({
+     reportId,
+     title: '소비성향 해석문',
+-    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 수입·지출 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 재성·비겁 흐름으로 돈이 남는 구조를 봅니다`,
++    subtitle: `${context.name ?? '본인'}님의 재성·비겁 흐름으로 돈이 남는 구조를 봅니다`,
+     model: 'money-save-rag-template',
+     generatedBy: 'template',
+     status: 'complete',
+diff --git a/src/pet/cat-service.ts b/src/pet/cat-service.ts
+index 0d49a1c6..e422d2dc 100644
+--- a/src/pet/cat-service.ts
++++ b/src/pet/cat-service.ts
+@@ -393,8 +393,7 @@ function catElementChart(analysis: SajuAnalysis) {
+ 
+ function catTeaserInterpretation(index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): string {
+   const facts = catFacts(context)
+-  if (context.birthTimeKnown === false) analysis = undefined
+-  if (!analysis) return `${context.birthTimeKnown === false ? '출생 시간을 모르므로 임시 시각 기반 전체 오행·강약으로 보호자의 돌봄 성향을 판단하지 않습니다.\n\n' : ''}[주요 포인트] ${facts.catName}와 편안해지는 순간은 더 자주 만지는 때보다, ${facts.touchStyle || '관찰한 손길 반응'}에 맞춰 멈출 때를 알아보는 장면에서 시작됩니다.\n\n[확인할 장면] 먼저 다가온 순간과 몸을 돌린 순간을 하루 동안 나눠 적어 보세요.\n\n[결정 전에 물어볼 질문] ${facts.catName}가 다가온 뒤 어느 정도의 손길에서 편안하게 머무나요?`
++  if (!analysis) return `[주요 포인트] ${facts.catName}와 편안해지는 순간은 더 자주 만지는 때보다, ${facts.touchStyle || '관찰한 손길 반응'}에 맞춰 멈출 때를 알아보는 장면에서 시작됩니다.\n\n[확인할 장면] 먼저 다가온 순간과 몸을 돌린 순간을 하루 동안 나눠 적어 보세요.\n\n[결정 전에 물어볼 질문] ${facts.catName}가 다가온 뒤 어느 정도의 손길에서 편안하게 머무나요?`
+   const dominant = PLAIN_ELEMENT[analysis.dominantElement]
+   const weak = PLAIN_ELEMENT[analysis.weakElement]
+   const day = PLAIN_ELEMENT[analysis.dayMasterElement]
+@@ -429,8 +428,6 @@ export function catCompatTeaserPreview(context: SajuReportContext, sectionCount:
+ 
+ export function catCompatTeaserSection(section: SajuReportSection, index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): SajuReportSection {
+   const facts = catFacts(context)
+-  const unknownTime = context.birthTimeKnown === false
+-  if (unknownTime) analysis = undefined
+   const image = CAT_TEASER_IMAGES[index]
+   const story = index === 0 ? {
+     feel: `${facts.catName}가 곁에 오는데도 손을 내밀면 물러난다면, 좋아하지 않는 게 아니라 편안한 거리의 순서가 다른 것입니다.`,
+@@ -465,7 +462,7 @@ export function catCompatTeaserSection(section: SajuReportSection, index: number
+     ...section,
+     ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
+     interpretation: catTeaserInterpretation(index, analysis, context),
+-    storytelling: unknownTime ? { ...story, softBridge: '출생 시간을 모르므로 임시 시각을 포함한 사주 기운은 판단하지 않고, 직접 관찰한 생활 반응을 확인합니다.' } : { ...(section.storytelling ?? {}), ...story },
++    storytelling: { ...(section.storytelling ?? {}), ...story },
+   }
+ }
+ 
+@@ -492,7 +489,6 @@ function buildInterpretation(params: {
+   birth: BirthInput
+   input: CatCompatRequest
+   chunks: RagChunk[]
+-  birthTimeKnown?: boolean
+   index: number
+ }): string {
+   const { group, itemTitle, analysis, input } = params
+@@ -510,7 +506,7 @@ function buildInterpretation(params: {
+   return practicalReading({
+     title: itemTitle, detail: reading, current,
+     evidence: group.id === 'five-elements-care'
+-      ? `${elementEvidence(analysis, params.birthTimeKnown)} 이 계산은 보호자의 사주이며 고양이의 성향이나 돌봄의 결함을 계산하지 않아요.`
++      ? `${elementEvidence(analysis)} 이 계산은 보호자의 사주이며 고양이의 성향이나 돌봄의 결함을 계산하지 않아요.`
+       : itemTitle === '집사 성향 DNA'
+         ? `${dayMasterDefinition(analysis)} 일간의 강약으로 돌봄 능력이나 표현 습관을 단정하지 않아요. ${input.ageBand === 'unknown' ? '고양이의 나이를 모르는 상태이므로 나이별 판단도 보류해요.' : `고양이의 나이대는 “${AGE_LABEL[input.ageBand]}”으로 입력됐어요.`} 고양이의 출생 명식이나 생체리듬은 계산하지 않아요.`
+         : undefined,
+@@ -574,7 +570,6 @@ export function buildCatCompatReport(
+           birth,
+           input,
+           chunks: categoryChunks,
+-          birthTimeKnown: context.birthTimeKnown,
+           // 대분류 안에서 항목끼리 다른 블록을 인용하도록 항목 순번으로 고른다.
+           index: itemIndex,
+         }),
+@@ -589,7 +584,7 @@ export function buildCatCompatReport(
+   return finalizeSpecializedReport({
+     reportId,
+     title: '반려묘 생활 궁합 해석문',
+-    subtitle: context.birthTimeKnown === false ? `${context.name ?? '집사'}님과 ${input.catName}의 입력한 행동과 생활 조건을 확인합니다. 시각에 의존하는 사주 결론은 보류합니다.` : `${context.name ?? '집사'}님과 ${input.catName}의 생활 박자를 사주 원국과 함께 봅니다`,
++    subtitle: `${context.name ?? '집사'}님과 ${input.catName}의 생활 박자를 사주 원국과 함께 봅니다`,
+     model: 'cat-compatibility-rag-template',
+     generatedBy: 'template',
+     status: 'complete',
+diff --git a/src/rag/retriever.ts b/src/rag/retriever.ts
+index 79097ea1..f80f3745 100644
+--- a/src/rag/retriever.ts
++++ b/src/rag/retriever.ts
+@@ -613,15 +613,7 @@ export function retrieveRagChunks(
+   topK = 5,
+   context?: SajuReportContext,
+   corpusSnapshot?: CorpusSnapshot,
+-  birthTimeKnown?: boolean,
+ ): RagChunk[] {
+-  const unknownTime = birthTimeKnown === false || context?.birthTimeKnown === false
+-  // Unknown charts remain internally numeric; do not use any of that analysis
+-  // (including the local vector index) to personalize candidate ranking.
+-  if (context?.partner && unknownTime) {
+-    const { mode, name, relationship, birthTimeKnown: partnerTimeKnown } = context.partner
+-    context = { ...context, partner: { mode, name, relationship, birthTimeKnown: partnerTimeKnown } }
+-  }
+   const corpus = buildCorpusIndex(corpusSnapshot)
+   const contextQuery = contextText(context)
+   const queryText = [message, contextQuery].filter(Boolean).join(' ')
+@@ -632,8 +624,8 @@ export function retrieveRagChunks(
+     ...intentKeywords.flatMap(tokenize),
+     ...contextTokens(context),
+   ])
+-  const personalTokens = unknownTime ? [] : sajuTokens(saju)
+-  const gbrTokens = unknownTime ? [] : graphBoostTokens(queryTokens, saju, context)
++  const personalTokens = sajuTokens(saju)
++  const gbrTokens = graphBoostTokens(queryTokens, saju, context)
+   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
+   const pinnedIds = pinnedContextChunkIds(context)
+   const serviceDomain = context?.serviceKey
+@@ -643,7 +635,7 @@ export function retrieveRagChunks(
+   // The vector index represents the currently active registry. Keep its boost
+   // for a newly stored current snapshot, but never let it rank an older pack.
+   const usesCurrentVectorIndex = !corpusSnapshot || corpusSnapshot.fingerprint === getCorpusSnapshot().fingerprint
+-  const vectorResults = !unknownTime && usesCurrentVectorIndex ? retrieveVectorRagChunks(
++  const vectorResults = usesCurrentVectorIndex ? retrieveVectorRagChunks(
+       [...queryTokens, ...personalTokens].join(' '),
+       saju,
+       Math.max(topK * 3, topK),
+diff --git a/src/report/practical-service-copy.ts b/src/report/practical-service-copy.ts
+index 834c82a9..2fb2054e 100644
+--- a/src/report/practical-service-copy.ts
++++ b/src/report/practical-service-copy.ts
+@@ -26,14 +26,13 @@ export function reportedState(text: string): 'settled' | 'concern' | 'unknown' {
+   return 'unknown'
+ }
+ 
+-export function elementEvidence(analysis: SajuAnalysis, birthTimeKnown?: boolean): string {
+-  if (birthTimeKnown === false) return '출생 시간을 모르므로 임시 시각을 포함한 전체 오행 개수와 우세·부족은 개인 근거로 제시하지 않습니다. 실제 입력한 생활 조건을 먼저 확인하고, 시각에 따라 달라지는 결론은 보류합니다.'
++export function elementEvidence(analysis: SajuAnalysis): string {
+   const counts = analysis.elementCount
+   const spread = `목 ${counts.wood}·화 ${counts.fire}·토 ${counts.earth}·금 ${counts.metal}·수 ${counts.water}`
+   return `오행(五行, 목·화·토·금·수의 다섯 상징)의 계산 분포는 ${spread}입니다. 가장 적게 집계된 ${ELEMENT_KO[analysis.weakElement]}도 ${counts[analysis.weakElement]}개로 읽습니다. 겉에 드러난 개수와 명식 전체의 작용은 다르므로, 적다는 이유만으로 생활의 결함이나 필요한 색을 정하지 않습니다.`
+ }
+ 
+-export function workSymbol(analysis: SajuAnalysis, kind: 'role' | 'money' | 'learning' | 'people' | 'timing', birthTimeKnown?: boolean): string {
++export function workSymbol(analysis: SajuAnalysis, kind: 'role' | 'money' | 'learning' | 'people' | 'timing'): string {
+   const vocabulary = {
+     role: ['관성(官星, 조직의 역할과 책임을 살피는 상징)', ['정관', '편관'], '권한과 책임이 실제로 맞물리는지'],
+     money: ['재성(財星, 보상과 자원 활용을 살피는 상징)', ['정재', '편재'], '보상이 언제 어떤 조건으로 지급되는지'],
+@@ -42,7 +41,6 @@ export function workSymbol(analysis: SajuAnalysis, kind: 'role' | 'money' | 'lea
+     timing: ['식상(食傷, 생각을 표현하고 결과로 만드는 방식을 살피는 상징)', ['식신', '상관'], '준비한 내용이 확인 가능한 결과물로 남았는지'],
+   } as const
+   const [term, stars, question] = vocabulary[kind]
+-  if (birthTimeKnown === false) return `전통 명리에서 ${term}을 참고합니다. 출생 시간을 모르므로 임시 시각이 포함된 십성 요약의 유무나 개수는 개인 근거로 사용하지 않습니다. 이 상징은 ${question} 돌아보는 질문으로만 사용하며, 실제 입력과 확인 가능한 조건을 우선합니다.`
+   const present = analysis.tenGods.filter((star) => (stars as readonly string[]).includes(star))
+   const signal = present.length ? `제공된 십성(十星, 일간을 기준으로 다른 기운과의 관계를 나눈 열 가지 분류) 요약에는 ${[...new Set(present)].join('·')} 항목이 이 묶음에 들어갑니다.` : '제공된 십성(十星, 일간을 기준으로 다른 기운과의 관계를 나눈 열 가지 분류) 요약에는 이 묶음이 따로 나타나지 않습니다. 그것이 명식 전체에 전혀 없다는 뜻은 아닙니다.'
+   return `전통 명리에서 ${term}을 참고합니다. ${signal} 이 상징은 ${question} 돌아보는 질문으로 사용합니다. 성향이나 결과를 이 값 하나로 판정하지 않고, 아래의 실제 장면이 확인될 때만 해석을 연결합니다.`
+diff --git a/src/report/report-generator.ts b/src/report/report-generator.ts
+index b60ea7d2..12df89f6 100644
+--- a/src/report/report-generator.ts
++++ b/src/report/report-generator.ts
+@@ -1953,13 +1953,12 @@ export function buildTemplateSajuReport(
+   birth: BirthInput,
+   context: SajuReportContext = {},
+ ): SajuReport {
+-  const unknownTime = context.birthTimeKnown === false
+   const isLoveThisYear = isLoveThisYearContext(context)
+   const isWorkMove = isWorkMoveContext(context)
+   const isPassAngle = isPassAngleContext(context)
+   const keys = [
+     ...(context.serviceKey ? [`service:${context.serviceKey}`] : []),
+-    ...(unknownTime ? patternKeys(analysis, birth).filter(key => /^(yearPillar|monthPillar|dayPillar|dayMaster|dayMasterElement):/.test(key)).concat('birthTime:unknown') : patternKeys(analysis, birth)),
++    ...patternKeys(analysis, birth),
+     ...(context.target ? [`target:${context.target}`] : []),
+     ...(context.orientation ? [`orientation:${context.orientation}`] : []),
+     ...(context.relationship ? [`relationship:${context.relationship}`] : []),
+@@ -1972,9 +1971,9 @@ export function buildTemplateSajuReport(
+     ...homePatternKeys(context),
+     ...workMovePatternKeys(context),
+     ...examPatternKeys(context),
+-    ...(!unknownTime && analysis.manseryeok?.gyeokguk ? [`gyeokguk:${analysis.manseryeok.gyeokguk.name}`] : []),
+-    ...(!unknownTime && analysis.manseryeok?.climate ? [`climate:${analysis.manseryeok.climate.season}:${analysis.manseryeok.climate.temperature}`] : []),
+-    ...(unknownTime ? [] : analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
++    ...(analysis.manseryeok?.gyeokguk ? [`gyeokguk:${analysis.manseryeok.gyeokguk.name}`] : []),
++    ...(analysis.manseryeok?.climate ? [`climate:${analysis.manseryeok.climate.season}:${analysis.manseryeok.climate.temperature}`] : []),
++    ...(analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
+   ]
+   const name = addressName(context)
+   const isSajuMaster = normalizeServiceKey(context.serviceKey) === 'saju_master'
+@@ -1984,17 +1983,13 @@ export function buildTemplateSajuReport(
+       analysis,
+       runtimeConfig.report?.ragTopK ?? 4,
+       context,
+-      undefined,
+-      context.birthTimeKnown,
+     )
+     const ragTopics = chunks.map((c) => c.topic)
+     // cmdg-style emotional beats: emotion first, mechanics under the hood.
+-    const loveStory = isLoveThisYear && !unknownTime
++    const loveStory = isLoveThisYear
+       ? toStorytellingPayload(buildLoveThisYearStoryBeat(blueprint.id, analysis, context, ragTopics, birth))
+       : undefined
+-    const interpretation = isLoveThisYear && unknownTime
+-      ? normalizeUserCopy([`출생 시간을 모르므로 ${blueprint.category}의 개인 시기·도화·배우자성 세부 결론은 보류합니다.`, context.concern ? `말씀하신 고민은 “${context.concern}”입니다.` : '현재 관계의 구체적 상황은 아직 확인되지 않았습니다.', '임시 시각을 포함한 분석을 개인의 확정된 성향이나 만남 예측으로 사용하지 않습니다. 연락 의사·약속 이행·실제 만남 여건처럼 확인 가능한 조건을 먼저 살펴보세요.', '[다음 선택] 다음에는 서로 가능한 일정과 관계에서 원하는 조건을 확인해 보세요.'].join('\n\n'))
+-      : isLoveThisYear
++    const interpretation = isLoveThisYear
+       ? normalizeUserCopy(buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth))
+       : standardReading(blueprint.id, blueprint.category, analysis, context)
+ 
+@@ -2006,8 +2001,8 @@ export function buildTemplateSajuReport(
+       imageAlt: isSajuMaster && sajuMasterReviewImage(index) ? `${blueprint.category} 풀이 이미지` : `${blueprint.category} 공통 이미지`,
+       category: blueprint.category,
+       categoryEn: blueprint.categoryEn,
+-      classification: unknownTime ? (blueprint.classification ?? `${blueprint.category} · 출생 시간 미상: 실제 조건 확인`) : blueprint.classification ?? classificationFor(blueprint.focus, analysis, context, blueprint.id),
+-      hook: isLoveThisYear && !unknownTime ? hookFor(blueprint.focus, analysis, context, blueprint.id) : interpretation.split(/\n\s*\n/)[0].replace(/^\[[^\]]+\]\s*/, '').split(/(?<=[.!?])\s/)[0],
++      classification: blueprint.classification ?? classificationFor(blueprint.focus, analysis, context, blueprint.id),
++      hook: isLoveThisYear ? hookFor(blueprint.focus, analysis, context, blueprint.id) : interpretation.split(/\n\s*\n/)[0].replace(/^\[[^\]]+\]\s*/, '').split(/(?<=[.!?])\s/)[0],
+       patternKeys: keys,
+       ragTopics,
+       interpretation,
+@@ -2025,7 +2020,7 @@ export function buildTemplateSajuReport(
+           : isPassAngle
+             ? `${name}님의 합격각 리포트`
+             : `${name}님의 사주 리포트`,
+-    subtitle: unknownTime ? '출생 시간 미상으로 시각에 따라 달라지는 개인 결론은 보류하고, 확인 가능한 입력과 실제 조건을 중심으로 읽습니다.' : isLoveThisYear
++    subtitle: isLoveThisYear
+       ? '도화, 세운, 배우자성의 신호로 올해 연애 가능성과 놓치기 쉬운 타이밍을 봅니다.'
+       : isHomeFitContext(context)
+         ? '현관, 침실, 책상, 창밖 체감과 사주 오행 리듬을 겹쳐 지금 집의 핏을 봅니다.'
+@@ -2181,6 +2176,7 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
+       pillars: { year: features.calculation.pillars.year, month: features.calculation.pillars.month, day: features.calculation.pillars.day },
+       dayMaster: features.calculation.dayMaster,
+       dayMasterElement: features.calculation.dayMasterElement,
++      dayMasterForce: strengthMeaning(features.calculation.dayMasterStrength),
+     },
+     timing: features.timing ? { currentYear: features.timing.currentYear, yearPillar: features.timing.yearPillar } : undefined,
+     uncertainty: '출생 시각 미상: 임시 시각 기반 시주·전체 오행 분포·강약·용신·정밀 운 시작 시점을 제외했습니다. 초안이나 참고 자료에 남아 있어도 확정값으로 사용하지 마세요.',
+@@ -2265,7 +2261,7 @@ export function sectionPrompt(
+     : context
+   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
+     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(context)}`,
+-    analysis, runtimeConfig.report?.ragTopK ?? 4, context, corpusSnapshot, context.birthTimeKnown,
++    analysis, runtimeConfig.report?.ragTopK ?? 4, context, corpusSnapshot,
+   )
+   return [
+     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
+@@ -2294,12 +2290,8 @@ export function sectionPrompt(
+           ? { fixedVerdict: { statement: verdict.statement, rankedChoices: verdict.rankedChoices ?? [] } }
+           : {}),
+       },
+-      section: { id: section.id, order: section.order, category: section.category, classification: context.birthTimeKnown === false ? `${section.category} · 출생 시간 미상: 실제 조건 확인` : section.classification },
+-      // Previously saved drafts may still contain provisional-hour conclusions.
+-      // Keep their identity/coverage, not unverified personal evidence.
+-      otherSections: context.birthTimeKnown === false
+-        ? siblings.filter(item => item.status === 'complete').map(item => ({ id: item.id, question: item.category }))
+-        : compactPromptSiblings(siblings),
++      section: { id: section.id, order: section.order, category: section.category, classification: section.classification },
++      otherSections: compactPromptSiblings(siblings),
+     }) },
+   ]
+ }
+diff --git a/src/report/report-store.ts b/src/report/report-store.ts
+index 88a58299..a07a4a03 100644
+--- a/src/report/report-store.ts
++++ b/src/report/report-store.ts
+@@ -296,14 +296,6 @@ export function toClientReport(record: ReportRecord): SajuReport {
+   report.publicUrl = `/r/${encodeURIComponent(report.resultId)}`
+   report.serviceKey = record.context.serviceKey ?? 'saju_master'
+   report.sections = report.sections.map(({ attempts: _attempts, generationLease: _lease, reviewMode: _reviewMode, reviewNotes: _reviewNotes, ...section }) => ({ ...section, generationId: sectionGenerationId(record, section), status: record.status === 'complete' ? 'complete' : section.status }))
+-  if (record.context.birthTimeKnown === false) {
+-    // These legacy generator keys encode provisional-hour/full-chart calculations.
+-    // Mask only the returned clone; paid prose and storytelling remain unchanged.
+-    report.sections = report.sections.map(section => Array.isArray(section.patternKeys) ? {
+-      ...section,
+-      patternKeys: section.patternKeys.filter(key => !/^(?:birth|hourPillar|dayMasterStrength|dominantElement|weakElement|usefulGod|tenGod|gyeokguk|climate|flowBridge):/.test(key)),
+-    } : section)
+-  }
+   // 하이라이트도 검수 방식과 지적은 운영자용이다. 고객 응답에서는 뺀다.
+   if (report.highlights) report.highlights = report.highlights.map(({ reviewMode: _mode, reviewNotes: _notes, ...highlight }) => highlight)
+   return report
+diff --git a/src/report/saved-chat.ts b/src/report/saved-chat.ts
+index fc0d0cdc..73df6baa 100644
+--- a/src/report/saved-chat.ts
++++ b/src/report/saved-chat.ts
+@@ -74,7 +74,7 @@ export function toSavedChatResult(record: ReportRecord): SavedChatResult {
+   return {
+     reply: record.status === 'complete' && section.status === 'complete' ? section.interpretation : '',
+     intent: metadata.intent,
+-    sajuSummary: record.context.birthTimeKnown === false ? '' : record.analysis?.summary ?? '',
++    sajuSummary: record.analysis?.summary ?? '',
+     reportId: record.reportId, resultId, publicUrl: `/r/${encodeURIComponent(resultId)}`,
+     status: record.status,
+     ...(record.status === 'failed' ? { error: '상담 답변의 생성 또는 저장이 끝나지 않았습니다. 같은 결과에서 다시 시도할 수 있습니다.' } : {}),
+diff --git a/src/report/standard-reading.ts b/src/report/standard-reading.ts
+index f4b9ead4..08f0c54a 100644
+--- a/src/report/standard-reading.ts
++++ b/src/report/standard-reading.ts
+@@ -117,7 +117,7 @@ export function standardReading(id: string, category: string, analysis: SajuAnal
+   if (key === 'home_fit') {
+     const h = context.home ?? {}
+     facts = !h.painPoints ? '주거 불편에 관한 선택은 아직 확인되지 않았습니다. 문제가 있다는 뜻도, 없다는 뜻도 아닙니다.' : h.painPoints.length === 0 ? '선택된 주거 불편 항목은 없습니다. 이것을 숨은 위기나 나쁜 집의 증거로 바꾸지 않습니다.' : '선택한 주거 불편을 실제 생활에서 확인할 대상으로 삼습니다. 집 전체가 나쁘다는 뜻은 아닙니다.'
+-    evidence = context.birthTimeKnown === false ? '출생 시간을 모르므로 임시 시각을 포함한 오행의 우세·부족은 공간 해석의 개인 근거로 사용하지 않습니다. 공간 문진에서 확인한 배치와 사용 목적을 우선합니다.' : `공간 문진에서 확인한 배치와 사용 목적을 우선합니다. 사주의 ${ELEMENT_KO[analysis.dominantElement]} 기운은 전통적 비유로만 참고하며, 집의 실제 성능이나 건강·재산 결과를 결정하는 값이 아닙니다.`
++    evidence = `공간 문진에서 확인한 배치와 사용 목적을 우선합니다. 사주의 ${ELEMENT_KO[analysis.dominantElement]} 기운은 전통적 비유로만 참고하며, 집의 실제 성능이나 건강·재산 결과를 결정하는 값이 아닙니다.`
+     if (h.extraNote?.trim()) facts += ` 추가로 “${h.extraNote.trim()}”라고 적어 주셨습니다.`
+     if (h.terrainEvidence?.summary) {
+       evidence += ` 풍수아씨가 잡은 터 유사도 참고값은 “${h.terrainEvidence.siteSimilarityLabel || h.terrainEvidence.siteArchetype || h.terrainEvidence.summary}”입니다. 이는 비슷한 터의 생활 패턴을 보는 참고이며, 채광·소음·실내 배치처럼 직접 체감되는 조건과 함께 읽어야 합니다.`
+@@ -144,8 +144,5 @@ export function standardReading(id: string, category: string, analysis: SajuAnal
+     else if (/balance|element|useful/.test(id)) evidence = context.birthTimeKnown === false ? '출생 시간을 모르므로 임시 시각을 포함한 전체 기운의 개수나 강약을 확정하지 않습니다. 확인된 연·월·일의 관계만 참고하고 시각에 따라 달라지는 결론은 보류합니다.' : `단순 오행 개수에서 ${ELEMENT_KO[analysis.dominantElement]} 기운이 상대적으로 많고, ${ELEMENT_KO[analysis.weakElement]} 기운은 ${analysis.elementCount[analysis.weakElement]}개로 표시됩니다. 계절과 다른 기운의 관계를 함께 보아야 하며 이 수치가 개인의 능력이나 실제 생활 상태를 뜻하지는 않습니다.`
+     else evidence = `확인된 명식에서 ${id.includes('pillar') ? '해당 기둥' : '일주'}는 ${label}입니다. 일간은 태어난 날의 천간으로, 다른 기운의 관계를 읽는 기준점입니다. 이 구조를 현재 질문에 참고하되 기호 하나로 경험하지 않은 사건을 만들지 않습니다.`
+   }
+-  if (context.birthTimeKnown === false && /strength|hidden|ten-gods|useful|future|daewoon|sewoon|timing|turning/.test(id)) {
+-    evidence = '출생 시간을 모르므로 임시 시각을 포함한 강약·십성 전체 요약·용신과 개인 대운 및 세부 시기 계산은 이 항목의 근거로 사용하지 않습니다. 전통적 개념 설명과 실제 입력한 일정·조건을 구분해서 읽고, 시각에 따라 달라지는 개인 결론은 보류합니다.'
+-  }
+   return normalizeUserCopy([`${name}${meaning} ${facts}`, evidence, scene, criterion, `[확인할 기준] ${category}에 대한 결론은 위의 조건이 실제 상황과 맞는지에 따라 달라집니다. 맞지 않는 장면은 내 특성으로 받아들이지 않아도 됩니다.`, `[다음 선택] ${action}`].join('\n\n'))
+ }
+diff --git a/src/saju/birth-time-certainty.ts b/src/saju/birth-time-certainty.ts
+deleted file mode 100644
+index 79da802b..00000000
+--- a/src/saju/birth-time-certainty.ts
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/** A numeric placeholder belongs only at the internal boundary with explicit false certainty. */
+-export function readBirthClock(source: Record<string, unknown>, known: boolean): { hour: number; minute: number } | null {
+-  if (!known) return { hour: 12, minute: 0 }
+-  const rawHour = source.hour
+-  const rawMinute = source.minute === undefined ? 0 : source.minute
+-  if (rawHour === undefined || rawHour === null || String(rawHour).trim() === '' || rawMinute === null || String(rawMinute).trim() === '') return null
+-  const hour = Number(rawHour)
+-  const minute = Number(rawMinute)
+-  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) return null
+-  return { hour, minute }
+-}
+-
+-/** Public projection only: preserve internal/stored charts and original customer reading text. */
+-export function projectUnknownBirthTime<T extends Record<string, unknown>>(payload: T, known: boolean): T {
+-  if (known) return payload
+-  const object = (value: unknown): Record<string, unknown> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
+-  return {
+-    ...payload,
+-    birth: { ...object(payload.birth), hour: undefined, minute: undefined },
+-    birthTimeKnown: false,
+-    pillars: { ...object(payload.pillars), hour: undefined },
+-    dayMaster: { ...object(payload.dayMaster), strength: undefined },
+-    elements: undefined,
+-    elementCount: undefined,
+-    dominantElement: undefined,
+-    weakElement: undefined,
+-    usefulGod: undefined,
+-    tenGods: undefined,
+-    fortune: undefined,
+-    preview: undefined,
+-    summary: undefined,
+-    uncertainty: {
+-      code: 'BIRTH_TIME_UNKNOWN',
+-      excluded: ['hourPillar', 'fullElementBalance', 'strength', 'usefulGod', 'tenGods', 'personalFortuneTiming'],
+-      calendarBoundaryMayVary: true,
+-    },
+-  } as T
+-}
+diff --git a/src/server/app.ts b/src/server/app.ts
+index 13c0cfa6..f3614f5f 100644
+--- a/src/server/app.ts
++++ b/src/server/app.ts
+@@ -24,7 +24,6 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
+ import { existsSync } from 'node:fs'
+ import type { Request, Response } from 'express'
+ import { analyzeSaju } from '../saju/analyzer.js'
+-import { readBirthClock, projectUnknownBirthTime } from '../saju/birth-time-certainty.js'
+ import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
+ import { isOpenAiConfigured } from '../llm/openai-adapter.js'
+ import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
+@@ -1112,20 +1111,13 @@ app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
+ app.use(localizedPages(join(ROOT, '.vercel-localized')))
+ app.use(cachedStatic(SAJU_ROOT, { index: 'index.html' }))
+ 
+-function resolveChatBirthTimeKnown(body: Record<string, unknown>, hasParent: boolean): boolean | undefined {
+-  const unknown = body.birthTimeKnown === false || asObject(body.context).birthTimeKnown === false || asObject(body.birth).birthTimeKnown === false
+-  return unknown ? false : hasParent ? undefined : true
+-}
+-
+ function parseBirth(body: Record<string, unknown>): BirthInput {
+-  const clock = readBirthClock(body, body.birthTimeKnown !== false)
+-  if (!clock) throw new InputError('태어난 시각을 입력하거나 시각 모름을 선택해 주세요.')
+   return {
+     year: Number(body.year),
+     month: Number(body.month),
+     day: Number(body.day),
+-    hour: clock.hour,
+-    minute: clock.minute,
++    hour: Number(body.hour ?? 12),
++    minute: Number(body.minute ?? 0),
+     gender: (body.gender === 'female' ? 'female' : 'male') as BirthInput['gender'],
+     calendar: (body.calendar === 'lunar' ? 'lunar' : 'solar') as BirthInput['calendar'],
+     isLeapMonth: Boolean(body.isLeapMonth),
+@@ -1352,7 +1344,7 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
+   const rawServiceKey = context.serviceKey ?? context.service_key ?? body.serviceKey ?? body.service_key
+   const serviceKey = normalizeServiceKey(rawServiceKey)
+ 
+-  const birthTimeKnown = body.birthTimeKnown === false || context.birthTimeKnown === false || asObject(body.birth).birthTimeKnown === false ? false : undefined
++  const birthTimeKnown = body.birthTimeKnown === false || context.birthTimeKnown === false ? false : undefined
+   const partner = serviceKey === LOVE_THIS_YEAR_SERVICE_KEY ? parseOptionalPartnerContext(context.partner ?? body.partner) : undefined
+   const home = serviceKey === HOME_FIT_SERVICE_KEY ? parseHomeFitContext(context.home ?? body.home ?? context.input ?? body.input) : undefined
+   const workMove = serviceKey === WORK_MOVE_SERVICE_KEY
+@@ -1570,10 +1562,9 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
+   const year = Number(source.year)
+   const month = Number(source.month)
+   const day = Number(source.day)
+-  const birthTimeKnown = body.birthTimeKnown !== false && source.birthTimeKnown !== false
+-  const clock = readBirthClock(source, birthTimeKnown)
+-  if (!clock) throw new Error('태어난 시각을 입력하거나 시각 모름을 선택해 주세요.')
+-  const { hour, minute } = clock
++  const birthTimeKnown = body.birthTimeKnown !== false
++  const hour = Number(source.hour ?? (birthTimeKnown ? Number.NaN : 12))
++  const minute = Number(source.minute ?? 0)
+   const gender = source.gender
+   const calendar = source.calendar
+ 
+@@ -1660,16 +1651,16 @@ async function toUiAnalysis(
+ 
+   const report = toClientReport(record)
+   if (access) applyReportEntitlement(report, access, owner)
+-  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report, record.context.birthTimeKnown !== false)
++  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report)
+   if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record, access) }
+   return access?.entitled
+     ? { ...payload, entitled: true, unlockReason: access.reason }
+     : payload
+ }
+ 
+-function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport, birthTimeKnown = true) {
++function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
+   const p = analysis.fourPillars
+-  return projectUnknownBirthTime({
++  return {
+     birth,
+     pillars: {
+       year: { hanja: `${p.year.stem}${p.year.branch}`, ko: `${STEM_KO[p.year.stem]}${BRANCH_KO[p.year.branch]}` },
+@@ -1692,7 +1683,7 @@ function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, repor
+     preview: analysis.preview,
+     report,
+     summary: analysis.summary,
+-  }, birthTimeKnown)
++  }
+ }
+ 
+ function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
+@@ -1703,7 +1694,7 @@ function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
+ }
+ 
+ function toUiAnalysisFromRecord(record: ReportRecord) {
+-  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record), record.context.birthTimeKnown !== false)
++  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record))
+ }
+ 
+ /**
+@@ -4662,7 +4653,7 @@ function buildGuestTeaserPayload(birth: BirthInput, context: SajuReportContext)
+     sections: [],
+     progress: { complete: 0, total: template.sections.length },
+   } as SajuReport
+-  return { ...buildUiAnalysisPayload(analysis, birth, report, context.birthTimeKnown !== false), guestPreview: true }
++  return { ...buildUiAnalysisPayload(analysis, birth, report), guestPreview: true }
+ }
+ 
+ function wantsPreview(req: Request): boolean {
+@@ -5442,8 +5433,8 @@ app.post('/api/saju/analyze', async (req, res) => {
+       return
+     }
+     const birthBody = asObject(req.body.birth)
++    const birth = parseBirth(Object.keys(birthBody).length ? birthBody : req.body)
+     const context = parseReportContext(req.body)
+-    const birth = parseBirth({ ...(Object.keys(birthBody).length ? birthBody : req.body), birthTimeKnown: context.birthTimeKnown !== false })
+     const suppliedKey = requestedServiceKey
+     if ((suppliedKey && suppliedKey !== 'saju_master' && !context.serviceKey) || context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY) {
+       res.status(400).json({ code: 'INPUT_REQUIRED', error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
+@@ -5506,7 +5497,7 @@ app.post('/api/saju/analyze', async (req, res) => {
+         res.status(429).json({ code: 'FREE_PREVIEW_LIMIT', error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.', freeSearch, paymentUrl: paymentCheckoutUrl(quotaService!, record.reportId) })
+         return
+       }
+-      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }, record.context.birthTimeKnown !== false), ...savedPreviewResponse(record, access, freeSearch) })
++      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record, access, freeSearch) })
+       return
+     }
+     const access = await resolvePaidAccess(
+@@ -5653,7 +5644,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
+     // 이 레코드는 findReportRecord에서 owner 소유권 검사를 이미 통과했다. 현실 기준은
+     // 해당 회원의 프로필에서만 읽고, 비로그인/다른 계정의 응답에는 싣지 않는다.
+     const memberContext = owner ? (await getUserBirthProfile(owner))?.lifeContext : undefined
+-    const loveReportYear = record.context.birthTimeKnown === false ? undefined : record.analysis?.fortune?.currentYear ?? analysis.fortune?.currentYear
++    const loveReportYear = record.analysis?.fortune?.currentYear ?? analysis.fortune?.currentYear
+     const loveMonthlySignals = record.context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY && loveReportYear
+       ? calculateLoveMonthlySignals(record.birth, currentAnalysisForRecord(record), loveReportYear)
+       : undefined
+@@ -5900,12 +5891,11 @@ app.post('/api/chat', async (req, res) => {
+       if (isConsultationRecord(parent)) { res.status(404).json({ error: '천명상담 화면에서 대화를 이어가 주세요.' }); return }
+       if (!await ensurePaidServiceAccess(req, res, owner, productKeyForContext(parent.context), parent.reportId)) return
+     }
+-    const chatBirthTimeKnown = resolveChatBirthTimeKnown(req.body, Boolean(parentReportId))
+     const result = await generateSavedChat({
+       owner, parentReportId: parentReportId || undefined,
+       requestId: trimmedString(req.body.requestId) || undefined,
+-      birth: parentReportId ? undefined : parseBirth({ ...(req.body.birth ?? req.body), birthTimeKnown: chatBirthTimeKnown !== false }),
+-      birthTimeKnown: chatBirthTimeKnown,
++      birth: parentReportId ? undefined : parseBirth(req.body.birth ?? req.body),
++      birthTimeKnown: req.body.birthTimeKnown !== false,
+       message: String(req.body.message ?? '').trim(),
+       history: parseConversationHistory(req.body.history),
+       serviceKey: trimmedString(req.body.serviceKey || req.body.service_key) || undefined,
+@@ -5914,7 +5904,7 @@ app.post('/api/chat', async (req, res) => {
+     res.status(result.status === 'failed' ? 502 : result.status === 'complete' ? 200 : 202).json(result)
+   } catch (err) {
+     const code = err instanceof Error ? err.message : ''
+-    res.status(code === 'REPORT_ACCESS_DENIED' ? 403 : err instanceof InputError || /INVALID|REQUIRED/.test(code) ? 400 : 500).json({ error: code === 'REPORT_ACCESS_DENIED' ? '본인의 상담만 볼 수 있습니다.' : '상담 입력이나 저장 상태를 확인해 주세요.' })
++    res.status(code === 'REPORT_ACCESS_DENIED' ? 403 : /INVALID|REQUIRED/.test(code) ? 400 : 500).json({ error: code === 'REPORT_ACCESS_DENIED' ? '본인의 상담만 볼 수 있습니다.' : '상담 입력이나 저장 상태를 확인해 주세요.' })
+   }
+ })
+ 
+diff --git a/src/work/job-service.ts b/src/work/job-service.ts
+index d5350495..fd77178e 100644
+--- a/src/work/job-service.ts
++++ b/src/work/job-service.ts
+@@ -124,7 +124,6 @@ function buildInterpretation(params: {
+   birth: BirthInput
+   input: WorkJobRequest
+   chunks: RagChunk[]
+-  birthTimeKnown?: boolean
+   index: number
+ }): string {
+   const { itemTitle, analysis, input } = params
+@@ -134,7 +133,7 @@ function buildInterpretation(params: {
+   return practicalReading({
+     title: itemTitle, detail: reading,
+     current: `${quotedInput('현재 하는 일', input.currentJob)} ${quotedInput('업무 방식', input.workStyle)} ${quotedInput('현재 느끼는 부담', input.mainStress)}`,
+-    evidence: workSymbol(analysis, /돈|수입|보상/.test(itemTitle) ? 'money' : /배우|기술|능력/.test(itemTitle) ? 'learning' : /사람|혼자/.test(itemTitle) ? 'people' : 'role', params.birthTimeKnown),
++    evidence: workSymbol(analysis, /돈|수입|보상/.test(itemTitle) ? 'money' : /배우|기술|능력/.test(itemTitle) ? 'learning' : /사람|혼자/.test(itemTitle) ? 'people' : 'role'),
+     application: state === 'settled'
+       ? `현재 만족과 안정에 관한 진술을 우선해요. 일이 맞지 않거나 숨은 소진이 있다고 추정하지 않아요. ${quotedInput('바라는 방향', input.wantedDirection)}`
+       : `${quotedInput('바라는 방향', input.wantedDirection)} 이 항목과 직접 연결된 경험이 없다면 적성 판정 대신 확인 질문으로 읽어요.`,
+@@ -186,7 +185,6 @@ export function buildWorkJobReport(
+           birth,
+           input,
+           chunks: categoryChunks,
+-          birthTimeKnown: context.birthTimeKnown,
+           index: order + itemIndex,
+         }),
+         generatedBy: 'template',
+@@ -200,7 +198,7 @@ export function buildWorkJobReport(
+   return finalizeSpecializedReport({
+     reportId,
+     title: '직업운 해석문',
+-    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 업무와 실제 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·적성 흐름으로 봅니다`,
++    subtitle: `${context.name ?? '본인'}님의 관성·식상·적성 흐름으로 봅니다`,
+     model: 'work-job-rag-template',
+     generatedBy: 'template',
+     status: 'complete',
+diff --git a/src/work/jobchoice-service.ts b/src/work/jobchoice-service.ts
+index 67b2fcae..dc42a2f6 100644
+--- a/src/work/jobchoice-service.ts
++++ b/src/work/jobchoice-service.ts
+@@ -260,7 +260,6 @@ function buildInterpretation(params: {
+   birth: BirthInput
+   input: JobChoiceRequest
+   chunks: RagChunk[]
+-  birthTimeKnown?: boolean
+   index: number
+ }): string {
+   const { group, itemTitle, analysis, input } = params
+@@ -278,7 +277,7 @@ function buildInterpretation(params: {
+         : `검토 중인 후보는 “${input.companyName}”, 역할은 “${input.roleName}”입니다. ${quotedInput('현재 의견', input.concernPoint)} 회사의 문화나 사람에 관한 외부 확인 자료는 별도로 제공되지 않았습니다.`
+   return practicalReading({
+     title: itemTitle, detail: reading, current,
+-    evidence: workSymbol(analysis, kind, params.birthTimeKnown),
++    evidence: workSymbol(analysis, kind),
+     application: state === 'settled'
+       ? '현재 입력은 문제보다 긍정적인 조건을 확인하려는 뜻을 포함합니다. 위 장면이 실제로 나타나지 않으면 위험으로 적용하지 말고, 이미 괜찮은 조건을 유지할 근거로 읽으십시오.'
+       : state === 'concern'
+@@ -296,13 +295,13 @@ function oneWayCommuteMinutes(value: string): number | null {
+   return Number.isInteger(minutes) && minutes > 0 && minutes <= 180 ? minutes : null
+ }
+ 
+-function openingJobChoiceReading(input: JobChoiceRequest, analysis: SajuAnalysis, index: number, birthTimeKnown?: boolean): string {
++function openingJobChoiceReading(input: JobChoiceRequest, analysis: SajuAnalysis, index: number): string {
+   const mode = WORK_MODE_LABEL[input.workMode]
+   const salary = SALARY_LABEL[input.salaryFeeling]
+   const minutes = oneWayCommuteMinutes(input.commute)
+   if (index === 0) return `**${input.companyName}의 ${input.roleName} 제안에서 지금 먼저 확인할 것은 무엇일까요?** 적어 주신 근무 형태는 ${mode}, 출퇴근 조건은 “${input.commute}”, 보상 체감은 “${salary}”입니다. 특히 “${input.concernPoint}”라는 고민이 있다면 회사 이름이나 첫인상보다 실제로 맡을 일의 경계가 먼저입니다. 이 입력만으로 회사의 내부 운영을 알 수는 없으므로, 판단은 확인 가능한 조건부터 쌓아야 합니다.
+ 
+-첫 기준은 **직무명보다 실제 산출물**입니다. ${input.roleName}이라는 이름 아래 어떤 결과물을 언제까지 내야 하는지, 누가 최종 승인하는지, 다른 팀과의 조율을 어디까지 책임지는지 물어보세요. 역할 설명이 넓어 보여도 결정권과 지원 인력이 분명하다면 성장의 여지가 있습니다. 반대로 책임만 넓고 승인권이 흐리면 기대한 자율성이 수정 요청을 처리하는 시간으로 바뀔 수 있습니다. 사주 쪽에서는 ${workSymbol(analysis, 'role', birthTimeKnown)}를 참고하되, 이것만으로 특정 회사의 실제 업무 방식을 판정하지는 않습니다.
++첫 기준은 **직무명보다 실제 산출물**입니다. ${input.roleName}이라는 이름 아래 어떤 결과물을 언제까지 내야 하는지, 누가 최종 승인하는지, 다른 팀과의 조율을 어디까지 책임지는지 물어보세요. 역할 설명이 넓어 보여도 결정권과 지원 인력이 분명하다면 성장의 여지가 있습니다. 반대로 책임만 넓고 승인권이 흐리면 기대한 자율성이 수정 요청을 처리하는 시간으로 바뀔 수 있습니다. 사주 쪽에서는 ${workSymbol(analysis, 'role')}를 참고하되, 이것만으로 특정 회사의 실제 업무 방식을 판정하지는 않습니다.
+ 
+ 두 번째 기준은 **평가와 보상이 같은 일을 가리키는지**입니다. 첫 3개월의 산출물, 평가자, 평가 시점이 문서에 있는지 확인하세요. 입력하신 보상 체감은 ${salary}이지만 실제 급여, 성과급, 수습 조건의 숫자는 제공되지 않았습니다. 보상이 좋게 느껴져도 기대 업무가 매번 바뀌면 비교 기준이 흔들립니다. 반대로 업무 범위와 평가 기준이 일치한다면 출퇴근 부담을 감수할 이유가 있는지 더 분명해집니다.
+ 
+@@ -368,7 +367,7 @@ export function buildJobChoiceReport(
+       const minutes = isOpening && openingIndex === 1 ? oneWayCommuteMinutes(input.commute) : null
+       const baseInterpretation = buildInterpretation({
+         group, itemTitle: item.title, itemIndex, analysis, birth, input,
+-        chunks: categoryChunks, birthTimeKnown: context.birthTimeKnown, index: order + itemIndex,
++        chunks: categoryChunks, index: order + itemIndex,
+       })
+       sections.push({
+         // 05 목차 and 06 상세 route on the design's own section ids.
+@@ -385,7 +384,7 @@ export function buildJobChoiceReport(
+         hook: isOpening ? (openingIndex === 0 ? '좋아 보이는 제안일수록 실제 맡을 일과 평가 기준을 먼저 확인하세요.' : '근무 형태보다 실제 출근 일정과 회복 시간을 먼저 비교하세요.') : item.title,
+         patternKeys: ['work', 'job-choice', group.id],
+         ragTopics: categoryChunks.slice(0, 4).map((chunk) => chunk.topic),
+-        interpretation: isOpening ? `${openingJobChoiceReading(input, analysis, openingIndex, context.birthTimeKnown)}\n\n${baseInterpretation}` : baseInterpretation,
++        interpretation: isOpening ? `${openingJobChoiceReading(input, analysis, openingIndex)}\n\n${baseInterpretation}` : baseInterpretation,
+         ...(minutes !== null ? { storytelling: {
+           feel: '', scene: '', actions: [], imagePrompt: { ko: '', en: '' },
+           chartPoints: [
+diff --git a/src/work/quit-service.ts b/src/work/quit-service.ts
+index aee290e5..3de96878 100644
+--- a/src/work/quit-service.ts
++++ b/src/work/quit-service.ts
+@@ -105,14 +105,13 @@ export function workQuitTeaserSection(
+   analysis: SajuAnalysis | undefined,
+   context: SajuReportContext,
+ ): SajuReportSection {
+-  const unknownTime = context.birthTimeKnown === false
+-  const stories = quitTeaserStories(unknownTime ? undefined : analysis, workQuitRequestFromContext(context))
++  const stories = quitTeaserStories(analysis, workQuitRequestFromContext(context))
+   const image = QUIT_TEASER_IMAGES[index]
+   const storedStory = section.storytelling
+   return {
+     ...section,
+     ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
+-    storytelling: unknownTime ? { ...stories[index], chartCaption: '', chartPoints: undefined } : {
++    storytelling: {
+       ...stories[index],
+       ...(storedStory ?? {}),
+       ...(storedStory?.tableMd ? {} : { tableMd: stories[index]?.tableMd, tableCaption: stories[index]?.tableCaption }),
+@@ -259,7 +258,6 @@ function buildInterpretation(params: {
+   birth: BirthInput
+   input: WorkQuitRequest
+   chunks: RagChunk[]
+-  birthTimeKnown?: boolean
+   index: number
+ }): string {
+   const { groupId, itemTitle, analysis, input } = params
+@@ -273,7 +271,7 @@ function buildInterpretation(params: {
+       : `${quotedInput('퇴사를 검토하는 이유', input.reason)} ${quotedInput('추가로 적은 상황', input.concern)}`
+   return practicalReading({
+     title: itemTitle, detail: reading, current,
+-    evidence: workSymbol(analysis, groupId === 'money' ? 'money' : groupId === 'mental-people' ? 'people' : groupId === 'next-career' ? 'learning' : 'role', params.birthTimeKnown),
++    evidence: workSymbol(analysis, groupId === 'money' ? 'money' : groupId === 'mental-people' ? 'people' : groupId === 'next-career' ? 'learning' : 'role'),
+     application: state === 'settled'
+       ? '현재 만족하거나 소진·갈등이 없다는 진술을 우선해요. 숨겨진 억눌림을 있다고 해석하지 않으며, 이 항목의 어려움이 실제로 없다면 유지할 조건을 확인하는 용도로 읽으면 돼요.'
+       : state === 'concern'
+@@ -301,8 +299,7 @@ export function buildWorkQuitReport(
+   const chunks = retrieveRagChunks(query, analysis, 10, context)
+   const categoryRagCache = new Map<string, RagChunk[]>()
+   const sections: SajuReportSection[] = []
+-  const teaserStories = quitTeaserStories(context.birthTimeKnown === false ? undefined : analysis, input)
+-  if (context.birthTimeKnown === false) teaserStories.forEach(story => { story.chartCaption = '' })
++  const teaserStories = quitTeaserStories(analysis, input)
+   let order = 1
+ 
+   WORK_QUIT_TOC.forEach((category) => {
+@@ -336,7 +333,6 @@ export function buildWorkQuitReport(
+           birth,
+           input,
+           chunks: categoryChunks,
+-          birthTimeKnown: context.birthTimeKnown,
+           index: order + itemIndex,
+         }),
+         ...(teaserIndex >= 0 ? { storytelling: teaserStories[teaserIndex] } : {}),
+@@ -351,7 +347,7 @@ export function buildWorkQuitReport(
+   return finalizeSpecializedReport({
+     reportId,
+     title: '퇴사운 해석문',
+-    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 퇴사 고민과 실제 준비 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·대운 흐름으로 퇴사 판단을 봅니다`,
++    subtitle: `${context.name ?? '본인'}님의 관성·식상·대운 흐름으로 퇴사 판단을 봅니다`,
+     model: 'work-quit-rag-template',
+     generatedBy: 'template',
+     status: 'complete',

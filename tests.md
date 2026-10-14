@@ -1,5 +1,30 @@
 # Tests
 
+## 2026-10-14 — main CI 복구(태어난 시각 모름 반영 후 테스트 갱신)
+
+- [PASS] localized-partner-restore 36건: 복원 함수가 새로 부르는 resolveBirthTimeKnown·isKnownBirthTime 을 테스트 실행 환경에 함께 싣지 않아 ReferenceError. 실제 함수를 같이 실음(서비스 코드 변경 없음).
+- [PASS] 서비스 검수 check:jobchoice: 2d0ca9e9 에서 02 입력 화면의 jobchoice-report-store.js 연결이 빠져 실패. 원래 자리(페이지 스크립트 앞)에 되돌림.
+- [PASS] 생성물 최신 검사: 빌드가 네이버 인증 파일을 끝 줄바꿈 없이 쓰는데 저장소 파일엔 줄바꿈이 있어 git diff 실패. 빌드 출력과 같게 맞춤(내용 동일).
+- [PASS] 로컬에서 CI 전 단계 재현: 서비스 검수·SEO·20개 서비스 QA·배포 빌드 후 git diff 깨끗
+- [PASS] teaser-preview-bind 1건: 올해 연애운이 이제 모름을 그대로 넘긴다(selfBirthTimeKnown: birthTimeKnown). 늘 true 를 기대하던 검사를 새 동작으로 갱신.
+
+## 2026-10-14 — 관리자 전 화면 날짜 검색
+
+- [PASS] 신규 admin-date-range 5/5(기간 해석·경계·대시보드 비교·화면 연결·서버 연결), 갱신 admin-orders·admin-workspace-data-routes 50/50, tsc
+- [PASS] 로컬 브라우저: 날짜 메뉴 15곳 막대 표시, 방문·전환·프롬프트·서비스는 없음, 고른 기간이 다른 메뉴로 이어짐, 요청에 from/to, 390px 가로 넘침 0, 화면 오류 0
+- [PASS] 추가: admin·analytics 220/220, 방문·전환 기본 7일·어제=KST 0시~24시, 콘텐츠 관리 막대·기간 이어짐 브라우저 확인
+- [FAIL·기존] localized-partner-restore 36건, teaser-preview-bind 1건(origin/main 에서도 실패, 이 변경과 무관). 전체 2,289/2,326
+
+## 2026-10-13 — 퇴사운 입력 완료·네이버 가입 완료 보정
+
+- [PASS] 신규: 퇴사운 02 제출 = 입력 완료, 네이버 custom: 앞머리 엇갈림 2방향, 관리자 실제 새 계정 문구
+- [PASS] tsc, 전체 회귀 2,206/2,206
+
+## 2026-10-13 — 천명사주 퍼널 측정 보정
+
+- [PASS] 신규: 입력 장면 셋·복채 안내 감지·티저에 package-card 존재
+- [PASS] 전체 회귀 2,196/2,196
+
 ## 2026-09-29 — 관계 신호 무료 티저
 
 - [PASS] 실제 개인화 공개 1·2번, 서로 다른 이미지, 입력표·네 기둥 표·순서도·다섯 기운 차트
@@ -1345,3 +1370,43 @@ PASS: consultation frontend18/18; vercel-build/typecheck/SEO; six viewport width
 REST auth_tokens schema regression verifies bidiGenerateContentSetup/generationConfig, absent SDK liveConnectConstraints. 86/86 scoped tests pass after correction. Raw provider error messages and credentials never logged.
 
 GA-FUNNEL-07 (2026-10-07): npx tsx --test tests/unit/analytics-purchase-funnel.test.ts — 10/10 PASS(단계 매핑, 식별자 미전송, 체크아웃 금액, 해시 transaction_id·중복 차단, 미결제 미집계, 로컬 비활성). npm test 1,920/1,920 PASS, npm run typecheck PASS. 운영 GA4 수신 NOT_RUN.
+
+## LOCALIZED-UI-ALIGN-20261013
+- Source2c3f8b55 parent963dcdc5;130 focused unit/runtime/generator/security tests PASS(fail0), static preparation EXIT0,typecheck EXIT0. Independent source review PASS. No DB/provider/model/payment calls.
+- Baseline552cases/55geometry warnings. Integrated184 initial documents x5widths=920cases: geometry0,auth/offline chat10conditions blocked. Initial CMDG image warnings were missing cmdg static prefix in QA harness;24 canonical production image URLs200. Harness corrected; final image/font-loaded matrix and live verification follow below.
+- No KO/shared code/payment/schema/enum/customer-original/media changes; no code/HTML/CSS fallback around paused gate.
+
+### Final integrated initial-view audit
+- Source2c3f8b55 on963dcdc5;920conditions(184initial documents x320/390/430/768/1440).910conditions inspected,10chat auth/offline redirects blocked. Geometry warnings0, broken initial-view images0, broken stylesheets0 after correcting QA static cmdg prefix. QA harness uses local prepared static files;24 canonical published CMDG image GETs independently200. Temporary image cache was not connected and no repository/media files were changed.
+- Functional NOT_PASS:11 step05aliases/locale target absent sibling chat.html; localized newyear app.js,signal-video.js,couple06-detail-data.js,job-choice-data.js remain missing. Shared JS/HTML/JSON fallback is deliberately disallowed to preserve paused gates and backend/report semantics. Some localized manifests missing. Saved/API-backed paid report,customer finance originals,native phone,authentication,742image-pixel language audit and actual USD/JPY billing are not verified by this initial-view audit. No full-localization launch claim.
+
+### Production display verification
+- Normal push963dcdc5..e88bb94c completed; no force/PR merge/DB migration. Live EN/JAHTML200 with20261013-ui-align1 and localized-ui-layout. Both published runtimes and all6localized CSS files byte-identical to tested source. Localized CMDG image pointer302 -> canonical public image200/correct MIME,134056bytes.
+- Fresh production EN/JA home DOM:lang correct,newloader/style present;5price rows/locale all bare amounts+USD/JPY,19px,baseline,one line,overlap0/overflow0. tmp/ui-live-static-checks.json,ui-live-dom-checks.json,ui-alignment-en-live-proof.png. Deployed-source transition verified directly; separate Vercel status ID not queried. Public desktop verification is not authenticated/native E2E or actual foreign billing.
+
+## LOCALIZED-FUNCTIONAL-ASSETS-20261013 — verified source slice
+- EN/JA missing dependencies: signal pure-media controller added byte-identical to KO; job-choice02 now uses lean input/profile persistence helper, localized failure handling and generated date labels. Inputs/technical enum/numeric options unchanged. Newyear obsolete mock app.js refs removed. Couple06 fixture renderer/data loader and jobchoice04 synthetic renderer/obsolete dependencies retired, authenticated server slots retained. Couple nav truthfully goes to existing preview with only reportId/orderId. KO/shared controllers/gates, images/crops/ratios/gradients, prices/currency, DB/model/provider/payment untouched.
+- TDD: initial6missing/legacy tests RED_EXIT1 using direct tsx (npx path-error3 is NOT a RED); green6; date-label RED_EXIT1 then fixed. Final44tests PASS,0fail/skip; tsc --noEmit EXIT0; prepare-vercel-public EXIT0; git diff --check clean. Tests execute actual02 inline submit for missing fields/storage failure/real-input-only persistence, throwing storage getters, preserved-but-unconsumed stale report/ID/entitlement, video IO/load-once/pause/reduced-motion, date label/value preservation.
+- Browser:14changed/dependency documents x5 iframe widths320/390/430/768/1440=70conditions; geometry issues0, broken images0/styles0/missing resources0, no navigation blocked. All API requests mocked401, external scripts/connections blocked; fonts allowed. Signal320 documentOverflow2 is identical to prior baseline, no element geometry issue, not newly fixed. Actual EN input reload pageerror0 and Year/Month/Day visible; iframe != actual phone. Evidence tmp/functional-assets-browser-final.json; regression-final2/typecheck-final2/prepare-final2 logs.
+- Independent code_explorer review PASS scoped dependency/media/input compatibility, plus date-label delta PASS. Reviews static, not executed tests; parent executed tests above. Grok/KMS unavailable conditions remain NOT PASS claims.
+- [blocked] authenticated locale report flow: shared report-access route selection/boot and jobchoice/newyear route guards do not recognize /en or /ja; preserved slots alone do NOT establish working saved/paid readings. Separate safe source/mock route-prefix slice needed, including locale wrapper load order. Step05 aliases missing chat.html, cached-profile ownership/provenance, legacyKO/demo-paid interpretation elsewhere, future decision-date year range, auth/paid/native E2E, saved DB/backfill, voice and actual USD/JPY billing remain outside this completion. No broad storage migration/deletion.
+- Latest origin/main checked c6da3dc0; only intended locale files/test/append-only records will ship by ordinary push. Production confirmation pending.
+
+## LOCALIZED-FUNCTIONAL-ASSETS-20261013 — production confirmed
+- Source20intendedfiles commit5bef8c94(parentc6da3dc0), ordinary push origin HEAD:main accepted. No whole translation worktree/CLI cwd upload. After automatic deployment transition, public static GET:12changedHTML200/all retired-reference and fixture-renderer checksPASS;4newEN/JAJS200/full byte parity true to tested files. tmp/functional-assets-live-html.json and functional-assets-live-js.json. Earlier404waspre-transition, replaced by current confirmation. No live API/model/DB/payment/authenticated requests executed. Vercelstatus ID not separately queried; deployed source transition confirmed directly.
+- Actual local browser EN Month/JA月 shown; pageerror0 across controlled reloads. Retired couple rail/content displaynone; copy button absent after shared chrome replacement. tmp/functional-assets-dom-proof.json. Local/API-blocked input proof tmp/functional-input-offline-proof.png is NOT production or native/auth/paid proof.
+- Slice complete; source/module route-prefix authenticated-reader blocker and other explicit limitations above remain. Next safe slice is locale route-context/reader load-order under source and mocked auth/report tests, not wholesale legacycontroller copy/provider activation. Unrelated untracked audit files preserved, user browser tabs preserved; no new routines/promised monitors. Own8768QA2tabs closed; server cleanup checked separately.
+
+## UNKNOWN-BIRTH-TIME-KO-EN-JA-20261014 — acceptance verified, deployment pending
+- Requested KO included. Core4 + profile + jobchoice3 + thisyear/pass/lucky9: optional/unknown guidance; no guessing and known time adds time-dependent details. Existing unknown-control quit/move/save/signal/home15 receive explicit shared trilingual display-only guidance.
+- Strict known clock: blank/null is not midnight; valid00:00 preserved. False survives cache/autofill/request/restore including context/analysis/birthState. Numeric12:00 remains only the internal unknown boundary, NOT a real three-pillar engine.
+- Public unknown structured analysis withholds hour/strength/full balance/usefulGod/tenGods/personal timing. Future unknown copy/evidence and RAG ranking omit provisional personal facts; proven legacy patternKeys/provisional chat summary projected out. Stored interpretation/storytelling/customer text unchanged, no backfill. Unknown love monthly signals gated. Chat parser/generator same certainty, parent chat inherits.
+- Jobchoice actual account source: cached completeness cannot enable submit; only fresh in-document account bridge event hydrates. EN/JA bridge enabled ONLY02, other native/paid/detail locale guards untouched. Paused KO/auth/payment gates, prices/calendar/gender/TZ enums/images preserved. All6 changed controller references version20261014-unknown-time.
+- Offline tests:25 selected files274/274 PASS, then final guidance-copy subset70/70 PASS. TSC0; prepare-vercel-public0,126 FAQs/SEO21 sitemap URLs PASS; syntax102 changedHTML/77 inline scripts/11JS PASS; git diff-check0. Independent read-only review bo2ZDnBsjMFCSLHs final scoped PASS.
+- Browser: API blocked by CSP connect-src none. KO/EN/JA actual pass-angle unknown checked, clock empty/disabled; iframe350 and390x844 checks overflow0 (390 desktop iframe client375 due scrollbar, not real phone). EN quit shared guidance actual snapshot PASS. Proof temp unknown-time-input-proof.png, browser-proof.json,390-proof.json. No live API/DB/provider/model/payment calls.
+- Missing local .claude/.agents skill registry and KMS gate NOT_AVAILABLE; prior Grok403 not retried, independent source review fallback. No authenticated/native/paid/mobile/live-model E2E; other locale native controller guards unchanged, no whole-service launch or all old paid-body safety claim. No routines added.
+
+## UNKNOWN-BIRTH-TIME-KO-EN-JA-20261014 — deployed
+- Source2d0ca9e9116199bce78f9627006935bf49db5dd4 on latest101e7bbd base,138 intended files, ordinary git push origin HEAD:main confirmed. Tracked tree clean; unrelated untracked audit files preserved.
+- Live public static only:11 changed/newJS status200 and exact source byte parity.28 input/core/profile HTML status200+new markers. KO pass-angle/lucky/home3 remain existing302-to-home gates (confirmed source holdPausedCustomerPages/HOME_FIT_PUBLICLY_ENABLED=false and finalURL), NOT release failures, not re-enabled.31 requested checks accounted for. temp unknown-time-live-js.json and unknown-time-live-html.json.
+- Source/type/build/independent review and274 tests PASS; final copy-only70 tests PASS. Native/auth/paid/physical-phone/live-model E2E remain unverified. No DB/provider/model/payment calls/backfill; not genuine3-pillar calculation or whole i18n launch. No scheduled checks/routines.

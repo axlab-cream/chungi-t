@@ -691,11 +691,12 @@
       #step-6_1-report #detail-stack .reading-block.reading-answer p { font-size: 16px; font-weight: 800; line-height: 1.65; }
 </style>
     <link rel="stylesheet" href="/css/umsh-chrome.css">
+    <style id="localized-retired-reading-ui">#legacy-detail-content[hidden],.rail[hidden],#btn-copy[hidden]{display:none!important}</style>
   </head>
 <body data-umsh-chrome="" data-service="Couple compatibility" data-price="19,900 KRW" data-active="home">
   <main class="shell" id="step-6_1-report" aria-label="Detailed couple-compatibility reading">
     <header class="appbar topbar"><link id="umsh-inplace-css" rel="stylesheet" href="/css/umsh-verified-inplace.css?v=20260923-markdown-view-v1">
-      <a class="brand" href="/" id="brand-back" aria-label="Back to full contents">
+      <a class="brand" href="../04-step-4-report/index.html#step-4-report" id="brand-back" aria-label="Back to preview">
         <span class="brand-mark" aria-hidden="true">The two of you</span>
         <span>
           <small>Couple compatibility details</small>
@@ -703,20 +704,20 @@
         </span>
       </a>
       <div class="top-actions">
-        <button class="icon-button" type="button" id="btn-back" aria-label="Go to the full contents">
+        <button class="icon-button" type="button" id="btn-back" aria-label="Back to preview">
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>
         </button>
-        <button class="text-button hide-mobile" type="button" id="btn-copy">Save question</button>
-        <button class="text-button primary" type="button" id="btn-list">Contents</button>
+        <button class="text-button hide-mobile" type="button" id="btn-copy" hidden>Save question</button>
+        <button class="text-button primary" type="button" id="btn-list">Back to preview</button>
       </div>
     </header>
 
     <section class="umsh-progress-panel" data-umsh-slot="progress" aria-label="Reading preparation progress" hidden></section>
     <section class="state-panel" id="state-panel" data-umsh-slot="state" aria-live="polite"></section>
     <section class="detail-stack" id="detail-stack" data-umsh-slot="sections" aria-label="Detailed reading"></section>
-    <aside class="rail" aria-label="Move between detailed items">
+    <aside class="rail" hidden aria-label="Move between detailed items">
       <div class="rail-head">
         <span class="eyebrow" id="rail-eyebrow">All items</span>
         <h2 id="rail-title">Navigate the index</h2>
@@ -725,7 +726,7 @@
       <nav class="section-nav" id="section-nav"></nav>
     </aside>
 
-    <section class="content-panel" id="legacy-detail-content" aria-live="polite">
+    <section class="content-panel" id="legacy-detail-content" hidden aria-live="polite">
       <section class="hero">
         <div class="hero-grid">
           <div>
@@ -759,340 +760,11 @@
   <script type="application/json" id="PROMPT_INPUT">{"stage":"06-step-6_1-report-detail","service_title":"Are we really a good match?","category":"Couple compatibility","section_policy":"render_only_section_id_from_step05_report_index","domain":"match.umsh.kr/couple","price_krw":19900}</script>
 
   <script type="application/json" id="IMAGE_MANIFEST">[]</script>
-  <script src="../06-detail-data.js"></script>
   <script>
-    const DATA = window.COUPLE_MATCH_DETAIL_DATA;
-    const FLAT = DATA.report_index.groups.flatMap((group) => group.items.map((item) => ({ ...item, group })));
-    const SECTION_MAP = new Map(FLAT.map((entry, index) => [entry.section_id, { ...entry, index }]));
-    const DETAIL_MAP = DATA.detail_sections;
-    const ROUTES = {
-      list: "../05-step-5-chat/chat.html#step-5-chat",
-      input: "../02-step-2-saju-input/index.html#step-2-saju-input",
-      report: "../04-step-4-report/index.html#step-4-report"
-    };
-
-    const dom = {
-      topTitle: document.getElementById("top-title"),
-      nav: document.getElementById("section-nav"),
-      railEyebrow: document.getElementById("rail-eyebrow"),
-      railTitle: document.getElementById("rail-title"),
-      railDesc: document.getElementById("rail-desc"),
-      group: document.getElementById("detail-group"),
-      title: document.getElementById("detail-title"),
-      conclusion: document.getElementById("detail-conclusion"),
-      statusRoot: document.getElementById("status-root"),
-      body: document.getElementById("detail-body"),
-      toast: document.getElementById("toast"),
-      prev: document.getElementById("btn-prev"),
-      next: document.getElementById("btn-next")
-    };
-
-    let toastTimer = 0;
-
-    function readJson(key) {
-      try {
-        const value = sessionStorage.getItem(key);
-        return value ? JSON.parse(value) : null;
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function getContext() {
-      return {
-        reportContext: readJson("umsh:couple-match:report-context"),
-        inputPayload: readJson("umsh:couple-match:input")
-      };
-    }
-
-    function pairLabel(inputPayload) {
-      const selfName = inputPayload?.subjects?.self?.display_name?.trim() || "Me";
-      const partnerName = inputPayload?.subjects?.partner?.display_name?.trim() || "Partner";
-      return `${selfName} × ${partnerName}`;
-    }
-
-    function readServerEntitlement(context) {
-      const injected = window.__UMSH_SERVER_ENTITLEMENT__;
-      const reportId = context.reportContext?.report_id || context.reportContext?.reportId || "";
-      const serviceKey = context.reportContext?.service_key || "couple_match";
-      if (!injected || typeof injected !== "object") return false;
-      return Boolean(
-        injected.verified === true &&
-        injected.signature_valid === true &&
-        injected.owner_verified === true &&
-        injected.entitled === true &&
-        injected.service_key === serviceKey &&
-        (!reportId || injected.report_id === reportId)
-      );
-    }
-
-    function isLocalReview() {
-      return window.location.protocol === "file:";
-    }
-
-    function canRender(context) {
-      return isLocalReview() || readServerEntitlement(context);
-    }
-
-    function screenState(context) {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("status") === "generating") return "generating";
-      if (params.get("status") === "network-error") return "network_error";
-      if (!context.reportContext && !context.inputPayload && !isLocalReview()) return "missing";
-      const requestedReportId = params.get("reportId");
-      const currentReportId = context.reportContext?.report_id || context.reportContext?.reportId || "";
-      if (requestedReportId && currentReportId && requestedReportId !== currentReportId) return "wrong_report";
-      if (!canRender(context)) return "no_entitlement";
-      return "ready";
-    }
-
-    function requestedSectionId() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("section") || sessionStorage.getItem("umsh:couple-match:last-detail-section") || DATA.render_contract.default_section;
-    }
-
-    function showToast(message) {
-      window.clearTimeout(toastTimer);
-      dom.toast.textContent = message;
-      dom.toast.classList.add("is-visible");
-      toastTimer = window.setTimeout(() => dom.toast.classList.remove("is-visible"), 2400);
-    }
-
-    function goList(sectionId = requestedSectionId()) {
-      try {
-        sessionStorage.setItem("umsh:couple-match:return-section", sectionId);
-      } catch (error) {
-        /* session storage may be unavailable in strict browser modes */
-      }
-      window.location.href = ROUTES.list;
-    }
-
-    function goSection(sectionId, replace = false) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("section", sectionId);
-      url.hash = "step-6_1-report";
-      if (replace) {
-        history.replaceState({ sectionId }, "", url);
-      } else {
-        history.pushState({ sectionId }, "", url);
-      }
-      try {
-        sessionStorage.setItem("umsh:couple-match:last-detail-section", sectionId);
-      } catch (error) {
-        /* keep navigation working without storage */
-      }
-      render();
-      document.getElementById("step-6_1-report").scrollIntoView({ block: "start" });
-    }
-
-    function renderNav(activeEntry) {
-      const groupItems = FLAT.filter((entry) => entry.group.id === activeEntry.group.id);
-      dom.nav.innerHTML = groupItems.map((entry) => `
-        <button type="button" class="${entry.section_id === activeEntry.section_id ? "is-active" : ""}" data-section="${entry.section_id}">
-          ${entry.title}
-          <span>${entry.group.title}</span>
-        </button>
-      `).join("");
-      dom.nav.querySelectorAll("[data-section]").forEach((button) => {
-        button.addEventListener("click", () => goSection(button.dataset.section));
-      });
-      dom.railEyebrow.textContent = activeEntry.group.title;
-      dom.railTitle.textContent = "Same category";
-      dom.railDesc.textContent = "You can switch topics within the main category from the previous screen.";
-    }
-
-    function statusCopy(state) {
-      return {
-        missing: {
-          title: "리포트 정보를 먼저 불러와야 해요",
-          body: "두 사람 정보를 입력하고 Free summary을 거친 뒤 상세 풀이를 이어서 볼 수 있어요.",
-          primary: "두 사람 정보 입력",
-          primaryHref: ROUTES.input,
-          secondary: "Free summary",
-          secondaryHref: ROUTES.report
-        },
-        generating: {
-          title: "상세 풀이를 정리하는 중이에요",
-          body: "결제가 중복되지 않도록 현재 리포트 상태를 유지합니다. 잠시 뒤 다시 확인해 주세요.",
-          primary: "목차로 돌아가기",
-          primaryHref: ROUTES.list,
-          secondary: "Free summary",
-          secondaryHref: ROUTES.report
-        },
-        network_error: {
-          title: "연결이 잠깐 불안정해요",
-          body: "마지막으로 확인된 구조를 유지했습니다. 상세 본문은 상태 확인 뒤 이어서 열어주세요.",
-          primary: "목차로 돌아가기",
-          primaryHref: ROUTES.list,
-          secondary: "Free summary",
-          secondaryHref: ROUTES.report
-        },
-        wrong_report: {
-          title: "이 리포트로는 열 수 None",
-          body: "현재 보관된 리포트와 요청한 리포트가 달라요. 목차에서 다시 들어오면 안전하게 이어집니다.",
-          primary: "목차로 돌아가기",
-          primaryHref: ROUTES.list,
-          secondary: "새 분석",
-          secondaryHref: ROUTES.input
-        },
-        no_entitlement: {
-          title: "전체 풀이 확인이 필요해요",
-          body: "Free summary 이후의 상세 본문은 이용 상태 확인이 끝난 뒤 열 수 있어요.",
-          primary: "Free summary으로",
-          primaryHref: ROUTES.report,
-          secondary: "목차",
-          secondaryHref: ROUTES.list
-        }
-      }[state];
-    }
-
-    function renderStatus(state) {
-      const copy = statusCopy(state);
-      if (!copy) {
-        dom.statusRoot.innerHTML = "";
-        return;
-      }
-      dom.statusRoot.innerHTML = `
-        <section class="status-panel">
-          <h2>${copy.title}</h2>
-          <p>${copy.body}</p>
-          <div class="top-actions">
-            <a class="text-button primary" href="${copy.primaryHref}">${copy.primary}</a>
-            <a class="text-button" href="${copy.secondaryHref}">${copy.secondary}</a>
-          </div>
-        </section>
-      `;
-    }
-
-    function renderBlock(block) {
-      if (block.type === "table") {
-        const rows = block.data.rows.map((row) => `
-          \x3ctr>
-            \x3ctd data-label="구분">${row.label}\x3c/td>
-            \x3ctd data-label="현재 상태">${row.value}\x3c/td>
-            \x3ctd data-label="해석에 쓰는 방식">${row.source_key === "evidence_ids" ? "Connected directly to the source sentence" : "Check alongside calculated values"}\x3c/td>
-          \x3c/tr>
-        `).join("");
-        return `
-          <article class="block">
-            <h2>${block.title}</h2>
-            <p>${block.content}</p>
-            <table class="basis-table">
-              <thead>
-                <tr>${block.data.columns.map((column) => `<th>${column}</th>`).join("")}</tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </article>
-        `;
-      }
-      if (block.type === "action") {
-        return `
-          <article class="block">
-            <h2>${block.title}</h2>
-            <p>${block.content}</p>
-            <ol class="action-list">
-              ${block.data.actions.map((action, index) => `<li><span>${index + 1}</span><b>${action}</b></li>`).join("")}
-            </ol>
-          </article>
-        `;
-      }
-      return `
-        \x3carticle class="block">
-          \x3ch2>${block.title}\x3c/h2>
-          \x3cp>${block.content}\x3c/p>
-          \x3cdiv class="evidence-chips">
-            \x3cspan class="chip">Evidence linked\x3c/span>
-            \x3cspan class="chip">Inputs checked\x3c/span>
-          \x3c/div>
-        \x3c/article>
-      `;
-    }
-
-    function renderRelated(detail) {
-      return `
-        \x3carticle class="block">
-          \x3ch2>Related sections\x3c/h2>
-          \x3cdiv class="related">
-            ${detail.related_sections.map((section) => `
-              \x3cbutton class="related-card" type="button" data-related="${section.section_id}">
-                \x3csmall>${section.relation === "previous" ? "Previous" : "Next"}\x3c/small>
-                \x3cb>${section.title}\x3c/b>
-              \x3c/button>
-            `).join("")}
-          \x3c/div>
-        \x3c/article>
-      `;
-    }
-
-    function renderDetail(entry, detail, state, context) {
-      dom.topTitle.textContent = `${pairLabel(context.inputPayload)} report`;
-      dom.group.textContent = entry.group.title;
-      dom.title.textContent = detail.title;
-      dom.conclusion.textContent = state === "ready" ? detail.conclusion : "This item opens after your access status is checked.";
-      renderNav(entry);
-
-      const prev = detail.related_sections.find((section) => section.relation === "previous");
-      const next = detail.related_sections.find((section) => section.relation === "next");
-      dom.prev.onclick = () => goSection(prev.section_id);
-      dom.next.onclick = () => goSection(next.section_id);
-
-      if (state !== "ready") {
-        renderStatus(state);
-        dom.body.innerHTML = "";
-        return;
-      }
-
-      renderStatus("");
-      dom.body.innerHTML = detail.interpretation_blocks.map(renderBlock).join("") + renderRelated(detail);
-      dom.body.querySelectorAll("[data-related]").forEach((button) => {
-        button.addEventListener("click", () => goSection(button.dataset.related));
-      });
-    }
-
-    function renderMissingSection(sectionId, context) {
-      dom.topTitle.textContent = `${pairLabel(context.inputPayload)} report`;
-      dom.group.textContent = "Check item";
-      dom.title.textContent = "This item is not in the contents";
-      dom.conclusion.textContent = "Only items in step 05’s contents can open. Please select again there.";
-      dom.nav.innerHTML = "";
-      dom.statusRoot.innerHTML = `\x3csection class="status-panel">\x3ch2>Select an item again\x3c/h2>\x3cp>The requested value wasn't found in this report's contents.\x3c/p>\x3cdiv class="top-actions">\x3cbutton class="text-button primary" type="button" id="btn-default-section">View the first item\x3c/button>\x3cbutton class="text-button" type="button" id="btn-missing-list">Back to contents\x3c/button>\x3c/div>\x3c/section>`;
-      dom.body.innerHTML = "";
-      document.getElementById("btn-default-section").addEventListener("click", () => goSection(DATA.render_contract.default_section, true));
-      document.getElementById("btn-missing-list").addEventListener("click", () => goList(sectionId));
-    }
-
-    function render() {
-      const context = getContext();
-      const state = screenState(context);
-      const sectionId = requestedSectionId();
-      const entry = SECTION_MAP.get(sectionId);
-      const detail = DETAIL_MAP[sectionId];
-      if (!entry || !detail) {
-        renderMissingSection(sectionId, context);
-        return;
-      }
-      renderDetail(entry, detail, state, context);
-    }
-
-    document.getElementById("btn-back").addEventListener("click", () => goList());
-    document.getElementById("btn-list").addEventListener("click", () => goList());
-    document.getElementById("brand-back").addEventListener("click", (event) => {
-      event.preventDefault();
-      goList();
-    });
-    document.getElementById("btn-copy").addEventListener("click", () => {
-      const sectionId = requestedSectionId();
-      const detail = DETAIL_MAP[sectionId];
-      const text = detail ? `${detail.group_title} > ${detail.title}: ${detail.question}` : "Detailed couple-compatibility questions";
-      navigator.clipboard?.writeText(text).then(
-        () => showToast("Question saved."),
-        () => showToast("Please check the question on screen instead of copying it.")
-      );
-    });
-
-    window.addEventListener("popstate", render);
-    render();
+  (() => {
+    const preview = () => { const target = new URL("../04-step-4-report/index.html", location.href); const current = new URLSearchParams(location.search); for (const key of ["reportId","orderId"]) { const value = current.get(key); if (value) target.searchParams.set(key,value); } target.hash="step-4-report"; location.href=target.pathname+target.search+target.hash; };
+    for (const id of ["btn-back","btn-list","brand-back"]) document.getElementById(id)?.addEventListener("click", event => { event.preventDefault(); preview(); });
+  })();
   </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>

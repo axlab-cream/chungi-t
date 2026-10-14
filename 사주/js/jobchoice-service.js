@@ -13,7 +13,11 @@
  * side and grounds each section in the KMS corpus, so no reading is invented here.
  */
 (() => {
-  if (!/^\/work\/job-choice(?:\/|$)/.test(window.location.pathname)) return;
+  const inputLocalePrefix = window.location.pathname.match(/^\/(en|ja)(?=\/)/)?.[0] || '';
+  const inputPath = window.location.pathname.replace(/^\/(?:en|ja)(?=\/)/, '');
+  if (!/^\/work\/job-choice(?:\/|$)/.test(inputPath)) return;
+  // Only the account-input bridge is enabled here. Locale paid/detail gates remain unchanged.
+  if (inputLocalePrefix && !/\/02-step-2-saju-input(?:\/|$)/.test(inputPath)) return;
 
   const SERVICE = {
     apiKey: 'job_choice',
@@ -143,18 +147,14 @@
       name: profile.name,
       gender: birth.gender === 'female' ? 'female' : 'male',
       birthDate: `${birth.year}-${pad(birth.month)}-${pad(birth.day)}`,
-      birthTime: `${pad(Number.isFinite(birth.hour) ? birth.hour : 12)}:${pad(birth.minute || 0)}`,
+      birthTime: profile.birthTimeKnown !== false && Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 && Number.isInteger(birth.minute ?? 0) && (birth.minute ?? 0) >= 0 && (birth.minute ?? 0) <= 59 ? `${pad(birth.hour)}:${pad(birth.minute ?? 0)}` : '',
+      birthTimeKnown: profile.birthTimeKnown !== false,
       calendarType: birth.calendar === 'lunar' ? 'lunar' : 'solar',
       birthPlace: '',
       profileId: 'account',
     };
-    const already = readJson('sessionStorage', STORAGE.profile);
     writeJson('sessionStorage', STORAGE.profile, stored);
-    // The page read the cache once at load, so reload the first time it lands here.
-    if (!already) {
-      location.reload();
-      return;
-    }
+    window.dispatchEvent(new CustomEvent('umsh-jobchoice-account-profile', { detail: { profile: stored } }));
 
     // The input page owns the single saved-profile status block and its
     // "새 사주로 보기" state. Do not insert a second account-profile card here.
@@ -411,6 +411,7 @@
   }
 
   function init() {
+    if (inputLocalePrefix) { enhanceSajuInput(); return; }
     mountChrome();
     enhanceSajuInput();
     enhanceTeaser();

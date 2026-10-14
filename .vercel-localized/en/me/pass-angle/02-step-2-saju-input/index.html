@@ -61,7 +61,7 @@
           <div class="field"><label for="name">Name or nickname</label><input id="name" autocomplete="name" placeholder="Example: Minji"></div>
           <div class="grid">
             <div class="field"><label for="birth">Birth date</label><input id="birth" type="date"></div>
-            <div class="field"><label for="time">Birth time</label><input id="time" type="time"></div>
+            <div class="field"><label for="time">Birth time</label><input id="time" type="time"><label class="birth-time-unknown" style="display:flex;align-items:center;gap:8px;min-height:44px"><input id="birthTimeUnknown" type="checkbox" style="width:20px;height:20px;min-height:20px;padding:0">I don’t know my birth time</label><small>Optional. If unsure, choose “I don’t know my birth time”. You do not need to guess. A known time adds time-dependent details; those details are omitted if the time is unknown.</small></div>
           </div>
           <div class="field"><label for="gender">Gender</label><select id="gender"><option>Not selected</option><option>Female</option><option>Male</option><option>Other / private</option></select></div>
           <button class="button" type="submit">Continue pass-potential reading</button>
@@ -75,7 +75,7 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1" defer=""></script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/pass-angle-service.js?v=20260928-funnel-gate" defer=""></script>
+<script src="/js/pass-angle-service.js?v=20261014-unknown-time" defer=""></script>
 
 
-</body></html>
+<script>(()=>{const time=document.getElementById('time'),unknown=document.getElementById('birthTimeUnknown');unknown.addEventListener('change',()=>{time.disabled=unknown.checked;if(unknown.checked)time.value='';});time.form.addEventListener('submit',(event)=>{if(!unknown.checked&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time.value)){event.preventDefault();event.stopImmediatePropagation();time.setCustomValidity("Enter a valid time (HH:mm), or choose “I don’t know my birth time”.");time.reportValidity();}else time.setCustomValidity('');},true);time.addEventListener('input',()=>time.setCustomValidity(''));})();</script></body></html>

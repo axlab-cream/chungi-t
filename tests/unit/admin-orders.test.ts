@@ -116,6 +116,13 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
       assert.equal(payload.orders[0].tid, undefined)
     })
 
+    it('이메일 칸은 회원 계정 이메일이고, 결제창에 입력한 이메일은 가린 값으로 따로 준다', async () => {
+      const { payload } = await request('/api/admin/v1/orders', 'staff')
+      assert.equal(payload.orders[0].ownerEmail, 'member@synthetic.invalid')
+      assert.equal(payload.orders[0].ownerProvider, null)
+      assert.match(payload.orders[0].buyerEmailMasked, /^ho\*+@synthetic\.invalid$/)
+    })
+
     it('상세도 목록과 같은 마스킹을 쓴다', async () => {
       const { response, payload } = await request('/api/admin/v1/orders/admin-order-0', 'staff')
       assert.equal(response.status, 200)
@@ -182,10 +189,10 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
     })
 
     it('기간 경계는 시작 포함·종료 제외다', async () => {
-      // 저장소가 쓰기 시각을 직접 찍으므로(감사 목적) 픽스처의 `updatedAt` 은 남지 않는다.
-      // 그래서 실제 저장된 시각을 읽어 창을 만들고 경계 규칙만 검사한다.
+      // 2026-10-14: 화면의 "결제일"과 맞추려고 관리자 주문 목록의 기간은 만든 시각(createdAt)에 건다.
+      // 실제 저장된 시각을 읽어 창을 만들고 경계 규칙만 검사한다.
       const { payload: all } = await request('/api/admin/v1/orders?limit=100', 'staff')
-      const stamps = all.orders.map((order: any) => order.updatedAt)
+      const stamps = all.orders.map((order: any) => new Date(order.createdAt).toISOString()).sort().reverse()
       assert.ok(stamps.length >= 3, '경계를 검사할 만큼의 주문이 없다')
 
       const newest = stamps[0]
@@ -202,7 +209,7 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
       const toExclusive = await request(`/api/admin/v1/orders?to=${newest}&limit=100`, 'staff')
       assert.equal(toExclusive.payload.orders.length, expectedBelowNewest, 'to 가 제외가 아니다')
       assert.ok(
-        !toExclusive.payload.orders.some((order: any) => order.updatedAt === newest),
+        !toExclusive.payload.orders.some((order: any) => new Date(order.createdAt).toISOString() === newest),
         '종료 경계의 주문이 포함됐다',
       )
 

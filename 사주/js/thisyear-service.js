@@ -148,7 +148,7 @@
     if (!birth) return '';
     const date = `${birth.year}년 ${birth.month}월 ${birth.day}일`;
     const calendar = birth.calendar === 'lunar' ? '음력' : '양력';
-    const time = Number.isFinite(birth.hour) ? `${String(birth.hour).padStart(2, '0')}시` : BIRTH_TIME_UNKNOWN;
+    const time = profile.birthTimeKnown !== false && Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 && (birth.minute == null || (Number.isInteger(birth.minute) && birth.minute >= 0 && birth.minute <= 59)) ? `${String(birth.hour).padStart(2, '0')}시` : BIRTH_TIME_UNKNOWN;
     return `${calendar} ${date} · ${time}`;
   }
 
@@ -210,15 +210,18 @@
     if (!draft.relationship_status || !draft.partner_star_basis) return null;
     const manual = draft.profile_mode === 'new_profile';
     const dateParts = String(draft.birth_date || '').split('-').map(Number);
-    const timeParts = String(draft.birth_time || '').split(':').map(Number);
-    const selfBirth = manual && dateParts.length === 3 && timeParts.length === 2 ? {
+    const birthTimeKnown = draft.birthTimeKnown !== false;
+    const clock = String(draft.birth_time || '');
+    if (manual && birthTimeKnown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(clock)) return null;
+    const timeParts = clock.split(':').map(Number);
+    const selfBirth = manual && dateParts.length === 3 ? {
       year: dateParts[0], month: dateParts[1], day: dateParts[2],
-      hour: timeParts[0], minute: timeParts[1],
+      ...(birthTimeKnown ? { hour: timeParts[0], minute: timeParts[1] } : {}),
       gender: draft.gender,
       calendar: draft.calendar_type,
     } : null;
     return {
-      ...(selfBirth ? { selfName: draft.display_name || '', selfBirth, selfBirthTimeKnown: true } : {}),
+      ...(selfBirth ? { selfName: draft.display_name || '', selfBirth, selfBirthTimeKnown: birthTimeKnown } : {}),
       relationshipStatus: draft.relationship_status,
       partnerStarBasis: draft.partner_star_basis,
       gender: draft.gender || '',
@@ -268,7 +271,12 @@
     if (!request) throw new Error('현재 관계 상태와 생년월일시를 다시 확인해 주세요.');
     showAnalysisLoading();
     const session = await initAuth();
-    if (!session) throw new Error('로그인 후 저장된 사주로 무료 해석을 볼 수 있습니다.');
+    if (!session) {
+      // 입력값은 이미 sessionStorage 에 있어 로그인 뒤 이 화면으로 돌아오면 그대로 채워진다.
+      // 오류 문구만 띄우면 버튼 아래에 있는 사람에게는 아무 반응이 없는 것처럼 보인다.
+      location.assign(loginUrl());
+      return null;
+    }
     const response = await api('/api/love/this-year/analyze', { method: 'POST', body: JSON.stringify(request) });
     const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response) || response;
     const report = accepted?.report || response?.report;

@@ -1,3 +1,4 @@
+import { applyRange, type AdminRange } from './date-range.js'
 import { configuredEnv } from '../env/load.js'
 
 type Row = Record<string, unknown>
@@ -34,8 +35,10 @@ function supportCase(row: Row): SupportCase {
 }
 function note(row: Row): SupportNote { return { id: String(row.id), caseId: String(row.case_id), author: String(row.author_email), kind: String(row.kind) as SupportNoteKind, text: String(row.text), createdAt: String(row.created_at) } }
 
-export async function listSupportCases(): Promise<SupportCase[]> {
-  const request = new URL(table('support_cases')); request.searchParams.set('select', 'id,member_id,order_id,report_id,category,status,assignee_email,priority,resolution_code,revision,created_at,updated_at'); request.searchParams.set('order', 'updated_at.desc'); request.searchParams.set('limit', '100')
+/** 기간을 주면 접수 시각(created_at) 기준으로 그 안의 문의를 최대 500건, 안 주면 최근 손댄 100건. */
+export async function listSupportCases(range?: AdminRange | null): Promise<SupportCase[]> {
+  const request = new URL(table('support_cases')); request.searchParams.set('select', 'id,member_id,order_id,report_id,category,status,assignee_email,priority,resolution_code,revision,created_at,updated_at'); request.searchParams.set('order', range ? 'created_at.desc' : 'updated_at.desc'); request.searchParams.set('limit', range ? '500' : '100')
+  applyRange(request, 'created_at', range)
   const response = await fetch(request, { headers: headers() }); if (!response.ok) throw new Error('SUPPORT_CASE_LOOKUP_FAILED')
   return (await response.json() as Row[]).map(supportCase)
 }

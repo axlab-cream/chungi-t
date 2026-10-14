@@ -3833,6 +3833,12 @@
       .sample-enter .primary-cta,
       .sticky-story-cta .primary-cta,
       .cmdg-entry-action .primary-cta {
+        /* 글자는 flex 로 가운데에 둔다. 인라인 글자 + text-align 은 글자가 칸보다 길거나
+           브라우저가 칸 폭을 다르게 계산할 때 한쪽으로 쏠린다. flex 는 넘쳐도 양쪽으로 똑같이 넘친다. */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
         min-height: 0;
         aspect-ratio: 1270 / 289;
         padding: 0 13%;
@@ -4017,7 +4023,7 @@
         }
       }
     </style>
-  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261012e"></script></head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261014a"></script></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -4068,6 +4074,8 @@
       const ACTIVE_REPORT_KEY = "cheongi_active_report_id";
       const AUTH_PENDING_KEY = "cheongi_pending_analysis_after_auth";
       const AUTH_FORM_KEY = "cheongi_pending_analysis_form";
+      // 가입 전 티저에서 "운명 거래하기"를 눌러 가입한 경우, 로그인 뒤 결과가 아니라 결제 화면으로 보낸다.
+      const AUTH_PURCHASE_KEY = "cheongi_pending_purchase_after_auth";
       const PAID_REPORTS_KEY = "cheongi_paid_report_ids_v1";
       const USER_PROFILE_CACHE_KEY = "cheongi_user_birth_profile_v1";
       const AUTH_DEVICE_SESSION_KEY = "cheongi_auth_device_session_started_at_v1";
@@ -4268,7 +4276,7 @@
             birth: saved.birth || state.birth,
             gender: saved.gender || state.gender,
             time: saved.time || state.time,
-            birthTimeKnown: saved.birthTimeKnown ?? Boolean(saved.time && saved.time !== "모름"),
+            birthTimeKnown: isKnownBirthTime(resolveBirthTimeKnown(saved), saved.time),
             name: saved.name || state.name,
             orientation: saved.orientation || state.orientation,
             relationship: saved.relationship || state.relationship,
@@ -5033,15 +5041,72 @@
         }
       }
 
+      // 천명사주는 가입 전에도 결제 유도 화면(티저)까지 본다. 가입은 "운명 거래하기"를 누를 때 요구한다.
+      // 연애운은 입력이 계정 프로필에 묶여 있어 기존대로 시작 전에 가입을 받는다.
+      function isGuestTeaserFlow() {
+        return !isLoveThisYearService();
+      }
+
+      function wantsPurchaseAfterAuth() {
+        return sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1";
+      }
+
+      function consumePurchaseAfterAuth() {
+        const wanted = sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1";
+        sessionStorage.removeItem(AUTH_PURCHASE_KEY);
+        return wanted;
+      }
+
+      function beginGuestTeaser() {
+        sessionStorage.removeItem(AUTH_PURCHASE_KEY);
+        // 비회원은 서버·캐시 프로필을 불러오지 않는다(공용 기기에서 이전 사용자의 정보가 보이지 않게).
+        if (!hasUsableProfileState()) {
+          showNudge("사주 정보를 먼저 입력해주세요.");
+          go("name");
+          return;
+        }
+        go("loading");
+        analyzeBirth({ guest: true })
+          .then(() => go("result"))
+          .catch((err) => {
+            go("concern");
+            showNudge(err.message || "사주 분석에 실패했습니다.");
+          });
+      }
+
+      // 결제 화면은 회원만 연다. 비회원이면 입력값을 보관하고 가입·로그인 화면을 띄운 뒤, 돌아오면 결제 화면으로 이어 준다.
+      async function openPurchaseOrAuth() {
+        const session = await currentAuthSession().catch(() => null);
+        if (session?.access_token) {
+          if (state.guestPreview) {
+            // 가입 전에 본 티저에는 회원 소유 리포트가 없다. 같은 입력으로 다시 분석한 뒤 결제로 간다.
+            sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
+            beginAnalysisAfterAuth();
+            return;
+          }
+          go("purchase");
+          return;
+        }
+        persistAuthFormState();
+        sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
+        showAuthGate("전체 풀이를 보려면 먼저 가입하거나 로그인해 주세요.");
+      }
+
       async function beginAnalysisAfterAuth() {
         let session = null;
         try {
           session = await currentAuthSession();
         } catch (err) {
-          showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
-          return;
+          if (!isGuestTeaserFlow()) {
+            showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
+            return;
+          }
         }
         if (!session?.access_token) {
+          if (isGuestTeaserFlow()) {
+            beginGuestTeaser();
+            return;
+          }
           showAuthGate();
           return;
         }
@@ -5075,7 +5140,7 @@
             // 분석이 성공한 뒤에 지운다. 미리 지우면 실패했을 때 입력값이 사라져
             // 재시도할수록 같은 실패를 반복하게 된다.
             sessionStorage.removeItem(AUTH_FORM_KEY);
-            go("result");
+            go(consumePurchaseAfterAuth() ? "purchase" : "result");
           })
           .catch((err) => {
             // 순서가 중요하다. go() 가 stage.innerHTML 을 갈아끼우므로 안내를 먼저
@@ -5374,6 +5439,11 @@
 
       /** Sends the reader to the real checkout, bound to the reading they just previewed. */
       async function startCheckout() {
+        const session = await currentAuthSession().catch(() => null);
+        if (!session?.access_token || state.guestPreview) {
+          openPurchaseOrAuth();
+          return;
+        }
         const config = await loadPaymentConfig();
         const productKey = checkoutProductKey();
         if (!config?.checkoutEnabled || !productKey) {
@@ -5486,8 +5556,9 @@
         state.calendar = saved.calendar || (birth.calendar === "lunar" ? "음력" : "양력");
         state.birth = saved.birth || (birth.year ? `${birth.year}.${pad2(birth.month || 1)}.${pad2(birth.day || 1)}` : "");
         state.gender = saved.gender || (birth.gender ? (birth.gender === "female" ? "여자" : "남자") : "");
-        state.time = saved.time || (Number.isFinite(Number(birth.hour)) ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : "모름");
-        state.birthTimeKnown = saved.birthTimeKnown ?? state.time !== "모름";
+        state.time = saved.time || (Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 ? `${pad2(birth.hour)}:${pad2(birth.minute || 0)}` : "모름");
+        state.birthTimeKnown = isKnownBirthTime(resolveBirthTimeKnown(payload), state.time);
+        if (!state.birthTimeKnown) state.time = "모름";
         state.name = saved.name || context.name || "";
         state.orientation = saved.orientation || context.orientation || "";
         state.relationship = saved.relationship || context.relationship || "";
@@ -5505,6 +5576,7 @@
           : "모름";
         applyServiceDefaults({ preserveConcern: true });
         state.analysis = analysis;
+        state.guestPreview = false;
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
@@ -5710,6 +5782,7 @@
         state.partnerBirthTimeKnown = false;
         applyServiceDefaults();
         state.analysis = null;
+        state.guestPreview = false;
         state.todayFortune = null;
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
@@ -5935,7 +6008,7 @@
             }
             return;
           }
-          go("purchase");
+          openPurchaseOrAuth();
         }
         if (action === "open-settings") {
           location.href = "/vault";
@@ -5963,7 +6036,7 @@
           const index = Number(event.target.closest("[data-report-index]")?.dataset.reportIndex ?? 0);
           loadReportPage(index);
         }
-        if (action === "open-purchase") go("purchase");
+        if (action === "open-purchase") openPurchaseOrAuth();
         if (action === "toggle-agree-all") {
           const checked = Boolean(event.target.closest("[data-action='toggle-agree-all']")?.querySelector("input")?.checked);
           AGREE_KEYS.forEach((key) => {
@@ -6035,7 +6108,10 @@
               location.href = "/";
               return;
             }
-            go("concern");
+            // 결과(티저)를 보다가 가입을 미룬 경우에는 그 결과로 돌려보낸다. 그 밖에는 기존처럼 고민 입력으로 간다.
+            const backToResult = sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1" && Boolean(state.analysis);
+            sessionStorage.removeItem(AUTH_PURCHASE_KEY);
+            go(backToResult ? "result" : "concern");
           }
         }
       });
@@ -6160,7 +6236,7 @@
 
       function validateTime(value) {
         const raw = String(value || "").trim();
-        if (!raw) return "태어난 시간을 입력하거나 시간모름을 선택해주세요.";
+        if (!raw) return "태어난 시간을 입력하거나 몰라요를 선택해주세요.";
         const match = raw.match(/^(\d{1,2})(?::?(\d{2}))?$/);
         if (!match) return "태어난 시간은 13:30처럼 입력해주세요.";
         const hour = Number(match[1]);
@@ -6303,7 +6379,8 @@
         };
       }
 
-      async function analyzeBirth() {
+      async function analyzeBirth(options = {}) {
+        const guest = options.guest === true;
         const birth = parseBirthInput();
         const context = {
           serviceKey: state.serviceKey,
@@ -6315,7 +6392,8 @@
           work: state.work,
           partner: getPartnerContext(),
         };
-        await saveCurrentUserProfile();
+        // 비회원 티저는 계정에 아무것도 저장하지 않는다.
+        if (!guest) await saveCurrentUserProfile();
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
@@ -6325,11 +6403,12 @@
         const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
           method: "POST",
           headers,
-          body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context }),
+          body: JSON.stringify({ ...birth, ...context, birthTimeKnown: state.birthTimeKnown, context, ...(guest ? { guestTeaser: true } : {}) }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "분석 실패");
         state.analysis = json;
+        state.guestPreview = json.guestPreview === true;
         const reportId = json.report?.reportId || "";
         const stored = readReportHistory().find((item) => item.reportId === reportId);
         setActiveReportId(reportId);
@@ -6911,7 +6990,9 @@
 
       // 2026-10-08 퍼널: 천명사주는 한 화면 안에서 입력·결과가 바뀌어 주소로 단계를 알 수 없다. 장면이 바뀔 때 직접 남긴다.
       // (운영 /cmdg/ 는 이 파일이다. 사주/cmdg/index.html 사본이 아니다.)
-      const FUNNEL_SCENES = { birth: "02-input", result: "04-report" };
+      // 2026-10-13: 저장된 프로필이 있으면 이름·생년월일을 건너뛰고 고민 장면부터 시작한다.
+      // 생년월일 장면만 세면 입력 시작이 입력 완료보다 작게 나와서, 입력 장면 셋 중 처음 들어간 곳을 센다.
+      const FUNNEL_SCENES = { name: "02-input", birth: "02-input", concern: "02-input", result: "04-report" };
       const funnelScenesSent = {};
       // 입력을 마치고 로딩으로 넘어가면 입력 완료, 구매 장면은 구매 버튼 클릭으로 센다.
       const FUNNEL_MARKS = { loading: "input_done", purchase: "buy_click" };
@@ -7068,7 +7149,7 @@
               <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="cmdg-entry-action">
-              <button class="primary-cta" type="button" data-action="enter"><span class="cta-label">내 사주 확인하기</span></button>
+              <button class="primary-cta" type="button" data-action="enter"><span class="cta-label">운명록 확인하기</span></button>
             </div>
           </article>
         `;
@@ -7192,21 +7273,36 @@
         document.querySelector("#birth")?.focus();
       }
 
+      function resolveBirthTimeKnown(payload) {
+        const saved = payload?.birthState || {};
+        return payload?.birthTimeKnown !== false && payload?.context?.birthTimeKnown !== false && payload?.analysis?.birthTimeKnown !== false && payload?.birth?.birthTimeKnown !== false && saved.birthTimeKnown !== false && saved.context?.birthTimeKnown !== false && saved.analysis?.birthTimeKnown !== false;
+      }
+
+      function isKnownBirthTime(flag, time) { return flag !== false && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(time || "")); }
+
+      function renderUnknownTimeResult() {
+        const report = state.analysis?.report;
+        const sections = state.analysis?.birthTimeKnown === false ? (report?.sections || []).slice(0, 2).filter(section => section.status === "complete" && !section.locked && typeof section.interpretation === "string") : [];
+        const reading = sections.map(section => `<section class="story-section"><h2>${escapeHtml(section.title || section.category || "")}</h2><p>${escapeHtml(section.interpretation)}</p></section>`).join("");
+        stage.innerHTML = `<article class="story sample-story sub-result" data-birth-time-known="false">${storyTopNavMarkup(true)}<section class="story-visual visual-intro tall" data-sample-section="intro"></section><section class="story-section"><h1>시각 모름으로 보는 풀이</h1><p>출생 시각에 따라 달라지는 시주, 전체 오행 분포, 강약과 세부 운의 시기는 보류합니다. 자미두수 명반에는 출생 시각이 필요합니다. 절기 경계일의 일부 계산도 달라질 수 있습니다.</p></section>${reading || "<section class=\"story-section\"><p>저장된 공개 미리보기가 준비되면 여기에서 확인할 수 있습니다.</p></section>"}<div class="sticky-story-cta"><button class="primary-cta" type="button" data-action="open-chat">저장된 풀이 보기</button></div>${businessFooterMarkup()}</article>`;
+        setupFloatingCta(".sticky-story-cta");
+      }
+
       function renderTime() {
         stage.innerHTML = `
           <section class="panel">
             <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
-            <h1>태어난 시간</h1>
-            <p>정확한 시간이 있으면 더 섬세하게 보고, 몰라도 그대로 진행할 수 있습니다.</p>
+            <h1>태어난 시각 · 선택</h1>
+            <p id="birthtime-help">모르면 '몰라요'를 눌러 주세요. 추측해서 입력하지 않아도 돼요.</p>
             <div class="field-grid">
               <div class="field">
                 <label for="birthtime">태어난 시간</label>
-                <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${state.time === "모름" ? "" : state.time}" aria-describedby="birthtime-error" />
+                <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${isKnownBirthTime(state.birthTimeKnown, state.time) ? state.time : ""}" aria-describedby="birthtime-help birthtime-error" />
                 <div class="field-error" id="birthtime-error" aria-live="polite"></div>
               </div>
             </div>
             <div class="actions">
-              <button class="ghost" type="button" data-action="time-unknown">시간모름</button>
+              <button class="ghost" type="button" data-action="time-unknown">몰라요</button>
               <button class="next-cta" type="button" data-action="time-next">다음으로</button>
             </div>
           </section>
@@ -7464,14 +7560,20 @@
             });
         }
         const protectedLabel = protectedEntryLabel();
-        const title = wantsTodayEntry()
+        // 결과(티저)에서 "운명 거래하기"를 눌러 온 경우: 이미 해석을 본 뒤이므로 결제로 이어진다는 안내로 바꾼다.
+        const purchaseIntent = wantsPurchaseAfterAuth();
+        const title = purchaseIntent
+          ? "가입하고<br />운명록을 확인하세요"
+          : wantsTodayEntry()
           ? "오늘의 운을 보려면<br />먼저 가입해주세요"
           : wantsProtectedProfileEntry()
             ? `${protectedLabel}${objectParticle(protectedLabel)} 열려면<br />먼저 로그인해주세요`
             : isStandaloneSignupFlow()
               ? "회원가입 후<br />운을 열어보세요"
               : "먼저 가입하고<br />해석을 시작합니다";
-        const description = wantsTodayEntry()
+        const description = purchaseIntent
+          ? "가입하거나 로그인하면 바로 결제 화면으로 이어집니다. 방금 입력한 사주는 같은 계정에서 이어서 볼 수 있습니다."
+          : wantsTodayEntry()
           ? "소셜 계정으로 가입하면 무료 오늘운을 열람하고, 이어지는 풀이를 같은 계정에 보관할 수 있습니다."
           : wantsProtectedProfileEntry()
             ? `${protectedLabel}${topicParticle(protectedLabel)} 로그인과 사주등록을 마친 계정에서만 열 수 있습니다. 가입 후 기본 사주 정보를 바로 저장합니다.`
@@ -8149,6 +8251,7 @@
       }
 
       function renderResult() {
+        if (state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) { renderUnknownTimeResult(); return; }
         if (!isLoveThisYearService() && window.UmshMasterTeaser) {
           stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
           // 티저는 화면을 통째로 다시 그린다. 그 뒤에 걸어야 플로팅 전환이 산다.

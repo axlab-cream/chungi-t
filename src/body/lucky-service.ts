@@ -213,8 +213,10 @@ function buildInterpretation(params: {
   birth: BirthInput
   balance: ElementBalance
   chunk: RagChunk | undefined
+  birthTimeKnown?: boolean
 }): string {
   const { groupId, itemTitle, analysis, balance } = params
+  if (params.birthTimeKnown === false) return [`[안내] ${itemTitle}: 출생 시간을 모르므로 임시 시각에서 나온 용신·부족·우세 기운으로 개인에게 필요한 색·물건·방향을 추천하지 않습니다.`, '좋아하는 색이나 가지고 있는 물건에 관한 구체적인 취향 정보는 아직 입력되지 않았습니다. 오행의 상징을 본인에게 필요한 처방이나 구매 근거로 받아들이지 마세요.', '[확인할 기준] 현재 편하게 사용하는 색과 물건은 본인의 취향과 실제 사용성을 기준으로 확인합니다. 출생 시간을 모른다는 이유로 새 물건을 사거나 배치를 바꿀 필요는 없습니다.'].join('\n\n')
   const reading = luckyDetails(ELEMENT_PROFILE[balance.fill])[itemTitle]
   if (!reading) throw new Error(`색과 물건 항목별 해석 누락: ${itemTitle}`)
   const basis = analysis.usefulGod
@@ -227,7 +229,7 @@ function buildInterpretation(params: {
       : groupId === 'place'
         ? '방 구조·채광·소음·현재 불편은 입력되지 않았어요. 지금 자리를 확인한 맞춤 배치 판정은 보류하고 실제 조건을 비교하는 방법을 제안해요.'
         : '좋아하는 색·가지고 있는 물건·현재 불편은 입력되지 않았어요. 이미 편한 선택이 있다면 그 취향을 존중하며 바꿔야 할 문제를 만들지 않아요.',
-    evidence: itemTitle === '넘치는 기운 모자란 기운' ? elementEvidence(analysis) : ['color', 'carry', 'balance'].includes(groupId) ? basis : undefined,
+    evidence: itemTitle === '넘치는 기운 모자란 기운' ? elementEvidence(analysis, params.birthTimeKnown) : ['color', 'carry', 'balance'].includes(groupId) ? basis : undefined,
     application: `이 항목은 전통 상징과 생활 선택을 구별해 읽어요. ${reading.scene.includes('실제') ? '현재 상황과 다른 예시는 적용하지 않아도 돼요.' : '작은 시도를 한 뒤 본인이 편한지를 확인하는 방식이에요.'}`,
     closing: itemTitle === '오늘 당장 뭐 하지?' ? '물건이 액운을 막거나 재물을 부르지는 않습니다. 새 물건의 구매나 큰 공간 변경이 필요하다는 뜻도 아니에요.' : undefined,
   })
@@ -243,8 +245,7 @@ export function buildLuckyColorReport(
   const balance = readBalance(analysis)
   const query = [
     '오행 균형 과다 부족 용신 희신 기신 색 방향 재질 형태 공간 배치 책상 침대 생활 리듬 개운',
-    ELEMENT_KO[balance.fill],
-    ELEMENT_KO[balance.spare],
+    ...(context.birthTimeKnown === false ? [] : [ELEMENT_KO[balance.fill], ELEMENT_KO[balance.spare]]),
     input.displayName ?? '',
   ].join(' ')
   const chunks = retrieveRagChunks(query, analysis, 12, context)
@@ -285,6 +286,7 @@ export function buildLuckyColorReport(
           birth,
           balance,
           chunk: itemChunks[itemIndex],
+          birthTimeKnown: context.birthTimeKnown,
         }),
         generatedBy: 'template',
         model: 'lucky-color-rag-template',
@@ -297,7 +299,7 @@ export function buildLuckyColorReport(
   return finalizeSpecializedReport({
     reportId,
     title: '나한테 운 붙는 색과 물건 해석문',
-    subtitle: `${context.name ?? '본인'}님의 ${ELEMENT_KO[balance.fill]} 상징을 참고해 색과 물건의 취향을 살펴봅니다`,
+    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 임시 기운 기반 색·물건 추천은 보류하고 취향과 사용성을 우선합니다.' : `${context.name ?? '본인'}님의 ${ELEMENT_KO[balance.fill]} 상징을 참고해 색과 물건의 취향을 살펴봅니다`,
     model: 'lucky-color-rag-template',
     generatedBy: 'template',
     status: 'complete',

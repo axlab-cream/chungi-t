@@ -132,6 +132,16 @@ test('Naver custom OAuth provider completes once with public method naver', asyn
   }
 })
 
+test('Naver still counts when config and account disagree only on the custom: prefix', async () => {
+  for (const [configured, recorded] of [['custom:naver', 'naver'], ['naver', 'custom:naver']]) {
+    const { api, ctx, events } = setup()
+    ctx.fetch = async () => ({ ok: true, json: async () => ({ serverTime: new Date(now).toISOString(), providers: { naver: configured } }) })
+    await api.beginSignup('naver')
+    await api.completeSignup(auth(recorded), session)
+    assert.equal(events.length, 1, `${configured} vs ${recorded}`)
+  }
+})
+
 test('Naver existing login and wrong provider never count as signup', async () => {
   for (const mode of ['existing', 'wrong']) {
     const { api, ctx, events } = setup()
@@ -154,7 +164,7 @@ test('actual modal counts entry and reopening, not config/error rerenders', () =
   const { api, events } = setup()
   const stage = { innerHTML: '', querySelector() { return this.innerHTML.includes('role="dialog"') ? {} : null } }
   const ctx: any = { stage, window: { UMSHAnalytics: api }, authConfigData: {}, authGateMessage: '',
-    protectedEntryLabel: () => '', wantsTodayEntry: () => false, wantsProtectedProfileEntry: () => false,
+    protectedEntryLabel: () => '', wantsTodayEntry: () => false, wantsPurchaseAfterAuth: () => false, wantsProtectedProfileEntry: () => false,
     isStandaloneSignupFlow: () => true, escapeHtml: (s: string) => s, renderAuthProviderButton: () => '', shouldUseGoogleIdentity: () => false }
   runInNewContext(pageFunction('function renderLogin()', 'function renderLoading()'), ctx)
   ctx.renderLogin()

@@ -1,3 +1,5 @@
+import { mapDisplayHtml, displayAttributes, replaceDisplayAttribute } from './html-display-tokens.js'
+
 /** Customer-visible strings the compiler leaves in design attributes. */
 const SERVICES: Record<string, {en: string; ja: string}> = {
   '우리 결혼, 이날 해도 될까?': {en: 'Should we marry on this date?', ja: '私たち、この日に結婚していい？'},
@@ -238,12 +240,12 @@ export function formatReferencePrice(amountWon: number, locale: 'en' | 'ja'): st
 
 /** Only display text/attributes change. Scripts, JSON-LD, CSS and machine values stay in KRW. */
 function localizePriceDisplay(html: string, locale: 'en' | 'ja'): string {
-  const display = (text: string) => {
+  const display = (text: string, ownedPrice = false) => {
     const convert = (raw: string) => formatReferencePrice(Number(raw.replace(/,/g, '').replace('−', '-')), locale)
-    // A range with a shared suffix needs both endpoints converted, not only the second.
-    let out = text.replace(/(?<![\d.,])([−-]?\d[\d,]*(?:\.\d+)?)\s*([–~～-])\s*([−-]?\d[\d,]*(?:\.\d+)?)\s*(?:원|KRW)(?![A-Za-z])/g,
-      (_all, from: string, separator: string, to: string) => `${convert(from)} ${separator} ${convert(to)}`)
-    out = out.replace(/(?<![\d.,])([−-]?\d[\d,]*(?:\.\d+)?)\s*(?:원|KRW)(?![A-Za-z])/g, (_all, raw: string) => convert(raw))
+    // English 'won' is also a verb. Recognize it only in owned product-price markup.
+    let out = text.replace(/(?<![\d.,])([−-]?\d[\d,]*(?:\.\d+)?)\s*([–~～-])\s*([−-]?\d[\d,]*(?:\.\d+)?)\s*(원|KRW|ウォン|won)(?![A-Za-z])/gi,
+      (all, from: string, separator: string, to: string, unit: string) => /^won$/i.test(unit) && !ownedPrice ? all : `${convert(from)} ${separator} ${convert(to)}`)
+    out = out.replace(/(?<![\d.,])([−-]?\d[\d,]*(?:\.\d+)?)\s*(원|KRW|ウォン|won)(?![A-Za-z])/gi, (all, raw: string, unit: string) => /^won$/i.test(unit) && !ownedPrice ? all : convert(raw))
     out = out.replace(/(?:₩|KRW\s+)([−-]?\d[\d,]*(?:\.\d+)?)/g, (_all, raw: string) => convert(raw))
     return out
   }
@@ -253,17 +255,15 @@ function localizePriceDisplay(html: string, locale: 'en' | 'ja'): string {
   // data-id and id text inside quoted values are not our generated notice.
   const legacyAside = /<aside\b(?:\s+[^\s"'<>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*?\s+id\s*=\s*(?:"umsh-currency-disclosure"|'umsh-currency-disclosure')(?:\s+[^\s"'<>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*\s*>[^]*?<\/aside\s*>/i
   const legacyAsideWhole = new RegExp(`^(?:${legacyAside.source})$`, 'i')
-  const ordinaryTokens = /<!--[^]*?-->|<(script|style)\b[^>]*>[^]*?<\/\1\s*>|<(?:(?:"[^"]*"|'[^']*')|[^'">])*?>|[^<]+|</
-  const tokens = new RegExp(`${legacyAside.source}|${ordinaryTokens.source}`, 'gi')
-  const out = html.replace(tokens, (token: string) => {
-    if (/^<!--|^<(?:script|style)\b/i.test(token)) return token
-    // Internal reference guidance must not become customer-facing service copy.
-    // Remove only our previously generated aside; scripts and payment data stay intact.
+  const out = mapDisplayHtml(html, (token, kind, context) => {
     if (legacyAsideWhole.test(token)) return ''
-    if (!token.startsWith('<')) return display(token)
-    // content/itemprop/amount/currency are machine data and must not be inferred from locale.
-    return token.replace(/(\s(?:aria-label|aria-description|title|alt)\s*=\s*)(["'])([^]*?)\2/gi,
-      (_all, name: string, quote: string, value: string) => `${name}${quote}${display(value)}${quote}`)
-  })
+    const ownedPrice = context.some(element => element.attributes.some(attribute =>
+      attribute.name === 'class' && attribute.value?.split(/\s+/).some(name => ['price','price-line','price-row','price-slate','umsh-chrome-price','cta','primary-cta'].includes(name))))
+    if (kind === 'text') return display(token, ownedPrice)
+    for (const attribute of displayAttributes(token).filter(a => ['aria-label','aria-description','title','alt'].includes(a.name)).reverse()) {
+      if (attribute.value !== undefined) token = replaceDisplayAttribute(token, attribute, display(attribute.value, ownedPrice))
+    }
+    return token
+  }, legacyAside)
   return out
 }

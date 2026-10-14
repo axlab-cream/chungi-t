@@ -33,6 +33,64 @@
   document.addEventListener('visibilitychange', schedule);
   motion.addEventListener('change', () => { paused = motion.matches; schedule(); });
   window.addEventListener('pagehide', () => clearInterval(timer));
+
+  // 마우스나 손가락으로 옆으로 끌어서 넘긴다. 끄는 동안 다음(이전) 배너가 옆에서 따라 들어온다.
+  // 세로로 움직이면 화면 스크롤로 넘기고(touch-action: pan-y), 끌고 난 뒤의 클릭은 막아 배너 링크가 열리지 않게 한다.
+  const track = rail.querySelector('.consultation-rail-slides');
+  if (track) bindDrag(track);
+  function bindDrag(track) {
+    const SLIDE_MS = 280;
+    let drag = null, swallowClick = false;
+    function place(slide, x, animate) {
+      slide.style.transition = animate ? 'transform ' + SLIDE_MS + 'ms ease' : 'none';
+      slide.style.transform = x ? 'translateX(' + x + 'px)' : '';
+    }
+    function settle(list) { list.forEach((slide) => { if (!slide) return; slide.style.transition = ''; slide.style.transform = ''; slide.style.visibility = ''; }); }
+    function follow(dx) {
+      const side = dx < 0 ? 1 : -1;
+      const neighbor = slides[(index + side + count) % count];
+      if (drag.neighbor && drag.neighbor !== neighbor) settle([drag.neighbor]);
+      drag.neighbor = neighbor;
+      neighbor.style.visibility = 'visible';
+      place(slides[index], dx, false);
+      place(neighbor, dx + side * track.clientWidth, false);
+    }
+    track.addEventListener('pointerdown', (event) => {
+      if (count < 2 || event.button !== 0) return;
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, moving: false, neighbor: null };
+    });
+    track.addEventListener('pointermove', (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+      if (!drag.moving) {
+        if (Math.abs(dx) < 8) return;
+        if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+        drag.moving = true;
+        clearInterval(timer);
+        track.classList.add('is-dragging');
+        try { track.setPointerCapture(event.pointerId); } catch (error) { /* 이미 놓친 포인터 */ }
+      }
+      drag.dx = dx;
+      follow(dx);
+    });
+    function release(event) {
+      if (!drag || event.pointerId !== drag.id) return;
+      const done = drag; drag = null;
+      if (!done.moving) return;
+      track.classList.remove('is-dragging');
+      swallowClick = true; setTimeout(() => { swallowClick = false; }, 0);
+      const width = track.clientWidth, side = done.dx < 0 ? 1 : -1, current = slides[index];
+      const turn = Math.abs(done.dx) > Math.min(80, width * 0.18);
+      place(current, turn ? -side * width : 0, true);
+      place(done.neighbor, turn ? 0 : side * width, true);
+      setTimeout(() => { settle([current, done.neighbor]); if (turn) render(index + side); schedule(); }, SLIDE_MS);
+    }
+    track.addEventListener('pointerup', release);
+    track.addEventListener('pointercancel', release);
+    track.addEventListener('click', (event) => { if (swallowClick) { event.preventDefault(); event.stopPropagation(); } }, true);
+    track.addEventListener('dragstart', (event) => event.preventDefault());
+  }
+
   hideConsultation();
   // Published administrator content only; no personal data is fetched here.
   fetch('/api/consultation/banner', { cache: 'no-store' }).then((response) => {

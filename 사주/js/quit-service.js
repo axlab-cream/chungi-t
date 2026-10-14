@@ -268,7 +268,8 @@
     const birthRaw = form.querySelector('#birth')?.value || '';
     const unknown = form.querySelector('#birthTimeUnknown')?.checked;
     const [year, month, day] = birthRaw.split('-').map(Number);
-    const [hour, minute] = (form.querySelector('#time')?.value || '').split(':').map(Number);
+    const clock = form.querySelector('#time')?.value || '';
+    const [hour, minute] = clock.split(':').map(Number);
     const gender = readGender(form);
     const calendarRaw = form.querySelector('#calendar')?.value || '';
     const calendar = calendarRaw.includes('음') || calendarRaw === 'lunar' ? 'lunar' : 'solar';
@@ -278,7 +279,7 @@
     };
     if (!/^[가-힣]{2,20}$/.test(name)) return fail('이름은 한글 2자 이상 20자 이하로 입력해 주세요.');
     if (!year || !month || !day) return fail('생년월일을 입력해 주세요.');
-    if (!unknown && !Number.isFinite(hour)) return fail('태어난 시를 입력하거나 모름을 선택해 주세요.');
+    if (!unknown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(clock)) return fail('태어난 시를 입력하거나 모름을 선택해 주세요.');
     if (!gender) return fail('성별을 선택해 주세요.');
     const profile = {
       name,
@@ -287,8 +288,7 @@
         year,
         month,
         day,
-        hour: !unknown && Number.isFinite(hour) ? hour : 12,
-        minute: Number.isFinite(minute) ? minute : 0,
+        ...(!unknown ? { hour, minute } : {}),
         gender,
         calendar,
       },

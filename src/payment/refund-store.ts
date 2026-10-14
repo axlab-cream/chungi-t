@@ -1,3 +1,4 @@
+import { inRange, type AdminRange } from '../admin/date-range.js'
 import { randomUUID } from 'node:crypto'
 import { configuredEnv } from '../env/load.js'
 
@@ -125,17 +126,19 @@ export async function rejectRefundRequest(input: { refundId: string, actorEmail:
   testRequests.set(mapKey, next); return { ...next }
 }
 
-export async function listRefundRequests(limit = 100): Promise<RefundRequest[]> {
-  const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 200) : 100
+/** 기간을 주면 요청 시각(created_at) 기준, 최대 500건. */
+export async function listRefundRequests(limit = 100, range?: AdminRange | null): Promise<RefundRequest[]> {
+  const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, range ? 500 : 200) : 100
   if (base && key) {
-    const params = new URLSearchParams({ select: refundColumns, order: 'updated_at.desc', limit: String(safeLimit) })
+    const params = new URLSearchParams({ select: refundColumns, order: range ? 'created_at.desc' : 'updated_at.desc', limit: String(safeLimit) })
+    if (range) { params.append('created_at', `gte.${range.from}`); params.append('created_at', `lt.${range.to}`) }
     const response = await fetch(`${base}/rest/v1/refund_requests?${params.toString()}`, { headers: headers() })
     if (!response.ok) throw refundFailure(await response.text(), 'REFUND_LIST_FAILED')
     const rows = await response.json() as Record<string, unknown>[]
     return rows.map(fromRow)
   }
   if (!canUseTestStore()) throw new Error('REFUND_STORE_UNAVAILABLE')
-  return Array.from(testRequests.values()).reverse().slice(0, safeLimit).map((item) => ({ ...item }))
+  return Array.from(testRequests.values()).reverse().filter((item) => inRange(item.createdAt, range)).slice(0, safeLimit).map((item) => ({ ...item }))
 }
 
 export async function getRefundRequest(refundId: string): Promise<RefundRequest | null> {

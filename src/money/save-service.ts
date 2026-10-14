@@ -254,14 +254,16 @@ export function moneySaveTeaserSection(
   analysis: SajuAnalysis | undefined,
   context: SajuReportContext,
 ): SajuReportSection {
-  const stories = moneyTeaserStories(analysis, moneySaveRequestFromContext(context))
+  const unknownTime = context.birthTimeKnown === false
+  const safeAnalysis = unknownTime ? undefined : analysis
+  const stories = moneyTeaserStories(safeAnalysis, moneySaveRequestFromContext(context))
   const image = MONEY_TEASER_IMAGES[index]
   const storedStory = section.storytelling
   return {
     ...section,
     ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
-    interpretation: moneyTeaserInterpretation(index, analysis, moneySaveRequestFromContext(context)),
-    storytelling: {
+    interpretation: moneyTeaserInterpretation(index, safeAnalysis, moneySaveRequestFromContext(context)) + (unknownTime ? '\n\n출생 시간을 모르므로 임시 시각 기반 시주·오행 전체 분포·강약은 이 풀이의 개인 근거로 사용하지 않습니다.' : ''),
+    storytelling: unknownTime ? { ...stories[index], chartCaption: '', chartPoints: undefined } : {
       ...stories[index],
       ...(storedStory ?? {}),
       ...(storedStory?.tableMd ? {} : { tableMd: stories[index]?.tableMd, tableCaption: stories[index]?.tableCaption }),
@@ -420,6 +422,7 @@ function buildInterpretation(params: {
   birth: BirthInput
   input: MoneySaveRequest
   chunks: RagChunk[]
+  birthTimeKnown?: boolean
   index: number
 }): string {
   const { groupId, itemTitle, analysis, input } = params
@@ -434,9 +437,9 @@ function buildInterpretation(params: {
         ? `${quotedInput('저축 목표', input.savingGoal)} ${quotedInput('현재 습관', input.moneyHabit)}`
         : `${quotedInput('직접 짚은 지출 상황', input.leakPoint)} ${quotedInput('추가로 적은 상황', input.concern)}`
   const evidence = ['ohaeng-os', 'saju-strength'].includes(groupId)
-    ? `${elementEvidence(analysis)} 신강·신약·중화는 사주 안의 힘 관계를 나타내며 체력·인격·경제 능력의 등급이 아니에요.`
+    ? `${elementEvidence(analysis, params.birthTimeKnown)} 신강·신약·중화는 사주 안의 힘 관계를 나타내며 체력·인격·경제 능력의 등급이 아니에요.`
     : groupId === 'expanded-reading' ? undefined
-      : workSymbol(analysis, groupId === 'relationship-contract' ? 'people' : 'money')
+      : workSymbol(analysis, groupId === 'relationship-contract' ? 'people' : 'money', params.birthTimeKnown)
   return practicalReading({
     title: itemTitle, detail: reading, current, evidence,
     application: state === 'settled'
@@ -503,6 +506,7 @@ export function buildMoneySaveReport(
           birth,
           input,
           chunks: categoryChunks,
+          birthTimeKnown: context.birthTimeKnown,
           index: order + itemIndex,
         }),
         generatedBy: 'template',
@@ -516,7 +520,7 @@ export function buildMoneySaveReport(
   return finalizeSpecializedReport({
     reportId,
     title: '소비성향 해석문',
-    subtitle: `${context.name ?? '본인'}님의 재성·비겁 흐름으로 돈이 남는 구조를 봅니다`,
+    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 수입·지출 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 재성·비겁 흐름으로 돈이 남는 구조를 봅니다`,
     model: 'money-save-rag-template',
     generatedBy: 'template',
     status: 'complete',

@@ -126,7 +126,7 @@
       var date = new Date(birth + 'T00:00:00');
       if (Number.isNaN(date.getTime()) || birth < '1900-01-01' || date.getTime() > Date.now()) codes.push('PRF-04');
     }
-    if (birthTimeKnown && !String(form.time.value || '')) codes.push('PRF-05');
+    if (birthTimeKnown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(form.time.value || ''))) codes.push('PRF-05');
     codes.forEach(function (code) { showError(code); });
     if (codes.length) focusField(codes[0]);
     return codes.length === 0;
@@ -147,9 +147,9 @@
       ? birth.year + '-' + pad2(birth.month) + '-' + pad2(birth.day)
       : '';
     birthTimeKnown = profile.birthTimeKnown !== false;
-    var hour = Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12;
-    var minute = Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0;
-    form.time.value = pad2(hour) + ':' + pad2(minute);
+    var hour = birth.hour;
+    var minute = birth.minute;
+    form.time.value = birthTimeKnown && Number.isInteger(hour) && hour >= 0 && hour <= 23 && Number.isInteger(minute) && minute >= 0 && minute <= 59 ? pad2(hour) + ':' + pad2(minute) : '';
     syncTimeUi();
   }
 

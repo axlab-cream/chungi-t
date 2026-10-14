@@ -7,9 +7,12 @@ name: CI
 # PR 체크가 두 벌이 되며 Preview URL 이 경쟁한다(T02 리서치 F9, `docs/admin-ops/TASK-018-deploy-path.md`).
 # 이 제약은 `tests/unit/ci-workflow.test.ts` 가 고정한다.
 
+# 실행 조건(2026-10-14): PR 은 pull_request 로, 머지된 결과는 main push 로 검사한다.
+# 예전에는 모든 브랜치 push 에서도 돌아서, PR 이 열린 브랜치는 같은 코드를 두 번 검사했다.
+# PR 없이 브랜치에만 올린 코드는 Preview 로만 나가고, PR 을 여는 순간 검사한다.
 on:
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
 
 permissions:
