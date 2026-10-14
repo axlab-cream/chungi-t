@@ -324,4 +324,21 @@ describe('2026-10-14 회원/비회원 구분', { concurrency: false }, () => {
     assert.equal(call.url.searchParams.get('profile_payload->>account_type'), 'eq.guest')
     assert.equal(call.headers.get('prefer'), 'count=exact')
   })
+
+  it('2026-10-14 회원 관리 전체 수: 조건 없이 전체·회원·비회원을 따로 센다', async () => {
+    const before = requests.length
+    const counts = await liveData.countMemberKinds()
+    const calls = requests.slice(before).filter((r) => r.url.pathname.endsWith('/cheongi_user_profiles'))
+    assert.deepEqual(calls.map((r) => r.url.searchParams.get('profile_payload->>account_type')).sort(), ['eq.guest', 'is.null', null].sort())
+    for (const call of calls) {
+      assert.equal(call.headers.get('prefer'), 'count=exact')
+      assert.equal(call.url.searchParams.get('name'), null, '검색 조건이 섞이면 안 된다')
+    }
+    assert.deepEqual(counts, { all: 6, member: 6, guest: 6 })
+  })
+
+  it('비회원→회원 전환 수는 content-range 의 전체 수를 읽는다(한 줄만 받아도 1로 세지 않는다)', async () => {
+    const count = await liveData.countGuestConversions(new Date('2026-10-01T00:00:00.000Z'), new Date('2026-10-02T00:00:00.000Z'))
+    assert.equal(count, 6)
+  })
 })

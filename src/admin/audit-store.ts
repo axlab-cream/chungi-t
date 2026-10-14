@@ -80,6 +80,18 @@ export async function searchAdminAuditEvents(query: AuditQuery = {}): Promise<{ 
   }
 }
 
+/** 2026-10-14: 로그 목록의 "전체 N건". 영역·관리자·기간 조건 없이, 완료/시작 보기만 맞춰 센다. */
+export async function countAdminAuditEvents(result: 'succeeded' | 'all' = 'succeeded'): Promise<number> {
+  const request = new URL(table('admin_audit_events'))
+  request.searchParams.set('select', 'id')
+  request.searchParams.set('limit', '1')
+  if (result !== 'all') request.searchParams.set('result', 'eq.succeeded')
+  const response = await fetch(request, { headers: { ...headers(), prefer: 'count=exact' } })
+  if (!response.ok) throw new Error('ADMIN_AUDIT_COUNT_FAILED')
+  const range = response.headers.get('content-range')?.split('/')[1]
+  return range && /^\d+$/.test(range) ? Number(range) : (await response.json() as unknown[]).length
+}
+
 export function postgrestAdminCommandStore(): AdminCommandStore {
   const receiptKey = (input: Pick<AdminCommandInput, 'actorEmail' | 'action' | 'idempotencyKey'>) => ({ actor_email: input.actorEmail.toLowerCase(), action: input.action, idempotency_key: input.idempotencyKey })
   return {

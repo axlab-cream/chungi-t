@@ -68,10 +68,10 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { type MemberContact, countLiveMembers, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
+import { type MemberContact, countLiveMembers, countMemberKinds, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
-import { searchAdminAuditEvents } from '../admin/audit-store.js'
+import { countAdminAuditEvents, searchAdminAuditEvents } from '../admin/audit-store.js'
 import { executeAdminCommand, AdminCommandConflict } from '../admin/admin-command.js'
 import { postgrestAdminCommandStore } from '../admin/audit-store.js'
 import { adminPushRouter, pushRouter } from '../push/router.js'
@@ -3275,8 +3275,9 @@ app.get('/api/admin/v1/members', async (req, res) => {
   // 2026-10-14 회원/비회원 구분. 없으면 둘 다.
   const kind = req.query?.kind === 'member' || req.query?.kind === 'guest' ? req.query.kind : undefined
   try {
-    const { members, total } = await searchLiveMembers({ q, paid, from, to, sort, kind, limit, offset })
-    res.json({ members, total, limit, offset, asOf: new Date().toISOString() })
+    // 2026-10-14: 조건 없는 전체 수(회원·비회원 따로)도 함께 준다. 세다가 실패해도 목록은 그대로 나간다.
+    const [{ members, total }, counts] = await Promise.all([searchLiveMembers({ q, paid, from, to, sort, kind, limit, offset }), countMemberKinds().catch(() => null)])
+    res.json({ members, total, counts, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
   }
@@ -3585,8 +3586,11 @@ app.get('/api/admin/v1/reports', async (req, res) => {
   const limit = Number(req.query?.limit ?? 50)
   const offset = Number(req.query?.offset ?? 0)
   try {
-    const { reports, total } = await searchLiveReports({ status: trimmedString(req.query?.status), q: trimmedString(req.query?.q), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, limit, offset })
-    res.json({ reports, total, limit, offset, asOf: new Date().toISOString() })
+    const [{ reports, total }, overall] = await Promise.all([
+      searchLiveReports({ status: trimmedString(req.query?.status), q: trimmedString(req.query?.q), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, limit, offset }),
+      countLiveReports().catch(() => null),
+    ])
+    res.json({ reports, total, overall, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_REPORT_LOOKUP_FAILED', error: '실제 리포트 저장소를 불러오지 못했습니다.' })
   }
@@ -3660,8 +3664,12 @@ app.get('/api/admin/v1/audit', async (req, res) => {
   if (!await requireStaff(req, res, 'audit:read')) return
   // 2026-10(8단계): 영역·관리자·기간·결과 필터와 페이지. 거른 결과의 전체 수를 함께 준다.
   try {
-    const { events, total } = await searchAdminAuditEvents({ area: trimmedString(req.query?.area), actor: trimmedString(req.query?.actor), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, result: req.query?.result === 'all' ? 'all' : 'succeeded', limit: Number(req.query?.limit ?? 50), offset: Number(req.query?.offset ?? 0) })
-    res.json({ events, total, asOf: new Date().toISOString() })
+    const result = req.query?.result === 'all' ? 'all' : 'succeeded'
+    const [{ events, total }, overall] = await Promise.all([
+      searchAdminAuditEvents({ area: trimmedString(req.query?.area), actor: trimmedString(req.query?.actor), from: trimmedString(req.query?.from) || undefined, to: trimmedString(req.query?.to) || undefined, result, limit: Number(req.query?.limit ?? 50), offset: Number(req.query?.offset ?? 0) }),
+      countAdminAuditEvents(result).catch(() => null),
+    ])
+    res.json({ events, total, overall, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'ADMIN_AUDIT_LOOKUP_FAILED', error: '감사 기록 저장소를 불러오지 못했습니다.' })
   }

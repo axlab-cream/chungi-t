@@ -11,7 +11,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   seen.push({ url, headers: new Headers(init?.headers) })
   return new Response(JSON.stringify([{ id: 1, actor_email: 'ops@umsh.kr', action: 'member.account.delete', target_type: 'member_auth', target_id: 'u1', result: 'succeeded', created_at: '2026-10-06T00:00:00.000Z' }]), { headers: { 'content-range': '0-0/37' } })
 }) as typeof fetch
-const { searchAdminAuditEvents } = await import('../../src/admin/audit-store.js')
+const { countAdminAuditEvents, searchAdminAuditEvents } = await import('../../src/admin/audit-store.js')
 after(() => { globalThis.fetch = nativeFetch; for (const name of Object.keys(process.env)) if (!(name in previousEnv)) delete process.env[name]; Object.assign(process.env, previousEnv) })
 
 test('로그 검색은 영역·관리자·기간으로 거르고, 기본은 완료 기록만, 관리자 이메일은 가린다', async () => {
@@ -31,5 +31,17 @@ test('모르는 영역은 필터로 쓰지 않고, 시작 기록 포함을 고�
   await searchAdminAuditEvents({ area: 'drop.', result: 'all' })
   const url = seen.at(-1)!.url
   assert.equal(url.searchParams.get('action'), null)
+  assert.equal(url.searchParams.get('result'), null)
+})
+
+test('2026-10-14 로그 전체 수는 영역·관리자·기간 없이 완료/시작 보기만 맞춰 센다', async () => {
+  assert.equal(await countAdminAuditEvents(), 37)
+  let url = seen.at(-1)!.url
+  assert.equal(url.searchParams.get('result'), 'eq.succeeded')
+  assert.equal(url.searchParams.get('action'), null)
+  assert.equal(url.searchParams.get('actor_email'), null)
+  assert.equal(seen.at(-1)!.headers.get('prefer'), 'count=exact')
+  await countAdminAuditEvents('all')
+  url = seen.at(-1)!.url
   assert.equal(url.searchParams.get('result'), null)
 })
