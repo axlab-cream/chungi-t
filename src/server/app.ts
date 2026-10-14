@@ -3909,6 +3909,28 @@ app.use('/api/coupons', couponRouter({
   couponUsage: getConsultationCouponUsage,
 }))
 
+/**
+ * 결제 화면이 열릴 때 이미 결제한 풀이인지 묻는다(2026-10). 결제 완료 화면에서 뒤로 가면
+ * 결제 화면이 다시 열리는데, 그때 결제창 대신 풀이로 안내하려고 쓴다. 판정은 열람과 같은 규칙이다.
+ */
+app.get('/api/payment/purchase-status', async (req, res) => {
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const product = getPaymentProduct(trimmedString(req.query.productKey))
+    const reportId = trimmedString(req.query.reportId)
+    if (!product || product.key === 'cheonmyeong_consultation' || !reportId) {
+      res.json({ paid: false })
+      return
+    }
+    const bound = await findReportRecord(reportId, owner)
+    const paid = await findUnlockingOrder(owner, product.key, reportId, bound?.lineageId ?? '')
+    res.json(paid ? { paid: true, orderId: paid.orderId } : { paid: false })
+  } catch (err) {
+    respondRequestFailure(res, err, '결제 여부 조회 실패')
+  }
+})
+
 app.post('/api/payment/orders', async (req, res) => {
   try {
     const owner = await requireSupabaseUser(req, res)
@@ -3939,8 +3961,13 @@ app.post('/api/payment/orders', async (req, res) => {
       const access = await getConsultationAccess(owner)
       if (!access.purchaseAvailable) { res.status(409).json({ code: 'CONSULTATION_STORAGE_CAPACITY', error: '현재 상담 보관 한도로 추가 질문권을 구매할 수 없습니다. 고객센터로 문의해 주세요.' }); return }
     } else if (trimmedString(req.body?.reportId)) {
-      const bound = await findReportRecord(trimmedString(req.body.reportId), owner)
+      const requestedReportId = trimmedString(req.body.reportId)
+      const bound = await findReportRecord(requestedReportId, owner)
       if (bound && isConsultationRecord(bound)) { res.status(400).json({ error: '상담 질문권은 천명상담에서 구매해 주세요.' }); return }
+      // 결제 완료 화면에서 브라우저 뒤로 가기를 누르면 결제 화면이 다시 열린다. 열람 판정과 같은
+      // 규칙으로 이미 열린 풀이인지 보고, 같은 풀이를 두 번 결제하지 않게 막는다.
+      const paid = await findUnlockingOrder(owner, product.key, requestedReportId, bound?.lineageId ?? '')
+      if (paid) { res.status(409).json({ code: 'ALREADY_PAID', error: '이미 결제한 풀이입니다.', orderId: paid.orderId }); return }
     }
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
