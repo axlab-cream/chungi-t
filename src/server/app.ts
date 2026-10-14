@@ -333,6 +333,8 @@ const SUPABASE_NAVER_PROVIDER = envValue(process.env.SUPABASE_NAVER_PROVIDER, 'c
 // developer console can sign in, so other customers hit a dead end. Keep it hidden until
 // review passes, then set NAVER_LOGIN_ENABLED=true in the deployment environment.
 const NAVER_LOGIN_ENABLED = process.env.NAVER_LOGIN_ENABLED?.trim() === 'true'
+// 비회원(Supabase 익명 계정) 자동 생성. Supabase 콘솔의 익명 로그인과 함께 켠다 — docs/auth/guest-member-plan.md
+const GUEST_SIGNIN_ENABLED = process.env.GUEST_SIGNIN_ENABLED?.trim() === 'true'
 const LOVE_THIS_YEAR_SERVICE_KEY = 'love_this_year'
 const HOME_FIT_SERVICE_KEY = 'home_fit'
 const WORK_MOVE_SERVICE_KEY = 'work_move'
@@ -1397,6 +1399,7 @@ function authConfig() {
       kakao: SUPABASE_KAKAO_PROVIDER,
       naver: NAVER_LOGIN_ENABLED ? SUPABASE_NAVER_PROVIDER : '',
     },
+    guestSignIn: GUEST_SIGNIN_ENABLED,
   }
 }
 

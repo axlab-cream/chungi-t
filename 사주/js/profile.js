@@ -167,7 +167,7 @@
 
   async function init() {
     if (helper.mountAccountChrome) helper.mountAccountChrome('account');
-    var auth = await helper.requireSession('profile');
+    var auth = await helper.requireSession('profile', { allowGuest: true });
     if (!auth) return;
     document.querySelectorAll('[data-time-known]').forEach(function (btn) {
       btn.addEventListener('click', function () {

@@ -99,6 +99,16 @@
     on('retry', resolveResult);
   }
 
+  // 비회원 결과 화면: 결과를 다 본 뒤 "SNS로 로그인하면 이 결과가 저장돼요" 바텀시트. 로그인하면 답변을 들고 돌아와 같은 결과를 연다.
+  function offerGuestSave(data) {
+    window.UMSHGuestSaveSheet?.openWhenSeen({
+      entry: 'solo-nara',
+      resultKey: 'solo-nara:' + data.type,
+      anchor: '.axes',
+      onLogin: () => { track('login'); save(); location.href = window.UMSHCommonAuth ? window.UMSHCommonAuth.commonLoginUrl('solo-nara', '/play/solo-nara/') : '/signup?entry=solo-nara&returnTo=' + encodeURIComponent('/play/solo-nara/') + '#login'; },
+    });
+  }
+
   async function resolveResult() {
     if (busy || preview) return;
     busy = true; const current = generation;
@@ -113,7 +123,8 @@
       if (!auth.config.enabled) { gate('지금은 로그인 연결을 사용할 수 없어요. 잠시 후 다시 확인해주세요.'); return; }
       // Refresh from the live client on every attempt; never trust an old cached access token.
       auth.session = null;
-      const session = await window.UMSHAuthSession.bindServiceSession(auth, 1600);
+      // 2026-10-14 서브 콘텐츠는 비회원도 결과까지 본다. 저장만 SNS 로그인 뒤 — docs/auth/guest-member-plan.md
+      const session = await (window.UMSHAuthSession.ensureGuestSession ? window.UMSHAuthSession.ensureGuestSession(auth, 1600) : window.UMSHAuthSession.bindServiceSession(auth, 1600));
       if (auth.client && !auth.listening) {
         auth.listening = true;
         auth.client.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') { generation++; busy = false; gate('로그아웃되었어요. 다시 로그인하면 결과를 확인할 수 있어요.'); } });
@@ -127,6 +138,7 @@
       const data = await response.json();
       if (!isType(data.type) || !data.scores || C.axes.some(a => !Number.isFinite(data.scores[a.id]) || data.scores[a.id] < 0 || data.scores[a.id] > 100)) throw Error('result-shape');
       renderResult(data);
+      if (window.UMSHAuthSession.isGuestSession?.(session)) offerGuestSave(data);
     } catch (error) { if (current === generation) gate(error.name === 'TimeoutError' ? '연결이 늦어지고 있어요. 잠시 후 다시 확인해주세요.' : '결과를 불러오지 못했어요. 답변은 유지되어 있으니 다시 확인해주세요.'); }
     finally { busy = false; }
   }

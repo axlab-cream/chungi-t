@@ -4061,6 +4061,8 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-guest-save-sheet.js?v=20261014"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/js/payment-bridge.js"></script>
     <script>
@@ -5069,11 +5071,50 @@
         }
         go("loading");
         analyzeBirth({ guest: true })
-          .then(() => go("result"))
+          .then(() => { go("result"); offerGuestSave(); })
           .catch((err) => {
             go("concern");
             showNudge(err.message || "사주 분석에 실패했습니다.");
           });
+      }
+
+      /*
+       * 2026-10-14 비회원 집계·저장 안내. 화면 흐름(#122: 티저 → "운명 거래하기"에서 가입)은 그대로 두고,
+       * 서버가 비회원 로그인을 켜 두었으면(guestSignIn) 비회원 계정에 사주 정보를 남겨 비회원 수로 센다.
+       * 티저를 본 뒤 "SNS로 로그인하면 이 결과가 저장돼요" 바텀시트를 띄운다. 계획: docs/auth/guest-member-plan.md
+       * 비회원 세션은 공용 클라이언트(sessionStorage, 1시간)에만 있어, 이 화면의 회원 판정(localStorage)에는 잡히지 않는다.
+       */
+      async function registerGuestVisit() {
+        try {
+          const helper = window.UMSHAuthSession;
+          if (!helper?.ensureGuestSession || !authConfigData?.guestSignIn) return null;
+          const session = await helper.ensureGuestSession({ config: authConfigData, client: null, session: null }, 0);
+          if (!helper.isGuestSession(session)) return null;
+          const profile = localUserProfileFromState();
+          await fetch("/api/user/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
+            body: JSON.stringify({ name: state.name, birth: profile.birth, birthTimeKnown: state.birthTimeKnown, context: profile.context }),
+          });
+          return session;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function offerGuestSave() {
+        registerGuestVisit().then((session) => {
+          if (!session || !window.UMSHGuestSaveSheet) return;
+          window.UMSHGuestSaveSheet.openWhenSeen({
+            entry: "cmdg",
+            resultKey: "cmdg:teaser",
+            anchor: ".cmdg-master-teaser .package-card",
+            onLogin: () => {
+              persistAuthFormState();
+              showAuthGate("로그인하면 이 결과가 저장돼요.");
+            },
+          });
+        });
       }
 
       // 결제 화면은 회원만 연다. 비회원이면 입력값을 보관하고 가입·로그인 화면을 띄운 뒤, 돌아오면 결제 화면으로 이어 준다.

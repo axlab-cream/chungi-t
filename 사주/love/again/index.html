@@ -94,6 +94,7 @@
     </main>
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-guest-save-sheet.js?v=20261014"></script>
     <script src="/js/umsh-loading.js"></script>
     <script src="/js/umsh-progressive-report.js"></script>
     <script src="/js/service-step-url.js"></script>
@@ -128,7 +129,7 @@
       function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[char]); }
       function openCommonLogin() { const returnTo = window.UMSHCommonAuth?.currentPageReturnTo() || `${location.pathname}${location.search}${location.hash}`; const url = window.UMSHCommonAuth?.commonLoginUrl('love-again', returnTo) || `/signup?entry=love-again&returnTo=${encodeURIComponent(returnTo)}#login`; location.replace(url); }
       async function api(path, options = {}) { const response = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)(path, { ...options, headers:{ 'Content-Type':'application/json', ...authHeaders(), ...(options.headers || {}) } }); const payload = await response.json().catch(() => ({})); if (!response.ok) { const error = new Error(payload.error || '요청을 처리하지 못했습니다.'); error.code = payload.code; error.paymentUrl = payload.paymentUrl; throw error; } return payload; }
-      async function initAuth() { state.authConfig = await fetch('/api/auth/config').then((res) => res.json()); if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) { showScreen('profile'); return; } state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey); const { data } = await state.supabase.auth.getSession(); state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase); state.supabase.auth.onAuthStateChange((_event,session) => { window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase).then((nextSession) => { state.session = nextSession; routeAfterAuth(); }).catch(() => { state.session = session || null; routeAfterAuth(); }); }); routeAfterAuth(); }
+      async function initAuth() { state.authConfig = await fetch('/api/auth/config').then((res) => res.json()); if (!state.authConfig.enabled || !window.supabase || !window.UMSHAuthSession) { showScreen('profile'); return; } state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey); const { data } = await state.supabase.auth.getSession(); state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase); if (!state.session && window.UMSHAuthSession.ensureGuestSession) state.session = await window.UMSHAuthSession.ensureGuestSession({ config: state.authConfig, client: state.supabase, session: null }, 0); state.supabase.auth.onAuthStateChange((_event,session) => { window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase).then((nextSession) => { state.session = nextSession; routeAfterAuth(); }).catch(() => { state.session = session || null; routeAfterAuth(); }); }); routeAfterAuth(); }
       async function routeAfterAuth() { if (!state.session) { showScreen('profile'); return; } setLoading(true); try { const payload = await api('/api/user/profile'); state.profile = payload.profile; if (payload.complete || window.UMSHAuthSession?.isSharedProfileComplete(payload.profile)) { $('[data-profile-summary]').textContent = `${state.profile.name}님의 사주와 이별 뒤 관계 흐름을 함께 봅니다.`; showScreen('form'); resumePaidRequest(); } else showScreen('profile'); } catch (_error) { showScreen('profile'); } finally { setLoading(false); } }
       function validBirthText(value) { if (!/^\d{8}$/.test(value)) return false; const year=Number(value.slice(0,4)); const month=Number(value.slice(4,6)); const day=Number(value.slice(6,8)); const date=new Date(year,month-1,day); return year>=1900 && year<=new Date().getFullYear() && date.getFullYear()===year && date.getMonth()===month-1 && date.getDate()===day; }
       function validateProfile(form) { const errors={}; if (!/^[가-힣]{2,5}$/.test(form.name.value.trim())) errors.name='이름은 한글 2자 이상 5자 이하로 입력해 주세요.'; if (!validBirthText(form.birth.value.trim())) errors.birth='존재하는 날짜와 정상 연도를 입력해 주세요.'; ['name','birth'].forEach((key) => { const input=$(`[name="${key}"]`,form); const error=$(`[data-error-for="${key}"]`); input.classList.toggle('is-error',Boolean(errors[key])); error.textContent=errors[key] || ''; }); return Object.keys(errors).length===0; }
@@ -151,6 +152,8 @@
           }
           renderReport();
           showScreen('report');
+          // 비회원 무료 결과: 결과를 본 뒤 저장 안내 바텀시트(2026-10-14, docs/auth/guest-member-plan.md)
+          if (window.UMSHAuthSession.isGuestSession?.(state.session)) window.UMSHGuestSaveSheet?.openWhenSeen({ entry: 'love-again', resultKey: 'love-again:report', anchor: '[data-screen="report"] > :last-child' });
         };
         setLoading(false);
         await window.UMSHProgressiveReport.followProgress({

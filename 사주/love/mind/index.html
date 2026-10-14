@@ -256,6 +256,7 @@
 
     <script src="/js/umsh-chrome.js?v=20260922c"></script>
     <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-guest-save-sheet.js?v=20261014"></script>
     <script src="/js/umsh-loading.js"></script>
     <script src="/js/umsh-progressive-report.js"></script>
     <script src="/js/service-step-url.js"></script>
@@ -308,7 +309,7 @@
         }
         state.supabase = window.UMSHAuthSession.createClient(window.supabase, state.authConfig.url, state.authConfig.publishableKey);
         const { data } = await state.supabase.auth.getSession();
-        state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase);
+        state.session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, state.supabase); if (!state.session && window.UMSHAuthSession.ensureGuestSession) state.session = await window.UMSHAuthSession.ensureGuestSession({ config: state.authConfig, client: state.supabase, session: null }, 0);
         state.supabase.auth.onAuthStateChange((_event, session) => {
           window.UMSHAuthSession.enforceDeviceAuthSession(session, state.supabase)
             .then((nextSession) => {
@@ -375,6 +376,8 @@
           }
           renderReport();
           showScreen('report');
+          // 비회원 무료 결과: 결과를 본 뒤 저장 안내 바텀시트(2026-10-14, docs/auth/guest-member-plan.md)
+          if (window.UMSHAuthSession.isGuestSession?.(state.session)) window.UMSHGuestSaveSheet?.openWhenSeen({ entry: 'love-mind', resultKey: 'love-mind:report', anchor: '[data-screen="report"] > :last-child' });
         };
         setLoading(false);
         await window.UMSHProgressiveReport.followProgress({

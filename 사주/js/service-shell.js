@@ -282,7 +282,8 @@
       const client = window.UMSHAuthSession.createClient(window.supabase, config.url, config.publishableKey);
       const { data } = await client.auth.getSession();
       const session = await window.UMSHAuthSession.enforceDeviceAuthSession(data.session, client);
-      return Boolean(session && session.access_token);
+      // 로그인이 필요한 탭(보관함·MY)은 회원만. 비회원(익명 계정)은 로그인 화면으로 보낸다.
+      return window.UMSHAuthSession.isMemberSession ? window.UMSHAuthSession.isMemberSession(session) : Boolean(session && session.access_token);
     } catch (error) {
       return null;
     }
