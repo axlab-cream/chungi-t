@@ -1,3 +1,4 @@
+import { parseAdminRange, INVALID_RANGE_BODY } from '../admin/date-range.js'
 import { Router, type Request, type Response } from 'express'
 import { PUSH_ERROR_MESSAGES, PushError, isUuid, normalizeDeepLink, parseDevice, parseDraft, parseTarget, targetLabel } from './contracts.js'
 import { runPushDispatcher, type DispatchDeps } from './dispatcher.js'
@@ -71,7 +72,9 @@ export function adminPushRouter(deps: Deps): Router {
     if (!await deps.staff(req, res, 'content:read')) return
     const limit = Math.min(Math.max(Number(req.query.limit ?? 20) || 20, 1), 100)
     const offset = Math.max(Number(req.query.offset ?? 0) || 0, 0)
-    try { res.json({ ...await store().listNotifications(limit, offset), limit, offset, asOf: new Date().toISOString() }) }
+    const range = parseAdminRange(req.query as Record<string, unknown>)
+    if (range === 'invalid') { res.status(422).json(INVALID_RANGE_BODY); return }
+    try { res.json({ ...await store().listNotifications(limit, offset, range), limit, offset, asOf: new Date().toISOString() }) }
     catch (error) { pushFailure(res, error) }
   })
 

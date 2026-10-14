@@ -1,3 +1,4 @@
+import { applyRange, type AdminRange } from './date-range.js'
 import { isGenerationPaused, opsBase, opsHeaders, opsStoreAvailable } from './ops-queue.js'
 import { PROVIDER_OUTAGE_CODES, REPORT_COMPLETION_JOB_KIND, REPORT_JOB_CODES, runReportCompletionJob } from '../report/report-completion-job.js'
 const base = opsStoreAvailable() ? opsBase() : undefined
@@ -116,9 +117,11 @@ export function planFinalize(job: Job, outcome: { finished: boolean; error: stri
   return { state: 'retry', body: { ...base, state: 'retry', next_run_at: iso(backoff) } }
 }
 
-export async function listOpsJobs() {
+/** 기간을 주면 마지막 처리 시각(updated_at) 기준으로 최대 500건. */
+export async function listOpsJobs(range?: AdminRange | null) {
   if (!base) throw new Error('OPS_STORE_UNAVAILABLE')
-  const response = await fetch(`${base}/rest/v1/ops_jobs?select=id,kind,target_id,state,attempts,max_attempts,next_run_at,last_error,created_at,updated_at&order=updated_at.desc&limit=100`, { headers: headers() })
+  const url = applyRange(new URL(`${base}/rest/v1/ops_jobs?select=id,kind,target_id,state,attempts,max_attempts,next_run_at,last_error,created_at,updated_at&order=updated_at.desc&limit=${range ? 500 : 100}`), 'updated_at', range)
+  const response = await fetch(url, { headers: headers() })
   if (!response.ok) throw new Error('OPS_LIST_FAILED'); return response.json()
 }
 export interface OpsWorkerOutcome {

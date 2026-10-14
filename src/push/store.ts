@@ -1,3 +1,4 @@
+import { applyRange, inRange, type AdminRange } from '../admin/date-range.js'
 import { randomUUID } from 'node:crypto'
 import { opsBase, opsHeaders, opsStoreAvailable } from '../admin/ops-queue.js'
 import {
@@ -21,7 +22,8 @@ export interface PushStore {
   upsertDevice(input: PushDeviceInput): Promise<{ id: string }>
   deactivateDevice(deviceId: string, reason: string): Promise<void>
   createNotification(input: PushDraftInput, createdBy: string, now?: Date): Promise<PushNotificationRecord>
-  listNotifications(limit: number, offset: number): Promise<{ items: PushNotificationRecord[]; total: number }>
+  /** range: 만든 시각(created_at) 기준. */
+  listNotifications(limit: number, offset: number, range?: AdminRange | null): Promise<{ items: PushNotificationRecord[]; total: number }>
   getNotification(id: string): Promise<PushNotificationRecord | null>
   cancelNotification(id: string, actor: string): Promise<PushNotificationRecord | null>
   claimNotification(leaseSeconds: number): Promise<PushNotificationRecord | null>
@@ -194,9 +196,10 @@ export function restPushStore(): PushStore {
       if (!result[0]) throw new PushError('PUSH_STORE_UNAVAILABLE', 503)
       return toRecord(result[0])
     },
-    async listNotifications(limit, offset) {
+    async listNotifications(limit, offset, range) {
       const url = table('push_notifications')
       url.searchParams.set('select', '*'); url.searchParams.set('order', 'created_at.desc')
+      applyRange(url, 'created_at', range)
       url.searchParams.set('limit', String(limit)); url.searchParams.set('offset', String(offset))
       const response = await call(url, { headers: { prefer: 'count=exact' } })
       return { items: (await response.json() as Row[]).map(toRecord), total: totalFrom(response) }
@@ -388,8 +391,8 @@ export function createMemoryPushStore(state: MemoryPushState = { devices: [], no
       }
       state.notifications.push(record); return strip(record)
     },
-    async listNotifications(limit, offset) {
-      const sorted = [...state.notifications].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    async listNotifications(limit, offset, range) {
+      const sorted = [...state.notifications].filter((item) => inRange(item.createdAt, range)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       return { items: sorted.slice(offset, offset + limit).map(strip), total: sorted.length }
     },
     async getNotification(id) { const item = find(id); return item ? strip(item) : null },

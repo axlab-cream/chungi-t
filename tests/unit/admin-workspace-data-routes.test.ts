@@ -18,17 +18,19 @@ test('renderWorkspace 가 통계·릴리스·평가·미디어·장애·로그�
   // 메뉴(탭)마다 실제 로더가 달려 있어야 "준비 중" 안내로 떨어지지 않는다.
   const table = source.slice(source.indexOf('var ADMIN_ROUTE_LIST = ['), source.indexOf('var ADMIN_ROUTE_ALIASES'))
   for (const [label, loader] of [['방문 · 전환', 'loadFunnelAnalytics'], ['배포 정보', 'loadReleaseInfo'], ['품질 점검', 'loadQualityEvaluations'], ['장애 기록', 'loadIncidents'], ['실패 현황', 'loadAiFailures']]) {
-    assert.match(table, new RegExp(`label: '${label}', load: function \\(body\\) \\{ ${loader}\\(body\\); \\}`), `${label} 탭이 ${loader} 로 연결되지 않는다`)
+    // 2026-10-14: 날짜가 있는 탭은 label 과 load 사이에 dates 설정(공통 기간 막대)이 들어간다.
+    assert.match(table, new RegExp(`label: '${label}', (dates: \\{[^}]*\\}, )?load: function \\(body\\) \\{ ${loader}\\(body\\); \\}`), `${label} 탭이 ${loader} 로 연결되지 않는다`)
   }
   assert.match(table, /key: 'media'[^\n]*load: function \(body\) \{ loadMediaCatalog\(body\); \}/)
   const render = source.slice(source.indexOf('function renderWorkspace'), source.indexOf('var ORDER_STATUS = {'))
-  assert.match(render, /def\.tabs\[route\.tabIndex\]\.load\(panel\)/)
-  assert.match(render, /if \(!def\.tabs\) \{ def\.load\(body\); return; \}/)
+  assert.match(render, /mount\(panel, def\.tabs\[route\.tabIndex\]\.load\)/)
+  assert.match(render, /if \(!def\.tabs\) \{ mount\(body, def\.load\); return; \}/)
+  assert.match(render, /load\(inner\)/)
 })
 
 test('loadAiFailures 는 실패 현황 집계를 부르고, 실패 행에서 리포트 상세로 이어진다', () => {
   const body = source.slice(source.indexOf('async function loadAiFailures'), source.indexOf('async function renderReportDiagnostics'))
-  assert.match(body, /fetch\('\/api\/admin\/v1\/ai\/failures\?days=' \+ state\.days/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/ai\/failures\?days=7' \+ adminRangeQuery\('&'\)/)
   assert.match(body, /data\.byType/)
   assert.match(body, /renderReportDiagnostics\(document\.body, row\.reportId\)/)
 })
@@ -44,7 +46,7 @@ test('리포트 목록은 실제 생성 상태로 거르고, 행에서 리포트
 test('loadIncidents 는 실제 장애 엔드포인트를 부르고, 등록 폼을 함께 그린다', () => {
   const body = source.slice(source.indexOf('async function loadIncidents'), source.indexOf('async function renderIncidentDetail'))
   assert.match(body, /fetch\('\/api\/admin\/v1\/incidents', \{ method: 'POST'/)
-  assert.match(body, /fetch\('\/api\/admin\/v1\/incidents', \{ credentials: 'same-origin' \}\)/)
+  assert.match(body, /fetch\('\/api\/admin\/v1\/incidents' \+ adminRangeQuery\('\?'\), \{ credentials: 'same-origin' \}\)/)
   assert.match(body, /listPayload\.incidents/)
 })
 
@@ -74,10 +76,9 @@ test('loadMediaCatalog 는 실제 미디어 엔드포인트를 부르고 미사�
 
 test('loadFunnelAnalytics 는 실제 퍼널 엔드포인트를 기간과 함께 부르고, 서비스별 페이지뷰를 표시한다', () => {
   const body = source.slice(source.indexOf('async function loadFunnelAnalytics'), source.indexOf('async function loadReleaseInfo'))
-  // 2026-10-08: 기간은 미리 정한 기간(period=) 또는 직접 고른 날짜·시간(from·to)으로 조회 주소에 실린다.
+  // 2026-10-14: 기간은 공통 기간 막대에서 고르고(기본 최근 7일), from·to 로 조회 주소에 실린다.
   assert.match(body, /fetch\('\/api\/admin\/v1\/funnel\?' \+ query/)
-  assert.match(body, /return 'period=' \+ encodeURIComponent\(period\);/)
-  assert.match(body, /'from=' \+ encodeURIComponent\(new Date\(from\)\.toISOString\(\)\)/)
+  assert.match(body, /var query = adminRangeQuery\(''\);/)
   assert.match(body, /payload\.overview/)
   assert.match(body, /payload\.services/)
   assert.match(body, /payload\.steps/)
