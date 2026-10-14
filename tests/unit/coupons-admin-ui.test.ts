@@ -41,7 +41,7 @@ const html = readFileSync(new URL('../../admin-ui/index.html', import.meta.url),
 const source = html.slice(html.indexOf('async function loadCouponManager(body)'), html.indexOf('async function loadConsultationManager(body)'))
 async function harness(fail = false) {
   const calls: any[] = []; let seq = 0
-  const ctx = vm.createContext({document:{createElement:(tag:string)=>new Element(tag)},crypto:{randomUUID:()=>`synthetic-${++seq}`},window:{confirm:()=>true},adminConfirm:async()=>true,adminToast:()=>{},adminPageAction:()=>null,memberTable:()=>new Element('div'),memberEmpty:(text:string)=>Object.assign(new Element('p'),{textContent:text}),memberChip:()=>new Element('span'),memberDay:()=>'',copyChip:()=>new Element('span'),navigator:{clipboard:{writeText:async()=>{}}},fetch:async(url:string,init:any)=>{
+  const ctx = vm.createContext({document:{createElement:(tag:string)=>new Element(tag)},crypto:{randomUUID:()=>`synthetic-${++seq}`,getRandomValues:(a:Uint8Array)=>a.fill(7)},window:{confirm:()=>true},adminConfirm:async()=>true,adminToast:()=>{},adminPageAction:()=>null,memberTable:()=>new Element('div'),memberEmpty:(text:string)=>Object.assign(new Element('p'),{textContent:text}),memberChip:()=>new Element('span'),memberDay:()=>'',copyChip:()=>new Element('span'),navigator:{clipboard:{writeText:async()=>{}}},fetch:async(url:string,init:any)=>{
     calls.push({url,...init}); if(init.method==='GET')return {ok:true,json:async()=>({items:[],products:[{key:'cmdg',title:'천명사주'}]})}
     return {ok:!fail,status:fail?503:201,json:async()=>({item:{}})}
   }})
@@ -65,4 +65,13 @@ test('admin rejects invalid dates, claim limits and consultation/percent bounds 
 })
 test('editing failed issue rotates key while success refreshes campaign history',async()=>{
   const h=await harness(true);await h.form.emit('submit');await h.form.emit('input');await h.form.emit('submit');assert.notEqual(h.calls[1].headers['Idempotency-Key'],h.calls[2].headers['Idempotency-Key']);const ok=await harness();await ok.form.emit('submit');assert.equal(ok.calls.at(-1).method,'GET')
+})
+test('new coupons default to member-grant-only with room for 1,000 members', async () => {
+  const h = await harness()
+  assert.equal(h.form.elements.grantOnly.checked, true)
+  assert.equal(h.form.elements.code.readOnly, true)
+  await h.form.emit('submit')
+  const data = JSON.parse(h.calls[1].body)
+  assert.equal(data.grantOnly, true)
+  const fresh = await harness(); assert.equal(fresh.form.elements.maxClaims.defaultValue, '1000')
 })
