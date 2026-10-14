@@ -43,7 +43,7 @@
     try { seenToday = localStorage.getItem(TODAY_SEEN_KEY) === dateKey; } catch (_) { seenToday = false; }
     todayTicket.dataset.todayState = seenToday ? 'seen' : 'fresh';
     const eyebrow = todayTicket.querySelector(':scope > div > span');
-    if (eyebrow) eyebrow.textContent = `TODAY · 무료 · ${now.getMonth() + 1}월 ${now.getDate()}일${seenToday ? ' · 오늘 확인함' : ''}`;
+    if (eyebrow) eyebrow.textContent = `무료 · ${now.getMonth() + 1}월 ${now.getDate()}일${seenToday ? ' · 오늘 확인함' : ''}`;
     todayTicket.addEventListener('click', () => {
       try { localStorage.setItem(TODAY_SEEN_KEY, dateKey); } catch (_) { /* private mode */ }
     });
@@ -720,7 +720,9 @@
 
   function updateBottomMenuButtons() {
     bottomMenuButtons.forEach((button) => {
-      const isActive = button.dataset.bottomMenu === activeBottomMenu;
+      // 검색 칸이 헤더로 올라가서, 분류 필터로 검색 상태가 돼도 하단에서는 홈을 켜 둔다.
+      const current = activeBottomMenu === 'search' ? 'home' : activeBottomMenu;
+      const isActive = button.dataset.bottomMenu === current;
       const isExpanded = isActive && phone?.classList.contains('is-bottom-menu-open');
       button.classList.toggle('is-active', isActive);
       button.setAttribute('aria-expanded', String(Boolean(isExpanded)));
@@ -1331,8 +1333,27 @@
     });
   }
 
+  /**
+   * 헤더 오른쪽 로그인 버튼. 로그인한 손님이면 같은 자리를 내 정보 아이콘(/my)으로 바꾼다.
+   * 세션 확인이 실패하면 로그인 버튼을 그대로 둔다.
+   */
+  function setupAppbarAccount() {
+    const link = document.querySelector('[data-appbar-account]');
+    if (!link) return;
+    currentAuthSession()
+      .then((session) => {
+        if (!session?.access_token) return;
+        link.href = '/my';
+        link.classList.add('is-member');
+        link.setAttribute('aria-label', '내 정보');
+        link.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" /></svg>';
+      })
+      .catch(() => {});
+  }
+
   setupLazyVideos();
   setupReveal();
+  setupAppbarAccount();
   openMenuFromHash();
   window.addEventListener('hashchange', openMenuFromHash);
 })();

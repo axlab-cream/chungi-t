@@ -11,7 +11,8 @@ const title = '내 2027년, 풀릴 각이야?'
 const sections = [...visible.matchAll(/<section\b[^>]*class="[^"]*\bsection-block\b[^"]*"[^>]*>[\s\S]*?<\/section>/g)].map(match=>match[0])
 const cards = (html:string) => [...html.matchAll(/<(a|button)\b[^>]*class="[^"]*\bservice-card\b[^"]*"[^>]*>[\s\S]*?<\/\1>/g)].map(match=>match[0])
 const isNewyear = (card:string) => card.includes(title) || card.includes('umsh-newyear-card-bg.webp')
-const released = sections.filter(section=>/<span>\s*RELEASED NOW\s*<\/span>/.test(section))
+// 2026-10-14 영어 라벨(RELEASED NOW)을 빼고 한국어 제목만 남겼다. 궁합 섹션은 제목으로 찾는다.
+const released = sections.filter(section=>/<h2>\s*인연과 악연 사이\s*<\/h2>/.test(section))
 const coming = sections.filter(section=>/<span>\s*COMING SOON\s*<\/span>/.test(section))
 
 test('paused coming-soon and lucky/pass-angle cards are commented out of the live portal', () => {
@@ -36,17 +37,20 @@ test('released now keeps the remaining live cards', () => {
   }
 })
 
-test('daily free fortune ticket appears immediately above the home key visual', () => {
+// 2026-10-14 홈 개편: 소개 문단(home-hero)을 지우고, 오늘운 무료 카드는 대표 포스터 바로 아래로 옮겼다.
+test('daily free fortune ticket sits right below the home poster rail', () => {
   const ticket = '<a class="today-ticket service-card is-live"'
   const ticketIndex = visible.indexOf(ticket)
-  const heroIndex = visible.indexOf('<section class="home-hero"')
+  const dotsIndex = visible.indexOf('<nav class="poster-dots"')
+  const weeklyIndex = visible.indexOf('<section class="section-block weekly-free"')
 
   assert.ok(ticketIndex >= 0, '오늘운 무료 카드가 없다')
-  assert.ok(heroIndex >= 0, '메인 키비주얼이 없다')
-  assert.ok(ticketIndex < heroIndex, '오늘운 무료 카드는 키비주얼 바로 위에 있어야 한다')
+  assert.ok(dotsIndex >= 0, '대표 포스터 위치 점이 없다')
+  assert.equal(visible.indexOf('<section class="home-hero"'), -1, '소개 문단은 홈에서 빠졌다')
+  assert.ok(dotsIndex < ticketIndex && ticketIndex < weeklyIndex, '오늘운 무료 카드는 대표 포스터 바로 아래, 무료 테스트 위에 있어야 한다')
   assert.equal(visible.split(ticket).length - 1, 1, '오늘운 무료 카드는 한 번만 있어야 한다')
-  assert.match(visible.slice(ticketIndex, heroIndex), /href="\/today\/free"/)
-  assert.match(visible.slice(ticketIndex, heroIndex), /aria-label="오늘 나한테 들어오는 운 보기"/)
+  assert.match(visible.slice(ticketIndex, weeklyIndex), /href="\/today\/free"/)
+  assert.match(visible.slice(ticketIndex, weeklyIndex), /aria-label="오늘 네게 들어오는 운 보기"/)
 })
 
 test('homepage hold does not delete payment catalog or admin href mapping', () => {

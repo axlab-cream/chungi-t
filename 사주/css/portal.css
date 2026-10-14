@@ -141,6 +141,56 @@ a:focus-visible {
   letter-spacing: 0.12em;
 }
 
+/* 헤더 오른쪽: 검색 아이콘 + 로그인(로그인 뒤에는 내 정보 아이콘) */
+.appbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.appbar-icon,
+.appbar-login.is-member {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--cream-100);
+}
+
+.appbar-icon svg,
+.appbar-login.is-member svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.appbar-login {
+  padding: 7px 13px;
+  border: 1px solid var(--gold-500);
+  border-radius: 999px;
+  color: var(--gold-300);
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.appbar-login.is-member {
+  padding: 0;
+  border: 0;
+}
+
+.appbar-icon:hover,
+.appbar-icon:focus-visible,
+.appbar-login:hover,
+.appbar-login:focus-visible {
+  background: rgba(216, 186, 114, 0.1);
+}
+
 .app-actions {
   display: flex;
   gap: 8px;
@@ -268,7 +318,6 @@ a:focus-visible {
   gap: 7px;
   overflow-x: auto;
   padding: 12px 20px 16px;
-  border-bottom: 1px solid var(--line-soft);
   background: var(--black-950);
   cursor: grab;
   scrollbar-width: none;
@@ -924,6 +973,18 @@ a:focus-visible {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+/* 영어 라벨을 뺀 섹션 제목: 왼쪽 정렬 한 줄 */
+.section-title h2 {
+  margin: 0;
+  color: var(--cream-100);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.35;
+  text-align: left;
+  text-wrap: balance;
 }
 
 .section-title strong {
@@ -1648,7 +1709,7 @@ a:focus-visible {
 
 .bottom-nav {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   height: 74px;
   border-top: 1px solid var(--line-soft);
   background: rgba(8, 8, 7, 0.96);
@@ -1686,6 +1747,21 @@ a:focus-visible {
   background: var(--gold-400);
   content: "";
   transform: translateX(-50%);
+}
+
+.bottom-nav button {
+  align-content: center;
+  gap: 4px;
+}
+
+.tab-icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .tab-label {
@@ -1976,7 +2052,7 @@ a:focus-visible {
 }
 
 /* Weekly free experiences: one banner, one direct entry. */
-.weekly-free .section-title h2{margin:0;color:var(--cream-100);font-size:19px;font-weight:950;line-height:1.4}
+.weekly-free .section-title h2{margin:0;color:var(--cream-100);font-size:20px;font-weight:900;line-height:1.35}
 .weekly-free-card{display:block;overflow:hidden;border:1px solid #695630;border-radius:18px;background:#14130f;text-decoration:none;color:var(--cream-100)}
 .weekly-free-card img{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:contain}
 .weekly-free-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-top:1px solid #423720}
