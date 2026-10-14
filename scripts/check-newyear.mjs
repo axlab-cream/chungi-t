@@ -115,7 +115,8 @@ need(bridge.includes('#step-6_1-report'), '브리지가 06 상세를 잡지 않�
 // 7) 홈에서는 출시 예정 카드로 표시한다. 직접 서비스/저장 결과 경로는 유지한다.
 const portal = read('사주/portal.html')
 const portalSections = [...portal.matchAll(/<section\b[^>]*class="[^"]*\bsection-block\b[^"]*"[^>]*>[\s\S]*?<\/section>/g)].map((match) => match[0])
-const releasedSections = portalSections.filter((section) => /<span>\s*RELEASED NOW\s*<\/span>/.test(section))
+// 2026-10-14 홈 개편으로 영어 라벨(RELEASED NOW)을 빼고 한국어 제목만 남겼다. 같은 섹션을 제목으로 찾는다.
+const releasedSections = portalSections.filter((section) => /<h2>\s*인연과 악연 사이\s*<\/h2>/.test(section))
 const comingSections = portalSections.filter((section) => /<span>\s*COMING SOON\s*<\/span>/.test(section))
 const portalCards = (html) => [...html.matchAll(/<(a|button)\b[^>]*class="[^"]*\bservice-card\b[^"]*"[^>]*>[\s\S]*?<\/\1>/g)].map((match) => match[0])
 const isNewyearCard = (card) => card.includes('umsh-newyear-card-bg.webp') || card.includes('내 2027년, 풀릴 각이야?')
