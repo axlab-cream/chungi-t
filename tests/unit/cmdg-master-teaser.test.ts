@@ -16,7 +16,7 @@ test('teaser uses member pillars, element counts and actual cycle instead of ref
 })
 test('missing data does not fabricate a chart or turning year, unknown time does not expose calculated hour',()=>{
  assert.match(render({}),/아직 불러오지 못했어/)
- const html=render({...state,birthTimeKnown:false,analysis:{...state.analysis,fortune:{}}});assert.doesNotMatch(html,/<strong>시간 모름<\/strong>/);assert.equal((html.match(/<ol class="intro-pillars"[\s\S]*?<\/ol>/)||[''])[0].match(/<li>/g).length,3);assert.doesNotMatch(html,/<strong>경진<\/strong>시|2031년|2028년/);assert.match(html,/현재 대운의 계산값이 없어/)
+ const html=render({...state,birthTimeKnown:false,analysis:{...state.analysis,fortune:{}}});assert.doesNotMatch(html,/<strong>시간 모름<\/strong>/);assert.equal((html.match(/<ol class="intro-pillars"[\s\S]*?<\/ol>/)||[''])[0].match(/<li>/g)?.length,3);assert.doesNotMatch(html,/<strong>경진<\/strong>시|2031년|2028년/);assert.match(html,/현재 대운의 계산값이 없어/)
 })
 test('server UI element labels include hanja and render without falling into missing-data state',()=>{
  const html=render({...state,analysis:{...state.analysis,dayMaster:{ko:'을',element:'목(木)'}}});assert.match(html,/나무 기운이 5개/);assert.doesNotMatch(html,/일간 계산값을 확인하지 못했어/)
