@@ -3740,7 +3740,8 @@
       }
       async function loadSupportCases(body) {
         body.replaceChildren();
-        var state = { group: 'waiting', items: [] };
+        // 2026-10-14 요청: 들어오면 전체 문의를 먼저 보여 주고, 탭도 전체를 맨 앞에 둔다.
+        var state = { group: 'all', items: [] };
         var create = document.createElement('form'); create.className = 'admin-refund-form'; create.noValidate = true;
         create.innerHTML = '<div class="admin-field"><label>문의 종류</label><select name="category"><option value="payment">결제</option><option value="generation">리포트 생성</option><option value="interpretation">해석</option><option value="access">접속·로그인</option><option value="privacy">개인정보</option><option value="other">기타</option></select></div>'
           + '<div class="admin-field"><label>우선순위</label><select name="priority"><option value="normal">보통</option><option value="low">낮음</option><option value="high">높음</option><option value="urgent">긴급</option></select></div>'
@@ -3752,14 +3753,14 @@
           try {
             await adminJson('/api/admin/v1/support', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ category: form.elements.category.value, priority: form.elements.priority.value, memberId: form.elements.memberId.value.trim(), orderId: form.elements.orderId.value.trim(), reportId: form.elements.reportId.value.trim() }) });
             document.querySelectorAll('dialog[data-section-modal]').forEach(function (open) { open.close(); });
-            adminToast('문의를 등록했습니다.'); form.reset(); state.group = 'waiting'; load();
+            adminToast('문의를 등록했습니다.'); form.reset(); state.group = 'all'; load();
           } catch (error) { adminToast(error.message, 'error'); }
         });
         var createSection = document.createElement('section'); createSection.className = 'admin-section'; createSection.innerHTML = '<header class="admin-section-head"><h3>문의 등록</h3></header>'; create.style.padding = '16px'; createSection.appendChild(create);
         adminPageAction('support-create', '＋ 문의 등록', createSection, { primary: true });
         var filters = document.createElement('div'); filters.className = 'admin-filterbar';
         var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '처리 상태');
-        [['waiting', '답변 대기'], ['working', '처리 중'], ['done', '완료'], ['all', '전체']].forEach(function (entry) {
+        [['all', '전체'], ['waiting', '답변 대기'], ['working', '처리 중'], ['done', '완료']].forEach(function (entry) {
           var button = document.createElement('button'); button.type = 'button'; button.dataset.group = entry[0]; button.textContent = entry[1];
           button.addEventListener('click', function () { state.group = entry[0]; render(); }); seg.appendChild(button);
         });
