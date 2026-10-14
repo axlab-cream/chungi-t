@@ -3762,12 +3762,12 @@
           var list = state.items.filter(function (item) { return state.group === 'all' || (SUPPORT_GROUPS[state.group] || []).indexOf(item.status) >= 0; });
           if (!list.length) { card.replaceChildren(memberEmpty(state.group === 'waiting' ? '답변을 기다리는 문의가 없습니다.' : '해당하는 문의가 없습니다.')); return; }
           // 2026-10-13 요청: 결제 목록처럼 누가 보낸 문의인지(이름·회원 ID·이메일)를 먼저 보여 준다.
-          var table = memberTable(['접수일', '이름', '회원 ID', '이메일', '종류', '우선순위', '상태', '연결', '담당', '최근 변경'], list, function (item) {
+          var table = memberTable(['접수일', '이름', '회원 ID', '이메일', '가입 SNS', '종류', '우선순위', '상태', '연결', '담당', '최근 변경'], list, function (item) {
             var priority = SUPPORT_PRIORITY_VIEW[item.priority] || { label: item.priority, tone: '' };
             var links = [item.orderId ? '결제' : null, item.reportId ? '리포트' : null].filter(Boolean).join('·');
             var idCell = '—';
             if (item.memberId) { idCell = copyChip(item.memberId, String(item.memberId).slice(0, 8)); idCell.title = item.memberId; }
-            return [memberWhen(item.createdAt), item.memberId ? (item.memberName || '이름 미등록') : '회원 아님', idCell, item.memberEmail || '—', MEMBER_SUPPORT_CATEGORY[item.category] || item.category, memberChip(priority.label, priority.tone), supportStatusChip(item.status), links || '—', item.assigneeEmail ? item.assigneeEmail.split('@')[0] : '미배정', memberWhen(item.updatedAt)];
+            return [memberWhen(item.createdAt), item.memberId ? (item.memberName || '이름 미등록') : '회원 아님', idCell, item.memberEmail || '—', MEMBER_PROVIDERS[item.memberProvider] || item.memberProvider || '—', MEMBER_SUPPORT_CATEGORY[item.category] || item.category, memberChip(priority.label, priority.tone), supportStatusChip(item.status), links || '—', item.assigneeEmail ? item.assigneeEmail.split('@')[0] : '미배정', memberWhen(item.updatedAt)];
           }, function (item) { renderSupportCaseDetail(body, item, load); });
           var inner = table.querySelector('table'); if (inner) inner.removeAttribute('data-plain');
           card.replaceChildren(table);
@@ -3796,7 +3796,7 @@
           ['종류', MEMBER_SUPPORT_CATEGORY[item.category] || item.category], ['상태', supportStatusChip(item.status)], ['우선순위', memberChip(priority.label, priority.tone)],
           ['접수일', memberWhen(item.createdAt)], ['담당', item.assigneeEmail || '미배정'],
           ['회원', item.memberId ? adminLink((item.memberName || '이름 미등록') + ' · 회원 상세 보기', '/members?id=' + encodeURIComponent(item.memberId)) : '연결 안 됨'],
-          ['회원 ID', item.memberId ? copyChip(item.memberId) : '—'], ['이메일', item.memberEmail ? copyChip(item.memberEmail) : '—'],
+          ['회원 ID', item.memberId ? copyChip(item.memberId) : '—'], ['이메일', item.memberEmail ? copyChip(item.memberEmail) : '—'], ['가입 SNS', MEMBER_PROVIDERS[item.memberProvider] || item.memberProvider || '—'],
           ['결제', item.orderId ? adminLink('결제 상세 보기', '/payments?id=' + encodeURIComponent(item.orderId)) : '연결 안 됨'],
           ['리포트', item.reportId ? adminLink('리포트 상세 보기', '/reports?id=' + encodeURIComponent(item.reportId)) : '연결 안 됨'],
         ]));
@@ -4136,8 +4136,9 @@
         if (order.unsettled) { var warn = document.createElement('p'); warn.className = 'admin-note'; warn.textContent = '결제사 승인 기록은 있는데 정산이 끝나지 않았습니다. 결제사 관리자 화면에서 확인해 주세요.'; left.appendChild(warn); }
         var h2 = document.createElement('h4'); h2.textContent = '회원 · 서비스';
         right.append(h2, dlRows([
-          ['회원', order.ownerId ? adminLink(order.ownerEmailMasked || '회원 보기', '/members?id=' + encodeURIComponent(order.ownerId)) : (order.ownerEmailMasked || '—')],
-          ['구매자 연락처', [order.buyerEmailMasked, order.buyerTelMasked].filter(Boolean).join(' · ') || '—'],
+          ['회원', order.ownerId ? adminLink([order.ownerName, order.ownerEmail || order.ownerEmailMasked].filter(Boolean).join(' · ') || '회원 보기', '/members?id=' + encodeURIComponent(order.ownerId)) : (order.ownerEmailMasked || '—')],
+          ['가입 SNS', MEMBER_PROVIDERS[order.ownerProvider] || order.ownerProvider || '—'],
+          ['결제 연락처', [order.buyerEmailMasked, order.buyerTelMasked].filter(Boolean).join(' · ') || '—'],
           ['서비스', order.productTitle || '—'],
           ['리포트', order.reportId ? adminLink('리포트 보기', '/reports?id=' + encodeURIComponent(order.reportId)) : '아직 없음'],
         ]));
@@ -4192,9 +4193,9 @@
           var refundByOrder = {};
           state.refunds.forEach(function (refund) { (refundByOrder[refund.orderId] = refundByOrder[refund.orderId] || []).push(refund); });
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable';
-          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">서비스</th><th scope="col" class="admin-num">금액</th><th scope="col">결제 수단</th><th scope="col">결제일</th><th scope="col">상태</th><th scope="col">환불</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">가입 SNS</th><th scope="col">서비스</th><th scope="col" class="admin-num">금액</th><th scope="col">결제 수단</th><th scope="col">결제일</th><th scope="col">상태</th><th scope="col">환불</th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!state.orders.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="9">조건에 맞는 결제가 없습니다.</td>'; rows.appendChild(empty); }
+          if (!state.orders.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="10">조건에 맞는 결제가 없습니다.</td>'; rows.appendChild(empty); }
           state.orders.forEach(function (order) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             function td(value, cls) { var cell = document.createElement('td'); if (cls) cell.className = cls; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); }
@@ -4203,7 +4204,9 @@
             var idCell = document.createElement('td'); idCell.className = 'admin-mono';
             if (order.ownerId) { idCell.title = order.ownerId; idCell.appendChild(copyChip(order.ownerId, String(order.ownerId).slice(0, 8))); } else idCell.textContent = '—';
             row.appendChild(idCell);
-            td(order.ownerEmail || order.ownerEmailMasked || order.buyerEmailMasked || '—');
+            // 2026-10-14: 이메일 칸은 회원 계정 이메일이다. 결제창에 입력한 연락처는 결제 상세에서 본다. 가입한 SNS를 옆에 둔다.
+            td(order.ownerEmail || order.ownerEmailMasked || (order.ownerId ? '계정 이메일 없음' : '—'));
+            td(MEMBER_PROVIDERS[order.ownerProvider] || order.ownerProvider || '—');
             td(order.productTitle || '—'); td(won(order.amount), 'admin-num'); td(payMethodLabel(order.payMethod));
             td(new Date(order.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }));
             td(order.unsettled ? badge({ label: '정산 확인 필요', tone: 'warn' }) : statusBadge(ORDER_STATUS, order.status));

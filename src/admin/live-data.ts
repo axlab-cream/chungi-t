@@ -390,15 +390,25 @@ export async function memberNamesByIds(ids: string[]): Promise<Map<string, strin
  * 2026-10-13: 고객 지원 목록에 누가 보낸 문의인지(이름·이메일) 붙인다. 이메일은 인증 계정에만 있어 회원마다 한 번씩 묻는다.
  * 문의 목록은 최근 100건이라 회원도 최대 100명이다. 한 명 조회가 실패해도 그 회원만 비워 두고 목록은 보여 준다.
  */
-export async function memberContactsByIds(ids: string[]): Promise<Map<string, { name: string | null; email: string | null }>> {
-  const contacts = new Map<string, { name: string | null; email: string | null }>()
+export type MemberContact = { name: string | null; email: string | null; signupProvider: string | null }
+
+export async function memberContactsByIds(ids: string[]): Promise<Map<string, MemberContact>> {
+  const contacts = new Map<string, MemberContact>()
   const valid = [...new Set(ids.filter((id) => UUID_PATTERN.test(id)).map((id) => id.toLowerCase()))].slice(0, 100)
   if (!valid.length) return contacts
-  const [names, emails] = await Promise.all([
+  // 2026-10-14: 어느 SNS로 가입했는지(카카오·네이버·구글…)도 같은 인증 조회에서 꺼낸다.
+  const [names, users] = await Promise.all([
     memberNamesByIds(valid).catch(() => new Map<string, string>()),
-    Promise.all(valid.map((id) => fetchAuthAdminUser(id).then((user) => (typeof user?.email === 'string' ? user.email : null)).catch(() => null))),
+    Promise.all(valid.map((id) => fetchAuthAdminUser(id).catch(() => null))),
   ])
-  valid.forEach((id, index) => contacts.set(id, { name: names.get(id) ?? null, email: emails[index] }))
+  valid.forEach((id, index) => {
+    const user = users[index]
+    contacts.set(id, {
+      name: names.get(id) ?? null,
+      email: typeof user?.email === 'string' ? user.email : null,
+      signupProvider: typeof user?.app_metadata?.provider === 'string' ? user.app_metadata.provider : null,
+    })
+  })
   return contacts
 }
 

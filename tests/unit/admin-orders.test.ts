@@ -116,6 +116,13 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
       assert.equal(payload.orders[0].tid, undefined)
     })
 
+    it('이메일 칸은 회원 계정 이메일이고, 결제창에 입력한 이메일은 가린 값으로 따로 준다', async () => {
+      const { payload } = await request('/api/admin/v1/orders', 'staff')
+      assert.equal(payload.orders[0].ownerEmail, 'member@synthetic.invalid')
+      assert.equal(payload.orders[0].ownerProvider, null)
+      assert.match(payload.orders[0].buyerEmailMasked, /^ho\*+@synthetic\.invalid$/)
+    })
+
     it('상세도 목록과 같은 마스킹을 쓴다', async () => {
       const { response, payload } = await request('/api/admin/v1/orders/admin-order-0', 'staff')
       assert.equal(response.status, 200)
