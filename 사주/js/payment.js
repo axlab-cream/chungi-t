@@ -353,8 +353,11 @@
    * 가기를 누르면 이 화면이 다시 열려서, 같은 풀이를 한 번 더 결제할 수 있었다.
    */
   function showAlreadyPaid(orderId) {
+    // 쿠폰·연락처·약관 칸이 남아 있으면 아직 결제해야 하는 것처럼 보인다. 안내와 버튼만 남긴다.
+    form.classList.add('is-already-paid');
     button.hidden = true;
     if (freeCouponButton) freeCouponButton.hidden = true;
+    status?.classList.add('is-info');
     setStatus('이미 결제한 풀이입니다. 다시 결제하지 않아도 됩니다.');
     if (form.querySelector('[data-already-paid]')) return;
     const link = document.createElement('a');
@@ -362,7 +365,7 @@
     link.setAttribute('data-already-paid', '');
     link.href = paidReadingUrl(orderId);
     link.textContent = '풀이 보기';
-    status?.insertAdjacentElement('beforebegin', link);
+    status?.insertAdjacentElement('afterend', link);
   }
 
   async function checkAlreadyPaid() {
