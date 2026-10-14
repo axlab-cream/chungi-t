@@ -3051,7 +3051,8 @@
         var couponBar = document.createElement('div'); couponBar.className = 'admin-filterbar'; body.append(couponBar, listSection); adminPageAction('coupon-issue', '＋ 쿠폰 발급', section, { primary: true }); var busy = false, saveKey = crypto.randomUUID();
         form.addEventListener('input', function () { saveKey = crypto.randomUUID(); });
         // 2026-10 7단계: 카드 나열 대신 표. 상태(발급 중·예정·만료·중단)로 거르고 등록·사용률을 한눈에 본다.
-        var listState = { filter: 'live' };
+        // 2026-10-14 요청: 어드민의 상태 탭은 모두 "전체"를 맨 앞·기본으로 둔다.
+        var listState = { filter: 'all' };
         function couponState(item) {
           var now = Date.now();
           if (!item.enabled) return { key: 'stopped', label: '중단', tone: '' };
@@ -3064,7 +3065,7 @@
           list.replaceChildren();
           var bar = couponBar; bar.replaceChildren();
           var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '쿠폰 상태');
-          [['live', '발급 중'], ['scheduled', '시작 전'], ['ended', '만료'], ['stopped', '중단'], ['all', '전체']].forEach(function (entry) {
+          [['all', '전체'], ['live', '발급 중'], ['scheduled', '시작 전'], ['ended', '만료'], ['stopped', '중단']].forEach(function (entry) {
             var count = entry[0] === 'all' ? items.length : items.filter(function (item) { return couponState(item).key === entry[0]; }).length;
             var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[1] + (count ? ' ' + count : '');
             button.setAttribute('aria-pressed', listState.filter === entry[0] ? 'true' : 'false');
