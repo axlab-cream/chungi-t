@@ -150,6 +150,8 @@ export interface FortuneCycle {
   yearPillar: string
   daewoon: Array<{ age: string; pillar: string; ageStart?: number; ageEnd?: number; startYear?: number }>
   currentDaewoon: string
+  /** 올해부터 해마다의 세운(간지)과 그해 나이. 대운처럼 이미 계산 가능한 값을 AI 재료로 넘기기 위한 목록. */
+  yearlyFlow?: Array<{ year: number; pillar: string; age: number }>
   samjae?: {
     status: 'current' | 'next'
     phase: 'entering' | 'middle' | 'leaving' | null
@@ -352,6 +354,8 @@ export interface SajuFeatureJson {
     currentYear: number
     yearPillar: string
     currentDaewoon: string
+    daewoonList?: Array<{ age: string; pillar: string; ageStart?: number; startYear?: number }>
+    yearlyFlow?: Array<{ year: number; pillar: string; age: number }>
     direction?: FortuneCycle['direction']
     startAge?: number
   }

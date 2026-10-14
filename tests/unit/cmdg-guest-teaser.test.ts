@@ -147,6 +147,7 @@ describe('결제 진입 화면 연결', () => {
   })
 
   it('가입 화면을 닫으면 결과(티저)로 돌아간다', () => {
-    assert.match(source, /backToResult \? "result" : "concern"/)
+    // 결과가 없으면 입력으로 돌아간다. 천명사주는 세 문항이 비어 있으면 그 문항부터(concernOrLifeScene).
+    assert.match(source, /backToResult \? "result" : concernOrLifeScene\(\)/)
   })
 })

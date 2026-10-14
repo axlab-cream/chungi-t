@@ -29,7 +29,7 @@ import {
   strengthMeaning,
 } from './report-budget.js'
 import { standardReading } from './standard-reading.js'
-import { cmdgChapterInstruction, cmdgSectionContext, reviewCmdgStoryStructure } from './cmdg-reading-contract.js'
+import { cmdgChapterInstruction, cmdgRagContext, cmdgSectionContext, reviewCmdgStoryStructure } from './cmdg-reading-contract.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
 import { buildSajuFeatureJson } from '../saju/analyzer.js'
@@ -1979,11 +1979,12 @@ export function buildTemplateSajuReport(
   const name = addressName(context)
   const isSajuMaster = normalizeServiceKey(context.serviceKey) === 'saju_master'
   const sections: SajuReportSection[] = blueprintsForContext(context).map((blueprint, index) => {
+    const ragContext = cmdgRagContext(context, blueprint.id)
     const chunks = retrieveRagChunks(
-      `${blueprint.query} ${reportContextQuery(context)}`,
+      `${blueprint.query} ${reportContextQuery(ragContext)}`,
       analysis,
       runtimeConfig.report?.ragTopK ?? 4,
-      context,
+      ragContext,
       undefined,
       context.birthTimeKnown,
     )
@@ -2182,8 +2183,16 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
       dayMaster: features.calculation.dayMaster,
       dayMasterElement: features.calculation.dayMasterElement,
     },
-    timing: features.timing ? { currentYear: features.timing.currentYear, yearPillar: features.timing.yearPillar } : undefined,
-    uncertainty: '출생 시각 미상: 임시 시각 기반 시주·전체 오행 분포·강약·용신·정밀 운 시작 시점을 제외했습니다. 초안이나 참고 자료에 남아 있어도 확정값으로 사용하지 마세요.',
+    // 대운 간지 순서와 세운은 시간을 몰라도 거의 같다(400명 측정: 순서 4%·세운 0% 차이). 시작 나이만 1세 안팎으로 달라질 수 있다.
+    timing: features.timing
+      ? {
+          currentYear: features.timing.currentYear,
+          yearPillar: features.timing.yearPillar,
+          daewoonList: features.timing.daewoonList?.map(({ pillar, ageStart, startYear }) => ({ pillar, approxAgeStart: ageStart, approxStartYear: startYear })),
+          yearlyFlow: features.timing.yearlyFlow,
+        }
+      : undefined,
+    uncertainty: '출생 시각 미상: 임시 시각 기반 시주·전체 오행 분포·강약·용신을 제외했습니다. 대운 시작 나이·연도는 1세 안팎 달라질 수 있으니 "약 ○세 무렵"으로 쓰세요. 초안이나 참고 자료에 남아 있어도 확정값으로 사용하지 마세요.',
     guardrails: features.guardrails,
   }
 }
@@ -2263,9 +2272,10 @@ export function sectionPrompt(
   const userContext = context.partner?.birthTimeKnown === false
     ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false } }
     : context
+  const ragContext = cmdgRagContext(context, section.id)
   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
-    `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(context)}`,
-    analysis, runtimeConfig.report?.ragTopK ?? 4, context, corpusSnapshot, context.birthTimeKnown,
+    `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(ragContext)}`,
+    analysis, runtimeConfig.report?.ragTopK ?? 4, ragContext, corpusSnapshot, context.birthTimeKnown,
   )
   return [
     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
@@ -2702,9 +2712,10 @@ export function reviewGeneratedSajuReportSection(input: {
     // 요구하면서 "3개월"을 근거 없는 처방 숫자로 되돌려 보냈다(2026-09-18).
     serviceNumericHints(context),
   )
+  const reviewRagContext = cmdgRagContext(publicReportContext(context), section.id)
   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
-    `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(publicReportContext(context))}`,
-    analysis, runtimeConfig.report?.ragTopK ?? 4, publicReportContext(context), corpusSnapshot,
+    `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(reviewRagContext)}`,
+    analysis, runtimeConfig.report?.ragTopK ?? 4, reviewRagContext, corpusSnapshot,
   )
   review.issues.push(...reviewToneCopy(interpretation, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'body' }).issues)
   review.issues.push(...reviewToneCopy(hook, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'hook' }).issues)

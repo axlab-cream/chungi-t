@@ -483,6 +483,9 @@ export function buildSajuFeatureJson(
           currentDaewoon: analysis.fortune.currentDaewoon,
           direction: analysis.fortune.direction,
           startAge: analysis.fortune.startAge,
+          // 1단계(2026-10-14): 계산은 이미 했는데 AI 에 지금 대운·올해 세운만 넘기던 것을 전 구간으로 넘긴다.
+          daewoonList: analysis.fortune.daewoon.map(({ age, pillar, ageStart, startYear }) => ({ age, pillar, ageStart, startYear })),
+          yearlyFlow: analysis.fortune.yearlyFlow,
         }
       : undefined,
     userContext: context,

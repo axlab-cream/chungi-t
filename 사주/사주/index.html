@@ -1311,6 +1311,40 @@
         margin-top: 14px;
       }
 
+      .actions.single {
+        grid-template-columns: 1fr;
+      }
+
+      /* 입력 화면의 이전은 모두 패널 맨 위(제목 위)에 둔다. 마이페이지의 본문 뒤로 가기(.umsh-inline-back)와 같은 모양.
+         위쪽 헤더 ← 는 페이지 사이 이동이라 입력 단계를 되돌리지 못한다(2026-10-14). */
+      .step-back {
+        display: flex;
+        width: fit-content;
+        align-items: center;
+        gap: 2px;
+        min-height: 44px;
+        margin: -8px 0 4px -8px;
+        padding: 0 12px 0 4px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #f0e2b8;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .step-back:hover,
+      .step-back:focus-visible {
+        background: rgba(216, 186, 114, 0.1);
+      }
+
+      .step-back:focus-visible {
+        outline: 2px solid #f0e2b8;
+        outline-offset: 0;
+      }
+
       .ghost {
         border: 1px solid rgba(255, 226, 175, 0.16);
         background: rgba(255, 255, 255, 0.05);
@@ -4150,6 +4184,7 @@
         birthTimeKnown: false,
         name: "",
         orientation: "",
+        loveTarget: "",
         relationship: "",
         work: "",
         concern: "",
@@ -4178,6 +4213,9 @@
         "birth",
         "time",
         "name",
+        "love-target",
+        "life-relationship",
+        "life-work",
         "concern",
         "login",
         "my",
@@ -4698,7 +4736,7 @@
           if (profile) applyUserProfile(profile);
         }
         applyServiceDefaults({ preserveConcern: true });
-        go(profile ? "concern" : "name");
+        go(profile ? concernOrLifeScene() : "name");
       }
 
       async function beginTodayAfterAuth() {
@@ -5812,6 +5850,7 @@
         state.birthTimeKnown = false;
         state.name = "";
         state.orientation = "";
+        state.loveTarget = "";
         state.relationship = "";
         state.work = "";
         state.concern = "";
@@ -5882,6 +5921,9 @@
         birth: renderBirth,
         time: renderTime,
         name: renderName,
+        "love-target": renderLoveTarget,
+        "life-relationship": renderLifeRelationship,
+        "life-work": renderLifeWork,
         concern: renderConcern,
         login: renderLogin,
         my: renderMy,
@@ -5998,7 +6040,12 @@
             completeProtectedProfileFromInput();
             return;
           }
-          go("concern");
+          go(isLoveThisYearService() ? "concern" : "love-target");
+        }
+        if (action === "life-next") {
+          const button = event.target.closest("[data-action]");
+          if (!state[button.dataset.require]) return showNudge("하나를 골라 주세요.");
+          go(button.dataset.goto);
         }
         if (action === "time-unknown") {
           state.time = "모름";
@@ -6011,7 +6058,7 @@
             completeProtectedProfileFromInput();
             return;
           }
-          go("concern");
+          go(isLoveThisYearService() ? "concern" : "love-target");
         }
         if (action === "name-next") {
           state.name = document.querySelector("#name")?.value.trim() || "";
@@ -6155,7 +6202,7 @@
             // 결과(티저)를 보다가 가입을 미룬 경우에는 그 결과로 돌려보낸다. 그 밖에는 기존처럼 고민 입력으로 간다.
             const backToResult = sessionStorage.getItem(AUTH_PURCHASE_KEY) === "1" && Boolean(state.analysis);
             sessionStorage.removeItem(AUTH_PURCHASE_KEY);
-            go(backToResult ? "result" : "concern");
+            go(backToResult ? "result" : concernOrLifeScene());
           }
         }
       });
@@ -7036,7 +7083,7 @@
       // (운영 /cmdg/ 는 이 파일이다. 사주/cmdg/index.html 사본이 아니다.)
       // 2026-10-13: 저장된 프로필이 있으면 이름·생년월일을 건너뛰고 고민 장면부터 시작한다.
       // 생년월일 장면만 세면 입력 시작이 입력 완료보다 작게 나와서, 입력 장면 셋 중 처음 들어간 곳을 센다.
-      const FUNNEL_SCENES = { name: "02-input", birth: "02-input", concern: "02-input", result: "04-report" };
+      const FUNNEL_SCENES = { name: "02-input", birth: "02-input", "love-target": "02-input", "life-relationship": "02-input", "life-work": "02-input", concern: "02-input", result: "04-report" };
       const funnelScenesSent = {};
       // 입력을 마치고 로딩으로 넘어가면 입력 완료, 구매 장면은 구매 버튼 클릭으로 센다.
       const FUNNEL_MARKS = { loading: "input_done", purchase: "buy_click" };
@@ -7294,6 +7341,7 @@
       function renderBirth() {
         stage.innerHTML = `
           <section class="panel">
+            ${stepBackButton()}
             <div class="status">${state.name || "이름"} · ${state.gender || "성별"}</div>
             <h1>생년월일을 알려주세요</h1>
             <p>날짜 하나로 첫 번째 운의 결을 펼쳐봅니다.</p>
@@ -7308,8 +7356,7 @@
                 <div class="field-error" id="birth-error" aria-live="polite"></div>
               </div>
             </div>
-            <div class="actions">
-              <button class="ghost" type="button" data-action="prev">이전</button>
+            <div class="actions single">
               <button class="next-cta" type="button" data-action="birth-next">다음으로</button>
             </div>
           </section>
@@ -7335,6 +7382,7 @@
       function renderTime() {
         stage.innerHTML = `
           <section class="panel">
+            ${stepBackButton()}
             <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
             <h1>태어난 시각 · 선택</h1>
             <p id="birthtime-help">시간을 입력하면 더 정확해져요.</p>
@@ -7357,6 +7405,7 @@
       function renderName() {
         stage.innerHTML = `
           <section class="panel">
+            ${stepBackButton()}
             <div class="status">1단계</div>
             <h1>이름과 성별</h1>
             <p>사주 풀이에 사용할 기본 정보를 먼저 적어주세요.</p>
@@ -7371,13 +7420,100 @@
               <button class="choice ${state.gender === "남자" ? "is-selected" : ""}" type="button" data-key="gender" data-value="남자">남자</button>
               <button class="choice ${state.gender === "여자" ? "is-selected" : ""}" type="button" data-key="gender" data-value="여자">여자</button>
             </div>
-            <div class="actions">
-              <button class="ghost" type="button" data-action="prev">이전</button>
+            <div class="actions single">
               <button class="next-cta" type="button" data-action="name-next">다음으로</button>
             </div>
           </section>
         `;
         document.querySelector("#name")?.focus();
+      }
+
+      function stepBackButton() {
+        return `<button class="step-back" type="button" data-action="prev" aria-label="이전 단계로"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>이전</span></button>`;
+      }
+
+      function choiceButtons(key, options, value) {
+        return options.map((item) => `
+          <button class="choice ${value === item ? "is-selected" : ""}" type="button" data-key="${key}" data-value="${escapeHtml(item)}" aria-pressed="${value === item}">${escapeHtml(item)}</button>
+        `).join("");
+      }
+
+      // 천명사주 생활 정보(필수). 8월에 뺀 관계·일 화면을 한 문항씩 되살리고, 관계 기준은
+      // "이성/동성" 대신 연애 상대 성별로 묻는다. 서버·AI·참고서는 기존 orientation 칸을 그대로 쓴다.
+      const LOVE_TARGET_OPTIONS = ["남자", "여자", "둘 다·상관없음"];
+      const LIFE_RELATIONSHIP_OPTIONS = ["솔로예요", "마음에 둔 사람이 있어요", "썸이에요", "연애 중이에요", "이별 직후예요", "결혼했어요"];
+      const LIFE_WORK_OPTIONS = ["학생이에요", "일을 찾고 있어요", "직장 다녀요", "사업해요", "프리랜서예요", "쉬고 있어요"];
+
+      // 저장 프로필로 바로 고민 화면에 가는 경로(재방문·로그인 복귀)도 세 문항이 빠져 있으면 먼저 묻는다(필수).
+      function concernOrLifeScene() {
+        if (isLoveThisYearService()) return "concern";
+        const missing = !loveTargetFromOrientation(state.orientation) || !state.relationship || !state.work;
+        return missing ? "love-target" : "concern";
+      }
+
+      // 이 화면에서 고른 값만 답으로 본다. 예전 "이성 관계 중심" 같은 값에는 상대 성별이 없어 다시 묻는다.
+      function loveTargetFromOrientation(orientation) {
+        const value = orientation || "";
+        const match = /연애 상대 (남자|여자)/.exec(value);
+        if (match) return match[1];
+        return value.includes("연애 상대 성별 무관") ? LOVE_TARGET_OPTIONS[2] : "";
+      }
+
+      function orientationFromLoveTarget() {
+        const target = state.loveTarget;
+        if (target === "남자" || target === "여자") {
+          return `${target === state.gender ? "동성" : "이성"} 관계 중심 · 연애 상대 ${target}`;
+        }
+        return "관계 패턴 중심 · 연애 상대 성별 무관";
+      }
+
+      function renderLifeQuestion({ title, description, key, options, next }) {
+        hydrateProfileFromCache();
+        stage.innerHTML = `
+          <section class="panel">
+            ${stepBackButton()}
+            <div class="status">${escapeHtml(state.name || "이름")} · ${state.calendar} ${state.birth || "생년월일"}</div>
+            <h1>${title}</h1>
+            <p>${description}</p>
+            <div class="choices single" role="group" aria-label="${title}">
+              ${choiceButtons(key, options, state[key])}
+            </div>
+            <div class="actions single">
+              <button class="next-cta" type="button" data-action="life-next" data-require="${key}" data-goto="${next}">다음으로</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderLoveTarget() {
+        if (!state.loveTarget) state.loveTarget = loveTargetFromOrientation(state.orientation);
+        renderLifeQuestion({
+          title: "연애 상대는요?",
+          description: "연애 풀이에서 상대를 맞게 그리려고 물어봐요.",
+          key: "loveTarget",
+          options: LOVE_TARGET_OPTIONS,
+          next: "life-relationship",
+        });
+      }
+
+      function renderLifeRelationship() {
+        renderLifeQuestion({
+          title: "지금 관계는요?",
+          description: "연애운은 지금 놓인 자리부터 봐야 선명해져요.",
+          key: "relationship",
+          options: LIFE_RELATIONSHIP_OPTIONS,
+          next: "life-work",
+        });
+      }
+
+      function renderLifeWork() {
+        renderLifeQuestion({
+          title: "요즘 일은요?",
+          description: "일과 돈 풀이에 함께 반영돼요.",
+          key: "work",
+          options: LIFE_WORK_OPTIONS,
+          next: "concern",
+        });
       }
 
       function renderLoveConcern() {
@@ -7386,9 +7522,7 @@
         const relationshipOptions = ["솔로예요", "마음에 둔 사람이 있어요", "썸이에요", "연애 중이에요", "이별 직후예요"];
         const orientationOptions = ["이성 관계 중심", "동성 관계 중심", "관계 패턴 중심"];
         const partnerRelationshipOptions = ["썸/관심 상대", "연인", "전연인", "소개 예정"];
-        const optionButtons = (key, options, value) => options.map((item) => `
-          <button class="choice ${value === item ? "is-selected" : ""}" type="button" data-key="${key}" data-value="${escapeHtml(item)}" aria-pressed="${value === item}">${escapeHtml(item)}</button>
-        `).join("");
+        const optionButtons = choiceButtons;
         const partnerBlock = state.partnerMode === "known"
           ? `
             <div class="teaser-block">
@@ -7442,6 +7576,7 @@
 
         stage.innerHTML = `
           <section class="panel teaser-panel">
+            ${stepBackButton()}
             <div class="status">${escapeHtml(service.eyebrow)} · ${escapeHtml(service.price)}</div>
             <h1>${escapeHtml(service.title)}</h1>
             <p>내 사주만으로 올해 새 인연을 볼 수도 있고, 특정 상대가 있으면 상대방 사주까지 넣어 궁합 흐름을 같이 봅니다.</p>
@@ -7496,8 +7631,11 @@
         // renderMy 와 같은 방식으로 캐시에서 복구한다. 복구하지 않으면 상단 칩이
         // "이름 · 양력 생년월일" 플레이스홀더로 뜨고, 그 상태로 해석을 누르면 실패한다.
         hydrateProfileFromCache();
+        if (!state.loveTarget) state.loveTarget = loveTargetFromOrientation(state.orientation);
+        state.orientation = orientationFromLoveTarget();
         stage.innerHTML = `
           <section class="panel">
+            ${stepBackButton()}
             <div class="status">${state.name || "이름"} · ${state.calendar} ${state.birth || "생년월일"}</div>
             <h1>고민</h1>
             <p>지금 가장 마음에 걸리는 질문을 적어주세요. 바로 건너뛰어도 됩니다.</p>
@@ -8826,7 +8964,7 @@
       const initialScene = isPortalSignupEntry && !location.hash.slice(1) ? "login" : location.hash.slice(1);
       const removedInputScenes = new Set(["immersion", "target", "gender", "orientation", "relationship", "work"]);
       const resolvedInitialScene = removedInputScenes.has(initialScene) ? "name" : initialScene;
-      const freshInputScenes = new Set(["name", "birth", "time", "concern"]);
+      const freshInputScenes = new Set(["name", "birth", "time", "love-target", "life-relationship", "life-work", "concern"]);
       const settingsEntryScenes = new Set(["vault", "settings", "history"]);
       loadPaymentConfig().then(() => {
         if (state.scene === "purchase") renderPurchase();
