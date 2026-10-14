@@ -107,13 +107,18 @@ test('friend invitation always shares the public test URL and supports copy/manu
   assert.ok(html.includes('https://umsh.kr/play/love-speed/'))
 })
 
-test('public link preview declares a real 1200x630 PNG without personal metadata', () => {
+test('public link preview declares a real 1200x630 JPEG without personal metadata', () => {
   const html = readFileSync(new URL('../../사주/play/love-speed/index.html', import.meta.url), 'utf8')
-  const png = readFileSync(new URL('../../사주/play/love-speed/share-banner-v2.png', import.meta.url))
-  assert.equal(png.subarray(1, 4).toString(), 'PNG')
-  assert.equal(png.readUInt32BE(16), 1200)
-  assert.equal(png.readUInt32BE(20), 630)
-  assert.ok(html.includes('property="og:image" content="https://umsh.kr/play/love-speed/share-banner-v2.png"'))
+  const jpg = readFileSync(new URL('../../사주/play/love-speed/share-banner-v3.jpg', import.meta.url))
+  assert.equal(jpg.readUInt16BE(0), 0xffd8)
+  // 크기는 SOF0/SOF2 표식 뒤에 높이·너비 순서로 들어 있다.
+  let at = 2
+  while (at < jpg.length && jpg[at + 1] !== 0xc0 && jpg[at + 1] !== 0xc2) at += 2 + jpg.readUInt16BE(at + 2)
+  assert.ok(at < jpg.length, 'JPEG 크기 표식이 없습니다.')
+  assert.equal(jpg.readUInt16BE(at + 5), 630)
+  assert.equal(jpg.readUInt16BE(at + 7), 1200)
+  assert.ok(html.includes('property="og:image" content="https://umsh.kr/play/love-speed/share-banner-v3.jpg"'))
+  assert.ok(html.includes('property="og:image:type" content="image/jpeg"'))
   assert.ok(html.includes('name="twitter:card" content="summary_large_image"'))
   assert.ok(html.includes('property="og:image:alt"'))
 })

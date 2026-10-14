@@ -296,6 +296,14 @@ export function toClientReport(record: ReportRecord): SajuReport {
   report.publicUrl = `/r/${encodeURIComponent(report.resultId)}`
   report.serviceKey = record.context.serviceKey ?? 'saju_master'
   report.sections = report.sections.map(({ attempts: _attempts, generationLease: _lease, reviewMode: _reviewMode, reviewNotes: _reviewNotes, ...section }) => ({ ...section, generationId: sectionGenerationId(record, section), status: record.status === 'complete' ? 'complete' : section.status }))
+  if (record.context.birthTimeKnown === false) {
+    // These legacy generator keys encode provisional-hour/full-chart calculations.
+    // Mask only the returned clone; paid prose and storytelling remain unchanged.
+    report.sections = report.sections.map(section => Array.isArray(section.patternKeys) ? {
+      ...section,
+      patternKeys: section.patternKeys.filter(key => !/^(?:birth|hourPillar|dayMasterStrength|dominantElement|weakElement|usefulGod|tenGod|gyeokguk|climate|flowBridge):/.test(key)),
+    } : section)
+  }
   // 하이라이트도 검수 방식과 지적은 운영자용이다. 고객 응답에서는 뺀다.
   if (report.highlights) report.highlights = report.highlights.map(({ reviewMode: _mode, reviewNotes: _notes, ...highlight }) => highlight)
   return report

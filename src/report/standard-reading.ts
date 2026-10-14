@@ -117,7 +117,7 @@ export function standardReading(id: string, category: string, analysis: SajuAnal
   if (key === 'home_fit') {
     const h = context.home ?? {}
     facts = !h.painPoints ? '주거 불편에 관한 선택은 아직 확인되지 않았습니다. 문제가 있다는 뜻도, 없다는 뜻도 아닙니다.' : h.painPoints.length === 0 ? '선택된 주거 불편 항목은 없습니다. 이것을 숨은 위기나 나쁜 집의 증거로 바꾸지 않습니다.' : '선택한 주거 불편을 실제 생활에서 확인할 대상으로 삼습니다. 집 전체가 나쁘다는 뜻은 아닙니다.'
-    evidence = `공간 문진에서 확인한 배치와 사용 목적을 우선합니다. 사주의 ${ELEMENT_KO[analysis.dominantElement]} 기운은 전통적 비유로만 참고하며, 집의 실제 성능이나 건강·재산 결과를 결정하는 값이 아닙니다.`
+    evidence = context.birthTimeKnown === false ? '출생 시간을 모르므로 임시 시각을 포함한 오행의 우세·부족은 공간 해석의 개인 근거로 사용하지 않습니다. 공간 문진에서 확인한 배치와 사용 목적을 우선합니다.' : `공간 문진에서 확인한 배치와 사용 목적을 우선합니다. 사주의 ${ELEMENT_KO[analysis.dominantElement]} 기운은 전통적 비유로만 참고하며, 집의 실제 성능이나 건강·재산 결과를 결정하는 값이 아닙니다.`
     if (h.extraNote?.trim()) facts += ` 추가로 “${h.extraNote.trim()}”라고 적어 주셨습니다.`
     if (h.terrainEvidence?.summary) {
       evidence += ` 풍수아씨가 잡은 터 유사도 참고값은 “${h.terrainEvidence.siteSimilarityLabel || h.terrainEvidence.siteArchetype || h.terrainEvidence.summary}”입니다. 이는 비슷한 터의 생활 패턴을 보는 참고이며, 채광·소음·실내 배치처럼 직접 체감되는 조건과 함께 읽어야 합니다.`
@@ -143,6 +143,9 @@ export function standardReading(id: string, category: string, analysis: SajuAnal
     if (id === 'hour-pillar' && context.birthTimeKnown === false) evidence = '출생 시간을 모른다고 입력했으므로 시주와 시주에 의존하는 세부 결론은 보류합니다.'
     else if (/balance|element|useful/.test(id)) evidence = context.birthTimeKnown === false ? '출생 시간을 모르므로 임시 시각을 포함한 전체 기운의 개수나 강약을 확정하지 않습니다. 확인된 연·월·일의 관계만 참고하고 시각에 따라 달라지는 결론은 보류합니다.' : `단순 오행 개수에서 ${ELEMENT_KO[analysis.dominantElement]} 기운이 상대적으로 많고, ${ELEMENT_KO[analysis.weakElement]} 기운은 ${analysis.elementCount[analysis.weakElement]}개로 표시됩니다. 계절과 다른 기운의 관계를 함께 보아야 하며 이 수치가 개인의 능력이나 실제 생활 상태를 뜻하지는 않습니다.`
     else evidence = `확인된 명식에서 ${id.includes('pillar') ? '해당 기둥' : '일주'}는 ${label}입니다. 일간은 태어난 날의 천간으로, 다른 기운의 관계를 읽는 기준점입니다. 이 구조를 현재 질문에 참고하되 기호 하나로 경험하지 않은 사건을 만들지 않습니다.`
+  }
+  if (context.birthTimeKnown === false && /strength|hidden|ten-gods|useful|future|daewoon|sewoon|timing|turning/.test(id)) {
+    evidence = '출생 시간을 모르므로 임시 시각을 포함한 강약·십성 전체 요약·용신과 개인 대운 및 세부 시기 계산은 이 항목의 근거로 사용하지 않습니다. 전통적 개념 설명과 실제 입력한 일정·조건을 구분해서 읽고, 시각에 따라 달라지는 개인 결론은 보류합니다.'
   }
   return normalizeUserCopy([`${name}${meaning} ${facts}`, evidence, scene, criterion, `[확인할 기준] ${category}에 대한 결론은 위의 조건이 실제 상황과 맞는지에 따라 달라집니다. 맞지 않는 장면은 내 특성으로 받아들이지 않아도 됩니다.`, `[다음 선택] ${action}`].join('\n\n'))
 }

@@ -333,6 +333,8 @@ export interface PaymentOrderQuery {
   /** ISO 문자열. 경계는 `from` 포함, `to` 제외다. */
   from?: string
   to?: string
+  /** 기간을 어느 시각에 걸지. 기본은 갱신 시각(updated). 관리자 결제 내역은 결제일(created)로 건다. */
+  windowField?: 'updated' | 'created'
 }
 
 /**
@@ -373,8 +375,9 @@ export async function listAllPaymentOrders(query: PaymentOrderQuery = {}): Promi
   const withinWindow = (order: PaymentOrder): boolean => {
     if (query.status && order.status !== query.status) return false
     // 경계: `from` 포함, `to` 제외. 하루 단위 조회가 자정에 겹치지 않게 한다.
-    if (query.from && order.updatedAt < query.from) return false
-    if (query.to && order.updatedAt >= query.to) return false
+    const at = query.windowField === 'created' ? order.createdAt : order.updatedAt
+    if (query.from && at < query.from) return false
+    if (query.to && at >= query.to) return false
     return true
   }
 
@@ -408,8 +411,9 @@ export async function listAllPaymentOrders(query: PaymentOrderQuery = {}): Promi
     url.searchParams.set('order', 'updated_at.desc,order_id.desc')
     url.searchParams.set('limit', String(limit + 1))
     if (query.status) url.searchParams.set('status', `eq.${query.status}`)
-    if (query.from) url.searchParams.append('updated_at', `gte.${query.from}`)
-    if (query.to) url.searchParams.append('updated_at', `lt.${query.to}`)
+    const windowColumn = query.windowField === 'created' ? 'created_at' : 'updated_at'
+    if (query.from) url.searchParams.append(windowColumn, `gte.${query.from}`)
+    if (query.to) url.searchParams.append(windowColumn, `lt.${query.to}`)
     if (after) {
       // `(updated_at, order_id)` 튜플 비교. PostgREST 의 or 문법으로 표현한다.
       url.searchParams.set(

@@ -124,6 +124,7 @@ function buildInterpretation(params: {
   birth: BirthInput
   input: WorkJobRequest
   chunks: RagChunk[]
+  birthTimeKnown?: boolean
   index: number
 }): string {
   const { itemTitle, analysis, input } = params
@@ -133,7 +134,7 @@ function buildInterpretation(params: {
   return practicalReading({
     title: itemTitle, detail: reading,
     current: `${quotedInput('현재 하는 일', input.currentJob)} ${quotedInput('업무 방식', input.workStyle)} ${quotedInput('현재 느끼는 부담', input.mainStress)}`,
-    evidence: workSymbol(analysis, /돈|수입|보상/.test(itemTitle) ? 'money' : /배우|기술|능력/.test(itemTitle) ? 'learning' : /사람|혼자/.test(itemTitle) ? 'people' : 'role'),
+    evidence: workSymbol(analysis, /돈|수입|보상/.test(itemTitle) ? 'money' : /배우|기술|능력/.test(itemTitle) ? 'learning' : /사람|혼자/.test(itemTitle) ? 'people' : 'role', params.birthTimeKnown),
     application: state === 'settled'
       ? `현재 만족과 안정에 관한 진술을 우선해요. 일이 맞지 않거나 숨은 소진이 있다고 추정하지 않아요. ${quotedInput('바라는 방향', input.wantedDirection)}`
       : `${quotedInput('바라는 방향', input.wantedDirection)} 이 항목과 직접 연결된 경험이 없다면 적성 판정 대신 확인 질문으로 읽어요.`,
@@ -185,6 +186,7 @@ export function buildWorkJobReport(
           birth,
           input,
           chunks: categoryChunks,
+          birthTimeKnown: context.birthTimeKnown,
           index: order + itemIndex,
         }),
         generatedBy: 'template',
@@ -198,7 +200,7 @@ export function buildWorkJobReport(
   return finalizeSpecializedReport({
     reportId,
     title: '직업운 해석문',
-    subtitle: `${context.name ?? '본인'}님의 관성·식상·적성 흐름으로 봅니다`,
+    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 업무와 실제 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·적성 흐름으로 봅니다`,
     model: 'work-job-rag-template',
     generatedBy: 'template',
     status: 'complete',

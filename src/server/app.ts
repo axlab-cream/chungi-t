@@ -1,3 +1,4 @@
+import { parseAdminRange, INVALID_RANGE_BODY } from '../admin/date-range.js'
 import { loveSpeedRouter } from '../play/love-speed-route.js'
 import { soloNaraRouter } from '../play/solo-nara-route.js'
 import type { SoloSpec } from '../play/solo-nara.js'
@@ -24,6 +25,7 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
+import { readBirthClock, projectUnknownBirthTime } from '../saju/birth-time-certainty.js'
 import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
@@ -65,7 +67,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { countLiveMembers, memberNamesByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
+import { countLiveMembers, memberContactsByIds, memberNamesByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { searchAdminAuditEvents } from '../admin/audit-store.js'
@@ -1111,13 +1113,20 @@ app.use('/cmdg/js', cachedStatic(join(SAJU_ROOT, 'js')))
 app.use(localizedPages(join(ROOT, '.vercel-localized')))
 app.use(cachedStatic(SAJU_ROOT, { index: 'index.html' }))
 
+function resolveChatBirthTimeKnown(body: Record<string, unknown>, hasParent: boolean): boolean | undefined {
+  const unknown = body.birthTimeKnown === false || asObject(body.context).birthTimeKnown === false || asObject(body.birth).birthTimeKnown === false
+  return unknown ? false : hasParent ? undefined : true
+}
+
 function parseBirth(body: Record<string, unknown>): BirthInput {
+  const clock = readBirthClock(body, body.birthTimeKnown !== false)
+  if (!clock) throw new InputError('태어난 시각을 입력하거나 시각 모름을 선택해 주세요.')
   return {
     year: Number(body.year),
     month: Number(body.month),
     day: Number(body.day),
-    hour: Number(body.hour ?? 12),
-    minute: Number(body.minute ?? 0),
+    hour: clock.hour,
+    minute: clock.minute,
     gender: (body.gender === 'female' ? 'female' : 'male') as BirthInput['gender'],
     calendar: (body.calendar === 'lunar' ? 'lunar' : 'solar') as BirthInput['calendar'],
     isLeapMonth: Boolean(body.isLeapMonth),
@@ -1344,7 +1353,7 @@ function parseReportContext(body: Record<string, unknown>): SajuReportContext {
   const rawServiceKey = context.serviceKey ?? context.service_key ?? body.serviceKey ?? body.service_key
   const serviceKey = normalizeServiceKey(rawServiceKey)
 
-  const birthTimeKnown = body.birthTimeKnown === false || context.birthTimeKnown === false ? false : undefined
+  const birthTimeKnown = body.birthTimeKnown === false || context.birthTimeKnown === false || asObject(body.birth).birthTimeKnown === false ? false : undefined
   const partner = serviceKey === LOVE_THIS_YEAR_SERVICE_KEY ? parseOptionalPartnerContext(context.partner ?? body.partner) : undefined
   const home = serviceKey === HOME_FIT_SERVICE_KEY ? parseHomeFitContext(context.home ?? body.home ?? context.input ?? body.input) : undefined
   const workMove = serviceKey === WORK_MOVE_SERVICE_KEY
@@ -1562,9 +1571,10 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
   const year = Number(source.year)
   const month = Number(source.month)
   const day = Number(source.day)
-  const birthTimeKnown = body.birthTimeKnown !== false
-  const hour = Number(source.hour ?? (birthTimeKnown ? Number.NaN : 12))
-  const minute = Number(source.minute ?? 0)
+  const birthTimeKnown = body.birthTimeKnown !== false && source.birthTimeKnown !== false
+  const clock = readBirthClock(source, birthTimeKnown)
+  if (!clock) throw new Error('태어난 시각을 입력하거나 시각 모름을 선택해 주세요.')
+  const { hour, minute } = clock
   const gender = source.gender
   const calendar = source.calendar
 
@@ -1651,16 +1661,16 @@ async function toUiAnalysis(
 
   const report = toClientReport(record)
   if (access) applyReportEntitlement(report, access, owner)
-  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report)
+  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report, record.context.birthTimeKnown !== false)
   if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record, access) }
   return access?.entitled
     ? { ...payload, entitled: true, unlockReason: access.reason }
     : payload
 }
 
-function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport) {
+function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport, birthTimeKnown = true) {
   const p = analysis.fourPillars
-  return {
+  return projectUnknownBirthTime({
     birth,
     pillars: {
       year: { hanja: `${p.year.stem}${p.year.branch}`, ko: `${STEM_KO[p.year.stem]}${BRANCH_KO[p.year.branch]}` },
@@ -1683,7 +1693,7 @@ function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, repor
     preview: analysis.preview,
     report,
     summary: analysis.summary,
-  }
+  }, birthTimeKnown)
 }
 
 function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
@@ -1694,7 +1704,7 @@ function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
 }
 
 function toUiAnalysisFromRecord(record: ReportRecord) {
-  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record))
+  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record), record.context.birthTimeKnown !== false)
 }
 
 /**
@@ -2395,7 +2405,9 @@ app.get('/api/cron/ops', async (req, res) => {
 })
 app.get('/api/admin/v1/jobs', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
-  try { res.json({ jobs: await listOpsJobs() }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
+  const range = parseAdminRange(req.query as Record<string, unknown>)
+  if (range === 'invalid') { res.status(422).json(INVALID_RANGE_BODY); return }
+  try { res.json({ jobs: await listOpsJobs(range) }) } catch { res.status(503).json({ code: 'OPS_LIST_FAILED', error: '작업 큐를 불러오지 못했습니다.' }) }
 })
 /**
  * 한 회원의 해석 완성 작업을 큐에서 걷어낸다.
@@ -2613,8 +2625,11 @@ app.get('/api/admin/v1/media', async (req, res) => {
 /** AI 운영 › 실패 현황(2026-10 5단계). 기간 안의 시도 수·실패 수·유형별·서비스별·날짜별. */
 app.get('/api/admin/v1/ai/failures', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
+  // 리포트 본문을 훑어서 세므로 직접 고른 기간은 92일까지.
+  const range = parseAdminRange(req.query as Record<string, unknown>, 92)
+  if (range === 'invalid') { res.status(422).json(INVALID_RANGE_BODY); return }
   try {
-    res.json({ ...(await generationFailureStats(Number(req.query?.days ?? 7))), asOf: new Date().toISOString() })
+    res.json({ ...(await generationFailureStats(Number(req.query?.days ?? 7), range)), asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'GENERATION_LOG_LOOKUP_FAILED', error: 'AI 실패 현황을 불러오지 못했습니다.' })
   }
@@ -2961,6 +2976,8 @@ app.get('/api/admin/v1/orders', async (req, res) => {
   }
   try {
     const page = await listAllPaymentOrders({
+      // 2026-10-14: 화면의 "결제일"은 만든 시각이다. 기간도 같은 시각에 건다(예전에는 갱신 시각이라 어긋났다).
+      windowField: 'created',
       limit: Number(req.query?.limit ?? 20),
       cursor: trimmedString(req.query?.cursor) || undefined,
       status: (status || undefined) as PaymentOrder['status'] | undefined,
@@ -3038,8 +3055,10 @@ function respondRefundFailure(res: Response, error: unknown, fallback: string): 
 /** Refund requests persist an intent only. T17 deliberately does not call a PG. */
 app.get('/api/admin/v1/refunds', async (req, res) => {
   if (!await requireStaff(req, res, 'refunds:read')) return
+  const range = parseAdminRange(req.query as Record<string, unknown>)
+  if (range === 'invalid') { res.status(422).json(INVALID_RANGE_BODY); return }
   try {
-    res.json({ refunds: await listRefundRequests(Number(req.query?.limit ?? 100)), asOf: new Date().toISOString() })
+    res.json({ refunds: await listRefundRequests(Number(req.query?.limit ?? 100), range), asOf: new Date().toISOString() })
   } catch (error) {
     console.error('REFUND_LIST_FAILED', error instanceof Error ? error.message : 'unknown')
     res.status(503).json({ code: 'REFUND_LIST_FAILED', error: '환불 요청 원천을 불러오지 못했습니다.' })
@@ -3482,6 +3501,11 @@ app.get('/api/admin/v1/reports', async (req, res) => {
  */
 app.get('/api/admin/v1/dashboard', async (req, res) => {
   if (!await requireStaff(req, res, 'orders:read')) return
+  // 2026-10-14: 기간을 고르면 그 기간과 바로 앞 같은 길이 기간을 비교한다. 안 고르면 예전처럼 오늘 vs 어제 이 시각.
+  const range = parseAdminRange(req.query as Record<string, unknown>, 92)
+  if (range === 'invalid') { res.status(422).json(INVALID_RANGE_BODY); return }
+  const before = range ? new Date(2 * Date.parse(range.from) - Date.parse(range.to)).toISOString() : null
+  const kpiRange = range && before ? { from: before, to: range.to } : null
   try {
     const dashboard = await buildDashboard({
       countMembersCreated, countReportsCreated,
@@ -3502,9 +3526,13 @@ app.get('/api/admin/v1/dashboard', async (req, res) => {
       },
       listRefunds: () => listRefundRequests(200),
       listSupportCases: () => listSupportCases(),
+      ...(kpiRange ? {
+        listRefundsCreated: () => listRefundRequests(500, kpiRange),
+        listSupportCreated: () => listSupportCases(kpiRange),
+      } : {}),
       async countFailedReports() { return (await searchLiveReports({ status: 'failed', limit: 1 })).total },
       async listRecentPushes() { return (await pushStore().listNotifications(50, 0)).items },
-    })
+    }, new Date(), range ?? undefined)
     res.json({ ...dashboard, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'DASHBOARD_FAILED', error: '대시보드를 불러오지 못했습니다.' })
@@ -3599,9 +3627,20 @@ app.get('/api/admin/v1/me', async (req, res) => {
 /** Actual account roster for the settings screen. Password hashes never leave the server. */
 app.get('/api/admin/v1/support', async (req, res) => {
   if (!await requireStaff(req, res, 'support:read')) return
-  try { res.json({ cases: await listSupportCases() }) }
+  const range = parseAdminRange(req.query as Record<string, unknown>)
+  if (range === 'invalid') { res.status(422).json(INVALID_RANGE_BODY); return }
+  try { res.json({ cases: await withSupportMembers(await listSupportCases(range)) }) }
   catch { res.status(503).json({ code: 'SUPPORT_CASE_LOOKUP_FAILED', error: '고객 지원 저장소를 불러오지 못했습니다.' }) }
 })
+
+/** 2026-10-13: 누가 보낸 문의인지 목록에서 바로 보이게 회원 이름·이메일을 붙인다. 조회에 실패하면 비워 두고 목록은 그대로 준다. */
+async function withSupportMembers<T extends { memberId: string | null }>(cases: T[]): Promise<Array<T & { memberName: string | null; memberEmail: string | null }>> {
+  const contacts = await memberContactsByIds(cases.map((item) => item.memberId ?? '')).catch(() => new Map<string, { name: string | null; email: string | null }>())
+  return cases.map((item) => {
+    const contact = item.memberId ? contacts.get(item.memberId.toLowerCase()) : undefined
+    return { ...item, memberName: contact?.name ?? null, memberEmail: contact?.email ?? null }
+  })
+}
 
 /** 문의 한 건(2026-10 7단계). 목록(최근 100건) 밖의 문의도 링크(?id=)로 열 수 있게 한다. */
 app.get('/api/admin/v1/support/:id', async (req, res) => {
@@ -3611,7 +3650,7 @@ app.get('/api/admin/v1/support/:id', async (req, res) => {
   try {
     const supportCase = await getSupportCase(id)
     if (!supportCase) { res.status(404).json({ code: 'SUPPORT_CASE_NOT_FOUND', error: '해당 문의를 찾지 못했습니다.' }); return }
-    res.json({ supportCase })
+    res.json({ supportCase: (await withSupportMembers([supportCase]))[0] })
   } catch { res.status(503).json({ code: 'SUPPORT_CASE_LOOKUP_FAILED', error: '문의를 불러오지 못했습니다.' }) }
 })
 
@@ -3660,7 +3699,9 @@ app.post('/api/admin/v1/support/:id/notes', async (req, res) => {
 
 app.get('/api/admin/v1/incidents', async (req, res) => {
   if (!await requireStaff(req, res, 'incidents:read')) return
-  try { res.json({ incidents: await listIncidents() }) }
+  const range = parseAdminRange(req.query as Record<string, unknown>)
+  if (range === 'invalid') { res.status(422).json(INVALID_RANGE_BODY); return }
+  try { res.json({ incidents: await listIncidents(100, range) }) }
   catch { res.status(503).json({ code: 'INCIDENT_LOOKUP_FAILED', error: '실제 장애 기록 저장소를 불러오지 못했습니다.' }) }
 })
 
@@ -4644,7 +4685,7 @@ function buildGuestTeaserPayload(birth: BirthInput, context: SajuReportContext) 
     sections: [],
     progress: { complete: 0, total: template.sections.length },
   } as SajuReport
-  return { ...buildUiAnalysisPayload(analysis, birth, report), guestPreview: true }
+  return { ...buildUiAnalysisPayload(analysis, birth, report, context.birthTimeKnown !== false), guestPreview: true }
 }
 
 function wantsPreview(req: Request): boolean {
@@ -5424,8 +5465,8 @@ app.post('/api/saju/analyze', async (req, res) => {
       return
     }
     const birthBody = asObject(req.body.birth)
-    const birth = parseBirth(Object.keys(birthBody).length ? birthBody : req.body)
     const context = parseReportContext(req.body)
+    const birth = parseBirth({ ...(Object.keys(birthBody).length ? birthBody : req.body), birthTimeKnown: context.birthTimeKnown !== false })
     const suppliedKey = requestedServiceKey
     if ((suppliedKey && suppliedKey !== 'saju_master' && !context.serviceKey) || context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY) {
       res.status(400).json({ code: 'INPUT_REQUIRED', error: '이 서비스는 전용 입력 경로에서 시작해 주세요. 다른 서비스의 일반 해석으로 대체하지 않습니다.' })
@@ -5488,7 +5529,7 @@ app.post('/api/saju/analyze', async (req, res) => {
         res.status(429).json({ code: 'FREE_PREVIEW_LIMIT', error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.', freeSearch, paymentUrl: paymentCheckoutUrl(quotaService!, record.reportId) })
         return
       }
-      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }), ...savedPreviewResponse(record, access, freeSearch) })
+      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }, record.context.birthTimeKnown !== false), ...savedPreviewResponse(record, access, freeSearch) })
       return
     }
     const access = await resolvePaidAccess(
@@ -5635,7 +5676,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
     // 이 레코드는 findReportRecord에서 owner 소유권 검사를 이미 통과했다. 현실 기준은
     // 해당 회원의 프로필에서만 읽고, 비로그인/다른 계정의 응답에는 싣지 않는다.
     const memberContext = owner ? (await getUserBirthProfile(owner))?.lifeContext : undefined
-    const loveReportYear = record.analysis?.fortune?.currentYear ?? analysis.fortune?.currentYear
+    const loveReportYear = record.context.birthTimeKnown === false ? undefined : record.analysis?.fortune?.currentYear ?? analysis.fortune?.currentYear
     const loveMonthlySignals = record.context.serviceKey === LOVE_THIS_YEAR_SERVICE_KEY && loveReportYear
       ? calculateLoveMonthlySignals(record.birth, currentAnalysisForRecord(record), loveReportYear)
       : undefined
@@ -5882,11 +5923,12 @@ app.post('/api/chat', async (req, res) => {
       if (isConsultationRecord(parent)) { res.status(404).json({ error: '천명상담 화면에서 대화를 이어가 주세요.' }); return }
       if (!await ensurePaidServiceAccess(req, res, owner, productKeyForContext(parent.context), parent.reportId)) return
     }
+    const chatBirthTimeKnown = resolveChatBirthTimeKnown(req.body, Boolean(parentReportId))
     const result = await generateSavedChat({
       owner, parentReportId: parentReportId || undefined,
       requestId: trimmedString(req.body.requestId) || undefined,
-      birth: parentReportId ? undefined : parseBirth(req.body.birth ?? req.body),
-      birthTimeKnown: req.body.birthTimeKnown !== false,
+      birth: parentReportId ? undefined : parseBirth({ ...(req.body.birth ?? req.body), birthTimeKnown: chatBirthTimeKnown !== false }),
+      birthTimeKnown: chatBirthTimeKnown,
       message: String(req.body.message ?? '').trim(),
       history: parseConversationHistory(req.body.history),
       serviceKey: trimmedString(req.body.serviceKey || req.body.service_key) || undefined,
@@ -5895,7 +5937,7 @@ app.post('/api/chat', async (req, res) => {
     res.status(result.status === 'failed' ? 502 : result.status === 'complete' ? 200 : 202).json(result)
   } catch (err) {
     const code = err instanceof Error ? err.message : ''
-    res.status(code === 'REPORT_ACCESS_DENIED' ? 403 : /INVALID|REQUIRED/.test(code) ? 400 : 500).json({ error: code === 'REPORT_ACCESS_DENIED' ? '본인의 상담만 볼 수 있습니다.' : '상담 입력이나 저장 상태를 확인해 주세요.' })
+    res.status(code === 'REPORT_ACCESS_DENIED' ? 403 : err instanceof InputError || /INVALID|REQUIRED/.test(code) ? 400 : 500).json({ error: code === 'REPORT_ACCESS_DENIED' ? '본인의 상담만 볼 수 있습니다.' : '상담 입력이나 저장 상태를 확인해 주세요.' })
   }
 })
 

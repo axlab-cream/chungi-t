@@ -247,6 +247,12 @@
       img.draggable = false;
     });
 
+    // 카드는 링크라서 마우스로 끌면 브라우저가 링크 끌어 옮기기를 먼저 시작하고, 그 순간
+    // pointercancel 이 와서 옆으로 넘기기가 멈춘다. 반복 카드(복제본)도 덮도록 레일에서 막는다.
+    rail.addEventListener('dragstart', (event) => {
+      event.preventDefault();
+    });
+
     rail.addEventListener('pointerdown', (event) => {
       if (event.pointerType !== 'mouse' || event.button !== 0) return;
       pointerId = event.pointerId;

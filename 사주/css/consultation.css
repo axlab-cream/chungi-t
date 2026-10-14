@@ -15,7 +15,11 @@
 /* Home: scoped so the existing weekly card and unrelated portal edits survive. */
 /* Both slides share one grid cell, so hidden slides reserve the same height. */
 .consultation-rail{position:relative;container-type:inline-size}
-.consultation-rail-slides{display:grid;position:relative}
+.consultation-rail-slides{display:grid;position:relative;overflow:hidden;border-radius:18px;touch-action:pan-y}
+/* 배너는 옆으로 끌어서 넘긴다(consultation-rail.js) */
+@media (hover:hover){.consultation-rail-slides{cursor:grab}}
+.consultation-rail-slides.is-dragging{cursor:grabbing;user-select:none;-webkit-user-select:none}
+.consultation-rail-slides img{-webkit-user-drag:none;user-select:none}
 .consultation-rail-slides>[data-rail-slide]{grid-area:1/1;display:grid;grid-template-rows:1fr auto;min-width:0;border:1px solid #695630;border-radius:18px;overflow:hidden;background:#14130f;color:#f6f0e2;text-decoration:none}
 .consultation-rail-slides>[data-rail-slide][hidden]{display:grid!important;visibility:hidden;pointer-events:none}
 .consultation-rail-slides>.weekly-free-card>img{width:100%;height:100%;min-height:0;aspect-ratio:1200/630;object-fit:contain}

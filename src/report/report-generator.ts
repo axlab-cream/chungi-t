@@ -1953,12 +1953,13 @@ export function buildTemplateSajuReport(
   birth: BirthInput,
   context: SajuReportContext = {},
 ): SajuReport {
+  const unknownTime = context.birthTimeKnown === false
   const isLoveThisYear = isLoveThisYearContext(context)
   const isWorkMove = isWorkMoveContext(context)
   const isPassAngle = isPassAngleContext(context)
   const keys = [
     ...(context.serviceKey ? [`service:${context.serviceKey}`] : []),
-    ...patternKeys(analysis, birth),
+    ...(unknownTime ? patternKeys(analysis, birth).filter(key => /^(yearPillar|monthPillar|dayPillar|dayMaster|dayMasterElement):/.test(key)).concat('birthTime:unknown') : patternKeys(analysis, birth)),
     ...(context.target ? [`target:${context.target}`] : []),
     ...(context.orientation ? [`orientation:${context.orientation}`] : []),
     ...(context.relationship ? [`relationship:${context.relationship}`] : []),
@@ -1971,9 +1972,9 @@ export function buildTemplateSajuReport(
     ...homePatternKeys(context),
     ...workMovePatternKeys(context),
     ...examPatternKeys(context),
-    ...(analysis.manseryeok?.gyeokguk ? [`gyeokguk:${analysis.manseryeok.gyeokguk.name}`] : []),
-    ...(analysis.manseryeok?.climate ? [`climate:${analysis.manseryeok.climate.season}:${analysis.manseryeok.climate.temperature}`] : []),
-    ...(analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
+    ...(!unknownTime && analysis.manseryeok?.gyeokguk ? [`gyeokguk:${analysis.manseryeok.gyeokguk.name}`] : []),
+    ...(!unknownTime && analysis.manseryeok?.climate ? [`climate:${analysis.manseryeok.climate.season}:${analysis.manseryeok.climate.temperature}`] : []),
+    ...(unknownTime ? [] : analysis.manseryeok?.flowBridges.map((bridge) => `flowBridge:${bridge.bridge}`) ?? []),
   ]
   const name = addressName(context)
   const isSajuMaster = normalizeServiceKey(context.serviceKey) === 'saju_master'
@@ -1983,13 +1984,17 @@ export function buildTemplateSajuReport(
       analysis,
       runtimeConfig.report?.ragTopK ?? 4,
       context,
+      undefined,
+      context.birthTimeKnown,
     )
     const ragTopics = chunks.map((c) => c.topic)
     // cmdg-style emotional beats: emotion first, mechanics under the hood.
-    const loveStory = isLoveThisYear
+    const loveStory = isLoveThisYear && !unknownTime
       ? toStorytellingPayload(buildLoveThisYearStoryBeat(blueprint.id, analysis, context, ragTopics, birth))
       : undefined
-    const interpretation = isLoveThisYear
+    const interpretation = isLoveThisYear && unknownTime
+      ? normalizeUserCopy([`출생 시간을 모르므로 ${blueprint.category}의 개인 시기·도화·배우자성 세부 결론은 보류합니다.`, context.concern ? `말씀하신 고민은 “${context.concern}”입니다.` : '현재 관계의 구체적 상황은 아직 확인되지 않았습니다.', '임시 시각을 포함한 분석을 개인의 확정된 성향이나 만남 예측으로 사용하지 않습니다. 연락 의사·약속 이행·실제 만남 여건처럼 확인 가능한 조건을 먼저 살펴보세요.', '[다음 선택] 다음에는 서로 가능한 일정과 관계에서 원하는 조건을 확인해 보세요.'].join('\n\n'))
+      : isLoveThisYear
       ? normalizeUserCopy(buildInterpretation(blueprint.focus, analysis, context, ragTopics, blueprint.id, birth))
       : standardReading(blueprint.id, blueprint.category, analysis, context)
 
@@ -2001,8 +2006,8 @@ export function buildTemplateSajuReport(
       imageAlt: isSajuMaster && sajuMasterReviewImage(index) ? `${blueprint.category} 풀이 이미지` : `${blueprint.category} 공통 이미지`,
       category: blueprint.category,
       categoryEn: blueprint.categoryEn,
-      classification: blueprint.classification ?? classificationFor(blueprint.focus, analysis, context, blueprint.id),
-      hook: isLoveThisYear ? hookFor(blueprint.focus, analysis, context, blueprint.id) : interpretation.split(/\n\s*\n/)[0].replace(/^\[[^\]]+\]\s*/, '').split(/(?<=[.!?])\s/)[0],
+      classification: unknownTime ? (blueprint.classification ?? `${blueprint.category} · 출생 시간 미상: 실제 조건 확인`) : blueprint.classification ?? classificationFor(blueprint.focus, analysis, context, blueprint.id),
+      hook: isLoveThisYear && !unknownTime ? hookFor(blueprint.focus, analysis, context, blueprint.id) : interpretation.split(/\n\s*\n/)[0].replace(/^\[[^\]]+\]\s*/, '').split(/(?<=[.!?])\s/)[0],
       patternKeys: keys,
       ragTopics,
       interpretation,
@@ -2020,7 +2025,7 @@ export function buildTemplateSajuReport(
           : isPassAngle
             ? `${name}님의 합격각 리포트`
             : `${name}님의 사주 리포트`,
-    subtitle: isLoveThisYear
+    subtitle: unknownTime ? '출생 시간 미상으로 시각에 따라 달라지는 개인 결론은 보류하고, 확인 가능한 입력과 실제 조건을 중심으로 읽습니다.' : isLoveThisYear
       ? '도화, 세운, 배우자성의 신호로 올해 연애 가능성과 놓치기 쉬운 타이밍을 봅니다.'
       : isHomeFitContext(context)
         ? '현관, 침실, 책상, 창밖 체감과 사주 오행 리듬을 겹쳐 지금 집의 핏을 봅니다.'
@@ -2176,7 +2181,6 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
       pillars: { year: features.calculation.pillars.year, month: features.calculation.pillars.month, day: features.calculation.pillars.day },
       dayMaster: features.calculation.dayMaster,
       dayMasterElement: features.calculation.dayMasterElement,
-      dayMasterForce: strengthMeaning(features.calculation.dayMasterStrength),
     },
     timing: features.timing ? { currentYear: features.timing.currentYear, yearPillar: features.timing.yearPillar } : undefined,
     uncertainty: '출생 시각 미상: 임시 시각 기반 시주·전체 오행 분포·강약·용신·정밀 운 시작 시점을 제외했습니다. 초안이나 참고 자료에 남아 있어도 확정값으로 사용하지 마세요.',
@@ -2261,7 +2265,7 @@ export function sectionPrompt(
     : context
   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(context)}`,
-    analysis, runtimeConfig.report?.ragTopK ?? 4, context, corpusSnapshot,
+    analysis, runtimeConfig.report?.ragTopK ?? 4, context, corpusSnapshot, context.birthTimeKnown,
   )
   return [
     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
@@ -2290,8 +2294,12 @@ export function sectionPrompt(
           ? { fixedVerdict: { statement: verdict.statement, rankedChoices: verdict.rankedChoices ?? [] } }
           : {}),
       },
-      section: { id: section.id, order: section.order, category: section.category, classification: section.classification },
-      otherSections: compactPromptSiblings(siblings),
+      section: { id: section.id, order: section.order, category: section.category, classification: context.birthTimeKnown === false ? `${section.category} · 출생 시간 미상: 실제 조건 확인` : section.classification },
+      // Previously saved drafts may still contain provisional-hour conclusions.
+      // Keep their identity/coverage, not unverified personal evidence.
+      otherSections: context.birthTimeKnown === false
+        ? siblings.filter(item => item.status === 'complete').map(item => ({ id: item.id, question: item.category }))
+        : compactPromptSiblings(siblings),
     }) },
   ]
 }

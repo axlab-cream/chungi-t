@@ -93,7 +93,7 @@
     const birth = profile?.birth || {};
     const gender = birth.gender === 'female' ? 'female' : birth.gender === 'male' ? 'male' : '';
     const calendar = birth.calendar === 'lunar' ? 'lunar' : 'solar';
-    const birthTimeKnown = profile?.birthTimeKnown !== false && Number.isFinite(Number(birth.hour));
+    const birthTimeKnown = profile?.birthTimeKnown !== false && Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 && (birth.minute == null || (Number.isInteger(birth.minute) && birth.minute >= 0 && birth.minute <= 59));
     const complete = Boolean(profile?.name && birth.year && birth.month && birth.day && gender);
     if (!complete) return { complete: false, profile: null, label: '' };
     const normalized = {
@@ -103,8 +103,7 @@
         year: Number(birth.year),
         month: Number(birth.month),
         day: Number(birth.day),
-        hour: birthTimeKnown ? Number(birth.hour) : 12,
-        minute: Number(birth.minute || 0),
+        ...(birthTimeKnown ? { hour: birth.hour, minute: birth.minute || 0 } : {}),
         gender,
         calendar,
       },
@@ -124,8 +123,9 @@
     const genderRaw = form.querySelector('#gender')?.value || '';
     if (!name || !birthRaw) return null;
     const [year, month, day] = birthRaw.split('-').map(Number);
+    const birthTimeKnown = form.querySelector('#birthTimeUnknown')?.checked !== true;
+    if (birthTimeKnown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(timeRaw || '')) return null;
     const [hour, minute] = (timeRaw || '').split(':').map(Number);
-    const birthTimeKnown = Number.isFinite(hour);
     const profile = {
       name,
       birthTimeKnown,
@@ -133,8 +133,7 @@
         year,
         month,
         day,
-        hour: birthTimeKnown ? hour : 12,
-        minute: Number.isFinite(minute) ? minute : 0,
+        ...(birthTimeKnown ? { hour, minute } : {}),
         gender: genderRaw.includes('여') ? 'female' : 'male',
         calendar: 'solar',
       },
@@ -152,7 +151,7 @@
     const saved = readSavedProfile();
 
     form.addEventListener('submit', () => {
-      if (!saved.complete) saveProfileFromForm(form);
+      if (!saved.complete || !form.querySelector('.saved-profile')) saveProfileFromForm(form);
     });
 
     if (!saved.complete) return;
@@ -182,7 +181,12 @@
       const birthInput = form.querySelector('#birth');
       if (birthInput) birthInput.value = `${birth.year}-${pad2(birth.month)}-${pad2(birth.day)}`;
       const timeInput = form.querySelector('#time');
-      if (timeInput && saved.profile.birthTimeKnown) timeInput.value = `${pad2(birth.hour)}:${pad2(birth.minute)}`;
+      if (timeInput) {
+        timeInput.value = saved.profile.birthTimeKnown ? `${pad2(birth.hour)}:${pad2(birth.minute)}` : '';
+        timeInput.disabled = !saved.profile.birthTimeKnown;
+      }
+      const unknown = form.querySelector('#birthTimeUnknown');
+      if (unknown) unknown.checked = !saved.profile.birthTimeKnown;
       const genderSelect = form.querySelector('#gender');
       if (genderSelect) genderSelect.value = birth.gender === 'female' ? '여성' : '남성';
     });

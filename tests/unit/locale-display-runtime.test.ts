@@ -67,5 +67,5 @@ for (const locale of ['en','ja']) test(`${locale} preformatted product prices lo
 
 test('customer pages request the bumped runtime version rather than the cached billing-suffix script',()=>{
  const server=fs.readFileSync(new URL('../../src/server/localized-pages.ts',import.meta.url),'utf8')
- assert.ok(server.includes('/js/locale-runtime.js?v=20261013-price-copy1'))
+ assert.ok(server.includes('/js/locale-runtime.js?v=20261013-ui-align1'))
 })

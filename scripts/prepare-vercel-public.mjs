@@ -98,6 +98,7 @@ function writeMediaCatalog() {
 rmSync(publicRoot, { recursive: true, force: true })
 mkdirSync(publicRoot, { recursive: true })
 writeFileSync(join(publicRoot, 'google21bc8e3161f818eb.html'), 'google-site-verification: google21bc8e3161f818eb.html')
+writeFileSync(join(publicRoot, 'naverb22315db6c144ba92f2938d80f3b16b6.html'), 'naver-site-verification: naverb22315db6c144ba92f2938d80f3b16b6.html')
 rmSync(join(root, '.vercel-runtime'), { recursive: true, force: true })
 copySelectedFiles(sajuRoot, runtimeSajuRoot, ['.html', '.css', '.js', '.mjs', '.json', '.txt', '.xml'])
 

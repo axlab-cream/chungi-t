@@ -74,7 +74,7 @@ export function toSavedChatResult(record: ReportRecord): SavedChatResult {
   return {
     reply: record.status === 'complete' && section.status === 'complete' ? section.interpretation : '',
     intent: metadata.intent,
-    sajuSummary: record.analysis?.summary ?? '',
+    sajuSummary: record.context.birthTimeKnown === false ? '' : record.analysis?.summary ?? '',
     reportId: record.reportId, resultId, publicUrl: `/r/${encodeURIComponent(resultId)}`,
     status: record.status,
     ...(record.status === 'failed' ? { error: '상담 답변의 생성 또는 저장이 끝나지 않았습니다. 같은 결과에서 다시 시도할 수 있습니다.' } : {}),

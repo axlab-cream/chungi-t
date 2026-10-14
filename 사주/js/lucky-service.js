@@ -152,7 +152,7 @@
     if (!birth) return '';
     const date = `${birth.year}년 ${birth.month}월 ${birth.day}일`;
     const calendar = birth.calendar === 'lunar' ? '음력' : '양력';
-    const time = Number.isFinite(birth.hour) ? `${String(birth.hour).padStart(2, '0')}시` : BIRTH_TIME_UNKNOWN;
+    const time = profile.birthTimeKnown !== false && Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 && (birth.minute == null || (Number.isInteger(birth.minute) && birth.minute >= 0 && birth.minute <= 59)) ? `${String(birth.hour).padStart(2, '0')}시` : BIRTH_TIME_UNKNOWN;
     return `${calendar} ${date} · ${time}`;
   }
 
@@ -171,7 +171,7 @@
 
     // Whichever way this ends, step 04 should know the visitor came through here.
     form.addEventListener('submit', () => {
-      writeJson('sessionStorage', STORAGE.draft, { service_key: 'lucky_color', at: Date.now() });
+      writeJson('sessionStorage', STORAGE.draft, { service_key: 'lucky_color', birthTimeKnown: form.querySelector('#birthTimeUnknown')?.checked !== true, at: Date.now() });
     });
 
     const session = await initAuth();
@@ -188,7 +188,12 @@
     const birth = profile.birth;
     if (!form.name.value && profile.name) form.name.value = profile.name;
     if (!form.birth.value) form.birth.value = `${birth.year}-${pad(birth.month)}-${pad(birth.day)}`;
-    if (!form.time.value && Number.isFinite(birth.hour)) {
+    const unknown = form.querySelector('#birthTimeUnknown');
+    if (profile.birthTimeKnown === false || !(Number.isInteger(birth.hour) && birth.hour >= 0 && birth.hour <= 23 && (birth.minute == null || (Number.isInteger(birth.minute) && birth.minute >= 0 && birth.minute <= 59)))) {
+      form.time.value = '';
+      form.time.disabled = true;
+      if (unknown) unknown.checked = true;
+    } else if (!form.time.value && unknown?.checked !== true) {
       form.time.value = `${pad(birth.hour)}:${pad(birth.minute || 0)}`;
     }
     if (!form.calendar.value) form.calendar.value = birth.calendar === 'lunar' ? 'lunar' : 'solar';

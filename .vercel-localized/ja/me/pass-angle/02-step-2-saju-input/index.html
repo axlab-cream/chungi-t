@@ -61,7 +61,7 @@
           <div class="field"><label for="name">名前または呼び名</label><input id="name" autocomplete="name" placeholder="例: ミンジ"></div>
           <div class="grid">
             <div class="field"><label for="birth">生年月日</label><input id="birth" type="date"></div>
-            <div class="field"><label for="time">生まれた時刻</label><input id="time" type="time"></div>
+            <div class="field"><label for="time">生まれた時刻</label><input id="time" type="time"><label class="birth-time-unknown" style="display:flex;align-items:center;gap:8px;min-height:44px"><input id="birthTimeUnknown" type="checkbox" style="width:20px;height:20px;min-height:20px;padding:0">出生時刻はわからない</label><small>任意です。不明なら「出生時刻はわからない」を選んでください。推測で入力する必要はありません。わかる場合は、時刻に基づく詳しい項目も見られます。不明な場合、その項目は省きます。</small></div>
           </div>
           <div class="field"><label for="gender">性別</label><select id="gender"><option>未選択</option><option>女性</option><option>男性</option><option>その他・非公開</option></select></div>
           <button class="button" type="submit">合格の可能性を続けて見る</button>
@@ -75,7 +75,7 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1" defer=""></script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/pass-angle-service.js?v=20260928-funnel-gate" defer=""></script>
+<script src="/js/pass-angle-service.js?v=20261014-unknown-time" defer=""></script>
 
 
-</body></html>
+<script>(()=>{const time=document.getElementById('time'),unknown=document.getElementById('birthTimeUnknown');unknown.addEventListener('change',()=>{time.disabled=unknown.checked;if(unknown.checked)time.value='';});time.form.addEventListener('submit',(event)=>{if(!unknown.checked&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time.value)){event.preventDefault();event.stopImmediatePropagation();time.setCustomValidity("正しい時刻（時:分）を入力するか「出生時刻はわからない」を選んでください。");time.reportValidity();}else time.setCustomValidity('');},true);time.addEventListener('input',()=>time.setCustomValidity(''));})();</script></body></html>

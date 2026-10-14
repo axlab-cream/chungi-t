@@ -25,7 +25,7 @@
     <meta name="description" content="Without asking again for the saved Four Pillars profile, add only the selected company and offer conditions to prepare a workplace-fit reading.">
     <link rel="stylesheet" href="/css/umsh-chrome.css">
     <link rel="stylesheet" href="../shared/job-choice.css"><link rel="stylesheet" href="/css/umsh-field.css?v=20260916-ymd3">
-    <script src="../shared/job-choice-data.js?v=20261008-three-voice-v1"></script>
+    <script src="../shared/job-choice-input.js?v=20261014-unknown-time"></script>
   </head>
   <body class="umsh-fields">
     <main class="phone" data-umsh-chrome="" data-service="Choosing a job" data-price="9,900 KRW" data-active="home" id="step-2-saju-input" aria-label="Enter the workplace-choice reading">
@@ -87,10 +87,12 @@
                 Birth date
                 <input name="birthDate" type="date">
               </label>
-              <label>
-                Birth hour
-                <input name="birthTime" type="time">
-              </label>
+              <div style="display:grid;gap:8px">
+                <label for="jobBirthTime">Birth time · optional</label>
+                <input id="jobBirthTime" name="birthTime" type="time" aria-describedby="job-birth-time-help">
+                <label style="display:flex;flex-direction:row;align-items:center;gap:8px"><input name="birthTimeUnknown" type="checkbox" style="width:auto;min-height:0;flex:0 0 auto">I don’t know my birth time</label>
+                <p id="job-birth-time-help" style="font-size:13px;line-height:1.7">If you do not know, choose unknown. You do not need to guess. A known time adds time-dependent details. A Zi Wei chart requires a known birth time.</p>
+              </div>
             </div>
             <div class="field-grid two">
               <label>
@@ -170,7 +172,7 @@
     <script type="application/json" id="INTERPRETATION_INDEX">[]</script>
 
     <script type="application/json" id="IMAGE_MANIFEST">[]</script>
-    <script src="/js/jobchoice-report-store.js"></script>
+
     <script>
       const form = document.getElementById("jobChoiceForm");
       const profileFields = document.getElementById("profileFields");
@@ -178,7 +180,11 @@
       const toggleProfile = document.getElementById("toggleProfile");
       const formError = document.getElementById("formError");
       const stored = JobChoice.loadStoredProfile();
-      let useStoredProfile = stored.complete;
+      const birthTimeUnknown = form.elements.birthTimeUnknown;
+      const syncBirthTime = () => { form.elements.birthTime.disabled = birthTimeUnknown.checked; if (birthTimeUnknown.checked) form.elements.birthTime.value = ""; };
+      birthTimeUnknown.addEventListener("change", syncBirthTime);
+      let accountProfileVerified = false;
+      let useStoredProfile = false;
 
       JobChoice.hydrateContracts("02-step-2-saju-input", [
         { item: "Prevent duplicate saved-profile entry", status: "pass", detail: "A complete Four Pillars profile collapses basic input." },
@@ -187,26 +193,44 @@
       ]);
 
       function fillProfile(profile) {
+        birthTimeUnknown.checked = profile.birthTimeKnown === false;
         for (const [key, value] of Object.entries(profile)) {
           const field = form.elements[key];
           if (field && value) field.value = value;
         }
+        syncBirthTime();
       }
 
+      window.addEventListener("umsh-jobchoice-account-profile", (event) => {
+        if (!event.detail?.profile) return;
+        stored.profile = JobChoice.normalizeProfile(event.detail.profile);
+        stored.complete = JobChoice.isProfileComplete(stored.profile);
+        accountProfileVerified = true;
+        useStoredProfile = stored.complete;
+        fillProfile(stored.profile);
+        renderProfileState();
+      });
+
       function renderProfileState() {
+        if (!profileStatus.querySelector("[data-profile-source-note]")) profileStatus.insertAdjacentHTML?.("beforeend", "<p data-profile-source-note>This reading uses the birth details saved in your account. To change them, edit and save your birth profile first. <a href=\"/en/cmdg/#birth\">Set up or edit birth details</a></p>");
+        if (!accountProfileVerified) {
+          profileFields.classList.add("is-hidden");
+          profileStatus.querySelector("strong").textContent = "Save your account birth profile first. You can choose unknown birth time in that flow.";
+          profileStatus.querySelector("span").textContent = "This reading uses the birth details saved in your account. To change them, edit and save your birth profile first.";
+          toggleProfile.textContent = "Set up or edit birth details";
+          return;
+        }
         if (stored.complete && useStoredProfile) {
           profileFields.classList.add("is-hidden");
           profileStatus.querySelector("strong").textContent = "We will continue with your saved chart profile.";
           profileStatus.querySelector("span").textContent = JobChoice.profileLabel(stored.profile);
-          toggleProfile.textContent = "Use new chart details";
+          toggleProfile.textContent = "Set up or edit birth details";
           return;
         }
         profileFields.classList.remove("is-hidden");
         profileStatus.querySelector("strong").textContent = stored.complete ? "Switched to new Four Pillars input." : "Start by entering the basic details needed to calculate your chart.";
-        profileStatus.querySelector("span").textContent = stored.complete
-          ? "The inputs below are your personal basis for this reading."
-          : "There’s no existing profile, or the birth date or time is missing.";
-        toggleProfile.textContent = stored.complete ? "Use saved profile" : "Keep input fields";
+        profileStatus.querySelector("span").textContent = "This reading uses the birth details saved in your account. To change them, edit and save your birth profile first.";
+        toggleProfile.textContent = "Set up or edit birth details";
       }
 
       function readProfileFromForm() {
@@ -215,6 +239,7 @@
           gender: form.elements.gender.value,
           birthDate: form.elements.birthDate.value,
           birthTime: form.elements.birthTime.value,
+          birthTimeKnown: !birthTimeUnknown.checked,
           calendarType: form.elements.calendarType.value,
           birthPlace: form.elements.birthPlace.value.trim(),
         });
@@ -242,21 +267,16 @@
         formError.classList.remove("is-visible");
       }
 
-      fillProfile(stored.profile);
       renderProfileState();
 
-      toggleProfile.addEventListener("click", () => {
-        if (!stored.complete) return;
-        useStoredProfile = !useStoredProfile;
-        if (useStoredProfile) fillProfile(stored.profile);
-        renderProfileState();
-      });
+      toggleProfile.addEventListener("click", () => { window.location.href = "/en/cmdg/#birth"; });
 
       form.addEventListener("submit", (event) => {
         event.preventDefault();
         clearError();
+        if (!accountProfileVerified || !useStoredProfile || !stored.complete) { showError("Save your account birth profile first. You can choose unknown birth time in that flow."); return; }
 
-        const profile = useStoredProfile && stored.complete ? stored.profile : readProfileFromForm();
+        const profile = stored.profile;
         if (!JobChoice.isProfileComplete(profile)) {
           showError("Check your calculation name or form of address, birth date, birth time, and solar/lunar calendar.");
           profileFields.classList.remove("is-hidden");
@@ -269,11 +289,12 @@
           return;
         }
 
-        JobChoice.saveJobInput({
+        const savedInput = JobChoice.saveJobInput({
           profileSource: useStoredProfile && stored.complete ? "stored_profile" : "new_profile",
           profile,
           offer,
         });
+        if (!savedInput) { showError("I could not keep these inputs in this browser. Allow session storage and try again."); return; }
         window.location.href = "../04-step-4-report/index.html#step-4-report";
       });
 
@@ -290,7 +311,7 @@
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
     <script src="/js/umsh-chrome.js?v=20261008-three-voice-v1"></script>
-    <script src="/js/jobchoice-service.js?v=20261008-three-voice-v1" defer=""></script>
+    <script src="/js/jobchoice-service.js?v=20261014-unknown-time" defer=""></script>
 
 
 </body></html>

@@ -61,7 +61,7 @@
           <div class="field"><label for="name">이름 또는 닉네임</label><input id="name" autocomplete="name" placeholder="예: 민지"></div>
           <div class="grid">
             <div class="field"><label for="birth">생년월일</label><input id="birth" type="date"></div>
-            <div class="field"><label for="time">태어난 시간</label><input id="time" type="time"></div>
+            <div class="field"><label for="time">태어난 시간</label><input id="time" type="time"><label class="birth-time-unknown" style="display:flex;align-items:center;gap:8px;min-height:44px"><input id="birthTimeUnknown" type="checkbox" style="width:20px;height:20px;min-height:20px;padding:0">시간 모름</label><small>선택 입력이에요. 모르면 시간 모름을 선택해 주세요. 추측해서 입력하지 않아도 됩니다. 알고 있으면 시각에 따라 달라지는 세부 항목도 볼 수 있어요. 모르면 해당 항목은 제외합니다.</small></div>
           </div>
           <div class="field"><label for="gender">성별</label><select id="gender"><option>선택 안 함</option><option>여성</option><option>남성</option><option>기타/비공개</option></select></div>
           <button class="button" type="submit">붙을 각 이어서 보기</button>
@@ -75,7 +75,7 @@
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-chrome.js?v=20260922c" defer=""></script>
     <script src="/js/umsh-text-clip.js"></script>
-<script src="/js/pass-angle-service.js?v=20260928-funnel-gate" defer=""></script>
+<script src="/js/pass-angle-service.js?v=20261014-unknown-time" defer=""></script>
   
 
-</body></html>
+<script>(()=>{const time=document.getElementById('time'),unknown=document.getElementById('birthTimeUnknown');unknown.addEventListener('change',()=>{time.disabled=unknown.checked;if(unknown.checked)time.value='';});time.form.addEventListener('submit',(event)=>{if(!unknown.checked&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time.value)){event.preventDefault();event.stopImmediatePropagation();time.setCustomValidity("시간을 시:분으로 입력하거나 시간 모름을 선택해 주세요.");time.reportValidity();}else time.setCustomValidity('');},true);time.addEventListener('input',()=>time.setCustomValidity(''));})();</script></body></html>

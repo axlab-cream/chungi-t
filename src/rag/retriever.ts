@@ -613,7 +613,15 @@ export function retrieveRagChunks(
   topK = 5,
   context?: SajuReportContext,
   corpusSnapshot?: CorpusSnapshot,
+  birthTimeKnown?: boolean,
 ): RagChunk[] {
+  const unknownTime = birthTimeKnown === false || context?.birthTimeKnown === false
+  // Unknown charts remain internally numeric; do not use any of that analysis
+  // (including the local vector index) to personalize candidate ranking.
+  if (context?.partner && unknownTime) {
+    const { mode, name, relationship, birthTimeKnown: partnerTimeKnown } = context.partner
+    context = { ...context, partner: { mode, name, relationship, birthTimeKnown: partnerTimeKnown } }
+  }
   const corpus = buildCorpusIndex(corpusSnapshot)
   const contextQuery = contextText(context)
   const queryText = [message, contextQuery].filter(Boolean).join(' ')
@@ -624,8 +632,8 @@ export function retrieveRagChunks(
     ...intentKeywords.flatMap(tokenize),
     ...contextTokens(context),
   ])
-  const personalTokens = sajuTokens(saju)
-  const gbrTokens = graphBoostTokens(queryTokens, saju, context)
+  const personalTokens = unknownTime ? [] : sajuTokens(saju)
+  const gbrTokens = unknownTime ? [] : graphBoostTokens(queryTokens, saju, context)
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
   const pinnedIds = pinnedContextChunkIds(context)
   const serviceDomain = context?.serviceKey
@@ -635,7 +643,7 @@ export function retrieveRagChunks(
   // The vector index represents the currently active registry. Keep its boost
   // for a newly stored current snapshot, but never let it rank an older pack.
   const usesCurrentVectorIndex = !corpusSnapshot || corpusSnapshot.fingerprint === getCorpusSnapshot().fingerprint
-  const vectorResults = usesCurrentVectorIndex ? retrieveVectorRagChunks(
+  const vectorResults = !unknownTime && usesCurrentVectorIndex ? retrieveVectorRagChunks(
       [...queryTokens, ...personalTokens].join(' '),
       saju,
       Math.max(topK * 3, topK),

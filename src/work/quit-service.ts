@@ -105,13 +105,14 @@ export function workQuitTeaserSection(
   analysis: SajuAnalysis | undefined,
   context: SajuReportContext,
 ): SajuReportSection {
-  const stories = quitTeaserStories(analysis, workQuitRequestFromContext(context))
+  const unknownTime = context.birthTimeKnown === false
+  const stories = quitTeaserStories(unknownTime ? undefined : analysis, workQuitRequestFromContext(context))
   const image = QUIT_TEASER_IMAGES[index]
   const storedStory = section.storytelling
   return {
     ...section,
     ...(image ? { imageKey: image.key, imageSrc: image.src, imageAlt: image.alt } : {}),
-    storytelling: {
+    storytelling: unknownTime ? { ...stories[index], chartCaption: '', chartPoints: undefined } : {
       ...stories[index],
       ...(storedStory ?? {}),
       ...(storedStory?.tableMd ? {} : { tableMd: stories[index]?.tableMd, tableCaption: stories[index]?.tableCaption }),
@@ -258,6 +259,7 @@ function buildInterpretation(params: {
   birth: BirthInput
   input: WorkQuitRequest
   chunks: RagChunk[]
+  birthTimeKnown?: boolean
   index: number
 }): string {
   const { groupId, itemTitle, analysis, input } = params
@@ -271,7 +273,7 @@ function buildInterpretation(params: {
       : `${quotedInput('퇴사를 검토하는 이유', input.reason)} ${quotedInput('추가로 적은 상황', input.concern)}`
   return practicalReading({
     title: itemTitle, detail: reading, current,
-    evidence: workSymbol(analysis, groupId === 'money' ? 'money' : groupId === 'mental-people' ? 'people' : groupId === 'next-career' ? 'learning' : 'role'),
+    evidence: workSymbol(analysis, groupId === 'money' ? 'money' : groupId === 'mental-people' ? 'people' : groupId === 'next-career' ? 'learning' : 'role', params.birthTimeKnown),
     application: state === 'settled'
       ? '현재 만족하거나 소진·갈등이 없다는 진술을 우선해요. 숨겨진 억눌림을 있다고 해석하지 않으며, 이 항목의 어려움이 실제로 없다면 유지할 조건을 확인하는 용도로 읽으면 돼요.'
       : state === 'concern'
@@ -299,7 +301,8 @@ export function buildWorkQuitReport(
   const chunks = retrieveRagChunks(query, analysis, 10, context)
   const categoryRagCache = new Map<string, RagChunk[]>()
   const sections: SajuReportSection[] = []
-  const teaserStories = quitTeaserStories(analysis, input)
+  const teaserStories = quitTeaserStories(context.birthTimeKnown === false ? undefined : analysis, input)
+  if (context.birthTimeKnown === false) teaserStories.forEach(story => { story.chartCaption = '' })
   let order = 1
 
   WORK_QUIT_TOC.forEach((category) => {
@@ -333,6 +336,7 @@ export function buildWorkQuitReport(
           birth,
           input,
           chunks: categoryChunks,
+          birthTimeKnown: context.birthTimeKnown,
           index: order + itemIndex,
         }),
         ...(teaserIndex >= 0 ? { storytelling: teaserStories[teaserIndex] } : {}),
@@ -347,7 +351,7 @@ export function buildWorkQuitReport(
   return finalizeSpecializedReport({
     reportId,
     title: '퇴사운 해석문',
-    subtitle: `${context.name ?? '본인'}님의 관성·식상·대운 흐름으로 퇴사 판단을 봅니다`,
+    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 퇴사 고민과 실제 준비 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·대운 흐름으로 퇴사 판단을 봅니다`,
     model: 'work-quit-rag-template',
     generatedBy: 'template',
     status: 'complete',
