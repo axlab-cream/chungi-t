@@ -6,7 +6,7 @@ class Element {
   children: Element[] = []
   attributes: Record<string, string> = {}
   handlers: Record<string, (event: unknown) => unknown> = {}
-  style = {}; dataset = {}; type = ''; id = ''; required = false; readOnly = false; max = ''; value: unknown = ''; name = ''; textContent = ''; disabled = false
+  style = {}; dataset = {}; type = ''; id = ''; required = false; readOnly = false; max = ''; value: unknown = ''; name = ''; textContent = ''; disabled = false; checked = false; defaultChecked = false; defaultValue = ''
   constructor(public tag: string) {}
   append(...children: Element[]) { this.children.push(...children) }
   appendChild(child: Element) { this.append(child); return child }
