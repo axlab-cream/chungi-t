@@ -116,10 +116,10 @@ describe('관리자 주문 조회 (T08)', { concurrency: false }, () => {
       assert.equal(payload.orders[0].tid, undefined)
     })
 
-    it('이메일 칸은 회원 계정 이메일이고, 결제창에 다른 이메일을 넣었는지만 따로 알려 준다', async () => {
+    it('이메일 칸은 회원 계정 이메일이고, 결제창에 입력한 이메일은 가린 값으로 따로 준다', async () => {
       const { payload } = await request('/api/admin/v1/orders', 'staff')
       assert.equal(payload.orders[0].ownerEmail, 'member@synthetic.invalid')
-      assert.equal(payload.orders[0].buyerEmailDiffers, true)
+      assert.equal(payload.orders[0].ownerProvider, null)
       assert.match(payload.orders[0].buyerEmailMasked, /^ho\*+@synthetic\.invalid$/)
     })
 

@@ -14,7 +14,7 @@ globalThis.fetch = (async (input: string | URL | Request) => {
   const id = url.pathname.split('/').pop() ?? ''
   authCalls.push(id)
   // A는 이메일이 있고, B는 인증 조회가 실패하고, C는 인증 계정이 없다.
-  if (id === MEMBER_A) return new Response(JSON.stringify({ id, email: 'hong@example.invalid' }), { status: 200 })
+  if (id === MEMBER_A) return new Response(JSON.stringify({ id, email: 'hong@example.invalid', app_metadata: { provider: 'kakao' } }), { status: 200 })
   if (id === MEMBER_B) return new Response('{}', { status: 500 })
   return new Response('{}', { status: 404 })
 }) as typeof fetch
@@ -24,9 +24,9 @@ const { memberContactsByIds } = await import('../../src/admin/live-data.js')
 test('고객 지원 목록용 회원 조회는 이름·이메일을 붙이고, 한 명이 실패해도 나머지는 돌려준다', async () => {
   const contacts = await memberContactsByIds([MEMBER_A, MEMBER_A.toUpperCase(), MEMBER_B, MEMBER_C, 'guest', ''])
   assert.deepEqual(authCalls.sort(), [MEMBER_A, MEMBER_B, MEMBER_C].sort())
-  assert.deepEqual(contacts.get(MEMBER_A), { name: '홍길동', email: 'hong@example.invalid' })
-  assert.deepEqual(contacts.get(MEMBER_B), { name: '김영희', email: null })
-  assert.deepEqual(contacts.get(MEMBER_C), { name: null, email: null })
+  assert.deepEqual(contacts.get(MEMBER_A), { name: '홍길동', email: 'hong@example.invalid', signupProvider: 'kakao' })
+  assert.deepEqual(contacts.get(MEMBER_B), { name: '김영희', email: null, signupProvider: null })
+  assert.deepEqual(contacts.get(MEMBER_C), { name: null, email: null, signupProvider: null })
   assert.equal(contacts.size, 3)
 })
 
