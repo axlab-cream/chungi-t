@@ -39,7 +39,7 @@ test('홈 카드·상세 가격은 결제 카탈로그와 같다', () => {
     /전체 풀이 9,900원/,
   )
 
-  assert.match(portal, new RegExp(`SIGNATURE · 종합사주[\\s\\S]{0,500}${won(catalog.cmdg)}`))
+  assert.match(portal, new RegExp(`대표 · 종합사주[\\s\\S]{0,500}${won(catalog.cmdg)}`))
   const cmdgPage = readFileSync(join(SAJU, '사주', 'index.html'), 'utf8')
   assert.match(cmdgPage, new RegExp(won(catalog.cmdg)))
   assert.doesNotMatch(cmdgPage, /49,800원/)

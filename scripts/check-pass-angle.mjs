@@ -33,7 +33,8 @@ const CONTRACTS = [
   ['src/report/report-generator.ts', 'buildPassAngleInterpretation(sectionId', '해석 디스패치'],
   ['src/report/report-generator.ts', 'isPassAngleContext(context)', '서비스 문맥 분기'],
   ['사주/js/pass-angle-service.js', "serviceKey: SERVICE.service_key", '프론트 리포트 호출'],
-  ['사주/portal.html', '지금 열린 운명', '포털 신규 섹션'],
+  // 2026-10-14 홈 개편으로 섹션 제목이 '지금 열린 운명' → '인연과 악연 사이'로 바뀌었다.
+  ['사주/portal.html', '인연과 악연 사이', '포털 신규 섹션'],
 ]
 
 const PAGES = [

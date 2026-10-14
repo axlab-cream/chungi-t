@@ -91,7 +91,7 @@
     <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
     <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="stylesheet" href="/css/portal.css?v=20261012-appbar-pad" />
+    <link rel="stylesheet" href="/css/portal.css?v=20261014-home-ui" />
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
@@ -115,6 +115,13 @@
           <a class="app-brand" href="/" aria-label="운명상회 홈">
             <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
           </a>
+          <div class="appbar-actions">
+            <a class="appbar-icon" href="/search" aria-label="검색">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 20 20" /></svg>
+            </a>
+            <!-- 로그인하면 portal.js가 이 링크를 내 정보 아이콘(/my)으로 바꾼다. -->
+            <a class="appbar-login" href="/signup?entry=signup&amp;returnTo=%2F#login" data-appbar-account>로그인</a>
+          </div>
         </header>
 
         <nav class="category-rail" aria-label="상품 분류">
@@ -131,22 +138,6 @@
         </nav>
 
         <div class="phone-scroll">
-          <a class="today-ticket service-card is-live" href="/today/free" data-category="흐름" aria-label="오늘 나한테 들어오는 운 보기">
-            <div>
-              <span>TODAY · 무료</span>
-              <strong>오늘 나한테 들어오는 운</strong>
-              <p>일진 · 일운 · 피해야 할 선택</p>
-            </div>
-            <span class="today-cta">보기</span>
-          </a>
-
-          <section class="home-hero" style="--home-hero-image:url('/assets/umsh-share-scene-bg.webp')">
-            <p class="eyebrow">FORTUNE SHOP</p>
-            <h1>오늘, 어떤 운을<br />골라볼까요?</h1>
-            <p>사주부터 관계, 돈, 사랑, 일까지. 지금 궁금한 운을 한 칸씩 꺼내보세요.</p>
-            <p>정해진 문구가 아닌, 만세력·자미두수·명리학 3가지 데이터를 병합 분석해 완성하는 운명상회만의 사주 해석입니다.</p>
-          </section>
-
           <section class="poster-rail" id="services" aria-label="대표 상품">
             <a class="poster service-card is-cmdg" href="/cmdg/" data-category="종합" data-glyph="命">
               <video
@@ -161,7 +152,7 @@
                 tabindex="-1"
               ></video>
               <span class="poster-shade"></span>
-              <span class="badge">SIGNATURE · 종합사주</span>
+              <span class="badge">대표 · 종합사주</span>
               <strong>천명사주</strong>
               <em>내 인생, 원래 이런 팔자야?</em>
               <span class="scope-line">기질 · 돈 · 일 · 관계 · 큰 흐름</span>
@@ -178,7 +169,7 @@
                 aria-hidden="true"
               />
               <span class="poster-shade"></span>
-              <span class="badge">LOVE · 연애운</span>
+              <span class="badge">연애운</span>
               <strong>나, 올해<br />연애 가능?</strong>
               <em>도화가 들어오는 달과 놓치는 타이밍</em>
               <span class="price-line"><b>12,900원</b><span>보기</span></span>
@@ -197,7 +188,7 @@
                 tabindex="-1"
               ></video>
               <span class="poster-shade"></span>
-              <span class="badge">CAREER · 자미두수</span>
+              <span class="badge">직장 · 자미두수</span>
               <strong>내가 선택한<br />직장 괜찮을까?</strong>
               <em>관록·재백궁으로 보는 이 회사와 나의 결</em>
               <span class="price-line"><b>9,900원</b><span>보기</span></span>
@@ -217,10 +208,18 @@
 
           <nav class="poster-dots" id="posterDots" aria-label="대표 상품 배너 위치"></nav>
 
+          <a class="today-ticket service-card is-live" href="/today/free" data-category="흐름" aria-label="오늘 네게 들어오는 운 보기">
+            <div>
+              <span>무료</span>
+              <strong>오늘 네게 들어오는 운</strong>
+              <p>일진 · 일운 · 오늘 피해야 할 선택</p>
+            </div>
+            <span class="today-cta">보기</span>
+          </a>
+
           <section class="section-block weekly-free" aria-labelledby="weekly-free-title">
             <div class="section-title">
-              <span>THIS WEEK</span>
-              <h2 id="weekly-free-title">이번 주, 나를 알아보는 시간</h2>
+              <h2 id="weekly-free-title">너도 몰랐던 너의 진짜 얼굴</h2>
             </div>
             <div class="consultation-rail" role="region" aria-roledescription="캐러셀" aria-label="이번 주 테스트와 천명상담">
               <div class="consultation-rail-slides">
@@ -251,8 +250,7 @@
 
           <section class="section-block">
             <div class="section-title">
-              <span>RELEASED NOW</span>
-              <h2>지금 열린 운명</h2>
+              <h2>인연과 악연 사이</h2>
             </div>
 
             <div class="coming-rail">
@@ -305,7 +303,7 @@
               -->
             </div>
 
-            <a class="match-banner service-card is-live" href="/match/couple" data-category="궁합" data-glyph="緣" aria-label="MATCH · 대표 궁합 우리 둘, 진짜 잘 맞아? 명리궁합 · 오행 · 일지 19,900원 · 보러 가기">
+            <a class="match-banner service-card is-live" href="/match/couple" data-category="궁합" data-glyph="緣" aria-label="대표 궁합 우리 둘, 진짜 잘 맞아? 명리궁합 · 오행 · 일지 19,900원 · 보러 가기">
               <span class="match-banner-visual has-image" aria-hidden="true">
                 <video
                   poster="/assets/umsh-match-banner-visual.png"
@@ -318,7 +316,7 @@
                 ></video>
               </span>
               <span class="match-banner-copy">
-                <small>MATCH · 대표 궁합</small>
+                <small>대표 궁합</small>
                 <strong>우리 둘,<br />진짜 잘 맞아?</strong>
                 <span>끌림, 갈등, 오래 가는 방식까지. 두 사람의 사주를 나란히 놓고 봅니다.</span>
                 <b>19,900원 · 보러 가기</b>
@@ -329,8 +327,7 @@
 
           <section class="section-block">
             <div class="section-title">
-              <span>MOST PICKED</span>
-              <h2>지금 제일 많이 고른 운명</h2>
+              <h2>이건 꼭 물어보고 가더라</h2>
             </div>
 
             <div class="product-grid">
@@ -452,19 +449,20 @@
 
         <footer class="bottom-nav" aria-label="주요 메뉴">
           <button class="is-active" type="button" data-bottom-menu="home" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5c3-.6 6.2-2.6 9.5-5.5 3.3 2.9 6.5 4.9 9.5 5.5" /><path d="M5 9v11h14V9" /><path d="M9.5 20v-5.5h5V20" /><path d="M8.5 11.5h7" /></svg>
             <span class="tab-label">홈</span>
           </button>
           <button type="button" data-bottom-menu="destiny" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v14.5H7.5A1.5 1.5 0 0 1 6 18Z" /><path d="M6 18a1.5 1.5 0 0 1 1.5-1.5h11" /><path d="M10 7.5h5M10 10.5h5" /><rect x="13" y="12.8" width="3" height="3" rx=".4" /></svg>
             <span class="tab-label">운명록</span>
           </button>
-          <button type="button" data-bottom-menu="search" aria-controls="bottomMenuPanel" aria-expanded="false">
-            <span class="tab-label">검색</span>
-          </button>
           <button type="button" data-bottom-menu="vault" aria-controls="bottomMenuPanel" aria-expanded="false">
+            <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h17V19a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1Z" /><path d="M4.5 9.5 6 5h12l1.5 4.5" /><path d="M10 13.5h4" /><path d="M12 9.5v-2" /></svg>
             <span class="tab-label">보관함</span>
           </button>
           <button type="button" data-bottom-menu="account" aria-controls="bottomMenuPanel" aria-expanded="false">
-            <span class="tab-label">MY</span>
+            <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" /></svg>
+            <span class="tab-label">내 정보</span>
           </button>
         </footer>
       </main>
@@ -472,6 +470,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261013-drag"></script>
+    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261014-home-ui"></script>
   </body>
 </html>
