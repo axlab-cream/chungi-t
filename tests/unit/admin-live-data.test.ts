@@ -269,7 +269,7 @@ describe('리포트 관리·AI 실패 현황 (2026-10 5단계)', { concurrency: 
     assert.doesNotMatch(call.url.searchParams.get('select') ?? '', /(^|,)payload(,|$)/, '리포트 본문 전체를 가져오면 안 된다')
     assert.equal(call.headers.get('prefer'), 'count=exact')
     assert.equal(result.total, 41)
-    assert.deepEqual(result.reports[0], { id: 'report-search-0001', subjectName: '홍길동', userId: MEMBER_A, memberEmail: 'm•••@example.com', orderId: 'order-paid-1', serviceKey: 'cmdg', serviceTitle: '천명사주', status: 'failed', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:05:00.000Z' })
+    assert.deepEqual(result.reports[0], { id: 'report-search-0001', subjectName: '홍길동', userId: MEMBER_A, accountType: 'member', memberEmail: 'm•••@example.com', orderId: 'order-paid-1', serviceKey: 'cmdg', serviceTitle: '천명사주', status: 'failed', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:05:00.000Z' })
   })
 
   it('모르는 상태 값은 필터로 쓰지 않고, 리포트 번호는 정확히 일치로도 찾는다', async () => {
@@ -304,5 +304,24 @@ describe('리포트 관리·AI 실패 현황 (2026-10 5단계)', { concurrency: 
     assert.deepEqual(stats.tokens, { prompt: 1200, completion: 800, total: 2000 })
     assert.equal(stats.byModel[0].model, 'm')
     assert.equal(stats.byModel[0].totalTokens, 2000)
+  })
+})
+
+describe('2026-10-14 회원/비회원 구분', { concurrency: false }, () => {
+  it('회원 목록 구분 필터는 비회원 표시(profile_payload.account_type)로 거르고, 고르지 않으면 둘 다 보인다', async () => {
+    for (const [kind, expected] of [['guest', 'eq.guest'], ['member', 'is.null'], [undefined, null]] as const) {
+      const before = requests.length
+      await liveData.searchLiveMembers({ kind })
+      const call = requests.slice(before).find((r) => r.url.pathname.endsWith('/cheongi_user_profiles') && r.url.searchParams.get('select')?.includes('accountType'))!
+      assert.equal(call.url.searchParams.get('profile_payload->>account_type'), expected, String(kind))
+    }
+  })
+
+  it('비회원 수는 비회원 표시가 있는 프로필만 센다', async () => {
+    const before = requests.length
+    await liveData.countGuestsCreated(new Date('2026-10-01T00:00:00.000Z'), new Date('2026-10-02T00:00:00.000Z'))
+    const call = requests.slice(before)[0]
+    assert.equal(call.url.searchParams.get('profile_payload->>account_type'), 'eq.guest')
+    assert.equal(call.headers.get('prefer'), 'count=exact')
   })
 })

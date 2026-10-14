@@ -555,7 +555,7 @@
     /* 대시보드(6단계) */
     .admin-dash-title { display: flex; align-items: center; gap: 8px; margin: 4px 0 10px; font-size: 15px; }
     .admin-dash-todo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px; }
-    .admin-dash-kpi-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+    .admin-dash-kpi-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
     .admin-dash-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--admin-line); border-radius: 8px; background: var(--admin-surface); color: var(--admin-text); text-decoration: none; transition: border-color .12s, box-shadow .12s; }
     .admin-dash-card:hover { border-color: var(--admin-focus); box-shadow: 0 2px 8px rgba(31, 79, 216, .08); }
     .admin-dash-card span { font-size: 13px; color: var(--admin-text-muted); font-weight: 600; }
@@ -1435,8 +1435,11 @@
        * 행마다 서버가 인증·주문을 한 번씩 더 조회하므로 한 화면은 최대 100명이다.
        * 행을 누르면 회원 상세 팝업: 기본 정보 · 결제 · 리포트 · 문의 · 쿠폰 · 앱 기기 탭을 /members/:id/overview 한 번으로 채운다.
        */
-      var memberListState = { offset: 0, limit: 20, q: '', paid: '', from: '', to: '', sort: 'recent' };
-      var MEMBER_PROVIDERS = { kakao: '카카오', google: '구글', email: '이메일', apple: '애플', naver: '네이버', 'custom:naver': '네이버' };
+      var memberListState = { offset: 0, limit: 20, q: '', paid: '', kind: '', from: '', to: '', sort: 'recent' };
+      // 2026-10-14 회원(SNS 로그인) / 비회원(사주만 입력한 익명 계정). docs/auth/guest-member-plan.md
+      var MEMBER_KINDS = { member: '회원', guest: '비회원' };
+      function memberKindChip(kind) { return kind === 'guest' ? memberChip('비회원', 'warn') : memberChip('회원'); }
+      var MEMBER_PROVIDERS = { kakao: '카카오', google: '구글', email: '이메일', apple: '애플', naver: '네이버', 'custom:naver': '네이버', anonymous: '비회원(SNS 미연결)' };
       function memberDay(value) {
         if (!value) return '—';
         var date = new Date(value); if (Number.isNaN(date.getTime())) return '—';
@@ -1459,11 +1462,19 @@
           button.addEventListener('click', function () { memberListState.paid = entry[0]; memberListState.offset = 0; refresh(); });
           seg.appendChild(button);
         });
+        var linkedKind = new URLSearchParams(window.location.search).get('kind');
+        if (linkedKind === 'member' || linkedKind === 'guest') memberListState.kind = linkedKind;
+        var kindSeg = document.createElement('div'); kindSeg.className = 'admin-seg'; kindSeg.setAttribute('role', 'group'); kindSeg.setAttribute('aria-label', '회원 구분');
+        [['', '전체'], ['member', '회원'], ['guest', '비회원']].forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.kind = entry[0]; button.textContent = entry[1];
+          button.addEventListener('click', function () { memberListState.kind = entry[0]; memberListState.offset = 0; refresh(); });
+          kindSeg.appendChild(button);
+        });
         var sort = document.createElement('select'); sort.setAttribute('aria-label', '정렬');
         [['recent', '최근 활동순'], ['joined', '최근 가입순'], ['joined_asc', '오래된 가입순'], ['name', '이름 가나다순'], ['name_desc', '이름 역순']].forEach(function (entry) { var option = document.createElement('option'); option.value = entry[0]; option.textContent = entry[1]; sort.appendChild(option); });
         sort.value = memberListState.sort;
         var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
-        filters.append(search, submit, seg, sort);
+        filters.append(search, submit, kindSeg, seg, sort);
         filters.addEventListener('submit', function (event) { event.preventDefault(); memberListState.q = search.value.trim(); memberListState.offset = 0; refresh(); });
         sort.addEventListener('change', function () { memberListState.sort = sort.value; memberListState.offset = 0; refresh(); });
         var section = document.createElement('section'); section.className = 'admin-section';
@@ -1473,6 +1484,7 @@
         adminPageAction('member-create', '＋ 회원 등록', null, { primary: true, onClick: function () { openMemberCreate(function () { memberListState.offset = 0; memberListState.sort = 'joined'; sort.value = 'joined'; refresh(); }); } });
         function refresh() {
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.paid === memberListState.paid ? 'true' : 'false'); });
+          kindSeg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.kind === memberListState.kind ? 'true' : 'false'); });
           return renderMembersPage(body, section);
         }
         await refresh();
@@ -1484,6 +1496,7 @@
         var params = new URLSearchParams({ limit: String(memberListState.limit), offset: String(memberListState.offset), sort: memberListState.sort });
         if (memberListState.q) params.set('q', memberListState.q);
         if (memberListState.paid) params.set('paid', memberListState.paid);
+        if (memberListState.kind) params.set('kind', memberListState.kind);
         adminRangeParams(params);
         section.setAttribute('aria-busy', 'true');
         try {
@@ -1494,15 +1507,16 @@
           var total = Number(payload.total || 0);
           // 서버가 거르고 나눈 페이지라 화면 쪽 정렬·페이지(enhanceTable)는 겹치지 않게 끈다.
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col">풀이·결제 알림</th><th scope="col">이벤트 알림</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">구분</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col">풀이·결제 알림</th><th scope="col">이벤트 알림</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!members.length) {
-            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="12">' + (memberListState.q || memberListState.paid || adminRange() ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="13">' + (memberListState.q || memberListState.paid || memberListState.kind || adminRange() ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
           }
           members.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             // 2026-10-07: 동명이인 구분용 회원 ID(로그인 계정 번호, 결제·리포트가 모두 이 번호로 묶인다). 앞 8자리만 보이고 복사는 전체.
             var nameCell = document.createElement('td'); nameCell.textContent = item.name || '—'; row.appendChild(nameCell);
+            var kindCell = document.createElement('td'); kindCell.appendChild(memberKindChip(item.accountType)); row.appendChild(kindCell);
             var idCell = document.createElement('td'); idCell.className = 'admin-mono'; idCell.title = item.id; idCell.appendChild(copyChip(item.id, String(item.id).slice(0, 8))); row.appendChild(idCell);
             var emailCell = document.createElement('td'); emailCell.textContent = item.email || '—'; row.appendChild(emailCell);
             var stateCell = document.createElement('td'); stateCell.appendChild(item.banned ? memberChip('정지', 'error') : memberChip('정상', 'ok')); row.appendChild(stateCell);
@@ -1790,7 +1804,7 @@
           var h1 = document.createElement('h4'); h1.textContent = '계정';
           var idChip = copyChip(member.userId, member.userId.slice(0, 8) + '…');
           left.append(h1, dlRows([
-            ['회원 번호', idChip], ['이메일', member.email || '—'], ['가입 경로', MEMBER_PROVIDERS[member.signupProvider] || member.signupProvider || '—'],
+            ['구분', memberKindChip(member.accountType)], ['회원 번호', idChip], ['이메일', member.email || '—'], ['가입 경로', MEMBER_PROVIDERS[member.signupProvider] || member.signupProvider || '—'],
             ['가입일', memberWhen(member.createdAt)], ['최근 로그인', memberWhen(member.lastSignInAt)],
             ['계정 상태', member.banned ? memberChip('정지됨', 'error') : memberChip('정상', 'ok')],
           ]));
@@ -1943,15 +1957,15 @@
           var reports = Array.isArray(payload.reports) ? payload.reports : [];
           var total = Number(payload.total || 0);
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr><th scope="col">만든 날</th><th scope="col">입력 이름</th><th scope="col">서비스</th><th scope="col">상태</th><th scope="col">회원 계정</th><th scope="col">최근 변경</th><th scope="col"></th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col">만든 날</th><th scope="col">입력 이름</th><th scope="col">서비스</th><th scope="col">상태</th><th scope="col">구분</th><th scope="col">회원 계정</th><th scope="col">최근 변경</th><th scope="col"></th></tr></thead>';
           var rows = document.createElement('tbody');
-          if (!reports.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="7">' + (reportListState.q || reportListState.status || adminRange() ? '조건에 맞는 리포트가 없습니다.' : '생성된 리포트가 아직 없습니다.') + '</td>'; rows.appendChild(empty); }
+          if (!reports.length) { var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="8">' + (reportListState.q || reportListState.status || adminRange() ? '조건에 맞는 리포트가 없습니다.' : '생성된 리포트가 아직 없습니다.') + '</td>'; rows.appendChild(empty); }
           reports.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             var view = REPORT_STATUS_VIEW[item.status] || REPORT_STATUS_VIEW.unknown;
             var pdf = '—';
             if (item.status === 'complete') { pdf = document.createElement('button'); pdf.type = 'button'; pdf.className = 'admin-link-button'; pdf.textContent = 'PDF 받기'; pdf.addEventListener('click', function () { downloadReportPdf(item.id, pdf); }); }
-            [memberWhen(item.createdAt), item.subjectName, item.serviceTitle, memberChip(view.label, view.tone), item.memberEmail || (item.userId ? '회원' : '비회원'), memberWhen(item.updatedAt), pdf].forEach(function (value) {
+            [memberWhen(item.createdAt), item.subjectName, item.serviceTitle, memberChip(view.label, view.tone), item.accountType ? memberKindChip(item.accountType) : '—', item.memberEmail || (item.accountType === 'guest' ? '—' : item.userId ? '회원' : '계정 없음'), memberWhen(item.updatedAt), pdf].forEach(function (value) {
               var cell = document.createElement('td'); if (value instanceof Node) cell.appendChild(value); else cell.textContent = value == null || value === '' ? '—' : String(value); row.appendChild(cell);
             });
             row.addEventListener('click', function (event) { if (event.target.closest('button')) return; renderReportDiagnostics(document.body, item.id, item); });
@@ -2097,7 +2111,7 @@
             card.append(label, value, compare); kGrid.appendChild(card);
           });
           kpiSection.replaceChildren(kHead, kGrid);
-          var names = { members: '회원', payments: '결제', refunds: '환불', support: '문의', reports: '리포트', messages: '푸시' };
+          var names = { members: '회원', guests: '비회원', payments: '결제', refunds: '환불', support: '문의', reports: '리포트', messages: '푸시' };
           foot.textContent = '기준 ' + memberWhen(data.asOf) + (data.errors && data.errors.length ? ' · 불러오지 못한 부분: ' + data.errors.map(function (key) { return names[key] || key; }).join(', ') : '');
         } catch (error) { todoSection.replaceChildren(memberEmpty(error.message)); }
         if (refresh) refresh.disabled = false;

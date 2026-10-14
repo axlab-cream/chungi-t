@@ -13,6 +13,8 @@ import type { PushNotificationRecord } from '../push/contracts.js'
 
 export interface DashboardDeps {
   countMembersCreated(from: Date, to: Date): Promise<number>
+  /** 2026-10-14 사주만 입력한 비회원(익명 계정). 없으면 비회원 칸을 싣지 않는다. */
+  countGuestsCreated?(from: Date, to: Date): Promise<number>
   countReportsCreated(from: Date, to: Date): Promise<number>
   /** 결제 시각(createdAt)이 from 이후일 수 있는 주문. 갱신 시각 기준으로 넉넉히 가져와도 된다. */
   listOrdersSince(from: Date): Promise<PaymentOrder[]>
@@ -68,6 +70,12 @@ export async function buildDashboard(deps: DashboardDeps, now = new Date(), rang
     part('reports', () => deps.countFailedReports(), -1),
     part('messages', () => deps.listRecentPushes(), null as PushNotificationRecord[] | null),
   ])
+  const [guestsToday, guestsYesterday] = deps.countGuestsCreated
+    ? await Promise.all([
+      part('guests', () => deps.countGuestsCreated!(todayFrom, until), -1),
+      part('guests', () => deps.countGuestsCreated!(yesterdayFrom, yesterdayTo), -1),
+    ])
+    : [null, null]
   const [refundsCreated, supportCreated] = await Promise.all([
     deps.listRefundsCreated ? part('refunds', () => deps.listRefundsCreated!(), null as RefundRequest[] | null) : Promise.resolve(refunds),
     deps.listSupportCreated ? part('support', () => deps.listSupportCreated!(), null as SupportCase[] | null) : Promise.resolve(support),
@@ -81,7 +89,8 @@ export async function buildDashboard(deps: DashboardDeps, now = new Date(), rang
   const count = <T>(list: T[] | null, pick: (item: T) => string, from: Date, to: Date) => list ? list.filter((item) => inWindow(pick(item), from, to)).length : -1
 
   const kpis: DashboardKpi[] = [
-    { key: 'members', label: '신규 회원', today: membersToday, yesterday: membersYesterday, unit: '명', href: '/members' },
+    { key: 'members', label: '신규 회원', today: membersToday, yesterday: membersYesterday, unit: '명', href: '/members?kind=member' },
+    ...(guestsToday === null ? [] : [{ key: 'guests', label: '신규 비회원', today: guestsToday, yesterday: guestsYesterday as number, unit: '명' as const, href: '/members?kind=guest' }]),
     { key: 'payers', label: '결제 회원', today: orders ? payers(paidToday) : -1, yesterday: orders ? payers(paidYesterday) : -1, unit: '명', href: '/payments' },
     { key: 'revenue', label: '결제액', today: orders ? sum(paidToday) : -1, yesterday: orders ? sum(paidYesterday) : -1, unit: '원', href: '/payments/revenue' },
     { key: 'reports', label: '리포트 생성', today: reportsToday, yesterday: reportsYesterday, unit: '건', href: '/reports' },

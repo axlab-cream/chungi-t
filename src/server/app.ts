@@ -67,7 +67,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { type MemberContact, countLiveMembers, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
+import { type MemberContact, countLiveMembers, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
 import { searchAdminAuditEvents } from '../admin/audit-store.js'
@@ -3267,8 +3267,10 @@ app.get('/api/admin/v1/members', async (req, res) => {
   const sort = req.query?.sort === 'joined' || req.query?.sort === 'joined_asc' || req.query?.sort === 'name' || req.query?.sort === 'name_desc' ? req.query.sort : 'recent'
   const from = trimmedString(req.query?.from) || undefined
   const to = trimmedString(req.query?.to) || undefined
+  // 2026-10-14 회원/비회원 구분. 없으면 둘 다.
+  const kind = req.query?.kind === 'member' || req.query?.kind === 'guest' ? req.query.kind : undefined
   try {
-    const { members, total } = await searchLiveMembers({ q, paid, from, to, sort, limit, offset })
+    const { members, total } = await searchLiveMembers({ q, paid, from, to, sort, kind, limit, offset })
     res.json({ members, total, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
@@ -3598,7 +3600,7 @@ app.get('/api/admin/v1/dashboard', async (req, res) => {
   const kpiRange = range && before ? { from: before, to: range.to } : null
   try {
     const dashboard = await buildDashboard({
-      countMembersCreated, countReportsCreated,
+      countMembersCreated, countReportsCreated, countGuestsCreated,
       async listOrdersSince(from) {
         const orders: PaymentOrder[] = []
         let cursor: string | undefined
@@ -3633,10 +3635,11 @@ app.get('/api/admin/v1/dashboard', async (req, res) => {
 app.get('/api/admin/v1/operations-snapshot', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
-    const [members, reports] = await Promise.all([countLiveMembers(), countLiveReports()])
+    const [members, reports, guests] = await Promise.all([countLiveMembers(), countLiveReports(), countLiveGuests().catch(() => null)])
     const corpus = getCorpusSnapshot()
     res.json({
       members,
+      guests,
       reports,
       services: listServiceDirectory().length,
       corpusPacks: corpus.activePacks.length,

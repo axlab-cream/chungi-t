@@ -99,6 +99,7 @@ describe('회원 프로필 상세·수정·계정 정지', { concurrency: false 
     const detail = await liveData.getAdminMemberDetail(PROFILE_ROW.user_id)
     assert.deepEqual(detail, {
       userId: PROFILE_ROW.user_id,
+      accountType: 'member',
       email: 'member@example.com',
       name: '김철수',
       birth: { year: 1990, month: 5, day: 12, hour: 9, minute: 30, gender: 'male', calendar: 'solar', isLeapMonth: false },
@@ -191,7 +192,7 @@ describe('회원 상세·수정·정지 라우트는 감사 명령을 거치고,
     const listRoute = source.slice(source.indexOf("app.get('/api/admin/v1/members',"), source.indexOf("app.get('/api/admin/v1/members/:id'"))
     assert.match(listRoute, /requireStaff\(req, res, 'members:read'\)/)
     assert.match(listRoute, /req\.query\?\.offset/)
-    assert.match(listRoute, /searchLiveMembers\(\{ q, paid, from, to, sort, limit, offset \}\)/)
+    assert.match(listRoute, /searchLiveMembers\(\{ q, paid, from, to, sort, kind, limit, offset \}\)/)
   })
 
   it('회원 상세 모음 라우트는 members:read 로 읽기만 하고, 한 부분이 실패해도 나머지를 보낸다', () => {
