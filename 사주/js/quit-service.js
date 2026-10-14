@@ -24,6 +24,8 @@
     profile: 'cheongi_user_birth_profile_v1',
     input: 'umsh_quit_input_payload_v1',
     report: 'umsh_quit_report_v1',
+    // 비회원이 04 의 결제 버튼을 눌러 가입하러 갔다는 표시. 돌아오면 결제로 이어 준다.
+    purchaseAfterAuth: 'umsh:work-quit:purchase-after-auth',
   };
 
   const INPUT_PATH = '../02-step-2-saju-input/index.html#step-2-saju-input';
@@ -313,6 +315,55 @@
   }
 
   // ------------------------------------------------------- report retrieval
+  /** 02 가 이 브라우저에 남긴 사주(비회원 입력)를 분석 요청의 birth 로 바꾼다. 없거나 모자라면 null. */
+  function buildLocalBirth() {
+    const profile = readJson('localStorage', STORAGE.profile);
+    const birth = profile?.birth;
+    if (!profile?.name || !birth?.year || !birth.month || !birth.day) return null;
+    const known = profile.birthTimeKnown !== false;
+    if (known && !(Number.isInteger(birth.hour) && Number.isInteger(birth.minute))) return null;
+    return {
+      name: profile.name,
+      birthTimeKnown: known,
+      birth: {
+        year: birth.year, month: birth.month, day: birth.day,
+        ...(known ? { hour: birth.hour, minute: birth.minute } : {}),
+        gender: birth.gender === 'female' ? 'female' : 'male',
+        calendar: birth.calendar === 'lunar' ? 'lunar' : 'solar',
+      },
+    };
+  }
+
+  /** 가입 직후에는 계정에 사주가 없다. 비회원으로 입력해 둔 사주를 계정에 저장한다. */
+  async function saveLocalProfileToAccount() {
+    const local = buildLocalBirth();
+    if (!local) return false;
+    try {
+      await api('/api/user/profile', { method: 'POST', body: JSON.stringify(local) });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** 비회원 티저 요청. 서버는 아무것도 저장하지 않고 앞 두 항목과 목차만 돌려준다. */
+  async function loadGuestTeaser(request) {
+    const local = buildLocalBirth();
+    if (!local) return { reason: 'input' };
+    try {
+      const response = await api('/api/work/quit/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ ...request, ...local, preview: true, guestTeaser: true }),
+      });
+      const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+      return accepted?.preview ? { ...accepted, guest: true } : { reason: 'error' };
+    } catch (error) {
+      // 입력이 틀린 경우(400)는 입력 화면으로 되돌리고 서버 문구를 그대로 보여 준다.
+      if (error.status === 400) return { reason: 'input', message: error.message };
+      return { reason: 'error', message: error.message };
+    }
+  }
+
   let reportPromise = null;
 
   /** Resolves to { report } or { reason } — 'input', 'login', 'payment', 'error'. */
@@ -325,14 +376,25 @@
       const request = readJson('sessionStorage', STORAGE.input);
       if (!request?.reason) return { reason: 'input' };
 
+      const teaserPage = /\/04-step-4-report\//.test(location.pathname);
       const session = await initAuth();
       if (!session) {
+        // 04 티저는 가입 없이 연다. 05·06 은 결제한 계정의 화면이라 그대로 로그인을 요구한다.
+        if (teaserPage) return loadGuestTeaser(request);
         reportPromise = null;
         return { reason: 'login' };
       }
 
       try {
-        const response = await api('/api/work/quit/analyze', { method: 'POST', body: JSON.stringify(request) });
+        const analyze = () => api('/api/work/quit/analyze', { method: 'POST', body: JSON.stringify(request) });
+        let response;
+        try {
+          response = await analyze();
+        } catch (error) {
+          // 가입 직후: 계정에 사주가 없으면 비회원으로 입력해 둔 사주를 저장하고 한 번만 다시 요청한다.
+          if (!(teaserPage && error.code === 'PROFILE_REQUIRED' && await saveLocalProfileToAccount())) throw error;
+          response = await analyze();
+        }
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
         if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
         const report = accepted?.report || response.report || response;
@@ -441,6 +503,23 @@
     const outcome = await loadReport();
 
     if (outcome.preview) {
+      const payNow = () => location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
+      const pay = outcome.guest
+        // 가입은 여기서 받는다. 돌아오면 아래 purchaseAfterAuth 로 결제까지 이어 준다.
+        ? () => { writeJson('sessionStorage', STORAGE.purchaseAfterAuth, '1'); location.assign(loginUrl()); }
+        : payNow;
+      if (outcome.guest) {
+        // 공용 스크립트가 그리는 결제 링크도 비회원이면 결제 대신 가입으로 보낸다.
+        document.addEventListener('click', (event) => {
+          if (!event.target.closest?.('.umsh-preview-checkout, #umsh-preview-checkout')) return;
+          event.preventDefault();
+          pay();
+        }, true);
+      } else if (!window.UMSHReportAccess?.isEntitled?.(outcome) && readJson('sessionStorage', STORAGE.purchaseAfterAuth)) {
+        try { window.sessionStorage.removeItem(STORAGE.purchaseAfterAuth); } catch { /* 저장소가 막혀 있으면 버튼을 한 번 더 누르면 된다. */ }
+        payNow();
+        return;
+      }
       if (outcome.payload?.teaserSections?.length === 2) {
         window.UMSHReportAccess?.showPreview?.(outcome.payload, readJson('sessionStorage', STORAGE.input));
         return;
@@ -453,9 +532,7 @@
         insightBodies(outcome.preview),
       );
       if (!window.UMSHReportAccess?.isEntitled?.(outcome)) {
-        retargetCtas('전체 보기 (14,900원)', () => {
-          location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
-        });
+        retargetCtas('전체 보기 (14,900원)', pay);
         return;
       }
       retargetCtas('전체 목차 열기', () => location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat'));

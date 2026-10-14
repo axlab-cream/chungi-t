@@ -1,3 +1,4 @@
+import { readBirthClock } from '../saju/birth-time-certainty.js'
 import { parseBirthLocation, birthLocationKey } from '../saju/birth-location.js'
 import { InputError } from '../server/input-error.js'
 import { createHash } from 'node:crypto'
@@ -169,14 +170,17 @@ export function parseLoveThisYearRequest(body: Record<string, unknown>): LoveThi
     const year = Number(selfBirthBody.year)
     const month = Number(selfBirthBody.month)
     const day = Number(selfBirthBody.day)
-    const hour = Number(selfBirthBody.hour)
-    const minute = Number(selfBirthBody.minute ?? 0)
+    // 시각 모름이면 시각 없이 온다. 정오로 두되 selfBirthTimeKnown=false 로 남겨 시각 의존 풀이를 막는다.
+    const known = body.selfBirthTimeKnown !== false
+    const clock = readBirthClock(selfBirthBody, known)
+    const hour = clock?.hour ?? Number.NaN
+    const minute = clock?.minute ?? Number.NaN
     if (!validDateParts(year, month, day) || year < 1900 || year > new Date().getFullYear()) throw new InputError('생년월일을 다시 확인해 주세요.')
-    if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) throw new InputError('태어난 시간을 다시 확인해 주세요.')
+    if (!clock) throw new InputError('태어난 시간을 다시 확인해 주세요.')
     if (selfBirthBody.gender !== 'male' && selfBirthBody.gender !== 'female') throw new InputError('성별을 선택해 주세요.')
     if (selfBirthBody.calendar !== 'solar' && selfBirthBody.calendar !== 'lunar') throw new InputError('양력 또는 음력을 선택해 주세요.')
     selfBirth = { year, month, day, hour, minute, gender: selfBirthBody.gender, calendar: selfBirthBody.calendar, isLeapMonth: Boolean(selfBirthBody.isLeapMonth), ...parseBirthLocation(selfBirthBody) }
-    selfBirthTimeKnown = true
+    selfBirthTimeKnown = known
   }
   const statusRaw = trimmed(body.relationshipStatus ?? body.relationship_status, 20)
   if (!statusRaw) throw new InputError('현재 관계 상태를 선택해 주세요.')

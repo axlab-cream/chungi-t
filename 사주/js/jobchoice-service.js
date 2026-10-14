@@ -31,6 +31,8 @@
     profile: 'umsh_job_choice_profile',
     input: 'umsh_job_choice_input',
     report: 'umsh:report:job_choice',
+    // 비회원이 04 의 결제 버튼을 눌러 가입하러 갔다는 표시. 돌아오면 결제로 이어 준다.
+    purchaseAfterAuth: 'umsh:job-choice:purchase-after-auth',
   };
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -130,8 +132,11 @@
     const form = $('#jobChoiceForm');
     if (!form) return;
 
+    // 가입 전에도 입력하고 티저까지 본다(천명사주와 같은 순서). 계정 사주가 없으면 이 탭에서 직접 입력한다.
+    const openLocalInput = () => window.dispatchEvent(new CustomEvent('umsh-jobchoice-local-profile'));
+
     const session = await initAuth();
-    if (!session) return;
+    if (!session) { openLocalInput(); return; }
 
     let profile = null;
     try {
@@ -140,7 +145,7 @@
       return;
     }
     const birth = profile?.birth;
-    if (!birth || !profile.name) return;
+    if (!birth || !profile.name) { openLocalInput(); return; }
 
     const pad = (value) => String(value).padStart(2, '0');
     const stored = {
@@ -179,6 +184,56 @@
     };
   }
 
+  /** 02 가 이 탭에 남긴 사주(비회원 입력)를 분석 요청의 birth 로 바꾼다. 없거나 모자라면 null. */
+  function buildLocalBirth() {
+    const stored = readJson('sessionStorage', STORAGE.profile);
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(stored?.birthDate || '');
+    if (!match || !stored.name) return null;
+    const known = stored.birthTimeKnown !== false;
+    const time = /^(\d{2}):(\d{2})$/.exec(stored.birthTime || '');
+    if (known && !time) return null;
+    return {
+      name: stored.name,
+      birthTimeKnown: known,
+      birth: {
+        year: Number(match[1]), month: Number(match[2]), day: Number(match[3]),
+        ...(known ? { hour: Number(time[1]), minute: Number(time[2]) } : {}),
+        gender: stored.gender === 'female' ? 'female' : 'male',
+        calendar: stored.calendarType === 'lunar' ? 'lunar' : 'solar',
+      },
+    };
+  }
+
+  /** 가입 직후에는 계정에 사주가 없다. 비회원으로 입력해 둔 사주를 계정에 저장한다. */
+  async function saveLocalProfileToAccount() {
+    const local = buildLocalBirth();
+    if (!local) return false;
+    try {
+      await api('/api/user/profile', { method: 'PUT', body: JSON.stringify({ ...local, context: {} }) });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** 비회원 티저 요청. 서버는 아무것도 저장하지 않고 앞 두 항목과 목차만 돌려준다. */
+  async function loadGuestTeaser(request) {
+    const local = buildLocalBirth();
+    if (!local) return { reason: 'input' };
+    try {
+      const response = await api('/api/work/job-choice/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ ...request, ...local, preview: true, guestTeaser: true }),
+      });
+      const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
+      return accepted?.preview ? { ...accepted, guest: true } : { reason: 'error' };
+    } catch (error) {
+      // 입력이 틀린 경우(400)는 입력 화면으로 되돌리고 서버 문구를 그대로 보여 준다.
+      if (error.status === 400) return { reason: 'input', message: error.message };
+      return { reason: 'error', message: error.message };
+    }
+  }
+
   let reportPromise = null;
 
   /** Resolves to { report } or { reason } — 'input', 'login', 'profile', 'payment', 'error'. */
@@ -193,18 +248,28 @@
       const request = buildRequest();
       if (!request) return { reason: 'input' };
 
+      const teaserPage = /\/04-step-4-report\//.test(location.pathname);
       const session = await initAuth();
       if (!session) {
+        // 04 티저는 가입 없이 연다. 05·06 은 결제한 계정의 화면이라 그대로 로그인을 요구한다.
+        if (teaserPage) return loadGuestTeaser(request);
         reportPromise = null;
         return { reason: 'login' };
       }
 
       try {
-        const teaserPage = /\/04-step-4-report\//.test(location.pathname);
-        const response = await api('/api/work/job-choice/analyze', {
+        const analyze = () => api('/api/work/job-choice/analyze', {
           method: 'POST',
           body: JSON.stringify(teaserPage ? { ...request, preview: true } : request),
         });
+        let response;
+        try {
+          response = await analyze();
+        } catch (error) {
+          // 가입 직후: 계정에 사주가 없으면 비회원으로 입력해 둔 사주를 저장하고 한 번만 다시 요청한다.
+          if (!(teaserPage && error.code === 'PROFILE_REQUIRED' && await saveLocalProfileToAccount())) throw error;
+          response = await analyze();
+        }
         if (teaserPage) window.UMSHReportAccess?.remember?.(response);
         const accepted = window.UMSHReportAccess?.acceptAnalyze?.(response);
         if (accepted?.preview && !window.UMSHReportAccess?.hasPaidReading?.(accepted.report)) return accepted;
@@ -303,6 +368,15 @@
       }
       window.UMSHReportAccess?.paintTeaserPreview?.(outcome.preview);
       showFreeSearchCount(outcome.payload?.freeSearch);
+      if (outcome.guest) {
+        // 공용 스크립트가 그리는 결제 링크도 비회원이면 결제 대신 가입으로 보낸다.
+        document.addEventListener('click', (event) => {
+          if (!event.target.closest?.('.umsh-preview-checkout, #umsh-preview-checkout')) return;
+          event.preventDefault();
+          writeJson('sessionStorage', STORAGE.purchaseAfterAuth, '1');
+          location.assign(loginUrl());
+        }, true);
+      }
       const pay = document.getElementById('payButton');
       if (pay) {
         const fresh = pay.cloneNode(true);
@@ -315,8 +389,19 @@
         } else {
           fresh.textContent = `전체 보기 (${SERVICE.price})`;
           fresh.addEventListener('click', () => {
+            if (outcome.guest) {
+              // 가입은 여기서 받는다. 돌아오면 아래 purchase-after-auth 로 결제까지 이어 준다.
+              writeJson('sessionStorage', STORAGE.purchaseAfterAuth, '1');
+              location.assign(loginUrl());
+              return;
+            }
             location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
           });
+          // 가입 전 티저에서 결제 버튼을 눌러 가입한 사람은 다시 누르게 하지 않고 결제로 보낸다.
+          if (!outcome.guest && readJson('sessionStorage', STORAGE.purchaseAfterAuth)) {
+            try { window.sessionStorage.removeItem(STORAGE.purchaseAfterAuth); } catch { /* 저장소가 막혀 있으면 버튼을 한 번 더 누르면 된다. */ }
+            location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
+          }
         }
       }
       return;
@@ -337,7 +422,7 @@
     const heading = document.createElement('h2');
     heading.textContent = '지금 화면의 문장은 예시입니다';
     const copy = document.createElement('p');
-    copy.textContent = GATE_COPY[reason] || GATE_COPY.error;
+    copy.textContent = ((reason === 'input' || reason === 'error') && outcome.message) || GATE_COPY[reason] || GATE_COPY.error;
     const action = document.createElement('a');
     action.className = 'link-button';
     if (reason === 'login') {
