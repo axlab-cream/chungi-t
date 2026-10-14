@@ -4670,6 +4670,7 @@ app.post('/api/today/fortune', async (req, res) => {
 /**
  * 가입 전에도 천명사주 결제 유도 화면(티저)을 볼 수 있게 한다.
  * 종합 해석(천명사주)의 입력만 받고, 다른 서비스·상대방 입력이 붙은 요청은 그대로 로그인을 요구한다.
+ * 비회원(익명 계정) 도입 계획과 맞물린다 — 고치기 전에 docs/auth/guest-member-plan.md 를 읽는다.
  */
 function isGuestTeaserRequest(req: Request, context: SajuReportContext): boolean {
   return req.body?.guestTeaser === true && !context.serviceKey && !context.partner

@@ -5440,6 +5440,7 @@
       /** Sends the reader to the real checkout, bound to the reading they just previewed. */
       async function startCheckout() {
         const session = await currentAuthSession().catch(() => null);
+        // 익명 로그인을 켜면 비회원도 access_token 을 가진다 — docs/auth/guest-member-plan.md §3.
         if (!session?.access_token || state.guestPreview) {
           openPurchaseOrAuth();
           return;

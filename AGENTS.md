@@ -19,6 +19,13 @@ Preserve existing user work. Append operational history to `status.md`.
 Keep Claude hook commands in `.claude/settings.json` project-relative with
 forward slashes, for example `.claude/hooks/validate-bash.ps1`.
 
+## 로그인·비회원 작업 전 필독 (2026-10-14)
+
+로그인·가입·결제 유도·천명사주 티저·`/api/saju/analyze`·`/api/play/*`·`umsh-auth-session.js`·
+`umsh-funnel-auth-gate.js` 를 고치기 전에 `docs/auth/guest-member-plan.md` 를 읽는다.
+비회원(Supabase 익명 계정) 도입이 진행 중이고, 익명 계정도 `access_token` 을 가지므로
+"토큰이 있으면 회원"이라는 가정이 깨진다.
+
 ## Agent Roles
 
 - Claude: PM, implementation, integration, final decision.
