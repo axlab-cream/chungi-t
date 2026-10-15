@@ -24,8 +24,8 @@ export const CMDG_RELATIONSHIP_SECTIONS = new Set(['love-loop', 'destiny-partner
 
 // A shared story shape must not turn sixteen different questions into one repeated answer.
 export const CMDG_CHAPTER_QUESTIONS: Record<string, string> = {
-  profile: '나는 어떤 상황에서 장점이 살아나는가? 네 기둥 중 서로 다른 두 근거와 표현되는 차이를 연결한다.',
-  'day-master-strength': '왜 같은 부담에도 내 회복 속도가 다른가? 일간의 힘과 계절을 연결해 버티기와 도움받기를 구분한다.',
+  profile: '나는 어떤 상황에서 장점이 살아나는가? 네 기둥 중 서로 다른 두 근거와 표현되는 차이를 연결한다. 계산된 신살 중 일·시 자리에 걸린 길신이나 도화가 있으면 장점이 드러나는 조건으로 한 번 쉬운 말로 잇는다(목록에 없으면 쓰지 않는다).',
+  'day-master-strength': '왜 같은 부담에도 내 회복 속도가 다른가? 일간의 힘과 계절을 연결해 버티기와 도움받기를 구분한다. 계산된 신살 중 귀인·덕(도움이 오는 표시)이나 공망으로 풀린 흉신이 있으면 위기 때 기댈 곳으로 한 번 쉬운 말로 잇는다(목록에 없으면 쓰지 않는다).',
   'hidden-personality': '겉으로 하는 말과 속의 욕구는 어디서 어긋나는가? 지장간 근거와 확인된 경험을 구분한다.',
   balance: '내 에너지는 무엇에 집중되고 무엇을 덜 쓰는가? 단순 개수와 가중치를 분리하고 부족을 결함으로 단정하지 않는다.',
   'useful-god-eokbu': '어떤 환경과 행동이 나를 편안하게 하는가? 실제 용신 판단과 한계를 밝혀 보완 행동으로 연결한다.',

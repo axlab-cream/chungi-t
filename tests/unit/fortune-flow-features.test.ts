@@ -8,7 +8,7 @@ import { groundedReportFeatures } from '../../src/report/report-generator.js'
  * 참고 PDF의 "49세(2036) 신해 대운", "2029년 역전의 해" 같은 서술을 우리 계산값으로 받치기 위함이다.
  */
 const birth = { year: 1987, month: 6, day: 10, hour: 20, minute: 0, calendar: 'solar', gender: 'female' } as const
-type Timing = { daewoonList: Array<{ pillar: string; ageStart?: number; startYear?: number; approxAgeStart?: number }>; yearlyFlow: Array<{ year: number; pillar: string; age: number }> }
+type Timing = { daewoonList: Array<{ pillar: string; ageStart?: number; startYear?: number; approxAgeStart?: number; withChart?: string[] }>; yearlyFlow: Array<{ year: number; pillar: string; age: number; withChart?: string[] }> }
 const timingOf = (hour: number, known = true) =>
   (groundedReportFeatures(analyzeSaju({ ...birth, hour }), { serviceKey: 'saju_master', birthTimeKnown: known }) as { timing: Timing }).timing
 
@@ -16,7 +16,9 @@ describe('AI 재료의 운 흐름', () => {
   it('대운 10구간 전부와 올해부터 10년 세운을 넘긴다', () => {
     const timing = timingOf(20)
     assert.equal(timing.daewoonList.length, 10)
-    assert.deepEqual(timing.daewoonList[4], { age: '49~58세', pillar: '辛亥', ageStart: 49, startYear: 2036 })
+    const { withChart, ...daewoon } = timing.daewoonList[4]
+    assert.deepEqual(daewoon, { age: '49~58세', pillar: '辛亥', ageStart: 49, startYear: 2036 })
+    assert.ok(Array.isArray(withChart), '3번(2026-10-15): 대운마다 원국과의 관계 줄')
     assert.equal(timing.yearlyFlow.length, 10)
     const currentYear = new Date().getFullYear()
     assert.equal(timing.yearlyFlow[0].year, currentYear)
@@ -34,7 +36,9 @@ describe('AI 재료의 운 흐름', () => {
   })
 
   it('세운은 태어난 시간에 따라 바뀌지 않는다(0~23시)', () => {
-    const base = JSON.stringify(timingOf(0).yearlyFlow)
-    for (let hour = 1; hour < 24; hour++) assert.equal(JSON.stringify(timingOf(hour).yearlyFlow), base, `${hour}시`)
+    // 간지·연도·나이는 시간과 무관하다. 원국과의 관계(withChart)는 시간을 알면 시주까지 보므로 시간에 따라 다를 수 있다.
+    const flow = (hour: number) => JSON.stringify(timingOf(hour).yearlyFlow.map(({ year, pillar, age }) => ({ year, pillar, age })))
+    const base = flow(0)
+    for (let hour = 1; hour < 24; hour++) assert.equal(flow(hour), base, `${hour}시`)
   })
 })

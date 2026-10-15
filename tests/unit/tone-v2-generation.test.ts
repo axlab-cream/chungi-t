@@ -111,8 +111,9 @@ test('52-item generation keeps every completed sibling summary but bounds full p
   assert.ok(payload.otherSections.every((item: { summary: string }) => item.summary.length <= 160))
   assert.ok(payload.otherSections.filter((item: { interpretation?: string }) => item.interpretation)
     .every((item: { interpretation: string }) => item.interpretation.length <= 1_200))
-  // 이 한도는 앞 항목 본문이 쌓이는 것을 막는 장치다. 2026-10-15 지장간(고정 약 700자)을 계산값에 넣으며 31,000으로 올림.
-  assert.ok(messages[1].content.length < 31_000, `prompt payload grew to ${messages[1].content.length} characters`)
+  // 이 한도는 앞 항목 본문이 쌓이는 것을 막는 장치다. 2026-10-15 지장간(고정 약 700자)을 계산값에 넣으며 31,000으로,
+  // 같은 날 대운·세운마다 원국과의 관계 줄(고정 약 1,400자)을 넣으며 33,000으로 올림.
+  assert.ok(messages[1].content.length < 33_000, `prompt payload grew to ${messages[1].content.length} characters`)
 })
 
 test('pass_angle opening verdict receives its exact quality repair contract without leaking it to later items', () => {
