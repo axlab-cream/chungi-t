@@ -12,7 +12,7 @@
    * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
    * unchanged, so no page markup had to move.
    */
-  var SHELL_CSS = '/css/service-shell.css?v=20261015-bottom-nav';
+  var SHELL_CSS = '/css/service-shell.css?v=20261015-no-bottom-nav';
   var SHELL_JS = '/js/service-shell.js?v=20261015-bottom-nav';
   var SIGNUP_BENEFIT_POPUP_CSS = '/css/umsh-signup-benefit-popup.css?v=20260922-love-fortune';
   var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup';
@@ -244,6 +244,9 @@
     var bottomHost = buildBottomHost();
     bottomHost.hidden = false;
     bottomHost.style.removeProperty('display');
+    // 서비스가 하단 탭(홈·운명록·보관함·내 정보)을 끌 수 있다(2026-10-15 천명사주 요청).
+    // 상단 ☰ 메뉴 패널도 같은 자리에 그려지므로 자리는 두고 탭만 숨긴다.
+    document.body.classList.toggle('umsh-no-bottom-nav', options.bottomNav === false);
 
     document.body.classList.add('umsh-has-chrome');
     ensureStylesheet(SHELL_CSS);
