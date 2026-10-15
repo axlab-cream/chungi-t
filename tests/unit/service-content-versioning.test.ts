@@ -144,6 +144,17 @@ test('6. 게시해도 고객 가격과 카탈로그는 바뀌지 않는다', asy
   assert.deepEqual(listServiceDirectory().map((item) => `${item.key}:${item.amount}`), beforeList)
 })
 
+test('6-1. 판매 중지 상품은 관리자 게시본이 노출이어도 고객 목록에 나오지 않는다', async () => {
+  const draft = await saveServiceConfigDraft({ serviceKey: 'cat_compatibility', payload: { ...DRAFT, title: '고양이 궁합', category: '궁합' }, authorEmail: 'a@example.com', expectedRevision: NEW_SERVICE_DRAFT_REVISION })
+  await publishServiceConfigVersion({ serviceKey: 'cat_compatibility', version: draft.version, checksum: draft.checksum, authorEmail: 'b@example.com', expectedRevision: draft.revision })
+  const live = await saveServiceConfigDraft({ serviceKey: SERVICE, payload: DRAFT, authorEmail: 'a@example.com', expectedRevision: NEW_SERVICE_DRAFT_REVISION })
+  await publishServiceConfigVersion({ serviceKey: SERVICE, version: live.version, checksum: live.checksum, authorEmail: 'b@example.com', expectedRevision: live.revision })
+  const directory = await listCustomerServiceDirectory()
+  assert.equal(directory.source, 'published')
+  assert.ok(!directory.services.some((item) => item.key === 'cat_compatibility'), '판매 중지 상품이 고객 목록에 나왔다')
+  assert.ok(directory.services.some((item) => item.key === SERVICE))
+})
+
 test('7. 게시본이 없으면 임의의 내용을 지어내지 않는다', async () => {
   assert.equal(await getPublishedServiceConfig(SERVICE), null)
   await saveServiceConfigDraft({ serviceKey: SERVICE, payload: DRAFT, authorEmail: 'a@example.com', expectedRevision: NEW_SERVICE_DRAFT_REVISION })

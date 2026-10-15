@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { configuredEnv } from '../env/load.js'
-import { listAdminServiceDirectory, listServiceDirectory, type ServiceDirectoryEntry } from '../server/service-directory.js'
+import { isCustomerPausedProduct, listAdminServiceDirectory, listServiceDirectory, type ServiceDirectoryEntry } from '../server/service-directory.js'
 
 type Row = Record<string, unknown>
 
@@ -453,6 +453,8 @@ export async function listCustomerServiceDirectory(): Promise<CustomerServiceDir
   // 카탈로그에 실재하는 서비스만 대상이다. 게시본이 없는 서비스는 배포된 값 그대로 남는다.
   const services: CustomerServiceEntry[] = []
   for (const service of listAdminServiceDirectory()) {
+    // 판매 중지 상품은 관리자 게시본이 "노출"이어도 고객 목록에 내지 않는다(결제·직접 진입과 같은 기준).
+    if (isCustomerPausedProduct(service.key)) continue
     const override = overrides.get(service.key)
     const listed = base.find((item) => item.key === service.key)
     if (!override) {
