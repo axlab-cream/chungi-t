@@ -502,6 +502,30 @@
     .admin-section-modal .admin-refund-form .admin-field[data-span='2'] { grid-column: span 2; }
     .admin-section-modal .admin-section > .admin-note, .admin-section-modal .admin-section > p.admin-note { padding: 10px 16px 0; margin: 0; }
     .admin-section-modal .admin-section > form.admin-actions { padding: 16px; flex-wrap: wrap; }
+    /* 2026-10-15 요청: 선택 처리. 맨 앞 체크박스 열과 검색줄의 선택 막대. */
+    .admin-table th.admin-select-col, .admin-table td.admin-select-col { width: 36px; padding-left: 12px; padding-right: 4px; text-align: center; }
+    .admin-select-col input { width: 16px; height: 16px; margin: 0; cursor: pointer; accent-color: var(--admin-accent, #1f4fd8); }
+    .admin-select-col input:disabled { cursor: not-allowed; opacity: .35; }
+    .admin-bulk { display: inline-flex; align-items: center; gap: 8px; }
+    .admin-bulk[hidden] { display: none; }
+    .admin-filterbar .admin-bulk .admin-button[data-tone='danger']:not([disabled]) { background: var(--admin-action-danger); border-color: var(--admin-action-danger); color: #fff; }
+    .admin-bulk-info { font-size: 13px; color: var(--admin-text-muted); white-space: nowrap; }
+    .admin-bulk-info b { color: var(--admin-text); }
+    .admin-bulk-list { margin: 10px 0 0; padding: 10px 12px 10px 28px; max-height: 160px; overflow-y: auto; border-radius: 6px; background: #f6f7f9; font-size: 13px; }
+    .admin-bulk-list li + li { margin-top: 3px; }
+    /* 2026-10-15 요청: 팝업 좌우 간격 통일. 제목·안내·입력칸·버튼의 왼쪽 끝을 모두 20px 에 맞춘다(일반 팝업 머리와 같은 값). */
+    .admin-section-modal > .admin-section > .admin-section-head,
+    .admin-section-modal > .admin-section > h3:first-child { margin: 0; padding: 18px 52px 14px 20px; border-bottom: 1px solid var(--admin-line); }
+    .admin-section-modal > .admin-section > .admin-section-head h3,
+    .admin-section-modal > .admin-section > h3:first-child { font-size: 18px; }
+    .admin-section-modal > .admin-section > :not(.admin-section-head):not(h3:first-child) { padding-left: 20px !important; padding-right: 20px !important; }
+    .admin-section-modal > .admin-section > :last-child { padding-bottom: 20px !important; }
+    .admin-modal-body > .admin-refund-form, .admin-modal-body > div > .admin-refund-form { padding-left: 0; padding-right: 0; }
+    /* 한 칸에 입력이 여러 개(연·월·일, 시·분) 들어가면 칸 너비 안에서 나눠 쓴다. 넘쳐서 옆 칸과 겹치던 문제. */
+    .admin-modal .admin-field input:not([type=checkbox]):not([type=radio]), .admin-modal .admin-field select, .admin-modal .admin-field textarea { min-width: 0; max-width: 100%; box-sizing: border-box; }
+    .admin-modal .admin-field > div[style*="flex"] > input:not([type=checkbox]) { flex: 1 1 0; width: auto; }
+    .admin-modal .admin-field > div[style*="flex"] { min-width: 0; }
+    .admin-modal .admin-field > div[style*="flex"] > label { flex: none; }
     .admin-icon-button[data-tone='danger-icon']:hover { color: var(--admin-action-danger) !important; border-color: var(--admin-action-danger) !important; }
     .admin-page-size { min-height: 30px !important; padding-top: 3px !important; padding-bottom: 3px !important; margin-left: 6px; flex: none; min-width: 92px; }
     /*
@@ -1056,6 +1080,117 @@
       }
 
       /**
+       * 2026-10-15 요청: 목록 선택 처리. "선택 삭제"(화면에 따라 중단·내리기·취소)를 누르면 표 맨 앞에 체크박스 열이 생기고,
+       * 머리글 체크박스로 지금 화면에 보이는 줄을 한꺼번에 고른다. 실행 전에는 반드시 경고 팝업으로 한 번 더 묻고,
+       * 되돌릴 수 없는 삭제(typed)는 "삭제"를 직접 입력해야 버튼이 켜진다.
+       * 일괄 동작은 화면에 이미 있는 동작만 쓴다. 결제·환불·변경 이력은 법정 보관이라 넣지 않는다.
+       * opts: key(화면별 켜짐 기억), label('선택 삭제'), verb('삭제'), unit('명'), name(item), id(item), blocked(item)→못 하는 이유,
+       *       warn(문구), typed(입력 확인), run(item)→Promise, reload()(다시 불러오기), rerender()(다시 그리기)
+       */
+      var ADMIN_BULK_ON = {};
+      function adminBulkSelect(opts) {
+        var selected = {};
+        var toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = 'admin-button'; toggle.setAttribute('data-variant', 'quiet'); toggle.textContent = opts.label;
+        var panel = document.createElement('div'); panel.className = 'admin-bulk'; panel.hidden = true;
+        var info = document.createElement('span'); info.className = 'admin-bulk-info';
+        var go = document.createElement('button'); go.type = 'button'; go.className = 'admin-button'; go.setAttribute('data-tone', 'danger');
+        var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'admin-button'; stop.setAttribute('data-variant', 'quiet'); stop.textContent = '선택 끝내기';
+        panel.append(info, go, stop);
+        function on() { return Boolean(ADMIN_BULK_ON[opts.key]); }
+        var unit = opts.unit || '개';
+        var object = unit + ((unit.charCodeAt(unit.length - 1) - 0xAC00) % 28 ? '을' : '를');
+        function picked() { return Object.keys(selected).map(function (key) { return selected[key]; }); }
+        function update() {
+          toggle.hidden = on(); panel.hidden = !on();
+          var n = picked().length;
+          info.replaceChildren(); var b = document.createElement('b'); b.textContent = n.toLocaleString('ko-KR') + unit; info.append(b, ' 선택');
+          go.textContent = opts.verb + (n ? ' (' + n + ')' : ''); go.disabled = !n;
+        }
+        function setOn(value) { ADMIN_BULK_ON[opts.key] = value; selected = {}; update(); opts.rerender(); }
+        toggle.addEventListener('click', function () { setOn(true); });
+        stop.addEventListener('click', function () { setOn(false); });
+        go.addEventListener('click', function () { confirmRun(picked()); });
+        function confirmRun(items) {
+          if (!items.length) return;
+          var wrap = document.createElement('div');
+          var lead = document.createElement('p'); lead.className = 'admin-confirm-text'; lead.textContent = '선택한 ' + items.length + object + ' ' + opts.verb + '합니다.';
+          var list = document.createElement('ul'); list.className = 'admin-bulk-list';
+          items.slice(0, 20).forEach(function (item) { var li = document.createElement('li'); li.textContent = opts.name(item); list.appendChild(li); });
+          if (items.length > 20) { var more = document.createElement('li'); more.textContent = '외 ' + (items.length - 20) + unit; list.appendChild(more); }
+          var warn = document.createElement('p'); warn.className = 'admin-confirm-warn'; warn.textContent = opts.warn;
+          wrap.append(lead, list, warn);
+          var typed = null;
+          if (opts.typed) {
+            var label = document.createElement('label'); label.className = 'admin-confirm-type'; label.textContent = '확인을 위해 "삭제"를 그대로 입력해 주세요.';
+            typed = document.createElement('input'); typed.type = 'text'; typed.autocomplete = 'off'; label.appendChild(typed); wrap.appendChild(label);
+          }
+          var status = document.createElement('p'); status.className = 'admin-note'; status.setAttribute('role', 'status'); wrap.appendChild(status);
+          var running = false;
+          var dialog = openAdminModal({ title: '정말 ' + opts.verb + '할까요?', body: wrap, actions: [
+            { label: '취소', onClick: function (d) { if (!running) d.close(); } },
+            { label: opts.verb, primary: true, danger: true, onClick: async function (d) {
+              if (running || (typed && typed.value.trim() !== '삭제')) return;
+              running = true; d.querySelectorAll('.admin-modal-foot button').forEach(function (button) { button.disabled = true; });
+              var done = 0; var failed = [];
+              for (var i = 0; i < items.length; i += 1) {
+                status.textContent = (i + 1) + ' / ' + items.length + ' 처리 중입니다.';
+                try { await opts.run(items[i]); done += 1; } catch (error) { failed.push(opts.name(items[i]) + ': ' + (error && error.message ? error.message : '실패')); }
+              }
+              running = false; d.close();
+              adminToast(done + object + ' ' + opts.verb + '했습니다.' + (failed.length ? ' 하지 못한 ' + failed.length + unit + ': ' + failed.slice(0, 3).join(' / ') : ''), failed.length ? 'error' : undefined);
+              ADMIN_BULK_ON[opts.key] = false; selected = {}; update(); opts.reload();
+            } },
+          ] });
+          dialog.setAttribute('data-size', 'small');
+          var submit = dialog.querySelector('.admin-modal-foot button:last-child');
+          if (typed) { submit.disabled = true; typed.addEventListener('input', function () { submit.disabled = typed.value.trim() !== '삭제'; }); }
+        }
+        return {
+          /** 검색줄(bar)에 버튼을 붙인다. 숫자 칸(.admin-count)이 있으면 그 앞에 둔다. 다시 그려도 된다. */
+          mount: function (bar) {
+            if (!bar) return;
+            var count = null; Array.prototype.forEach.call(bar.children, function (child) { if (child.classList.contains('admin-count')) count = child; });
+            bar.insertBefore(toggle, count); bar.insertBefore(panel, count); update();
+          },
+          /** 방금 만든 표에 체크박스 열을 붙인다. 표의 줄 순서와 items 순서가 같아야 한다(빈 줄은 건너뛴다). */
+          attach: function (tableOrWrap, items) {
+            var table = tableOrWrap && (tableOrWrap.tagName === 'TABLE' ? tableOrWrap : tableOrWrap.querySelector('table'));
+            update();
+            if (!on() || !table || !table.tHead) return;
+            var ids = {}; items.forEach(function (item) { ids[opts.id(item)] = true; });
+            Object.keys(selected).forEach(function (key) { if (!ids[key]) delete selected[key]; });
+            var th = document.createElement('th'); th.scope = 'col'; th.className = 'admin-select-col'; th.setAttribute('data-select', '');
+            var all = document.createElement('input'); all.type = 'checkbox'; all.setAttribute('aria-label', '보이는 줄 모두 선택'); th.appendChild(all);
+            table.tHead.rows[0].insertBefore(th, table.tHead.rows[0].firstChild);
+            var boxes = []; var index = 0;
+            Array.prototype.forEach.call(table.tBodies[0] ? table.tBodies[0].rows : [], function (row) {
+              var only = row.cells.length === 1 && row.cells[0].colSpan > 1;
+              if (only || row.querySelector('td.admin-empty')) { if (row.cells[0]) row.cells[0].colSpan += 1; return; }
+              var item = items[index]; index += 1; if (!item) return;
+              var id = opts.id(item); var reason = opts.blocked ? opts.blocked(item) : null;
+              var td = document.createElement('td'); td.className = 'admin-select-col';
+              var box = document.createElement('input'); box.type = 'checkbox'; box.setAttribute('aria-label', opts.name(item) + ' 선택');
+              if (reason) { box.disabled = true; td.title = reason; } else box.checked = Boolean(selected[id]);
+              td.addEventListener('click', function (event) { event.stopPropagation(); });
+              td.addEventListener('keydown', function (event) { event.stopPropagation(); });
+              box.addEventListener('change', function () { if (box.checked) selected[id] = item; else delete selected[id]; sync(); });
+              box.dataset.id = id; box.item = item;
+              td.appendChild(box); row.insertBefore(td, row.firstChild); boxes.push(box);
+            });
+            function usable() { return boxes.filter(function (box) { return !box.disabled && !box.closest('tr').hidden; }); }
+            function sync() {
+              var list = usable(); var n = list.filter(function (box) { return box.checked; }).length;
+              all.checked = list.length > 0 && n === list.length; all.indeterminate = n > 0 && n < list.length; all.disabled = !list.length; update();
+            }
+            // 바꿀 값을 먼저 잡아 둔다. 줄마다 sync() 가 전체 선택 칸을 다시 계산해서, 도중에 값이 바뀌면 첫 줄만 체크됐다.
+            all.addEventListener('change', function () { var target = all.checked; usable().forEach(function (box) { box.checked = target; if (target) selected[box.dataset.id] = box.item; else delete selected[box.dataset.id]; }); sync(); });
+            th.addEventListener('click', function (event) { event.stopPropagation(); });
+            sync();
+          },
+        };
+      }
+
+      /**
        * 브라우저 확인 창 대신 쓰는 확인 팝업. 확인을 누르면 true.
        * options: { title, okLabel(동작 이름: '영구 삭제'·'지금 발송' 등), danger(빨간 버튼), irreversible(되돌릴 수 없음 경고) }
        * 2026-10-06 사용자 요청: 삭제·발송처럼 한 번 하면 되돌릴 수 없는 동작은 반드시 이 팝업으로 한 번 더 묻는다.
@@ -1283,7 +1418,7 @@
         Array.prototype.forEach.call(head.rows[0].cells, function (th, index) {
           var sample = rows[0].cells[index];
           if (!sample || sample.querySelector('button') && !sample.textContent.trim()) return;
-          if (/^(관리|PDF)$/.test(th.textContent.trim()) || th.hasAttribute('data-server-sort')) return;
+          if (/^(관리|PDF)$/.test(th.textContent.trim()) || th.hasAttribute('data-server-sort') || th.hasAttribute('data-select')) return;
           th.classList.add('admin-sortable'); th.tabIndex = 0; th.setAttribute('aria-sort', 'none');
           function sortBy() {
             sortState.dir = sortState.index === index ? -sortState.dir : 1; sortState.index = index;
@@ -1466,6 +1601,7 @@
        * 행을 누르면 회원 상세 팝업: 기본 정보 · 결제 · 리포트 · 문의 · 쿠폰 · 앱 기기 탭을 /members/:id/overview 한 번으로 채운다.
        */
       var memberListState = { offset: 0, limit: 20, q: '', paid: '', kind: '', from: '', to: '', sort: 'recent' };
+      var memberBulk = null;
       // 2026-10-14 회원(SNS 로그인) / 비회원(사주만 입력한 익명 계정). docs/auth/guest-member-plan.md
       var MEMBER_KINDS = { member: '회원', guest: '비회원' };
       function memberKindChip(kind) { return kind === 'guest' ? memberChip('비회원', 'warn') : memberChip('회원'); }
@@ -1511,6 +1647,14 @@
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
         section.appendChild(status);
         body.append(filters, section);
+        // 2026-10-15 선택 삭제. 결제 기록이 있는 회원은 법정 보관(5년)이라 고를 수 없다.
+        memberBulk = adminBulkSelect({ key: 'members', label: '선택 삭제', verb: '삭제', unit: '명', typed: true,
+          id: function (item) { return item.id; }, name: function (item) { return (item.name || '이름 미등록') + (item.email ? ' · ' + item.email : ''); },
+          blocked: function (item) { return item.purchaseCount > 0 ? '결제 기록이 있어 삭제할 수 없습니다(거래 기록 5년 보관)' : null; },
+          warn: '로그인 계정과 사주 프로필, 이 회원이 만든 리포트가 함께 지워집니다. 되돌릴 수 없습니다.',
+          run: function (item) { return adminJson('/api/admin/v1/members/' + encodeURIComponent(item.id), { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ confirm: true }) }); },
+          reload: function () { renderMembersPage(body, section); }, rerender: function () { renderMembersPage(body, section); } });
+        memberBulk.mount(filters);
         adminPageAction('member-create', '＋ 회원 등록', null, { primary: true, onClick: function () { openMemberCreate(function () { memberListState.offset = 0; memberListState.sort = 'joined'; sort.value = 'joined'; refresh(); }); } });
         function refresh() {
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.paid === memberListState.paid ? 'true' : 'false'); });
@@ -1575,6 +1719,7 @@
             rows.appendChild(row);
           });
           table.appendChild(rows); iconizeButtons(table);
+          if (memberBulk) memberBulk.attach(table, members);
           // 이름·가입일 머리글은 지금 페이지가 아니라 전체 회원을 서버에서 정렬한다(누를 때마다 순서가 뒤집힌다).
           var serverSortPairs = { name: ['name', 'name_desc'], joined: ['joined_asc', 'joined'] };
           table.querySelectorAll('th[data-server-sort]').forEach(function (th) {
@@ -2442,7 +2587,16 @@
 
         var listSection = document.createElement('section'); listSection.className = 'admin-section';
         listSection.innerHTML = '<p class="admin-empty">불러오는 중입니다.</p>';
-        body.appendChild(listSection);
+        // 2026-10-15 선택 삭제. 서버에 DELETE 가 없어 한 줄 삭제와 같이 보관(archive)으로 처리한다.
+        var contentBar = document.createElement('div'); contentBar.className = 'admin-filterbar';
+        body.append(contentBar, listSection);
+        var contentBulk = adminBulkSelect({ key: 'content', label: '선택 삭제', verb: '삭제', unit: '개',
+          id: function (item) { return item.id; }, name: function (item) { return (item.payload && item.payload.title) || item.placement; },
+          blocked: function (item) { return item.state === 'draft' || item.state === 'published' ? null : '이미 보관된 콘텐츠입니다'; },
+          warn: '초안은 목록에서 사라지고, 게시본은 보관 처리돼 게시 후보에서 빠집니다.',
+          run: async function (item) { var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); var data = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(data.error || '삭제하지 못했습니다.'); },
+          reload: function () { loadLiveContent(body); }, rerender: function () { loadLiveContent(body); } });
+        contentBulk.mount(contentBar);
         try {
           var listResponse = await fetch('/api/admin/v1/content', { credentials: 'same-origin' });
           if (!listResponse.ok) throw new Error('CONTENT_LOOKUP_FAILED');
@@ -2481,7 +2635,7 @@
             }
             row.appendChild(actionCell); rows.appendChild(row);
           });
-          table.appendChild(rows); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
+          table.appendChild(rows); contentBulk.attach(table, items); var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           listSection.replaceChildren(scroll);
         } catch (_error) { var notice2 = listSection.querySelector('.admin-empty'); if (notice2) notice2.textContent = '콘텐츠 목록을 불러오지 못했습니다.'; }
       }
@@ -2528,8 +2682,16 @@
           button.addEventListener('click', function () { listFilter.state = entry[0]; renderList(); });
           seg.appendChild(button);
         });
+        // 2026-10-15 선택 내리기. 게시 중인 팝업만 고를 수 있다.
+        var popupBulk = adminBulkSelect({ key: 'popups', label: '선택 내리기', verb: '내리기', unit: '개',
+          id: function (item) { return item.id; }, name: function (item) { return (item.payload || {}).title || '이름 미확인'; },
+          blocked: function (item) { return item.state === 'published' ? null : '게시 중인 팝업만 내릴 수 있습니다'; },
+          warn: '모든 고객 화면에서 즉시 내려갑니다. 다시 띄우려면 새로 게시해야 합니다.',
+          run: async function (item) { var response = await fetch('/api/admin/v1/content/' + encodeURIComponent(item.id) + '/archive', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ expectedRevision: item.revision }) }); if (!response.ok) throw new Error('팝업을 내리지 못했습니다.'); },
+          reload: function () { loadPopupManager(body); }, rerender: function () { renderList(); } });
         filters.append(search, searchButton, seg, adminTip('게시하면 첫 페이지에서 설정한 시작 시각부터 보이고, 종료 시각이 지나면 자동으로 내려갑니다. 이미지는 /assets/ 경로의 공개 이미지를 씁니다. 한 번에 하나만 떠 있고, 새로 게시하면 예전 팝업은 내려갑니다.'));
         filters.addEventListener('submit', function (event) { event.preventDefault(); listFilter.q = search.value.trim().toLocaleLowerCase(); renderList(); });
+        popupBulk.mount(filters);
 
         var split = document.createElement('div'); split.className = 'admin-split';
         var listSection = document.createElement('section'); listSection.className = 'admin-section'; listSection.innerHTML = '<p class="admin-empty">불러오는 중입니다.</p>';
@@ -2627,7 +2789,7 @@
             row.addEventListener('keydown', function (event) { if (event.key === 'Enter' && !event.target.closest('button')) fillEditor(item); });
             rows.appendChild(row);
           });
-          table.appendChild(rows); iconizeButtons(table);
+          table.appendChild(rows); iconizeButtons(table); popupBulk.attach(table, shown);
           var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           listSection.replaceChildren(scroll);
         }
@@ -2768,11 +2930,20 @@
         var search = document.createElement('input'); search.type = 'search'; search.placeholder = '메시지 제목 검색'; search.className = 'admin-filter-search'; search.setAttribute('aria-label', '메시지 제목 검색');
         search.addEventListener('input', function () { state.query = search.value.trim(); state.page = 0; render(); });
         filters.append(search, seg);
+        // 2026-10-15 예약 화면의 선택 취소. 발송이 끝난 기록은 지우지 않는다.
+        var schedBar = document.createElement('div'); schedBar.className = 'admin-filterbar';
+        var pushBulk = adminBulkSelect({ key: 'push-scheduled', label: '선택 취소', verb: '예약 취소', unit: '건',
+          id: function (item) { return item.id; }, name: function (item) { return item.title + ' · ' + fmtWhen(item.scheduledAt); },
+          blocked: function (item) { return item.status === 'scheduled' || item.status === 'draft' ? null : '보내는 중인 메시지는 상세에서 중단해 주세요'; },
+          warn: '취소한 예약은 다시 살릴 수 없고 새로 만들어야 합니다.',
+          run: function (item) { return pushRequest('/' + encodeURIComponent(item.id) + '/cancel', {}); },
+          reload: function () { load(); }, rerender: function () { render(); } });
+        pushBulk.mount(schedBar);
 
         var card = document.createElement('section'); card.className = 'admin-section';
         var status = document.createElement('p'); status.className = 'admin-empty'; status.textContent = '불러오는 중입니다.';
         card.appendChild(status);
-        body.append(toolbar, filters, card);
+        body.append(toolbar, filters, schedBar, card);
 
         function matches(item) {
           if (state.view === 'scheduled') return item.status === 'scheduled' || item.status === 'sending';
@@ -2791,7 +2962,7 @@
             var count = state.items.filter(function (item) { return link.dataset.view === 'scheduled' ? (item.status === 'scheduled' || item.status === 'sending') : (item.status !== 'scheduled' && item.status !== 'draft'); }).length;
             link.querySelector('[data-count]').textContent = String(count);
           });
-          filters.hidden = state.view !== 'history';
+          filters.hidden = state.view !== 'history'; schedBar.hidden = state.view !== 'scheduled';
           seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.status === state.status ? 'true' : 'false'); });
           var list = state.items.filter(matches);
           if (state.view === 'history') adminCount(filters, state.items.filter(function (item) { return item.status !== 'scheduled' && item.status !== 'draft'; }).length, list.length, '건', state.status !== 'all' || Boolean(state.query));
@@ -2831,7 +3002,7 @@
             row.addEventListener('keydown', function (event) { if (event.key === 'Enter') openDetail(item); });
             rows.appendChild(row);
           });
-          table.appendChild(rows);
+          table.appendChild(rows); if (state.view === 'scheduled') pushBulk.attach(table, pageItems);
           var scroll = document.createElement('div'); scroll.className = 'admin-table-scroll'; scroll.appendChild(table);
           var pager = document.createElement('div'); pager.className = 'admin-pager';
           var pages = Math.max(1, Math.ceil(list.length / PAGE));
@@ -3143,11 +3314,11 @@
             button.setAttribute('aria-pressed', listState.filter === entry[0] ? 'true' : 'false');
             button.addEventListener('click', function () { listState.filter = entry[0]; render(items); }); seg.appendChild(button);
           });
-          bar.appendChild(seg);
+          bar.appendChild(seg); couponBulk.mount(bar);
           var shown = items.filter(function (item) { return listState.filter === 'all' || couponState(item).key === listState.filter; });
           adminCount(bar, allCount, shown.length, '개', listState.filter !== 'all' || Boolean(adminRange()));
           if (!shown.length) { list.appendChild(memberEmpty(items.length ? '해당하는 쿠폰이 없습니다.' : '아직 발급한 쿠폰이 없습니다.')); return; }
-          list.appendChild(memberTable(['쿠폰', '코드', '종류', '적용 서비스', '혜택', '#등록', '#사용', '#사용률', '기간', '상태', '관리'], shown, function (item) {
+          var couponTable = list.appendChild(memberTable(['쿠폰', '코드', '종류', '적용 서비스', '혜택', '#등록', '#사용', '#사용률', '기간', '상태', '관리'], shown, function (item) {
             var p = snapshot.products.find(function (p) { return p.key === item.productKey; });
             var used = item.kind === 'service_free' ? item.usedCount : item.reservedCount;
             var claimed = Number.isInteger(item.claimCount) ? item.claimCount : 0;
@@ -3164,7 +3335,16 @@
               claimed + ' / ' + item.maxClaims, Number.isInteger(used) ? used : '—', claimed && Number.isInteger(used) ? Math.round(used / claimed * 100) + '%' : '—',
               memberDay(item.startsAt) + ' ~ ' + memberDay(item.expiresAt), memberChip(st.label, st.tone), stop];
           }));
+          couponBulk.attach(couponTable, shown);
         }
+        // 2026-10-15 선택 중단. 쿠폰은 지우지 않고(받은 회원 기록이 남아야 한다) 사용 중단만 묶어서 한다.
+        var couponBulk = adminBulkSelect({ key: 'coupons', label: '선택 중단', verb: '사용 중단', unit: '개',
+          id: function (item) { return item.id; }, name: function (item) { return item.title; },
+          blocked: function (item) { return item.enabled ? null : '이미 중단된 쿠폰입니다'; },
+          warn: '신규 등록과 아직 쓰지 않은 혜택이 모두 막힙니다. 이미 사용한 무료 풀이 열람은 유지됩니다. 중단한 쿠폰은 다시 켤 수 없습니다.',
+          run: function (item) { return request('/' + encodeURIComponent(item.id) + '/disable', {}, crypto.randomUUID()); },
+          reload: function () { request('').then(function (next) { snapshot = next; render(snapshot.items); }).catch(function (error) { adminToast(error.message, 'error'); }); },
+          rerender: function () { render(snapshot.items); } });
         render(snapshot.items);
         form.addEventListener('submit', async function (event) {
           event.preventDefault(); if (busy || !form.reportValidity()) return;
