@@ -1301,12 +1301,43 @@
       start();
     }
 
+    /**
+     * A finger swipe on a phone never sends the pointerup below - the browser takes the
+     * gesture over and the rail keeps gliding after the finger lifts - so a swipe past
+     * either end used to stop on a clone with nothing beyond it. Wrap whenever the rail
+     * comes to rest on a clone instead, however it got there.
+     */
+    let touching = false;
+    let restTimer = 0;
+    function wrapIfResting() {
+      if (touching || !looping()) return;
+      const resting = nearestSlide();
+      if (resting === 0 || resting === slides.length - 1) {
+        clearSettle();
+        goToSlide(realIndexOf(resting) + firstReal(), 'auto');
+      }
+    }
+    rail.addEventListener('touchstart', () => {
+      touching = true;
+    }, { passive: true });
+    ['touchend', 'touchcancel'].forEach((type) => {
+      rail.addEventListener(type, () => {
+        touching = false;
+        window.clearTimeout(restTimer);
+        restTimer = window.setTimeout(wrapIfResting, 160);
+      }, { passive: true });
+    });
+    if ('onscrollend' in rail) rail.addEventListener('scrollend', wrapIfResting);
+
     rail.addEventListener('scroll', () => {
       window.cancelAnimationFrame(syncing);
       syncing = window.requestAnimationFrame(() => {
         slide = nearestSlide();
         markActive(realIndexOf(slide));
       });
+      // Browsers without scrollend: treat 160ms without a scroll event as resting.
+      window.clearTimeout(restTimer);
+      restTimer = window.setTimeout(wrapIfResting, 160);
     }, { passive: true });
 
     ['pointerdown', 'focusin', 'touchstart'].forEach((type) => {
