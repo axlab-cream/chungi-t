@@ -6,6 +6,7 @@ import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { practicalReading, quotedInput, reportedState, workSymbol } from '../report/practical-service-copy.js'
 import { QUIT_DETAILS } from './practical-readings.js'
+import { withholdsBirthTime } from '../saju/unknown-time-reading.js'
 const OWN_CORPUS_DOMAIN = 'quit_fortune_service'
 
 export const WORK_QUIT_SERVICE_KEY = 'quit_fortune'
@@ -105,7 +106,8 @@ export function workQuitTeaserSection(
   analysis: SajuAnalysis | undefined,
   context: SajuReportContext,
 ): SajuReportSection {
-  const unknownTime = context.birthTimeKnown === false
+  // 6글자 모드 리포트는 보류하지 않고 시주를 뺀 계산으로 그린다(천명사주와 같은 방식).
+  const unknownTime = withholdsBirthTime(context)
   const stories = quitTeaserStories(unknownTime ? undefined : analysis, workQuitRequestFromContext(context))
   const image = QUIT_TEASER_IMAGES[index]
   const storedStory = section.storytelling
@@ -301,8 +303,8 @@ export function buildWorkQuitReport(
   const chunks = retrieveRagChunks(query, analysis, 10, context)
   const categoryRagCache = new Map<string, RagChunk[]>()
   const sections: SajuReportSection[] = []
-  const teaserStories = quitTeaserStories(context.birthTimeKnown === false ? undefined : analysis, input)
-  if (context.birthTimeKnown === false) teaserStories.forEach(story => { story.chartCaption = '' })
+  const teaserStories = quitTeaserStories(withholdsBirthTime(context) ? undefined : analysis, input)
+  if (withholdsBirthTime(context)) teaserStories.forEach(story => { story.chartCaption = '' })
   let order = 1
 
   WORK_QUIT_TOC.forEach((category) => {
@@ -336,7 +338,7 @@ export function buildWorkQuitReport(
           birth,
           input,
           chunks: categoryChunks,
-          birthTimeKnown: context.birthTimeKnown,
+          birthTimeKnown: !withholdsBirthTime(context),
           index: order + itemIndex,
         }),
         ...(teaserIndex >= 0 ? { storytelling: teaserStories[teaserIndex] } : {}),
@@ -351,7 +353,7 @@ export function buildWorkQuitReport(
   return finalizeSpecializedReport({
     reportId,
     title: '퇴사운 해석문',
-    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 퇴사 고민과 실제 준비 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·대운 흐름으로 퇴사 판단을 봅니다`,
+    subtitle: withholdsBirthTime(context) ? '출생 시간 미상: 입력한 퇴사 고민과 실제 준비 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·대운 흐름으로 퇴사 판단을 봅니다`,
     model: 'work-quit-rag-template',
     generatedBy: 'template',
     status: 'complete',

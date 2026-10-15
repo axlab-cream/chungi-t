@@ -7,6 +7,8 @@ import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { elementEvidence, practicalReading, quotedInput, reportedState, workSymbol } from '../report/practical-service-copy.js'
 import { MONEY_DETAILS } from './practical-readings.js'
+import { withholdsBirthTime } from '../saju/unknown-time-reading.js'
+import { hourPillarHidden, UNKNOWN_HOUR_CELL } from '../saju/unknown-time-reading.js'
 
 export const MONEY_SAVE_SERVICE_KEY = 'money_save'
 
@@ -84,7 +86,7 @@ function moneyTeaserStories(analysis: SajuAnalysis | undefined, input: MoneySave
     `| 태어난 해 | ${moneyElementLabel(analysis.fourPillars.year.stemElement)} · ${moneyElementLabel(analysis.fourPillars.year.branchElement)} | 처음 익힌 돈 습관과 주변의 영향 |`,
     `| 태어난 달 | ${moneyElementLabel(analysis.fourPillars.month.stemElement)} · ${moneyElementLabel(analysis.fourPillars.month.branchElement)} | 일과 수입을 반복해서 운영하는 방식 |`,
     `| 태어난 날 | ${moneyElementLabel(analysis.fourPillars.day.stemElement)} · ${moneyElementLabel(analysis.fourPillars.day.branchElement)} | 내가 직접 결제하고 멈추는 방식 |`,
-    `| 태어난 시간 | ${moneyElementLabel(analysis.fourPillars.hour.stemElement)} · ${moneyElementLabel(analysis.fourPillars.hour.branchElement)} | 앞으로 만들 저축 목표와 실행 방식 |`,
+    `| 태어난 시간 | ${hourPillarHidden(analysis) ? UNKNOWN_HOUR_CELL : `${moneyElementLabel(analysis.fourPillars.hour.stemElement)} · ${moneyElementLabel(analysis.fourPillars.hour.branchElement)}`} | 앞으로 만들 저축 목표와 실행 방식 |`,
   ].join('\n') : undefined
   const rowCandidates: Array<[string, string, string]> = [
     ['돈이 들어오는 방식', income, income ? '매달 분석을 시작할 지점' : ''],
@@ -182,7 +184,11 @@ function moneyElementSentence(analysis: SajuAnalysis | undefined): string {
   const routineLink = day.stemElement === month.branchElement
     ? `태어난 날의 ${dayLabel}과 태어난 달의 ${monthLabel}이 같은 방향이라, 한 번 정한 소비 습관이 수입 주기 안에서 꾸준히 반복되기 쉽습니다.`
     : `태어난 날의 ${dayLabel}과 태어난 달의 ${monthLabel}이 서로 달라, 사고 싶은 마음과 월급을 운영하는 방식이 엇갈릴 때 잔액의 폭이 커지기 쉽습니다.`
-  return `네 기둥을 풀어 보면 태어난 날의 중심은 ${dayLabel}, 수입과 일상의 반복을 보는 태어난 달은 ${monthLabel}, 앞으로의 목표를 보는 태어난 시간은 ${hourLabel} 기운입니다. ${routineLink} 전체 분포는 ${counts}이며, 가장 강한 ${dominant}은 ${MONEY_ELEMENT_MEANING[analysis.dominantElement]}에 힘을 싣고 상대적으로 약한 ${weak}은 ${MONEY_ELEMENT_MEANING[analysis.weakElement]}을 의식적으로 보완하게 합니다. 지금 적어 준 소비 습관까지 겹쳐 보면, 의지가 약해서가 아니라 시작하는 힘보다 멈추고 나누는 순서가 늦어지는 쪽에 가깝습니다.`
+  // 6글자 계산이면 임시 시각의 시간 기둥 문장은 빼고 해·달·날 세 기둥으로 읽는다.
+  const pillarsLine = hourPillarHidden(analysis)
+    ? `해·달·날 세 기둥을 풀어 보면 태어난 날의 중심은 ${dayLabel}, 수입과 일상의 반복을 보는 태어난 달은 ${monthLabel} 기운입니다.`
+    : `네 기둥을 풀어 보면 태어난 날의 중심은 ${dayLabel}, 수입과 일상의 반복을 보는 태어난 달은 ${monthLabel}, 앞으로의 목표를 보는 태어난 시간은 ${hourLabel} 기운입니다.`
+  return `${pillarsLine} ${routineLink} 전체 분포는 ${counts}이며, 가장 강한 ${dominant}은 ${MONEY_ELEMENT_MEANING[analysis.dominantElement]}에 힘을 싣고 상대적으로 약한 ${weak}은 ${MONEY_ELEMENT_MEANING[analysis.weakElement]}을 의식적으로 보완하게 합니다. 지금 적어 준 소비 습관까지 겹쳐 보면, 의지가 약해서가 아니라 시작하는 힘보다 멈추고 나누는 순서가 늦어지는 쪽에 가깝습니다.`
 }
 
 function moneyTeaserInterpretation(index: number, analysis: SajuAnalysis | undefined, input: MoneySaveRequest): string {
@@ -254,7 +260,8 @@ export function moneySaveTeaserSection(
   analysis: SajuAnalysis | undefined,
   context: SajuReportContext,
 ): SajuReportSection {
-  const unknownTime = context.birthTimeKnown === false
+  // 6글자 모드 리포트는 보류하지 않고 시주를 뺀 계산으로 그린다(천명사주와 같은 방식).
+  const unknownTime = withholdsBirthTime(context)
   const safeAnalysis = unknownTime ? undefined : analysis
   const stories = moneyTeaserStories(safeAnalysis, moneySaveRequestFromContext(context))
   const image = MONEY_TEASER_IMAGES[index]
@@ -506,7 +513,7 @@ export function buildMoneySaveReport(
           birth,
           input,
           chunks: categoryChunks,
-          birthTimeKnown: context.birthTimeKnown,
+          birthTimeKnown: !withholdsBirthTime(context),
           index: order + itemIndex,
         }),
         generatedBy: 'template',
@@ -520,7 +527,7 @@ export function buildMoneySaveReport(
   return finalizeSpecializedReport({
     reportId,
     title: '소비성향 해석문',
-    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 수입·지출 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 재성·비겁 흐름으로 돈이 남는 구조를 봅니다`,
+    subtitle: withholdsBirthTime(context) ? '출생 시간 미상: 입력한 수입·지출 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 재성·비겁 흐름으로 돈이 남는 구조를 봅니다`,
     model: 'money-save-rag-template',
     generatedBy: 'template',
     status: 'complete',

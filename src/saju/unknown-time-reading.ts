@@ -13,7 +13,12 @@ import { sixCharAnalysis } from './analyzer.js'
  */
 export type UnknownBirthTimeReading = 'known' | 'six_char' | 'withhold'
 
-type ReadingContext = { birthTimeKnown?: boolean | null; serviceKey?: string | null; birthTimeReading?: 'six_char' }
+type ReadingContext = {
+  birthTimeKnown?: boolean | null
+  serviceKey?: string | null
+  birthTimeReading?: 'six_char'
+  partner?: { birthTimeKnown?: boolean | null } | null
+}
 
 const SIX_CHAR_SERVICES = new Set<string>(
   ((runtimeConfig as { unknownBirthTime?: { sixCharServices?: string[] } }).unknownBirthTime?.sixCharServices ?? [])
@@ -32,14 +37,42 @@ function sixCharServiceEnabled(serviceKey?: string | null): boolean {
   return SIX_CHAR_SERVICES.has(normalizeServiceKey(serviceKey))
 }
 
-/** 리포트를 새로 만들 때만 부른다. 6글자 모드 서비스의 시간 모름 문맥에 표시를 붙인다. */
+/** 리포트를 새로 만들 때만 부른다. 6글자 모드 서비스에서 본인이나 상대의 시간을 모르면 표시를 붙인다. */
 export function markBirthTimeReading<T extends ReadingContext>(context: T): T & { birthTimeReading?: 'six_char' } {
-  if (context.birthTimeKnown !== false || !sixCharServiceEnabled(context.serviceKey)) return context
+  const someoneUnknown = context.birthTimeKnown === false || context.partner?.birthTimeKnown === false
+  if (!someoneUnknown || !sixCharServiceEnabled(context.serviceKey)) return context
   return { ...context, birthTimeReading: 'six_char' }
+}
+
+/** 상대 시간: 본인과 같은 규칙(표시 + 서비스 스위치)으로 6글자/보류를 정한다. */
+export function partnerBirthTimeReading(context: ReadingContext): UnknownBirthTimeReading {
+  if (context.partner?.birthTimeKnown !== false) return 'known'
+  return context.birthTimeReading === 'six_char' && sixCharServiceEnabled(context.serviceKey) ? 'six_char' : 'withhold'
+}
+
+/** 본인 시간을 몰라 임시 시각 값을 보류해야 하면 true(6글자 모드를 켜지 않은 서비스·예전 리포트). */
+export function withholdsBirthTime(context: ReadingContext): boolean {
+  return unknownBirthTimeReading(context) === 'withhold'
+}
+
+/**
+ * 리포트를 새로 만들 때 쓸 명식(본인·상대 공통). 6글자 모드 서비스에서 시간을 모르면 시주를 뺀 계산을 쓴다.
+ * 궁합처럼 명식 값이 문맥에 계산 결과로 저장되는 서비스는 문맥을 만들기 전에 이걸로 바꿔야 한다.
+ */
+export function analysisForNewReport(analysis: SajuAnalysis, serviceKey: string | null | undefined, birthTimeKnown: boolean | null | undefined): SajuAnalysis {
+  return birthTimeKnown === false && sixCharServiceEnabled(serviceKey) ? sixCharAnalysis(analysis) : analysis
 }
 
 export function readsSixChars(context: ReadingContext): boolean {
   return unknownBirthTimeReading(context) === 'six_char'
+}
+
+/** 화면의 시간 칸에 쓰는 문구. 시간을 모르면 임시 시각의 시주 대신 이 문구를 보여 준다. */
+export const UNKNOWN_HOUR_CELL = '입력하지 않음'
+
+/** 6글자 계산(sixCharAnalysis)이면 true. fourPillars.hour 는 임시 시각 값이라 화면·문장에 쓰지 않는다. */
+export function hourPillarHidden(analysis: SajuAnalysis): boolean {
+  return analysis.manseryeok?.hourPillarExcluded === true
 }
 
 /** 풀이·화면에 쓸 명식. 6글자 모드면 시주를 뺀 계산으로 바꾸고, 아니면 그대로 둔다. */

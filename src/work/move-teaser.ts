@@ -1,4 +1,5 @@
 import type { SajuAnalysis, SajuReportContext, SajuReportSection, SectionStorytelling } from '../types/index.js'
+import { hourPillarHidden, UNKNOWN_HOUR_CELL } from '../saju/unknown-time-reading.js'
 
 const ASSET_BASE = '/work/move/assets/work-move/reading-v2'
 
@@ -71,7 +72,7 @@ function pillarTable(analysis: SajuAnalysis): string {
     ['태어난 해', `${elementName(p.year.stemElement)} · ${elementName(p.year.branchElement)}`, '처음 익힌 조직 반응과 주변의 영향'],
     ['태어난 달', `${elementName(p.month.stemElement)} · ${elementName(p.month.branchElement)}`, '회사에서 반복되는 책임과 일의 방식'],
     ['태어난 날', `${elementName(p.day.stemElement)} · ${elementName(p.day.branchElement)}`, '내가 압박을 받아들이고 결단하는 방식'],
-    ['태어난 시간', `${elementName(p.hour.stemElement)} · ${elementName(p.hour.branchElement)}`, '앞으로 만들 커리어와 실행 방향'],
+    ['태어난 시간', hourPillarHidden(analysis) ? UNKNOWN_HOUR_CELL : `${elementName(p.hour.stemElement)} · ${elementName(p.hour.branchElement)}`, '앞으로 만들 커리어와 실행 방향'],
   ]
   return ['| 사주의 네 기둥 | 실제 기운 구성 | 이직 풀이에서 읽는 부분 |', '| --- | --- | --- |', ...rows.map((row) => `| ${row.join(' | ')} |`)].join('\n')
 }
@@ -87,7 +88,9 @@ function elementReading(analysis: SajuAnalysis): string {
   const relationship = p.day.stemElement === p.month.branchElement
     ? `태어난 날과 태어난 달에 ${day} 기운이 함께 있어, 내가 결단하는 방식과 직장에서 버티는 방식이 같은 방향으로 밀립니다. 한 번 책임을 맡으면 오래 끌고 가지만, 역할이 흐릴 때도 혼자 정리하려 들기 쉽습니다.`
     : `태어난 날의 ${day} 기운과 태어난 달의 ${month} 기운이 달라, 내가 원하는 일의 속도와 조직이 요구하는 방식이 어긋날 때 피로가 빠르게 쌓입니다.`
-  return `네 기둥을 생활 언어로 풀면, 결단의 중심은 ${day}, 회사에서 반복되는 반응은 ${month}, 앞으로 만들 커리어는 ${hour} 기운입니다. ${relationship} 전체 분포는 ${counts}이며, 가장 강한 ${dominant}${particle(dominant, '은', '는')} 이미 충분히 쓰고 있습니다. 상대적으로 약한 ${weak} 기운은 새 회사에서 의식적으로 확인해야 할 부분입니다.`
+  // 6글자 계산이면 임시 시각의 시간 기둥 문장은 빼고 해·달·날 세 기둥으로 읽는다.
+  const hidden = hourPillarHidden(analysis)
+  return `${hidden ? '해·달·날 세 기둥을' : '네 기둥을'} 생활 언어로 풀면, 결단의 중심은 ${day}, 회사에서 반복되는 반응은 ${month}${hidden ? ' 기운입니다.' : `, 앞으로 만들 커리어는 ${hour} 기운입니다.`} ${relationship} 전체 분포는 ${counts}이며, 가장 강한 ${dominant}${particle(dominant, '은', '는')} 이미 충분히 쓰고 있습니다. 상대적으로 약한 ${weak} 기운은 새 회사에서 의식적으로 확인해야 할 부분입니다.`
 }
 
 function interpretation(index: number, analysis: SajuAnalysis | undefined, context: SajuReportContext): string {
@@ -156,9 +159,9 @@ function stories(analysis: SajuAnalysis | undefined, context: SajuReportContext)
       softBridge: '한 번 힘들었던 장면을 업무량·권한·사람·회복 시간으로 나누면, 새 회사에서도 반복될 문제와 끊어낼 문제를 구분할 수 있습니다.',
       ...(analysis ? {
         tableMd: pillarTable(analysis),
-        tableCaption: '네 기둥의 실제 기운 구성과 직장 생활에서 드러나는 모습을 연결했습니다.',
+        tableCaption: hourPillarHidden(analysis) ? '입력된 해·달·날 세 기둥의 기운 구성과 직장 생활에서 드러나는 모습을 연결했습니다. 태어난 시간은 입력하지 않아 비워 두었습니다.' : '네 기둥의 실제 기운 구성과 직장 생활에서 드러나는 모습을 연결했습니다.',
         chartPoints: ELEMENTS.map(([key, name, note]) => ({ label: name, value: analysis.elementCount[key], note })),
-        chartCaption: '저장된 사주에서 계산한 다섯 기운의 개수입니다. 이직 성공률이 아니라 일할 때 쓰는 힘의 상대적 분포입니다.',
+        chartCaption: (hourPillarHidden(analysis) ? '입력된 해·달·날 세 기둥에서' : '저장된 사주에서') + ' 계산한 다섯 기운의 개수입니다. 이직 성공률이 아니라 일할 때 쓰는 힘의 상대적 분포입니다.',
       } : {}),
       flowSteps: [
         { label: '현재 반복', value: label('currentCompanySignal', move.currentCompanySignal) || '입력한 불편', note: '가장 지쳤던 장면 한 가지' },

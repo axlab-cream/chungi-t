@@ -24,6 +24,7 @@ import {
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { partnerBirthTimeReading, withholdsBirthTime } from '../saju/unknown-time-reading.js'
 
 export const MARRY_MATCH_SERVICE_KEY = 'marry_match'
 
@@ -426,14 +427,15 @@ function marryPillarTable(analysis: SajuAnalysis, context: SajuReportContext): s
 function marryElementChart(analysis: SajuAnalysis, context: SajuReportContext) {
   const elements = [['wood', '나무'], ['fire', '불'], ['earth', '흙'], ['metal', '쇠'], ['water', '물']] as const
   const facts = marryFacts(context)
-  const mine = visibleElementCount(analysis, context.birthTimeKnown)
+  // 6글자 모드 명식은 이미 시간 기둥이 빠져 있다. 보류 모드(임시 8글자 명식)에서만 시간 기둥을 빼서 센다.
+  const mine = visibleElementCount(analysis, withholdsBirthTime(context) ? false : undefined)
   const mineNote = context.birthTimeKnown === false ? '내 사주의 입력된 세 기둥에서 계산한 개수' : '내 사주 네 기둥에서 계산한 개수'
   const points = elements.map(([key, label]) => ({ label: `${facts.selfName} · ${label}`, value: mine[key], note: mineNote }))
   const partner = context.partner?.elementCount ?? legacyPartnerElementCount(context)
   const partnerHour = (context.partner?.pillarElements ?? legacyPartnerPillarElements(context))?.hour
   if (!partner) return points
   const visiblePartner = { ...partner }
-  if (context.partner?.elementCount && context.partner?.birthTimeKnown === false && partnerHour) {
+  if (context.partner?.elementCount && partnerBirthTimeReading(context) === 'withhold' && partnerHour) {
     visiblePartner[partnerHour[0]] = Math.max(0, visiblePartner[partnerHour[0]] - 1)
     visiblePartner[partnerHour[1]] = Math.max(0, visiblePartner[partnerHour[1]] - 1)
   }

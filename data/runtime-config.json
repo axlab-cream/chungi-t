@@ -24,6 +24,6 @@
     "maxTokens": 24000
   },
   "unknownBirthTime": {
-    "sixCharServices": ["saju_master"]
+    "sixCharServices": ["saju_master", "work_move", "job_choice", "work_job", "quit_fortune", "money_save", "match_couple", "marry_match", "couple_signal", "love_this_year", "love_mind", "love_again", "love_spouse", "today_fortune"]
   }
 }

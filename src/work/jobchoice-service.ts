@@ -13,6 +13,7 @@ import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { practicalReading, quotedInput, reportedState, workSymbol } from '../report/practical-service-copy.js'
 import { JOB_DETAILS } from './practical-readings.js'
+import { withholdsBirthTime } from '../saju/unknown-time-reading.js'
 
 export const JOB_CHOICE_SERVICE_KEY = 'job_choice'
 
@@ -368,7 +369,7 @@ export function buildJobChoiceReport(
       const minutes = isOpening && openingIndex === 1 ? oneWayCommuteMinutes(input.commute) : null
       const baseInterpretation = buildInterpretation({
         group, itemTitle: item.title, itemIndex, analysis, birth, input,
-        chunks: categoryChunks, birthTimeKnown: context.birthTimeKnown, index: order + itemIndex,
+        chunks: categoryChunks, birthTimeKnown: !withholdsBirthTime(context), index: order + itemIndex,
       })
       sections.push({
         // 05 목차 and 06 상세 route on the design's own section ids.
@@ -385,7 +386,7 @@ export function buildJobChoiceReport(
         hook: isOpening ? (openingIndex === 0 ? '좋아 보이는 제안일수록 실제 맡을 일과 평가 기준을 먼저 확인하세요.' : '근무 형태보다 실제 출근 일정과 회복 시간을 먼저 비교하세요.') : item.title,
         patternKeys: ['work', 'job-choice', group.id],
         ragTopics: categoryChunks.slice(0, 4).map((chunk) => chunk.topic),
-        interpretation: isOpening ? `${openingJobChoiceReading(input, analysis, openingIndex, context.birthTimeKnown)}\n\n${baseInterpretation}` : baseInterpretation,
+        interpretation: isOpening ? `${openingJobChoiceReading(input, analysis, openingIndex, !withholdsBirthTime(context))}\n\n${baseInterpretation}` : baseInterpretation,
         ...(minutes !== null ? { storytelling: {
           feel: '', scene: '', actions: [], imagePrompt: { ko: '', en: '' },
           chartPoints: [
