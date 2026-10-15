@@ -259,6 +259,10 @@
    * 로그인한 회원인데 지금 버전 동의 기록이 없을 때(기존 회원, 다른 경로로 로그인) 한 번 받는다.
    * 동의하면 true. 기록 API 가 실패해도 시트는 닫고 true — 저장 실패로 회원을 가두지 않는다.
    */
+  function escapeText(value) {
+    return String(value).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; });
+  }
+
   function openReconsent(options) {
     options = options || {};
     injectStyle();
@@ -271,11 +275,14 @@
       sheet.setAttribute('role', 'dialog');
       sheet.setAttribute('aria-modal', 'true');
       sheet.setAttribute('aria-labelledby', 'umsh-cs-sheet-title');
-      sheet.innerHTML = '<div class="umsh-cs-sheet-title" id="umsh-cs-sheet-title">약관에 동의해 주세요</div>'
-        + '<div class="umsh-cs-sheet-sub">운명상회를 계속 이용하려면 아래 필수 항목에 동의해야 해요.</div>'
+      // 2026-10-15: 결제 직전(운명 거래하기)에 물을 때는 제목을 바꾸고, 아래 버튼은 로그아웃 대신 닫기로 둔다.
+      sheet.innerHTML = '<div class="umsh-cs-sheet-title" id="umsh-cs-sheet-title">' + escapeText(options.title || '약관에 동의해 주세요') + '</div>'
+        + '<div class="umsh-cs-sheet-sub">' + escapeText(options.sub || '운명상회를 계속 이용하려면 아래 필수 항목에 동의해야 해요.') + '</div>'
         + '<div data-consent-host></div>'
         + '<button type="button" class="umsh-cs-submit is-inactive" data-consent-submit>동의하고 계속</button>'
-        + '<button type="button" class="umsh-cs-logout" data-consent-logout>로그아웃</button>';
+        + (options.dismissLabel
+          ? '<button type="button" class="umsh-cs-logout" data-consent-dismiss>' + escapeText(options.dismissLabel) + '</button>'
+          : '<button type="button" class="umsh-cs-logout" data-consent-logout>로그아웃</button>');
       doc.body.appendChild(backdrop);
       doc.body.appendChild(sheet);
       var controller = render(sheet.querySelector('[data-consent-host]'), { source: 'reconsent' });
@@ -285,7 +292,9 @@
       paint();
       var busy = false;
       function finish(result) { sheet.remove(); backdrop.remove(); resolve(result); }
+      if (options.dismissLabel) backdrop.addEventListener('click', function () { finish(false); });
       sheet.addEventListener('click', function (event) {
+        if (event.target.closest('[data-consent-dismiss]')) { finish(false); return; }
         if (event.target.closest('[data-consent-logout]')) {
           if (typeof options.onLogout === 'function') options.onLogout();
           else logoutLocally();

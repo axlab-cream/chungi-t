@@ -4110,8 +4110,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
-    <script src="/js/umsh-consent.js?v=20261015a"></script>
-    <script src="/js/umsh-guest-save-sheet.js?v=20261015a"></script>
+    <script src="/js/umsh-consent.js?v=20261015b"></script>
+    <script src="/js/umsh-guest-save-sheet.js?v=20261015b"></script>
+    <script src="/js/umsh-pay-sheet.js?v=20261015a"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/js/payment-bridge.js"></script>
     <script>
@@ -5269,7 +5270,7 @@
         });
       }
 
-      // 결제 화면은 회원만 연다. 비회원이면 입력값을 보관하고 가입·로그인 화면을 띄운 뒤, 돌아오면 결제 화면으로 이어 준다.
+      // 결제 화면은 회원만 연다. 비회원이면 입력값을 보관하고 가입·로그인을 받은 뒤, 돌아오면 결제로 이어 준다.
       async function openPurchaseOrAuth() {
         const session = await currentAuthSession().catch(() => null);
         if (session?.access_token) {
@@ -5279,12 +5280,79 @@
             beginAnalysisAfterAuth();
             return;
           }
-          go("purchase");
+          if (usesTradeSheets()) openTradePaySheet();
+          else go("purchase");
           return;
         }
         persistAuthFormState();
         sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
+        if (usesTradeSheets() && window.UMSHGuestSaveSheet?.open) { openTradeLoginSheet(); return; }
         showAuthGate("전체 풀이를 보려면 먼저 가입하거나 로그인해 주세요.");
+      }
+
+      /*
+       * 2026-10-15 대표 결정: "운명 거래하기"는 풀이 화면을 뒤에 둔 채 바텀시트로 이어 간다.
+       * - 비회원: 약관 동의 + SNS 로그인 시트 → 로그인하고 돌아오면 같은 풀이 화면 위에 결제 시트.
+       * - 회원: 지금 버전 약관 동의가 없으면 동의 시트 → 결제 시트(umsh-pay-sheet.js).
+       * 예전의 결제 안내 화면(동의 세 줄 + 결제하기)과 /payment 입력 화면은 거치지 않는다.
+       * 연애운(올해)은 시작 전에 가입을 받는 흐름이라 그대로 둔다.
+       */
+      function usesTradeSheets() {
+        return !isLoveThisYearService();
+      }
+
+      function openTradeLoginSheet() {
+        window.UMSHGuestSaveSheet.open({
+          force: true,
+          noInline: true,
+          entry: "cmdg-trade",
+          resultKey: "cmdg-trade",
+          title: "로그인하면 바로 결제로 이어져요",
+          sub: "약관에 동의하고 SNS로 로그인해 주세요. 지금 본 풀이는 그대로 이어져요.",
+          onLogin: (provider) => {
+            persistAuthFormState();
+            sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
+            signInWithProvider(provider);
+          },
+        });
+      }
+
+      // 결제 시트에 보이는 정가. 결제 안내 화면(renderPurchase)의 정가와 같은 값이다.
+      const TRADE_ORIGIN_AMOUNT = { single: 63000 };
+
+      async function openTradePaySheet() {
+        const session = await currentAuthSession().catch(() => null);
+        if (!session?.access_token) { openTradeLoginSheet(); return; }
+        // 로그인 직후: 비회원으로 본 결과를 묻지 않고 옮긴다(결제 화면과 같은 규칙). 확인 시트가 결제 시트와 겹치지 않게 먼저 끝낸다.
+        await window.UMSHAuthSession?.claimGuestNow?.({ silent: true })?.catch?.(() => undefined);
+        const agreed = window.UMSHAuthSession?.ensureMemberConsent
+          ? await window.UMSHAuthSession.ensureMemberConsent({ title: "결제 전에 약관에 동의해 주세요", sub: "필수 항목에 동의하면 바로 결제로 이어져요.", dismissLabel: "닫기" })
+          : true;
+        if (!agreed) return;
+        const productKey = checkoutProductKey();
+        const reportId = state.analysis?.report?.reportId || "";
+        const basePath = servicePathForCurrentPage();
+        const returnTo = reportId ? `${basePath}?reportId=${encodeURIComponent(reportId)}` : basePath;
+        const params = new URLSearchParams({ product: productKey, returnTo });
+        if (reportId) params.set("reportId", reportId);
+        const fallbackUrl = `/payment?${params.toString()}`;
+        if (!productKey || !window.UMSHPaySheet?.open) {
+          window.UMSHPaymentBridge?.save(productKey, { reportId }, returnTo);
+          location.assign(fallbackUrl);
+          return;
+        }
+        const product = catalogProduct(productKey);
+        const originAmount = TRADE_ORIGIN_AMOUNT[state.plan] || 0;
+        const amount = Number(product?.amount) || 0;
+        window.UMSHPaySheet.open({
+          productKey,
+          reportId,
+          returnTo,
+          session,
+          originAmount,
+          discountLabel: originAmount > amount && amount ? `${Math.round((1 - amount / originAmount) * 100)}%` : "",
+          fallbackUrl,
+        });
       }
 
       async function beginAnalysisAfterAuth() {
@@ -5335,7 +5403,14 @@
             // 분석이 성공한 뒤에 지운다. 미리 지우면 실패했을 때 입력값이 사라져
             // 재시도할수록 같은 실패를 반복하게 된다.
             sessionStorage.removeItem(AUTH_FORM_KEY);
-            go(consumePurchaseAfterAuth() ? "purchase" : "result");
+            const purchase = consumePurchaseAfterAuth();
+            // 2026-10-15: 결제로 이어지는 경우 풀이 화면을 깔고 그 위에 결제 시트를 올린다(결제 안내 화면을 거치지 않는다).
+            if (purchase && usesTradeSheets()) {
+              go("result");
+              openTradePaySheet();
+              return;
+            }
+            go(purchase ? "purchase" : "result");
           })
           .catch((err) => {
             // 순서가 중요하다. go() 가 stage.innerHTML 을 갈아끼우므로 안내를 먼저

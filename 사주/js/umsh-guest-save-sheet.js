@@ -12,7 +12,7 @@
   var SEEN_PREFIX = 'umsh:guest-save-sheet:';
   /** 로그인 화면(/signup#login)이 이어서 시작할 SNS. 이 탭에만 둔다. */
   var LOGIN_PROVIDER_KEY = 'umsh_login_provider_v1';
-  var CONSENT_SRC = '/js/umsh-consent.js?v=20261015a';
+  var CONSENT_SRC = '/js/umsh-consent.js?v=20261015b';
   var MARKS = {
     kakao: '<svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path fill="#000" d="M9 1.5C4.58 1.5 1 4.32 1 7.8c0 2.24 1.49 4.2 3.73 5.32-.16.6-.6 2.2-.69 2.54-.11.42.15.42.32.3.13-.09 2.1-1.43 2.95-2.01.55.08 1.11.12 1.69.12 4.42 0 8-2.82 8-6.3S13.42 1.5 9 1.5Z"/></svg>',
     naver: '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path fill="#fff" d="M13.56 10.7 6.17 0H0v20h6.44V9.3L13.83 20H20V0h-6.44v10.7Z"/></svg>',
@@ -73,12 +73,16 @@
     return '<button type="button" class="umsh-gs-btn ' + provider + (wide ? ' umsh-gs-wide' : '') + '" data-provider="' + provider + '">' + MARKS[provider] + '<span>' + label + '</span></button>';
   }
 
+  function escapeText(value) {
+    return String(value).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; });
+  }
+
   function sheetBody(opts) {
     var providers = (opts.providers || ['kakao', 'naver', 'google']).filter(function (p) { return MARKS[p]; });
     var head = '<span class="umsh-gs-handle" aria-hidden="true"></span>'
       + '<button type="button" class="umsh-gs-close" data-action="close" aria-label="닫기">×</button>'
-      + '<p class="umsh-gs-title" id="umsh-gs-title">SNS로 로그인하면 이 결과가 저장돼요</p>'
-      + '<p class="umsh-gs-sub">로그인하지 않으면 1시간 뒤 사라져요.</p>'
+      + '<p class="umsh-gs-title" id="umsh-gs-title">' + escapeText(opts.title || 'SNS로 로그인하면 이 결과가 저장돼요') + '</p>'
+      + '<p class="umsh-gs-sub">' + escapeText(opts.sub || '로그인하지 않으면 1시간 뒤 사라져요.') + '</p>'
       + '<div class="umsh-gs-consent" data-consent-host></div>';
     if (opts.variant === 'b') {
       var rest = providers.slice(1).map(function (p) { return '<a href="#" data-provider="' + p + '">' + LABELS[p] + '</a>'; }).join('');
@@ -100,7 +104,8 @@
     document.removeEventListener('keydown', state.onKey);
     if (reason !== 'login') {
       track('dismiss', state.opts);
-      showInline(state.opts);
+      // 2026-10-15 결제로 가는 시트(운명 거래하기)는 닫아도 저장 안내 줄을 남기지 않는다. 같은 버튼을 다시 누르면 된다.
+      if (!state.opts.noInline) showInline(state.opts);
     }
   }
 

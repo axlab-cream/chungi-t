@@ -141,7 +141,10 @@ describe('결제 진입 화면 연결', () => {
     assert.match(gate, /sessionStorage\.setItem\(AUTH_PURCHASE_KEY, "1"\)/)
     assert.match(gate, /showAuthGate\(/)
     assert.match(gate, /persistAuthFormState\(\)/, '입력값을 보관해야 로그인 뒤 다시 입력하지 않는다')
-    assert.match(source, /go\(consumePurchaseAfterAuth\(\) \? "purchase" : "result"\)/)
+    // 2026-10-15: 로그인 뒤에는 풀이 화면을 깔고 결제 시트를 올린다(결제 안내 화면 대신). 연애운(올해)은 예전대로.
+    assert.match(source, /if \(purchase && usesTradeSheets\(\)\) \{\s*go\("result"\);\s*openTradePaySheet\(\);/)
+    assert.match(source, /go\(purchase \? "purchase" : "result"\)/)
+    assert.match(gate, /if \(usesTradeSheets\(\) && window\.UMSHGuestSaveSheet\?\.open\) \{ openTradeLoginSheet\(\); return; \}/, '비회원은 풀화면 로그인 대신 동의+로그인 바텀시트')
     const checkout = fn('startCheckout', 'const config = await loadPaymentConfig()')
     assert.match(checkout, /openPurchaseOrAuth\(\)/, '결제 주소로 직접 들어와도 비회원은 결제를 시작하지 못한다')
   })
