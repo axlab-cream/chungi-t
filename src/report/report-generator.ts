@@ -32,7 +32,8 @@ import { standardReading } from './standard-reading.js'
 import { cmdgChapterInstruction, cmdgRagContext, cmdgSectionContext, reviewCmdgStoryStructure } from './cmdg-reading-contract.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
-import { buildSajuFeatureJson, SIX_CHAR_CURRENT_DAEWOON, sixCharAnalysis } from '../saju/analyzer.js'
+import { buildSajuFeatureJson, SHINSAL_PROMPT_SEPARATOR, SIX_CHAR_CURRENT_DAEWOON, sixCharAnalysis } from '../saju/analyzer.js'
+import { inventedShinsalNames } from '../saju/shinsal.js'
 import { analysisForReading, unknownBirthTimeReading } from '../saju/unknown-time-reading.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
@@ -2073,6 +2074,9 @@ const INTERPRETATION_INSTRUCTION = [
   '경고·해법·행동 세 가지를 모든 항목에 강제하지 마세요. 위험을 말하려면 실제 입력 근거와 해당 조건이 있어야 합니다.',
   '사용자가 연락 거부·차단을 알리면 재접촉보다 그 의사 존중을 우선하세요.',
   '다른 항목과 같은 문단을 쓰지 마세요. 미래 날짜·점수·자미두수 명반을 새로 계산하거나 만들어내지 마세요.',
+  // 신살은 계산값(2026-10-15)만 쓴다. 전에는 계산이 없어 AI가 신살을 스스로 지어냈다.
+  '대운·세운의 withChart는 그 시기에 들어온 글자가 내 사주 글자와 합·충·형으로 만나는 계산값입니다. 시기 풀이의 근거로 쓰되, 목록에 없는 합충을 만들지 말고 충·형을 사고나 사건으로 단정하지 마세요.',
+  '신살은 verifiedCalculations.relationshipSignals.shinsal 목록에 있는 것만 쓰세요. 목록에 없는 신살을 만들지 말고, 공망으로 약화·해소된 것과 이설(variant)은 그만큼 낮춰 쓰며, 신살 하나로 사건이나 운명을 단정하지 마세요.',
   '천명사주는 otherSections의 nextCriterion을 확인하고, 현재 제목에 맞는 다른 확인 대상과 행동으로 끝내세요. 다른 항목의 마지막 판단 문장을 재사용하지 마세요.',
   '특정 행동이 승패를 가른다거나 이기는 사람의 조건이라고 말하지 마세요. 실력 재현·판단에 도움이 될 수 있는 방법과 결과 보장을 구별하세요.',
   ...SECTION_CLOSING_RULES,
@@ -2191,7 +2195,7 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
     return {
       ...features,
       calculation: { ...promptCalculations(features), pillars },
-      timing: timeTolerantTiming(features.timing),
+      timing: timeTolerantTiming(features.timing, { keepChart: true }),
       uncertainty: SIX_CHAR_UNCERTAINTY,
     }
   }
@@ -2211,13 +2215,14 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
 const SIX_CHAR_UNCERTAINTY = '출생 시각 미상: 시주(태어난 시간 두 글자)는 계산에서 뺐습니다. 오행·강약·용신·십신·합충은 연·월·일 6글자로 계산한 확정값이니 그대로 근거로 쓰세요. 시주·시주 십성·시주로 보는 자녀 자리는 쓰지 말고, 시간을 몰라 덜 정확하다는 안내 문장도 넣지 마세요. 대운 시작 나이·연도는 1세 안팎 달라질 수 있으니 "약 ○세 무렵"으로 쓰세요.'
 
 /** 대운 간지 순서와 세운은 시간을 몰라도 거의 같다(400명 측정: 순서 4%·세운 0% 차이). 시작 나이만 1세 안팎으로 달라질 수 있다. */
-function timeTolerantTiming(timing: ReturnType<typeof buildSajuFeatureJson>['timing']) {
+// 원국과의 관계(withChart)는 6글자 계산일 때만 남긴다. 보류 모드의 timing 은 임시 시각 원국 기준이라 뺀다.
+function timeTolerantTiming(timing: ReturnType<typeof buildSajuFeatureJson>['timing'], { keepChart = false }: { keepChart?: boolean } = {}) {
   return timing
     ? {
         currentYear: timing.currentYear,
         yearPillar: timing.yearPillar,
-        daewoonList: timing.daewoonList?.map(({ pillar, ageStart, startYear }) => ({ pillar, approxAgeStart: ageStart, approxStartYear: startYear })),
-        yearlyFlow: timing.yearlyFlow,
+        daewoonList: timing.daewoonList?.map(({ pillar, ageStart, startYear, withChart }) => ({ pillar, approxAgeStart: ageStart, approxStartYear: startYear, ...(keepChart && withChart ? { withChart } : {}) })),
+        yearlyFlow: timing.yearlyFlow?.map(({ withChart, ...flow }) => (keepChart && withChart ? { ...flow, withChart } : flow)),
       }
     : undefined
 }
@@ -2730,10 +2735,11 @@ export function reviewGeneratedSajuReportSection(input: {
 }): InterpretationReview {
   const { analysis, birth, context, section, hook, interpretation, siblings = [], corpusSnapshot, verdict } = input
   const review = reviewInterpretation(interpretation, context, siblings)
+  const grounded = groundedReportFeatures(analysis, context)
  const numericEvidence = numericEvidenceFrom(
     context.birthTimeKnown === false ? { ...birth, hour: undefined, minute: undefined } : birth,
     publicReportContext(context),
-    groundedReportFeatures(analysis, context),
+    grounded,
     { category: section.category, classification: section.classification },
     // 계약서가 쓰라고 한 장면·기준에 든 숫자는 근거 있는 숫자다. 직장 선택은 '첫 3개월 적응'을
     // 요구하면서 "3개월"을 근거 없는 처방 숫자로 되돌려 보냈다(2026-09-18).
@@ -2775,6 +2781,11 @@ export function reviewGeneratedSajuReportSection(input: {
   }).issues)
   review.issues.push(...reviewEngineLabelExposure(interpretation).issues)
   review.issues.push(...reviewEngineLabelExposure(hook).issues)
+  // AI가 본 계산값(grounded)과 같은 신살 목록으로 판정한다.
+  const shownShinsal = (grounded as { relationshipSignals?: { shinsal?: { items: string[] } } }).relationshipSignals?.shinsal
+  const invented = inventedShinsalNames(`${hook}
+${interpretation}`, shownShinsal?.items.map((line) => line.split(SHINSAL_PROMPT_SEPARATOR)[0]) ?? [])
+  if (invented.length > 0) review.issues.push(`계산된 신살 목록에 없는 신살(${invented.join(', ')})을 쓰지 마세요. verifiedCalculations.relationshipSignals.shinsal 에 있는 것만 쉬운 말로 쓰세요.`)
   if (normalizeServiceKey(context.serviceKey) === 'saju_master') review.issues.push(...reviewCmdgStoryStructure(interpretation))
   if (!hook) review.issues.push('현재 항목의 답을 담은 한 줄 요약을 새로 작성하세요.')
   review.passed = review.issues.length === 0

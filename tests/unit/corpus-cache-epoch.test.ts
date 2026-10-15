@@ -59,7 +59,8 @@ function withEditedCorpus<T>(run: () => T): T {
   }
 }
 
-test('1. 기준 세대에서는 기존 리포트 ID 가 한 건도 바뀌지 않는다', () => {
+test('1. 기준 세대에서는 기존 리포트 ID 가 한 건도 바뀌지 않는다', () => withEpoch('', () => {
+  // 2026-10-15 엔진 개정으로 실제 세대를 올렸다. 이 검사는 기준 세대('')의 공식이 도입 전과 같은지를 본다.
   assert.equal(corpusCacheSalt(), '', 'cacheEpoch 는 도입 시점에 빈 문자열이어야 한다')
 
   // 도입 이전 공식 그대로 계산한 값. 세대 소금이 비어 있으면 키 자체가 빠져야 한다.
@@ -82,10 +83,10 @@ test('1. 기준 세대에서는 기존 리포트 ID 가 한 건도 바뀌지 않
   // 반대로 세대를 올렸을 때는 반드시 바뀌어야 한다. 안 바뀌면 의도한 무효화가 동작하지 않는다.
   const bumped = withEpoch('e2', () => createReportId(BIRTH, CONTEXT, 'fixed-fingerprint', 'owner-1'))
   assert.notEqual(bumped, legacy, '세대를 올렸는데 종합 해석 ID 가 그대로다. 개정이 기존 사용자에게 반영되지 않는다.')
-})
+}))
 
 test('2. withCorpusEpoch 는 기준 세대에서 아무것도 하지 않는다', () => {
-  assert.equal(withCorpusEpoch('money-save-abc'), 'money-save-abc')
+  assert.equal(withEpoch('', () => withCorpusEpoch('money-save-abc')), 'money-save-abc')
   const bumped = withEpoch('e2', () => withCorpusEpoch('money-save-abc'))
   assert.notEqual(bumped, 'money-save-abc', '세대를 올렸는데 특화 서비스 ID 가 그대로다. 개정이 반영되지 않는다.')
 })

@@ -1,0 +1,10 @@
+{
+  "note": "사주 계산 엔진(src/saju/*.ts)이 바뀌면 풀이 세대(data/tone-v2/corpus/registry.json 의 cacheEpoch)를 올려, 업데이트 뒤에 사는 사람은 반드시 새 계산으로 풀이를 받게 한다(2026-10-15 결정). 엔진을 고쳤으면 cacheEpoch 를 새 값으로 올리고 아래 history 맨 끝에 {cacheEpoch, engineHash} 한 줄을 더한다. engineHash 는 tests/unit/engine-epoch-guard.test.ts 가 실패 메시지로 알려 준다.",
+  "history": [
+    {
+      "cacheEpoch": "2026-10-15-engine",
+      "engineHash": "5c3fb8eb126ab71c",
+      "change": "용신 억부 우선·신살·운과 원국의 합충형·출생 시각 규칙(서머타임·동경 127.5도·23:30부터 다음 날)"
+    }
+  ]
+}

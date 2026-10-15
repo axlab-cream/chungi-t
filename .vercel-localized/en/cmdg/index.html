@@ -2275,57 +2275,6 @@
         height: auto;
       }
 
-      .brand-proof {
-        position: relative;
-        background: #121212;
-      }
-
-      .brand-proof .solo-logo {
-        display: grid;
-        place-items: center;
-        gap: 4px;
-        padding: 36px 0;
-        color: #ff1f66;
-        font-weight: 800;
-      }
-
-      .brand-proof .solo-logo img {
-        width: 237px;
-        height: auto;
-      }
-
-      .brand-proof .proof-bg {
-        display: block;
-        width: 100%;
-        height: auto;
-      }
-
-      .brand-stats {
-        display: grid;
-        gap: 24px;
-        padding: 28px 24px 60px;
-        background: #121212;
-      }
-
-      .brand-stats div {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .brand-stats span {
-        color: #c9a227;
-        font-size: 14px;
-        font-weight: 800;
-      }
-
-      .brand-stats strong {
-        color: #e4e4e7;
-        font-size: 42px;
-        line-height: 1;
-      }
-
       .story-visual {
         --panel-image: url("assets/cut-01-intro.webp");
         position: relative;
@@ -4320,8 +4269,6 @@
         speechBubbleTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_2.svg",
         speechBubbleThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_3.svg",
         wealthChart: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/wealth_chart.png",
-        soloLogo: "https://cdn.sajutight.me/common/solorun_x_tight.png",
-        brandPrize: "https://cdn.sajutight.me/products-media/hyundai/brand_prize_v2.png",
       };
 
       function readReportHistory() {
@@ -5391,7 +5338,6 @@
         priceCharacter = sampleAssets.priceCharacter,
         priceCharacterCopy = `\x3cp>Distinguish patterns to let pass\x3cbr />from those worth holding on to\x3c/p>`,
         showFinalSajuSection = true,
-        showBrandProof = true,
         handReach = sampleAssets.handReach,
         handReachCopy = `\x3ch2>A story drawn from many \x3cspan class="red">classical texts\x3c/span> and interpretations\x3cbr />to bring its meaning to light\x3c/h2>`
       ) {
@@ -5555,19 +5501,6 @@
             ${sourceImg("finalSajuBg", "source-img", "Last saju background")}
             \x3cdiv class="source-fade">\x3c/div>
             \x3cdiv class="source-copy mid">\x3ch2>So far,\x3cbr />I have given many readings\x3c/h2>\x3c/div>
-          \x3c/section>` : ""}
-
-          ${showBrandProof ? `\x3csection class="brand-proof" data-sample-section="brand-proof">
-            \x3cdiv class="solo-logo">
-              \x3cspan>Together with the cast of I Am Solo\x3c/span>
-              ${sourceImg("soloLogo", "", "Solo Run X TIGHT")}
-            \x3c/div>
-            ${sourceImg("brandPrize", "proof-bg", "Brand trust indicators")}
-            \x3cdiv class="brand-stats">
-              \x3cdiv>\x3cspan>Total customers\x3c/span>\x3cstrong>2,001,882\x3c/strong>\x3c/div>
-              \x3cdiv>\x3cspan>Kakao Channel friends\x3c/span>\x3cstrong>58,182\x3c/strong>\x3c/div>
-              \x3cdiv>\x3cspan>Thank-you reviews\x3c/span>\x3cstrong>35,760\x3c/strong>\x3c/div>
-            \x3c/div>
           \x3c/section>` : ""}
         `;
       }
@@ -6035,7 +5968,6 @@
               '\x3ch2>Now, within your \x3cspan class="red">Four Pillars\x3c/span>,\x3cbr />the hidden \x3cspan class="red">truth\x3c/span> begins to unfold.\x3c/h2>',
               landingSourceAssets.priceCharacter,
               "",
-              false,
               false,
               landingSourceAssets.handReach,
               '\x3ch2>Numerous \x3cspan class="red">old texts\x3c/span> and distinguished scholars’\x3cbr />interpretations shape\x3cbr />your own \x3cspan class="red">in-depth analysis\x3c/span>\x3c/h2>'
