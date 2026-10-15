@@ -65,6 +65,7 @@ export interface ElementCount {
 }
 
 export interface HiddenStemInfo {
+  pillar: TenGodPlacement['pillar']
   branch: EarthlyBranch
   stems: Array<{
     stem: HeavenlyStem
@@ -349,6 +350,12 @@ export interface SajuFeatureJson {
   relationshipSignals: {
     tenGods: TenGod[]
     placements: TenGodPlacement[]
+    /** 지지 속 숨은 글자(지장간). 비중이 큰 순서, 가장 큰 것이 본기. 시간을 모르면 연·월·일 3자리만. */
+    hiddenStems: Array<{
+      pillar: TenGodPlacement['pillar']
+      branch: EarthlyBranch
+      stems: Array<{ stem: HeavenlyStem; tenGod?: TenGod; weight: number; main: boolean }>
+    }>
     interactions: SajuInteraction[]
     gyeokguk?: {
       name: string

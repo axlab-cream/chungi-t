@@ -153,7 +153,8 @@ function weightedElementCount(chart: ChartPillar[]): ElementCount {
 }
 
 function buildHiddenStems(chart: ChartPillar[], dayMaster: HeavenlyStem): HiddenStemInfo[] {
-  return chart.map(([, p]) => ({
+  return chart.map(([pillar, p]) => ({
+    pillar,
     branch: p.branch,
     stems: HIDDEN_STEMS[p.branch].map((hidden) => ({
       stem: hidden.stem,
@@ -507,6 +508,23 @@ export function sixCharAnalysis(analysis: SajuAnalysis): SajuAnalysis {
   return { ...base, preview: buildPreview(base) }
 }
 
+/**
+ * 지장간을 AI에게 넘기는 모양(2026-10-15). 계산은 있었지만 리포트 프롬프트에 빠져 있어,
+ * AI가 "지장간 값이 제공되지 않았어"라고 고객에게 쓰거나 스스로 계산했다.
+ * 24편 비교에서 넘기면 자리별 숨은 글자를 정확히 인용했고(틀림 0), 필요 없는 장에는 영향이 없었다.
+ */
+// 중기·여기는 비중이 아니라 절기 안의 순서로 정해져(辰·丑·未·戌·巳는 비중 순서와 반대) 비중으로 붙이면 틀린다.
+// 비중이 가장 큰 본기만 표시한다(2026-10-15 Codex 리뷰).
+function hiddenStemsForPrompt(hiddenStems: HiddenStemInfo[]): SajuFeatureJson['relationshipSignals']['hiddenStems'] {
+  return hiddenStems.map(({ pillar, branch, stems }) => ({
+    pillar,
+    branch,
+    stems: [...stems]
+      .sort((a, b) => b.weight - a.weight)
+      .map(({ stem, tenGod, weight }, index) => ({ stem, tenGod, weight, main: index === 0 })),
+  }))
+}
+
 export function buildSajuFeatureJson(
   analysis: SajuAnalysis,
   context?: SajuReportContext,
@@ -549,6 +567,7 @@ export function buildSajuFeatureJson(
     relationshipSignals: {
       tenGods: analysis.tenGods,
       placements: analysis.manseryeok?.tenGodPlacements ?? [],
+      hiddenStems: hiddenStemsForPrompt(analysis.manseryeok?.hiddenStems ?? []),
       interactions: analysis.manseryeok?.interactions ?? [],
       gyeokguk: analysis.manseryeok?.gyeokguk
         ? {
