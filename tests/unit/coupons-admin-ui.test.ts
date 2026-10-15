@@ -6,9 +6,10 @@ class Element {
   children: Element[] = []
   attributes: Record<string, string> = {}
   handlers: Record<string, (event: unknown) => unknown> = {}
-  style = {}; dataset = {}; type = ''; id = ''; required = false; readOnly = false; max = ''; value: unknown = ''; name = ''; textContent = ''; disabled = false; checked = false; defaultChecked = false; defaultValue = ''
+  parentNode: Element | null = null
+  style: Record<string, string> = {}; dataset = {}; type = ''; id = ''; required = false; readOnly = false; max = ''; value: unknown = ''; name = ''; textContent = ''; disabled = false; checked = false; defaultChecked = false; defaultValue = ''
   constructor(public tag: string) {}
-  append(...children: Element[]) { this.children.push(...children) }
+  append(...children: Element[]) { for (const child of children) if (child instanceof Element) child.parentNode = this; this.children.push(...children) }
   appendChild(child: Element) { this.append(child); return child }
   replaceChildren(...children: Element[]) { this.children = children }
   setAttribute(key: string, value: string) { this.attributes[key] = value }
@@ -41,7 +42,7 @@ const html = readFileSync(new URL('../../admin-ui/index.html', import.meta.url),
 const source = html.slice(html.indexOf('async function loadCouponManager(body)'), html.indexOf('async function loadConsultationManager(body)'))
 async function harness(fail = false) {
   const calls: any[] = []; let seq = 0
-  const ctx = vm.createContext({document:{createElement:(tag:string)=>new Element(tag)},adminBulkSelect:()=>({mount(){},attach(){}}),adminCount:()=>null,adminRange:()=>null,crypto:{randomUUID:()=>`synthetic-${++seq}`,getRandomValues:(a:Uint8Array)=>a.fill(7)},window:{confirm:()=>true},adminConfirm:async()=>true,adminToast:()=>{},adminPageAction:()=>null,memberTable:()=>new Element('div'),memberEmpty:(text:string)=>Object.assign(new Element('p'),{textContent:text}),memberChip:()=>new Element('span'),memberDay:()=>'',copyChip:()=>new Element('span'),navigator:{clipboard:{writeText:async()=>{}}},fetch:async(url:string,init:any)=>{
+  const ctx = vm.createContext({document:{createElement:(tag:string)=>new Element(tag)},adminBulkSelect:()=>({mount(){},attach(){}}),adminTip:()=>new Element('button'),adminCount:()=>null,adminRange:()=>null,crypto:{randomUUID:()=>`synthetic-${++seq}`,getRandomValues:(a:Uint8Array)=>a.fill(7)},window:{confirm:()=>true},adminConfirm:async()=>true,adminToast:()=>{},adminPageAction:()=>null,memberTable:()=>new Element('div'),memberEmpty:(text:string)=>Object.assign(new Element('p'),{textContent:text}),memberChip:()=>new Element('span'),memberDay:()=>'',copyChip:()=>new Element('span'),navigator:{clipboard:{writeText:async()=>{}}},fetch:async(url:string,init:any)=>{
     calls.push({url,...init}); if(init.method==='GET')return {ok:true,json:async()=>({items:[],products:[{key:'cmdg',title:'천명사주'}]})}
     return {ok:!fail,status:fail?503:201,json:async()=>({item:{}})}
   }})
@@ -74,4 +75,21 @@ test('new coupons default to member-grant-only with room for 1,000 members', asy
   const data = JSON.parse(h.calls[1].body)
   assert.equal(data.grantOnly, true)
   const fresh = await harness(); assert.equal(fresh.form.elements.maxClaims.defaultValue, '1000')
+})
+
+// 2026-10-15: 지급 전용은 관리자가 한 명씩 주므로 인원 칸을 숨기고 최대로 둔다. 끄면 칸이 다시 보이고 기본 1,000명으로 돌아온다.
+test('grant-only hides the member limit and uses the maximum; turning it off restores the field', async () => {
+  const fresh = await harness()
+  const limit = fresh.form.elements.maxClaims
+  const toggle = fresh.form.elements.grantOnly
+  assert.equal(limit.parentNode!.style.display, 'none')
+  toggle.checked = false; await toggle.emit('change')
+  assert.equal(limit.parentNode!.style.display, '')
+  assert.equal(limit.value, '100', '직접 적은 인원은 그대로 둔다')
+  toggle.checked = true; await toggle.emit('change')
+  assert.equal(limit.value, '20000')
+  assert.equal(limit.parentNode!.style.display, 'none')
+  toggle.checked = false; await toggle.emit('change')
+  assert.equal(limit.value, '1000', '자동으로 넣은 최대값은 기본값으로 되돌린다')
+  assert.equal(fresh.form.elements.code.readOnly, false)
 })

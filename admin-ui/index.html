@@ -513,6 +513,10 @@
     .admin-bulk-info b { color: var(--admin-text); }
     .admin-bulk-list { margin: 10px 0 0; padding: 10px 12px 10px 28px; max-height: 160px; overflow-y: auto; border-radius: 6px; background: #f6f7f9; font-size: 13px; }
     .admin-bulk-list li + li { margin-top: 3px; }
+    .admin-grant-only { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+    .admin-field > .admin-hint { margin: 2px 0 0; }
+    .admin-refund-form .admin-field { align-content: start; }
+    .admin-grant-only-state { margin-left: 4px; font-size: 12px; color: var(--admin-text-muted); }
     /* 2026-10-15 요청: 팝업 좌우 간격 통일. 제목·안내·입력칸·버튼의 왼쪽 끝을 모두 20px 에 맞춘다(일반 팝업 머리와 같은 값). */
     .admin-section-modal > .admin-section > .admin-section-head,
     .admin-section-modal > .admin-section > h3:first-child { margin: 0; padding: 18px 52px 14px 20px; border-bottom: 1px solid var(--admin-line); }
@@ -3259,22 +3263,35 @@
         function option(select, value, label) { var item = document.createElement('option'); item.value = value; item.textContent = label; select.appendChild(item); }
         field('title', '발급명', 'text', { maxlength: '100' }); var code = field('code', '쿠폰 코드 (영문·숫자·하이픈)', 'text', { maxlength: '40', minlength: '8', pattern: '[A-Za-z0-9_-]{8,40}', autocomplete: 'off' });
         // 2026-10-12: 회원 지급 전용. 고객은 코드로 등록할 수 없고, 회원 상세 › 쿠폰에서 한 명씩 지급한다. 코드는 아무도 쓰지 않으니 자동으로 채운다.
-        var grantOnlyWrap = document.createElement('div'); grantOnlyWrap.className = 'admin-field'; grantOnlyWrap.dataset.span = '2';
+        var grantOnlyWrap = document.createElement('div'); grantOnlyWrap.className = 'admin-field admin-grant-only'; grantOnlyWrap.dataset.span = '2';
         var grantOnlyLabel = document.createElement('label'); grantOnlyLabel.className = 'admin-check';
         var grantOnly = document.createElement('input'); grantOnly.type = 'checkbox'; grantOnly.name = 'grantOnly';
-        var grantOnlyText = document.createElement('span'); grantOnlyText.textContent = '회원 지급 전용 (고객이 코드로 등록할 수 없고, 회원 상세에서 한 명씩 지급합니다)'; grantOnlyLabel.append(grantOnly, grantOnlyText);
-        grantOnlyWrap.appendChild(grantOnlyLabel); form.appendChild(grantOnlyWrap);
+        var grantOnlyText = document.createElement('span'); grantOnlyText.textContent = '회원 지급 전용'; grantOnlyLabel.append(grantOnly, grantOnlyText);
+        // 2026-10-15 요청: 설명은 옆 ⓘ 에 마우스를 올리면 보인다. 라벨 밖에 둬서 ⓘ 를 눌러도 체크가 바뀌지 않는다.
+        var grantOnlyState = document.createElement('span'); grantOnlyState.className = 'admin-grant-only-state';
+        grantOnlyWrap.append(grantOnlyLabel, adminTip('켜면(ON): 관리자가 회원 관리 › 회원 상세 › 쿠폰 탭에서 회원에게 직접 넣어 줍니다. 고객은 코드로 받을 수 없습니다. 문의 보상처럼 특정 회원에게 줄 때 씁니다. 끄면(OFF): 쿠폰 코드를 카카오 채널 등에 알리면, 고객이 MY › 쿠폰에 코드를 입력해 받습니다.'), grantOnlyState);
+        form.appendChild(grantOnlyWrap);
         function randomGrantCode() { var letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; var bytes = crypto.getRandomValues(new Uint8Array(10)); return 'GIFT-' + Array.from(bytes, function (b) { return letters[b % letters.length]; }).join(''); }
-        function updateGrantOnly() { code.readOnly = grantOnly.checked; if (grantOnly.checked) code.value = randomGrantCode(); else if (/^GIFT-/.test(code.value)) code.value = ''; }
+        // 2026-10-15: 지급 전용이면 관리자가 한 명씩 주므로 인원 상한을 둘 이유가 없다. 인원 칸을 숨기고 최대(20,000명)로 둔다.
+        function updateGrantOnly() {
+          code.readOnly = grantOnly.checked; if (grantOnly.checked) code.value = randomGrantCode(); else if (/^GIFT-/.test(code.value)) code.value = '';
+          grantOnlyState.textContent = grantOnly.checked ? 'ON · 관리자가 회원에게 직접 지급' : 'OFF · 고객이 코드 입력';
+          if (!maxClaims) return;
+          maxClaims.parentNode.style.display = grantOnly.checked ? 'none' : '';
+          if (grantOnly.checked) maxClaims.value = '20000'; else if (maxClaims.value === '20000') maxClaims.value = maxClaims.defaultValue;
+        }
         grantOnly.addEventListener('change', updateGrantOnly);
         // 2026-10-14: 쿠폰 메뉴는 만들어 두는 곳이고 지급은 회원 상세에서 하므로, 기본값을 "회원 지급 전용"으로 둔다.
-        grantOnly.checked = true; grantOnly.defaultChecked = true; updateGrantOnly();
+        grantOnly.checked = true; grantOnly.defaultChecked = true;
         var kinds = { service_free: '무료 이용권', consultation_questions: '상담 질문권', amount_off: '금액 할인', percent_off: '비율 할인' };
         var kind = field('kind', '쿠폰 종류', 'select'); Object.keys(kinds).forEach(function (key) { option(kind, key, kinds[key]); });
         var product = field('productKey', '적용 서비스', 'select');
         var value = field('value', '혜택 수량 · 할인값', 'number', { min: '1', step: '1' }); value.value = '1';
         // 2026-10-14: 기본 한도가 1명이라 한 명에게 주면 바로 소진됐다. 받을 수 있는 인원으로 이름을 바꾸고 기본 1,000명으로 둔다.
-        var maxClaims = field('maxClaims', '받을 수 있는 인원 (1–20,000명)', 'number', { min: '1', max: '20000', step: '1' }); maxClaims.value = '1000'; maxClaims.defaultValue = '1000';
+        // 2026-10-15: "받을 수 있는 인원"이 무슨 뜻인지 헷갈려서 "최대 지급 인원"으로 바꾸고 아래에 뜻을 적는다.
+        var maxClaims = field('maxClaims', '최대 지급 인원 (1–20,000명)', 'number', { min: '1', max: '20000', step: '1' }); maxClaims.value = '1000'; maxClaims.defaultValue = '1000';
+        var maxClaimsHint = document.createElement('p'); maxClaimsHint.className = 'admin-hint'; maxClaimsHint.textContent = '이 수만큼 받으면 마감됩니다. 만든 뒤에는 바꿀 수 없습니다.'; maxClaims.parentNode.appendChild(maxClaimsHint);
+        updateGrantOnly();
         field('startsAt', '사용 시작 (현재 기기 시간대)', 'datetime-local'); field('expiresAt', '사용 종료 (현재 기기 시간대)', 'datetime-local');
         var help = document.createElement('p'); help.className = 'admin-note'; help.dataset.span = '2'; form.appendChild(help);
         function updateKind() {
