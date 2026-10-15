@@ -687,7 +687,7 @@ body.is-umsh-bottom-menu-open .umsh-service-bottom .bottom-menu-sheet {
   position: relative;
   z-index: 84;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   height: 74px;
   border-top: 1px solid var(--shell-line-soft);
   background: rgba(8, 8, 7, 0.96);
@@ -727,6 +727,21 @@ body.umsh-has-chrome .umsh-service-bottom .bottom-nav button {
   background: var(--shell-gold-400);
   content: "";
   transform: translateX(-50%);
+}
+
+.umsh-service-bottom .bottom-nav button {
+  align-content: center;
+  gap: 4px;
+}
+
+.umsh-service-bottom .tab-icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .umsh-service-bottom .tab-label {
