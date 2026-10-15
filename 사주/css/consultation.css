@@ -27,7 +27,7 @@
 .consultation-rail .weekly-free-caption strong{font-size:14px;line-height:1.4}
 .consultation-rail .weekly-free-caption>span{font-size:11px}
 .consultation-promo-visual{position:relative;min-height:calc((100cqw - 2px)*.525);min-width:0;display:grid;align-items:center;isolation:isolate}
-.consultation-promo-visual>img{position:absolute;right:0;top:0;width:62%;height:100%;object-fit:cover;object-position:50% 23%;z-index:-2}
+.consultation-promo-visual>img{position:absolute;right:0;top:0;width:62%;height:100%;object-fit:cover;object-position:66% 30%;z-index:-2}
 .consultation-promo-visual:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#090907 16%,#090907d9 39%,transparent 80%);z-index:-1}
 .consultation-promo-copy{box-sizing:border-box;position:relative;width:67%;padding:16px 0 16px 18px;overflow-wrap:anywhere}
 .consultation-promo-copy small{display:block;font-size:10px;letter-spacing:.5px;line-height:1.4;color:#d9b868}
