@@ -573,10 +573,10 @@
       if (notice && (reason === 'input' || reason === 'partner')) notice.classList.add('is-visible');
       if (nextPrimary) {
         if (reason === 'login') {
-          nextPrimary.textContent = '로그인하고 전체 보기 (24,900원)';
+          nextPrimary.textContent = '로그인하고 전체 보기';
           nextPrimary.addEventListener('click', () => location.assign(loginUrl()));
         } else if (reason === 'payment') {
-          nextPrimary.textContent = '전체 보기 (24,900원)';
+          nextPrimary.textContent = '전체 보기';
           nextPrimary.addEventListener('click', () => {
             location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
           });
@@ -727,7 +727,7 @@
       const link = document.createElement('a');
       link.className = 'notice-action';
       if (reason === 'login') {
-        link.textContent = '로그인하고 전체 보기 (24,900원)';
+        link.textContent = '로그인하고 전체 보기';
         link.href = loginUrl();
       } else {
         link.textContent = '입력 화면으로 이동';

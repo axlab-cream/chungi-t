@@ -418,12 +418,12 @@
       }
       if (nextPrimary) {
         nextPrimary.dataset.action = 'open-checkout';
-        nextPrimary.textContent = `전체 보기 (${SERVICE.price})`;
+        nextPrimary.textContent = '전체 보기';
         nextPrimary.addEventListener('click', pay);
       }
       if (dock) {
         dock.dataset.action = 'open-checkout';
-        dock.textContent = `전체 보기 (${SERVICE.price})`;
+        dock.textContent = '전체 보기';
         dock.addEventListener('click', pay);
       }
       if (dockNote) dockNote.textContent = GATE_COPY.payment;
@@ -451,16 +451,16 @@
       if (nextPrimary) {
         if (reason === 'login') {
           nextPrimary.dataset.action = 'open-login';
-          nextPrimary.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
+          nextPrimary.textContent = '로그인하고 전체 보기';
           nextPrimary.addEventListener('click', () => location.assign(loginUrl()));
         if (dock) {
           dock.dataset.action = 'open-login';
-          dock.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
+          dock.textContent = '로그인하고 전체 보기';
           dock.addEventListener('click', () => location.assign(loginUrl()));
         }
         } else if (reason === 'payment') {
           nextPrimary.dataset.action = 'open-checkout';
-          nextPrimary.textContent = `전체 보기 (${SERVICE.price})`;
+          nextPrimary.textContent = '전체 보기';
           nextPrimary.addEventListener('click', () => {
             location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
           });
@@ -595,7 +595,7 @@
     if (title) title.textContent = reason === 'login' ? '로그인이 필요합니다' : '리포트를 먼저 만들어 주세요';
     if (body) body.textContent = GATE_COPY[reason] || GATE_COPY.error;
     if (action) {
-      action.textContent = reason === 'login' ? `로그인하고 전체 보기 (${SERVICE.price})` : '입력 화면으로 이동';
+      action.textContent = reason === 'login' ? '로그인하고 전체 보기' : '입력 화면으로 이동';
       action.addEventListener('click', () => {
         location.assign(reason === 'login' ? loginUrl() : '../02-step-2-saju-input/index.html#step-2-saju-input');
       });

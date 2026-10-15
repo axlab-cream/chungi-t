@@ -298,7 +298,7 @@
     const cta = root.querySelector('.button');
     const href = `/signup?entry=pass-angle&returnTo=${encodeURIComponent(location.pathname)}`;
     if (cta) {
-      cta.textContent = '로그인하고 전체 보기 (9,900원)';
+      cta.textContent = '로그인하고 전체 보기';
       cta.setAttribute('href', href);
     }
 
@@ -307,7 +307,7 @@
     gate.innerHTML = `
       <b>로그인하면 내 사주로 풀이가 열립니다</b>
       <span>${message}</span>
-      <a class="button" href="${href}">로그인하고 전체 보기 (9,900원)</a>
+      <a class="button" href="${href}">로그인하고 전체 보기</a>
     `;
     host.appendChild(gate);
   }
@@ -355,7 +355,7 @@ function firstParagraph(text) {
         }
         const cta = root.querySelector('.button');
         if (cta) {
-          cta.textContent = `전체 보기 (${SERVICE.price_krw.toLocaleString('ko-KR')}원)`;
+          cta.textContent = '전체 보기';
           cta.setAttribute('href', lastPreview.paymentUrl || `/payment?product=${SERVICE.service_key}&returnTo=${encodeURIComponent(location.pathname)}`);
         }
         return;

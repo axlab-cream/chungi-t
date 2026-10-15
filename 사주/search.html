@@ -244,10 +244,6 @@
             .replaceAll('"', '&quot;');
         }
 
-        function price(amount) {
-          return `${Number(amount || 0).toLocaleString('ko-KR')}원`;
-        }
-
         function matches(service) {
           const query = search.value.trim().toLowerCase();
           if (category !== 'all' && service.category !== category) return false;
@@ -266,7 +262,6 @@
                   <span class="body">
                     <b>${escapeHtml(service.title)}</b>
                     <span>${escapeHtml(service.tagline)}</span>
-                    <em>${escapeHtml(price(service.amount))}</em>
                   </span>
                 </a>
               `,
