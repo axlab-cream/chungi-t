@@ -239,18 +239,7 @@ async function ensureDb(): Promise<void> {
 }
 
 function cloneRecord(record: ReportRecord): ReportRecord {
-  return withStoredTimeRule(JSON.parse(JSON.stringify(record)) as ReportRecord)
-}
-
-/**
- * 출생 시각 규칙 표시(2026-10-15). 새로 저장하는 리포트는 지금 규칙(kr2026)을 붙이고, 표시 없이 저장된 예전 리포트는
- * 다시 계산할 때도 예전 규칙(legacy)으로 읽는다 — "새 주문부터 적용" 결정. 상대 출생값(궁합)도 같다.
- */
-function withStoredTimeRule(record: ReportRecord, rule: 'legacy' | 'kr2026' = 'legacy'): ReportRecord {
-  if (record.birth && !record.birth.timeRule) record.birth = { ...record.birth, timeRule: rule }
-  const partnerBirth = record.context?.partner?.birth
-  if (partnerBirth && !partnerBirth.timeRule) record.context = { ...record.context, partner: { ...record.context.partner!, birth: { ...partnerBirth, timeRule: rule } } }
-  return record
+  return JSON.parse(JSON.stringify(record)) as ReportRecord
 }
 
 function recordForStorage(record: ReportRecord): ReportRecord {
@@ -969,10 +958,10 @@ export async function transferReportOwnership(fromOwnerId: string, to: ReportOwn
 export async function saveReportRecord(record: ReportRecord, insertOnly = true): Promise<ReportRecord> {
   if (!insertOnly) throw new Error('기존 리포트 변경에는 충돌 검사를 지원하는 mutateReportRecord를 사용하세요.')
   assertDurableReportStorage()
-  const updated: ReportRecord = withStoredTimeRule({
+  const updated: ReportRecord = {
     ...record,
     updatedAt: nowIso(),
-  }, 'kr2026')
+  }
   const stored = recordForStorage(updated)
   if (localFiles) return localFiles.insert(stored)
 

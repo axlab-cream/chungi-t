@@ -39,7 +39,7 @@ function mod(n: number, m: number): number {
 
 
 function birthInstantMs(resolved: ResolvedBirthDate): number {
-  return civilUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute, resolved.birthTimeZone, resolved.birthTimeDisambiguation, resolved.timeRule)
+  return civilUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute, resolved.birthTimeZone, resolved.birthTimeDisambiguation)
 }
 
 /**
@@ -48,11 +48,11 @@ function birthInstantMs(resolved: ResolvedBirthDate): number {
  */
 const KOREA_SAJU_MERIDIAN_OFFSET_MINUTES = 8 * 60 + 30
 
-/** 일주·시주를 정하는 시각. 예전 규칙과 해외 출생은 입력한 시계 시각 그대로다. */
+/** 일주·시주를 정하는 시각. 해외 출생은 입력한 시계 시각 그대로다. */
 export function sajuClock(resolved: ResolvedBirthDate): SajuClock {
   const wall = { solarYear: resolved.solarYear, solarMonth: resolved.solarMonth, solarDay: resolved.solarDay, hour: resolved.hour, minute: resolved.minute }
   const korean = !resolved.birthTimeZone || resolved.birthTimeZone === 'Asia/Seoul'
-  if (resolved.timeRule === 'legacy' || !korean) return { ...wall, correctionMinutes: 0 }
+  if (!korean) return { ...wall, correctionMinutes: 0 }
   const shifted = new Date(birthInstantMs(resolved) + KOREA_SAJU_MERIDIAN_OFFSET_MINUTES * 60000)
   const clock = {
     solarYear: shifted.getUTCFullYear(), solarMonth: shifted.getUTCMonth() + 1, solarDay: shifted.getUTCDate(),
@@ -101,7 +101,6 @@ export function resolveBirthDate(birth: BirthInput): ResolvedBirthDate {
       isLeapMonth: false,
       birthTimeZone: birth.birthTimeZone,
       birthTimeDisambiguation: birth.birthTimeDisambiguation,
-      timeRule: birth.timeRule,
     }
   }
 
@@ -125,7 +124,6 @@ export function resolveBirthDate(birth: BirthInput): ResolvedBirthDate {
     lunarDay: birth.day,
     birthTimeZone: birth.birthTimeZone,
     birthTimeDisambiguation: birth.birthTimeDisambiguation,
-    timeRule: birth.timeRule,
   }
 }
 
@@ -176,9 +174,9 @@ function resolveDayCalculationDate(clock: Pick<SajuClock, 'solarYear' | 'solarMo
   }
 }
 
-/** 지금 규칙은 사주 시각 23시(시계로 23:30)부터 다음 날 일주(국내 만세력 기본값·논문 다수). 예전 규칙은 자정. */
-export function defaultDayBoundaryRule(birth: Pick<BirthInput, 'dayBoundaryRule' | 'timeRule'>): DayBoundaryRule {
-  return birth.dayBoundaryRule ?? (birth.timeRule === 'legacy' ? 'midnight' : 'zi_hour_next_day')
+/** 사주 시각 23시(시계로 보통 23:30)부터 다음 날 일주가 기본이다(2026-10-15 결정, 국내 만세력 기본값·논문 다수). */
+export function defaultDayBoundaryRule(birth: Pick<BirthInput, 'dayBoundaryRule'>): DayBoundaryRule {
+  return birth.dayBoundaryRule ?? 'zi_hour_next_day'
 }
 
 /** 五虎遁 — 년간 기준 월간 */

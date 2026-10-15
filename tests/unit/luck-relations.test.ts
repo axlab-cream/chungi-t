@@ -9,8 +9,8 @@ import type { BirthInput, EarthlyBranch, HeavenlyStem } from '../../src/types/in
  * 3번(2026-10-15): 대운·세운 글자가 원국과 만드는 합·충·형을 AI 재료에 붙인다.
  * 참고 PDF 사례(丁卯 丙午 庚寅, 시간 미상 → 6글자)로 확인한다.
  */
-// 1987-06-10은 서머타임 기간이라 지금 규칙으로는 20시가 사주 시각 18:30(酉시)이 된다. 이 테스트는 예전 시주(丙戌) 기준 값을 보므로 예전 규칙으로 고정한다.
-const PDF_BIRTH: BirthInput = { year: 1987, month: 6, day: 10, hour: 20, minute: 0, gender: 'female', calendar: 'solar', timeRule: 'legacy' }
+// 1987-06-10은 서머타임 기간이라 시계 21시 = 실제 KST 20시 = 사주 시각 19:30(丙戌시). 예전(UTC+9 고정) 20시와 같은 순간이다.
+const PDF_BIRTH: BirthInput = { year: 1987, month: 6, day: 10, hour: 21, minute: 0, gender: 'female', calendar: 'solar' }
 const chart = (...gz: string[]) => gz.map((p, i) => ({ label: ['연', '월', '일', '시'][i], stem: p[0] as HeavenlyStem, branch: p[1] as EarthlyBranch }))
 
 describe('운(대운·세운) × 원국 관계', () => {

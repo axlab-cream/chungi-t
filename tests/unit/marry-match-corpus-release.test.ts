@@ -18,8 +18,8 @@ const newMarker = '일간 강약은 자원과 반응을 살피는 전통적 축�
 // 강약 문장(위 표식)과 따로 둔다. 2026-10-15 강약에 인성을 넣으며 이 표본이 신강이 되어 강약 문장이 첫 장에서 빠졌다.
 const oldPromptMarker = '먼저 다가가 확인해야 안심하는 쪽과, 지켜보다 확신이 서면 움직이는 쪽은 애정의 크기가 아니라 리듬이 다르다'
 const newPromptMarker = '함께 사는 방식은 비용 분담, 개인 시간, 가사 기준과 주거 계약에 따라 달라진다'
-// 이 테스트는 참고서 판본 고르기를 보며, 표식 문장은 이 표본의 검색 순위에 묶여 있다. 출생 시각 규칙(2026-10-15)이 바뀌면 시주가 바뀌어 순위가 달라지므로 예전 규칙으로 고정한다.
-const birth: BirthInput = { year: 1985, month: 3, day: 20, hour: 9, gender: 'male', calendar: 'solar', timeRule: 'legacy' }
+// 이 테스트는 참고서 판본 고르기를 보며, 표식 문장은 이 표본의 검색 순위에 묶여 있다. 출생 시각 규칙(2026-10-15) 뒤에도 같은 巳시가 되도록 09:30(사주 시각 09:00)을 쓴다.
+const birth: BirthInput = { year: 1985, month: 3, day: 20, hour: 9, minute: 30, gender: 'male', calendar: 'solar' }
 const context: SajuReportContext = { serviceKey: 'marry_match', concern: '결혼을 현실적으로 준비할 조건을 확인하고 싶어요.' }
 const hashFile = (path: string) => createHash('sha256').update(readFileSync(join(root, 'data', path), 'utf8')).digest('hex')
 function oldSnapshot(): CorpusSnapshot {

@@ -7,16 +7,14 @@ export function assertBirthTimeZone(zone: string): string {
 
 /**
  * Recorded birthplace civil clock, not a language/browser-zone guess. No solar-time correction here.
- * 한국(Asia/Seoul)은 2026-10-15 규칙부터 국제 시간대 자료의 옛 서머타임(1948~51·1955~60·1987~88)과
- * UTC+8:30 표준시(1954~61)를 반영한다(정부 기록과 대조: analysis/saju-engine-comparison.html 6-2장).
- * timeRule 'legacy' 는 그 전처럼 늘 UTC+9 — 저장된 리포트를 다시 계산할 때만 쓴다.
+ * 한국(Asia/Seoul)도 국제 시간대 자료의 옛 서머타임(1948~51·1955~60·1987~88)과 UTC+8:30 표준시(1954~61)를
+ * 반영한다(2026-10-15 결정, 정부 기록과 대조: analysis/saju-engine-comparison.html 6-2장). 그 전에는 늘 UTC+9였다.
  */
-export function civilUtcMs(year: number, month: number, day: number, hour = 0, minute = 0, timeZone = 'Asia/Seoul', disambiguation?: BirthTimeDisambiguation, timeRule?: 'legacy' | 'kr2026'): number {
+export function civilUtcMs(year: number, month: number, day: number, hour = 0, minute = 0, timeZone = 'Asia/Seoul', disambiguation?: BirthTimeDisambiguation): number {
   const wall = Date.UTC(year, month - 1, day, hour, minute)
   const check = new Date(wall)
   if (![year, month, day, hour, minute].every(Number.isInteger) || check.getUTCFullYear() !== year || check.getUTCMonth() + 1 !== month || check.getUTCDate() !== day || hour < 0 || hour > 23 || minute < 0 || minute > 59) throw new Error('INVALID_BIRTH_DATE_TIME')
   const seoul = timeZone === 'Asia/Seoul'
-  if (seoul && timeRule === 'legacy') return wall - 9 * 3600000
   assertBirthTimeZone(timeZone)
   const fmt = new Intl.DateTimeFormat('en-US', {timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'})
   const localWall = (instant: number) => {

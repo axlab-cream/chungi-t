@@ -22,13 +22,9 @@ export function calculateZiwei(birth: BirthInput, birthTimeKnown?: boolean) {
   try {
     // iztro uses synchronous global configuration. Restore it before returning to another request.
     const common = { gender: birth.gender, fixLeap: true, language: 'ko-KR' as const }
-    const legacy = solar.timeRule === 'legacy'
     let chart: ReturnType<typeof astro.withOptions>
     let convention: string
-    if (legacy) {
-      chart = astro.withOptions({ type: 'solar', dateStr: `${solar.solarYear}-${solar.solarMonth}-${solar.solarDay}`, timeIndex: Math.floor((birth.hour + 1) / 2), ...common, config: { algorithm: 'default', yearDivide: 'normal', horoscopeDivide: 'normal', ageDivide: 'normal', dayDivide: birth.dayBoundaryRule === 'zi_hour_next_day' ? 'forward' : 'current' } })
-      convention = '출생지 현지 시각 입력 · 음력 설 기준 · 윤달 전후반 보정 · ' + (birth.dayBoundaryRule === 'zi_hour_next_day' ? '밤 11시부터 다음 날' : '자정부터 다음 날')
-    } else {
+    {
       // 2026-10-15 규칙: 사주와 같은 사주 시각(서머타임·표준시·동경 127.5도 보정)으로 시진을 정한다.
       // 사주 시각 23시는 다음 날의 이른 자시로 본다(사주 일주와 같은 경계).
       // 한국 음력은 넘기지 못한다: iztro 는 중국 음력으로 날짜를 검사해, 한중 음력이 다른 날(1930~2049년 3.6%)의

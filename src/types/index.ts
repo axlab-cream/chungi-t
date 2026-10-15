@@ -25,12 +25,6 @@ export interface BirthInput {
   /** IANA zone of the birthplace civil clock. Omitted means Asia/Seoul. */
   birthTimeZone?: string
   birthTimeDisambiguation?: 'earlier' | 'later'
-  /**
-   * 출생 시각 읽는 규칙(2026-10-15 결정). 없으면 지금 규칙(kr2026): 한국 옛 서머타임·표준시 반영,
-   * 동경 127.5도(UTC+8:30) 기준 시각으로 시주(자시 23:30~), 그 시각 23시부터 다음 날 일주.
-   * legacy 는 그 전 규칙(한국은 늘 UTC+9, 정시 경계, 자정에 날짜 바뀜) — 이미 저장된 리포트를 다시 계산할 때만 쓴다.
-   */
-  timeRule?: 'legacy' | 'kr2026'
 }
 
 export interface Pillar {
@@ -53,17 +47,16 @@ export interface ResolvedBirthDate {
   lunarDay?: number
   birthTimeZone?: string
   birthTimeDisambiguation?: 'earlier' | 'later'
-  timeRule?: BirthInput['timeRule']
 }
 
-/** 일주·시주를 정하는 시각(사주 시각). 지금 규칙의 한국 출생은 실제 시각을 UTC+8:30 으로 읽은 값이다. */
+/** 일주·시주를 정하는 시각(사주 시각). 한국 출생은 실제 시각을 UTC+8:30(동경 127.5도)으로 읽은 값이다(2026-10-15 결정). */
 export interface SajuClock {
   solarYear: number
   solarMonth: number
   solarDay: number
   hour: number
   minute: number
-  /** 입력한 시계 시각과의 차이(분). 평소 -30, 서머타임 -90, 1954~61년 0, 예전 규칙·해외 0 */
+  /** 입력한 시계 시각과의 차이(분). 평소 -30, 서머타임 -90, 1954~61년 0, 해외 출생 0 */
   correctionMinutes: number
 }
 

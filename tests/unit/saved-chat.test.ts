@@ -58,7 +58,7 @@ describe('saved chat generation identity and immutable reply', { concurrency: fa
       assert.ok(saved.report.sections[0].generationId)
       assert.ok(saved.report.sections[0].generationLease)
       assert.equal(saved.owner?.accessToken, undefined)
-      assert.deepEqual(saved.birth, { ...birth, timeRule: 'kr2026' }, '새로 저장하는 기록은 지금 출생 시각 규칙 표시를 붙인다')
+      assert.deepEqual(saved.birth, birth)
       return completion()
     }
     const result = await generateSavedChat(input)
@@ -90,7 +90,7 @@ describe('saved chat generation identity and immutable reply', { concurrency: fa
     const byUuid = await generateSavedChat({ owner: input.owner, resultId: first.resultId })
     assert.deepEqual(byUuid, first)
     assert.equal(requests.length, 1)
-    assert.deepEqual((await store.findReportRecord(first.reportId, input.owner))?.birth, { ...birth, timeRule: 'kr2026' })
+    assert.deepEqual((await store.findReportRecord(first.reportId, input.owner))?.birth, birth)
   })
 
   it('scopes request IDs and result access to the authenticated owner', async () => {
@@ -112,7 +112,7 @@ describe('saved chat generation identity and immutable reply', { concurrency: fa
     await store.updateReportSection(parent.record.reportId, parentReport.sections[0], { generatedBy: 'openai', model: 'mock-parent' }, input.owner)
     const result = await generateSavedChat({ ...input, parentReportId: parent.record.resultId, birth: { ...birth, year: 2001 }, serviceKey: 'money_save' })
     const saved = await store.findReportRecord(result.resultId, input.owner)
-    assert.deepEqual(saved?.birth, { ...birth, timeRule: 'kr2026' })
+    assert.deepEqual(saved?.birth, birth)
     assert.equal(saved?.context.serviceKey, 'job_choice')
     assert.equal(saved?.context.birthTimeKnown, false)
     assert.ok(requests[0].messages.some((message) => message.content.includes('확인된 기획 역할')))

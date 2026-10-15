@@ -27,12 +27,9 @@ export function birthLocationKey(birth: BirthInput): BirthLocation {
   return parseBirthLocation(birth as unknown as Record<string, unknown>)
 }
 
-/**
- * Full-object fingerprints also omit explicit Seoul, equal to the historical implicit default.
- * 출생 시각 규칙 표시(timeRule)도 뺀다: 저장 기록에만 붙는 표시라 같은 사람·같은 입력의 지문이 달라지면 안 된다.
- */
+/** Full-object fingerprints also omit explicit Seoul, equal to the historical implicit default. */
 export function birthForIdentity(birth: BirthInput): BirthInput {
-  const { birthTimeZone: _zone, birthTimeDisambiguation: _choice, timeRule: _rule, ...legacy } = birth
+  const { birthTimeZone: _zone, birthTimeDisambiguation: _choice, ...legacy } = birth
   return { ...legacy, ...birthLocationKey(birth) }
 }
 
