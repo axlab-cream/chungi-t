@@ -22,7 +22,7 @@ function hourIndependentView(analysis: SajuAnalysis) {
   return { pillars: [fourPillars.year, fourPillars.month, fourPillars.day], ...rest, meta }
 }
 
-test('switch: 새로 만든 천명사주(별칭 포함)만 6글자 모드, 예전 리포트·다른 서비스·서비스 키 없음은 보류', () => {
+test('switch: 새로 만든 리포트만 6글자 모드, 예전 리포트·켜지 않은 서비스·표시 없음은 보류', () => {
   assert.equal(unknown.birthTimeReading, 'six_char')
   assert.equal(unknownBirthTimeReading(unknown), 'six_char')
   assert.equal(unknownBirthTimeReading(markBirthTimeReading({ serviceKey: 'cmdg', birthTimeKnown: false })), 'six_char')
@@ -33,8 +33,10 @@ test('switch: 새로 만든 천명사주(별칭 포함)만 6글자 모드, 예�
   assert.equal(unknownBirthTimeReading({ birthTimeKnown: false, birthTimeReading: 'six_char' }), 'six_char')
   // 표시가 없으면 키가 없어도 보류다(표시는 리포트를 새로 만드는 곳에서만 붙는다).
   assert.equal(unknownBirthTimeReading({ birthTimeKnown: false }), 'withhold')
-  assert.equal(markBirthTimeReading({ serviceKey: 'work_move', birthTimeKnown: false }).birthTimeReading, undefined)
-  assert.equal(unknownBirthTimeReading({ serviceKey: 'work_move', birthTimeKnown: false, birthTimeReading: 'six_char' }), 'withhold')
+  // 아직 켜지 않은 서비스(판매 중지된 행운색)는 표시도 안 붙고 보류다. 이직운 등은 10/15부터 켜졌다.
+  assert.equal(markBirthTimeReading({ serviceKey: 'lucky_color', birthTimeKnown: false }).birthTimeReading, undefined)
+  assert.equal(unknownBirthTimeReading({ serviceKey: 'lucky_color', birthTimeKnown: false, birthTimeReading: 'six_char' }), 'withhold')
+  assert.equal(unknownBirthTimeReading(markBirthTimeReading({ serviceKey: 'work_move', birthTimeKnown: false })), 'six_char')
   assert.equal(markBirthTimeReading({ serviceKey: 'saju_master', birthTimeKnown: true }).birthTimeReading, undefined)
   assert.equal(unknownBirthTimeReading({ serviceKey: 'saju_master', birthTimeKnown: true }), 'known')
   assert.equal(unknownBirthTimeReading({ serviceKey: 'saju_master' }), 'known')
@@ -83,7 +85,9 @@ test('천명사주 AI 재료: 시주·출생 시각은 없고, 6글자 오행·�
   assert.ok(features.relationshipSignals.placements.every((item: { pillar: string }) => item.pillar !== 'hour'))
   assert.match(features.uncertainty, /6글자/)
   assert.equal(features.timing.currentDaewoon, undefined)
-  assert.ok(features.timing.daewoonList.every((row: Record<string, unknown>) => 'approxAgeStart' in row && !('ageStart' in row)))
+  // 10/15 결정: 참고 PDF처럼 대운 시작 나이를 단정한다('약 ○세 무렵' 표시 없음).
+  assert.ok(features.timing.daewoonList.every((row: Record<string, unknown>) => 'ageStart' in row && !('approxAgeStart' in row)))
+  assert.doesNotMatch(features.uncertainty, /약 ○세|무렵"으로/)
   // 몇 시를 넣었든 AI 가 받는 계산값은 같다(대운 시작 나이처럼 근사로 표시한 값 제외).
   const strip = (value: any) => ({ ...value, timing: undefined })
   for (const hour of [0, 6, 18, 23]) assert.deepEqual(strip(groundedReportFeatures(analyzeSaju(birthAt(hour)), unknown)), strip(features))
@@ -93,28 +97,27 @@ test('천명사주 AI 재료: 시주·출생 시각은 없고, 6글자 오행·�
   assert.doesNotMatch(prompt.section.classification, /출생 시간 미상/)
 })
 
-test('천명사주: 몇 시를 넣었든 기본 풀이·AI 프롬프트 전체가 같다(임시 시각의 지금 대운이 새지 않는다)', () => {
+test('천명사주: 몇 시를 넣었든 기본 풀이·AI 프롬프트가 같고, 대운은 실제 간지로 단정한다', () => {
   const view = (hour: number) => {
     const report = buildTemplateSajuReport(analyzeSaju(birthAt(hour)), birthAt(hour), unknown)
     return { subtitle: report.subtitle, sections: report.sections.map((s) => ({ id: s.id, classification: s.classification, hook: s.hook, interpretation: s.interpretation, keys: s.patternKeys, topics: s.ragTopics })) }
   }
-  // 대운 전환 직전 출생이라 12시와 0시의 '지금 대운'이 다른 날짜(리뷰에서 찾은 사례).
-  const transition = { year: 1960, month: 6, day: 18, gender: 'female' as const, calendar: 'solar' as const }
   const first = JSON.stringify(view(0))
   for (const hour of [6, 12, 18, 23]) assert.equal(JSON.stringify(view(hour)), first)
-  const sectionAt = (hour: number) => buildTemplateSajuReport(analyzeSaju(birthAt(hour, transition)), birthAt(hour, transition), unknown).sections.find((s) => s.id === 'future-flow')!
-  assert.equal(sectionAt(0).classification, sectionAt(12).classification)
-  assert.doesNotMatch(sectionAt(12).classification, /[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥] · /)
   const promptAt = (hour: number) => {
-    const analysis = analyzeSaju(birthAt(hour, transition))
-    const [section] = buildTemplateSajuReport(analysis, birthAt(hour, transition), unknown).sections.filter((s) => s.id === 'future-flow')
-    const payload = JSON.parse(sectionPrompt(analysis, birthAt(hour, transition), unknown, section)[1].content)
-    // 대운 목록의 시작 나이는 '약 ○세'로 표시된 근사값이라 시각에 따라 1세 달라질 수 있다.
+    const analysis = analyzeSaju(birthAt(hour))
+    const [section] = buildTemplateSajuReport(analysis, birthAt(hour), unknown).sections.filter((s) => s.id === 'future-flow')
+    const payload = JSON.parse(sectionPrompt(analysis, birthAt(hour), unknown, section)[1].content)
+    // 대운 시작 나이는 임시 시각 기준이라 넣은 시각에 따라 1세 달라질 수 있어 비교에서 뺀다.
     payload.evidenceLayers.verifiedCalculations.timing = undefined
     return JSON.stringify(payload)
   }
   assert.equal(promptAt(0), promptAt(12))
   assert.equal(promptAt(23), promptAt(12))
+  // 10/15 결정: 시간을 몰라도 대운은 참고 PDF처럼 단정한다. '지금 대운' 같은 가림 문구 대신 실제 간지를 쓴다.
+  const future = buildTemplateSajuReport(analyzeSaju(birthAt(12)), birthAt(12), unknown).sections.find((s) => s.id === 'future-flow')!
+  assert.match(future.classification, /^[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥] · /)
+  assert.doesNotMatch(JSON.stringify(view(12)), /지금 대운 대운|지금 대운\(지금 대운\)/)
 })
 
 test('천명사주 기본 풀이: 오행 장은 6글자 개수로 쓰고, 시주 장만 보류한다', () => {

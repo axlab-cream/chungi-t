@@ -14,6 +14,7 @@ import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { partnerBirthTimeReading, withholdsBirthTime } from '../saju/unknown-time-reading.js'
 
 export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 
@@ -341,12 +342,13 @@ function signalElementChart(analysis: SajuAnalysis, context: SajuReportContext) 
     })
     return visible
   }
-  const mineCount = withoutUnknownHour(analysis.elementCount, [analysis.fourPillars.hour.stemElement, analysis.fourPillars.hour.branchElement], context.birthTimeKnown)
+  // 6글자 모드 명식은 이미 시간 기둥이 빠져 있다. 보류 모드(임시 8글자 명식)에서만 시간 기둥을 빼서 센다.
+  const mineCount = withoutUnknownHour(analysis.elementCount, [analysis.fourPillars.hour.stemElement, analysis.fourPillars.hour.branchElement], withholdsBirthTime(context) ? false : undefined)
   const mineNote = context.birthTimeKnown === false ? '입력한 세 기둥에서 계산한 개수' : '내 사주 네 기둥에서 계산한 개수'
   const mine = elements.map(([key, label]) => ({ label: `${facts.selfName} · ${label}`, value: mineCount[key], note: mineNote }))
   const partner = context.partner?.elementCount
   const partnerHour = context.partner?.pillarElements?.hour
-  const partnerCount = partner && partnerHour ? withoutUnknownHour(partner, partnerHour, context.partner?.birthTimeKnown) : partner
+  const partnerCount = partner && partnerHour ? withoutUnknownHour(partner, partnerHour, partnerBirthTimeReading(context) === 'withhold' ? false : undefined) : partner
   const partnerNote = context.partner?.birthTimeKnown === false ? '입력한 세 기둥에서 계산한 개수' : '상대 사주 네 기둥에서 계산한 개수'
   return partnerCount ? mine.concat(elements.map(([key, label]) => ({ label: `${facts.partnerName} · ${label}`, value: partnerCount[key], note: partnerNote }))) : mine
 }

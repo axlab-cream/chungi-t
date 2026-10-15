@@ -19,6 +19,7 @@ import {
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { partnerBirthTimeReading, UNKNOWN_HOUR_CELL, withholdsBirthTime } from '../saju/unknown-time-reading.js'
 
 export const COUPLE_MATCH_SERVICE_KEY = 'match_couple'
 
@@ -434,7 +435,7 @@ function couplePillarTable(analysis: SajuAnalysis, context: SajuReportContext): 
     ['태어난 해', `${elementName(mine.year.stemElement)} · ${elementName(mine.year.branchElement)}`, `${elementName(theirs.year[0])} · ${elementName(theirs.year[1])}`],
     ['태어난 달', `${elementName(mine.month.stemElement)} · ${elementName(mine.month.branchElement)}`, `${elementName(theirs.month[0])} · ${elementName(theirs.month[1])}`],
     ['태어난 날', `${elementName(mine.day.stemElement)} · ${elementName(mine.day.branchElement)}`, `${elementName(theirs.day[0])} · ${elementName(theirs.day[1])}`],
-    ['태어난 시간', `${elementName(mine.hour.stemElement)} · ${elementName(mine.hour.branchElement)}`, `${elementName(theirs.hour[0])} · ${elementName(theirs.hour[1])}`],
+    ['태어난 시간', context.birthTimeKnown === false ? UNKNOWN_HOUR_CELL : `${elementName(mine.hour.stemElement)} · ${elementName(mine.hour.branchElement)}`, context.partner?.birthTimeKnown === false ? UNKNOWN_HOUR_CELL : `${elementName(theirs.hour[0])} · ${elementName(theirs.hour[1])}`],
   ] : [
     ['태어난 날의 중심', elementName(analysis.dayMasterElement), elementName(context.partner?.dayMasterElement)],
     ['전체에서 많이 쓰는 기운', elementName(analysis.dominantElement), elementName(context.partner?.dominantElement)],
@@ -444,17 +445,27 @@ function couplePillarTable(analysis: SajuAnalysis, context: SajuReportContext): 
 
 function coupleChart(analysis: SajuAnalysis, context: SajuReportContext) {
   const elements = [['wood', '나무'], ['fire', '불'], ['earth', '흙'], ['metal', '쇠'], ['water', '물']] as const
-  const partner = context.partner?.elementCount
+  // 6글자 명식은 이미 시간 기둥이 빠져 있다. 보류 모드(임시 8글자 명식)에서만 시간 기둥 두 글자를 빼서 센다(결혼 궁합과 같은 처리).
+  const withoutHour = (count: SajuAnalysis['elementCount'], hour: readonly [keyof SajuAnalysis['elementCount'], keyof SajuAnalysis['elementCount']] | undefined) => {
+    const visible = { ...count }
+    for (const element of hour ?? []) visible[element] = Math.max(0, visible[element] - 1)
+    return visible
+  }
+  const mineCount = withholdsBirthTime(context) ? withoutHour(analysis.elementCount, [analysis.fourPillars.hour.stemElement, analysis.fourPillars.hour.branchElement]) : analysis.elementCount
+  const partnerRaw = context.partner?.elementCount
+  const partner = partnerRaw && partnerBirthTimeReading(context) === 'withhold'
+    ? (context.partner?.pillarElements?.hour ? withoutHour(partnerRaw, context.partner.pillarElements.hour) : undefined)
+    : partnerRaw
   const mine = elements.map(([key, label]) => ({
     label: `${coupleFacts(context).selfName} · ${label}`,
-    value: analysis.elementCount[key],
-    note: '내 저장 사주에서 계산한 기운의 개수',
+    value: mineCount[key],
+    note: context.birthTimeKnown === false ? '내 사주의 입력된 세 기둥에서 계산한 개수' : '내 저장 사주에서 계산한 기운의 개수',
   }))
   if (!partner) return mine
   return mine.concat(elements.map(([key, label]) => ({
     label: `${coupleFacts(context).partnerName} · ${label}`,
     value: partner[key],
-    note: '상대 사주에서 계산한 기운의 개수',
+    note: context.partner?.birthTimeKnown === false ? '상대 사주의 입력된 세 기둥에서 계산한 개수' : '상대 사주에서 계산한 기운의 개수',
   })))
 }
 
