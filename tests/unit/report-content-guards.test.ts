@@ -347,7 +347,8 @@ describe('readability, uncertainty and daily snapshot regression', () => {
     assert.match(text, /이력서·포트폴리오 정리 · 제안·계약 조건 확인/)
   })
   it('removes provisional hour-dependent calculations from LLM evidence', () => {
-    const features = groundedReportFeatures(analysis, { birthTimeKnown: false }) as Record<string, unknown>
+    // 6글자 모드를 아직 켜지 않은 서비스 기준(천명사주는 unknown-time-six-char.test.ts).
+    const features = groundedReportFeatures(analysis, { serviceKey: 'work_move', birthTimeKnown: false }) as Record<string, unknown>
     assert.equal(features.balance, undefined)
     assert.equal((features.calculation as { pillars: { hour?: unknown } }).pillars.hour, undefined)
     assert.notEqual(withReportBirthCertainty('old-id', false), 'old-id')

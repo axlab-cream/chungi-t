@@ -26,6 +26,7 @@ import { existsSync } from 'node:fs'
 import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { readBirthClock, projectUnknownBirthTime } from '../saju/birth-time-certainty.js'
+import { analysisForReading, markBirthTimeReading, readsSixChars } from '../saju/unknown-time-reading.js'
 import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
@@ -1676,11 +1677,13 @@ async function toUiAnalysis(
   const analysis = analyzeSaju(birth)
   const enrichedContext = await enrichHomeTerrainContext(enrichReportContext(context))
   const reportId = createReportId(birth, enrichedContext, undefined, owner?.id)
-  const templateReport = buildTemplateSajuReport(analysis, birth, enrichedContext)
+  // ID·계보는 표시 없는 문맥으로 계산해 그대로 두고, 새 레코드에만 6글자 표시를 붙인다(이미 있으면 예전 레코드를 그대로 돌려준다).
+  const readingContext = markBirthTimeReading(enrichedContext)
+  const templateReport = buildTemplateSajuReport(analysis, birth, readingContext)
   const { record } = await createOrGetReportRecord({
     reportId,
     birth,
-    context: enrichedContext,
+    context: readingContext,
     templateReport,
     analysis,
     owner,
@@ -1694,14 +1697,17 @@ async function toUiAnalysis(
 
   const report = toClientReport(record)
   if (access) applyReportEntitlement(report, access, owner)
-  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report, record.context.birthTimeKnown !== false)
+  const payload = buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, report, record.context)
   if (access && !access.entitled) return { ...payload, ...savedPreviewResponse(record, access) }
   return access?.entitled
     ? { ...payload, entitled: true, unlockReason: access.reason }
     : payload
 }
 
-function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, report: SajuReport, birthTimeKnown = true) {
+function buildUiAnalysisPayload(rawAnalysis: SajuAnalysis, birth: BirthInput, report: SajuReport, context: Pick<SajuReportContext, 'birthTimeKnown' | 'serviceKey'>) {
+  // 시간을 몰라도 6글자 모드 서비스는 시주를 뺀 계산값을 보여 준다(3단계).
+  const sixChar = readsSixChars(context)
+  const analysis = analysisForReading(rawAnalysis, context)
   const p = analysis.fourPillars
   return projectUnknownBirthTime({
     birth,
@@ -1726,7 +1732,7 @@ function buildUiAnalysisPayload(analysis: SajuAnalysis, birth: BirthInput, repor
     preview: analysis.preview,
     report,
     summary: analysis.summary,
-  }, birthTimeKnown)
+  }, context.birthTimeKnown !== false, sixChar)
 }
 
 function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
@@ -1737,7 +1743,7 @@ function currentAnalysisForRecord(record: ReportRecord): SajuAnalysis {
 }
 
 function toUiAnalysisFromRecord(record: ReportRecord) {
-  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record), record.context.birthTimeKnown !== false)
+  return buildUiAnalysisPayload(currentAnalysisForRecord(record), record.birth, toClientReport(record), record.context)
 }
 
 /**
@@ -4852,7 +4858,8 @@ function isGuestTeaserRequest(req: Request, context: SajuReportContext): boolean
  * 비회원 티저 응답. 사주표·오행·대운처럼 계산으로 나오는 값만 담고 아무것도 저장하지 않는다.
  * 리포트 ID·본문 섹션은 비워 두므로 가입 뒤 같은 입력으로 다시 분석해 회원 소유 리포트를 만든다.
  */
-function buildGuestTeaserPayload(birth: BirthInput, context: SajuReportContext) {
+function buildGuestTeaserPayload(birth: BirthInput, rawContext: SajuReportContext) {
+  const context = markBirthTimeReading(rawContext)
   const analysis = analyzeSaju(birth)
   const template = buildTemplateSajuReport(analysis, birth, enrichReportContext(context))
   const report = {
@@ -4864,7 +4871,7 @@ function buildGuestTeaserPayload(birth: BirthInput, context: SajuReportContext) 
     sections: [],
     progress: { complete: 0, total: template.sections.length },
   } as SajuReport
-  return { ...buildUiAnalysisPayload(analysis, birth, report, context.birthTimeKnown !== false), guestPreview: true }
+  return { ...buildUiAnalysisPayload(analysis, birth, report, context), guestPreview: true }
 }
 
 function wantsPreview(req: Request): boolean {
@@ -5727,7 +5734,7 @@ app.post('/api/saju/analyze', async (req, res) => {
         const templateReport = buildTemplateSajuReport(analysis, birth, enriched)
         res.setHeader('Cache-Control', 'private, no-store')
         res.json({
-          ...buildUiAnalysisPayload(analysis, birth, { ...templateReport, sections: [] } as SajuReport, enriched.birthTimeKnown !== false),
+          ...buildUiAnalysisPayload(analysis, birth, { ...templateReport, sections: [] } as SajuReport, enriched),
           ...guestSpecializedPreview({ reportId: '', birth, context: enriched, analysis, templateReport }),
         })
         return
@@ -5760,9 +5767,10 @@ app.post('/api/saju/analyze', async (req, res) => {
     const enriched = await enrichHomeTerrainContext(enrichReportContext(context))
     if (wantsPreview(req)) {
       const analysis = analyzeSaju(birth)
+      const readingContext = markBirthTimeReading(enriched)
       const { record } = await createOrGetReportRecord({
-        reportId: createReportId(birth, enriched, undefined, owner?.id), birth, context: enriched,
-        analysis, templateReport: buildTemplateSajuReport(analysis, birth, enriched), owner,
+        reportId: createReportId(birth, enriched, undefined, owner?.id), birth, context: readingContext,
+        analysis, templateReport: buildTemplateSajuReport(analysis, birth, readingContext), owner,
         lineageId: createReportLineageId(birth, enriched, owner?.id),
       })
       const access = await resolvePaidAccess(
@@ -5783,7 +5791,7 @@ app.post('/api/saju/analyze', async (req, res) => {
         res.status(429).json({ code: 'FREE_PREVIEW_LIMIT', error: '무료 결과 조회 5회를 모두 사용했습니다. 전체 해석 보기를 결제해 주세요.', freeSearch, paymentUrl: paymentCheckoutUrl(quotaService!, record.reportId) })
         return
       }
-      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }, record.context.birthTimeKnown !== false), ...savedPreviewResponse(record, access, freeSearch) })
+      res.json({ ...buildUiAnalysisPayload(analysis, birth, { ...toClientReport(record), sections: [] }, record.context), ...savedPreviewResponse(record, access, freeSearch) })
       return
     }
     const access = await resolvePaidAccess(

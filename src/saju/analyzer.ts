@@ -5,11 +5,12 @@ import type {
   EarthlyBranch,
   FlowBridgeInfo,
   FourPillars,
-  Gender,
   GyeokgukInfo,
   HeavenlyStem,
   HiddenStemInfo,
   ClimateBalanceInfo,
+  ManseryeokMeta,
+  Pillar,
   SajuAnalysis,
   SajuFeatureJson,
   SajuReportContext,
@@ -67,6 +68,16 @@ const CONTROLS: Record<Element, Element> = {
   water: 'fire',
 }
 
+type ChartPillarKey = TenGodPlacement['pillar']
+type ChartPillar = [ChartPillarKey, Pillar]
+const CHART_PILLAR_LABEL: Record<ChartPillarKey, string> = { year: '년주', month: '월주', day: '일주', hour: '시주' }
+
+/** 해석에 쓰는 기둥. 출생 시각을 모르면 시주를 빼고 연·월·일 6글자만 쓴다(2026-10-15 결정). */
+function chartPillars(pillars: FourPillars, hourKnown: boolean): ChartPillar[] {
+  const keys: ChartPillarKey[] = hourKnown ? ['year', 'month', 'day', 'hour'] : ['year', 'month', 'day']
+  return keys.map((key) => [key, pillars[key]])
+}
+
 export function calculateFourPillars(birth: BirthInput): FourPillars {
   const idx = calculateStemBranchIndices(birth)
   const y = buildPillar(idx.year.stemIdx, idx.year.branchIdx)
@@ -81,9 +92,9 @@ export function calculateFourPillars(birth: BirthInput): FourPillars {
   }
 }
 
-function countElements(pillars: FourPillars): ElementCount {
+function countElements(chart: ChartPillar[]): ElementCount {
   const count: ElementCount = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
-  for (const p of [pillars.year, pillars.month, pillars.day, pillars.hour]) {
+  for (const [, p] of chart) {
     count[p.stemElement]++
     count[p.branchElement]++
   }
@@ -130,9 +141,9 @@ function inferUsefulGod(
   return weak
 }
 
-function weightedElementCount(pillars: FourPillars): ElementCount {
+function weightedElementCount(chart: ChartPillar[]): ElementCount {
   const count: ElementCount = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
-  for (const p of [pillars.year, pillars.month, pillars.day, pillars.hour]) {
+  for (const [, p] of chart) {
     count[p.stemElement] += 1
     for (const hidden of HIDDEN_STEMS[p.branch]) {
       count[STEM_ELEMENT[hidden.stem]] += hidden.weight
@@ -141,8 +152,8 @@ function weightedElementCount(pillars: FourPillars): ElementCount {
   return count
 }
 
-function buildHiddenStems(pillars: FourPillars, dayMaster: HeavenlyStem): HiddenStemInfo[] {
-  return [pillars.year, pillars.month, pillars.day, pillars.hour].map((p) => ({
+function buildHiddenStems(chart: ChartPillar[], dayMaster: HeavenlyStem): HiddenStemInfo[] {
+  return chart.map(([, p]) => ({
     branch: p.branch,
     stems: HIDDEN_STEMS[p.branch].map((hidden) => ({
       stem: hidden.stem,
@@ -153,16 +164,11 @@ function buildHiddenStems(pillars: FourPillars, dayMaster: HeavenlyStem): Hidden
   }))
 }
 
-function buildTenGodPlacements(pillars: FourPillars, dayMaster: HeavenlyStem): TenGodPlacement[] {
-  return [
-    ['year', pillars.year.stem],
-    ['month', pillars.month.stem],
-    ['day', pillars.day.stem],
-    ['hour', pillars.hour.stem],
-  ].filter(([, stem]) => stem !== dayMaster).map(([pillar, stem]) => ({
-    pillar: pillar as TenGodPlacement['pillar'],
-    stem: stem as HeavenlyStem,
-    tenGod: getTenGod(dayMaster, stem as HeavenlyStem),
+function buildTenGodPlacements(chart: ChartPillar[], dayMaster: HeavenlyStem): TenGodPlacement[] {
+  return chart.filter(([, p]) => p.stem !== dayMaster).map(([pillar, p]) => ({
+    pillar,
+    stem: p.stem,
+    tenGod: getTenGod(dayMaster, p.stem),
   }))
 }
 
@@ -251,13 +257,8 @@ function pairExists(a: string, b: string, targetA: string, targetB: string): boo
   return (a === targetA && b === targetB) || (a === targetB && b === targetA)
 }
 
-function buildInteractions(pillars: FourPillars): SajuInteraction[] {
-  const entries = [
-    ['년주', pillars.year],
-    ['월주', pillars.month],
-    ['일주', pillars.day],
-    ['시주', pillars.hour],
-  ] as const
+function buildInteractions(chart: ChartPillar[]): SajuInteraction[] {
+  const entries = chart.map(([key, p]) => [CHART_PILLAR_LABEL[key], p] as const)
   const interactions: SajuInteraction[] = []
 
   for (let i = 0; i < entries.length; i++) {
@@ -306,7 +307,7 @@ function buildInteractions(pillars: FourPillars): SajuInteraction[] {
   return interactions
 }
 
-function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>, _gender: Gender): SajuPreview {
+function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>): SajuPreview {
   const weakCount = analysis.elementCount[analysis.weakElement]
   return {
     personality: `일간은 ${STEM_KO[analysis.dayMaster]}(${analysis.dayMaster}, 태어난 날의 천간)입니다. 전통 명리에서 다른 기운과의 관계를 읽는 기준점이며, 실제 성격은 경험과 현재 상황을 함께 살펴야 합니다.`,
@@ -315,6 +316,87 @@ function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>, _gend
     wealthFortune: '재성(財星, 일간이 다루는 기운과의 관계)은 전통적으로 자원과 현실 활동을 살피는 상징입니다. 실제 수입·지출 자료가 없으면 돈이 새거나 큰 수입이 생긴다고 판단하지 않습니다. 상세에서는 확인된 생활 조건과 구분해 읽습니다.',
   }
 }
+
+/** 기둥 목록에서 오행·십신·강약·용신처럼 기둥에 따라 바뀌는 값을 한 번에 계산한다. */
+function deriveChart(fourPillars: FourPillars, hourKnown: boolean) {
+  const chart = chartPillars(fourPillars, hourKnown)
+  const dayMaster = fourPillars.day.stem
+  const dayMasterElement = STEM_ELEMENT[dayMaster]
+  const elementCount = countElements(chart)
+  const weightedElements = weightedElementCount(chart)
+  const { dominant: dominantElement, weak: weakElement } = getDominantAndWeak(elementCount)
+
+  const tenGods = chart.map(([, p]) => p.stem).filter((s) => s !== dayMaster).map((s) => getTenGod(dayMaster, s))
+  const hiddenStems = buildHiddenStems(chart, dayMaster)
+  const tenGodPlacements = buildTenGodPlacements(chart, dayMaster)
+  const interactions = buildInteractions(chart)
+
+  const monthSupport = fourPillars.month.branchElement === dayMasterElement ? 0.8 : 0
+  const dmCount = weightedElements[dayMasterElement] + monthSupport
+  const total = Object.values(weightedElements).reduce((a, b) => a + b, 0) + monthSupport
+  const ratio = dmCount / total
+
+  let dayMasterStrength: SajuAnalysis['dayMasterStrength'] = 'balanced'
+  if (ratio >= 0.32) dayMasterStrength = 'strong'
+  else if (ratio <= 0.18) dayMasterStrength = 'weak'
+
+  const gyeokguk = buildGyeokguk(fourPillars, dayMaster)
+  const climate = buildClimateBalance(fourPillars, weightedElements)
+  const flowBridges = buildFlowBridges(weightedElements)
+  const usefulGod = flowBridges[0]?.bridge ?? climate.usefulElements[0] ?? inferUsefulGod(dayMasterStrength, weakElement, dayMasterElement)
+
+  return {
+    dayMaster,
+    dayMasterElement,
+    elementCount,
+    weightedElements,
+    dominantElement,
+    weakElement,
+    tenGods,
+    hiddenStems,
+    tenGodPlacements,
+    interactions,
+    dayMasterStrength,
+    gyeokguk,
+    climate,
+    flowBridges,
+    usefulGod,
+  }
+}
+
+type DerivedChart = ReturnType<typeof deriveChart>
+type ChartCalendar = Pick<ManseryeokMeta, 'resolvedBirth' | 'pillarYear' | 'monthTerm'>
+
+function chartSummary(fourPillars: FourPillars, derived: DerivedChart, calendar: ChartCalendar | undefined, fortune: SajuAnalysis['fortune'], hourKnown: boolean): string {
+  const { dayMaster, dayMasterElement, dayMasterStrength, elementCount, weightedElements, dominantElement, weakElement, usefulGod, gyeokguk, climate, flowBridges, tenGods, tenGodPlacements, hiddenStems, interactions } = derived
+  const resolved = calendar?.resolvedBirth
+  const shownPillars = chartPillars(fourPillars, hourKnown).map(([, p]) => pillarLabel(p)).join(' ')
+  return [
+    hourKnown ? `사주: ${shownPillars}` : `사주(시주 제외 6글자): ${shownPillars}`,
+    resolved
+      ? `양력 기준일: ${resolved.solarYear}-${String(resolved.solarMonth).padStart(2, '0')}-${String(resolved.solarDay).padStart(2, '0')}${hourKnown ? ` ${String(resolved.hour).padStart(2, '0')}:${String(resolved.minute).padStart(2, '0')} KST` : ' (출생 시각 미상)'}${resolved.originalCalendar === 'lunar' ? ` (음력 ${resolved.lunarYear}-${resolved.lunarMonth}-${resolved.lunarDay}${resolved.isLeapMonth ? ' 윤달' : ''} 변환)` : ''}`
+      : '',
+    calendar ? `절기 기준: 년주 ${calendar.pillarYear}년 입춘 기준, 월주 ${calendar.monthTerm} 이후` : '',
+    `일간(日干): ${dayMaster}(${STEM_KO[dayMaster]}·${ELEMENT_KO[dayMasterElement]}) — ${dayMasterStrength === 'strong' ? '강' : dayMasterStrength === 'weak' ? '약' : '중화'}`,
+    `오행: 목${elementCount.wood} 화${elementCount.fire} 토${elementCount.earth} 금${elementCount.metal} 수${elementCount.water}`,
+    `지장간 가중 오행: 목${weightedElements.wood.toFixed(1)} 화${weightedElements.fire.toFixed(1)} 토${weightedElements.earth.toFixed(1)} 금${weightedElements.metal.toFixed(1)} 수${weightedElements.water.toFixed(1)}`,
+    `강한 오행: ${ELEMENT_KO[dominantElement]}, 부족한 오행: ${ELEMENT_KO[weakElement]}`,
+    usefulGod ? `용신(用神) 추정: ${ELEMENT_KO[usefulGod]}` : '',
+    `격국 렌즈: ${gyeokguk.name} (${gyeokguk.basis}, 신뢰 ${gyeokguk.confidence}%)`,
+    `조후 판단: ${climate.season}/${climate.temperature}/${climate.moisture} — ${climate.note}`,
+    flowBridges.length > 0 ? `통관 후보: ${flowBridges.map((b) => `${ELEMENT_KO[b.conflict[0]]}-${ELEMENT_KO[b.conflict[1]]} 사이 ${ELEMENT_KO[b.bridge]}`).join(', ')}` : '통관 후보: 강한 상극 축은 약함',
+    `십신: ${tenGods.join(', ')}`,
+    tenGodPlacements.length > 0 ? `십신 위치: ${tenGodPlacements.map((p) => `${p.pillar}:${p.tenGod}`).join(', ')}` : '',
+    hiddenStems.length > 0 ? `지장간: ${hiddenStems.map((h) => `${h.branch}[${h.stems.map((s) => `${s.stem}/${s.tenGod}`).join('·')}]`).join(', ')}` : '',
+    interactions.length > 0 ? `합충형파해: ${interactions.map((i) => `${i.type}(${i.signs.join('')})`).join(', ')}` : '합충형파해: 주요 원국 충돌 신호 약함',
+    // 대운 시작 나이는 출생 시각에 따라 1세 안팎 흔들리므로, 시각을 모르면 요약에 싣지 않는다.
+    hourKnown && fortune ? formatFortuneForPrompt(fortune) : '',
+  ].filter(Boolean).join('\n')
+}
+
+const SIX_CHAR_NOTE = '출생 시각 미상: 시주를 빼고 연·월·일 6글자로 오행·강약·용신·십신·합충을 계산했습니다.'
+/** 임시 시각 기준의 '지금 대운'은 시각에 따라 바뀐다. 6글자 모드에서는 간지 대신 이 이름만 쓴다. */
+export const SIX_CHAR_CURRENT_DAEWOON = '지금 대운'
 
 export function analyzeSaju(birth: BirthInput): SajuAnalysis {
   const idx = calculateStemBranchIndices(birth)
@@ -330,51 +412,10 @@ export function analyzeSaju(birth: BirthInput): SajuAnalysis {
     hour: createPillarFromStemBranch(h.stem, h.branch),
   }
 
-  const dayMaster = fourPillars.day.stem
-  const dayMasterElement = STEM_ELEMENT[dayMaster]
-  const elementCount = countElements(fourPillars)
-  const weightedElements = weightedElementCount(fourPillars)
-  const { dominant: dominantElement, weak: weakElement } = getDominantAndWeak(elementCount)
-
-  const stems = [fourPillars.year.stem, fourPillars.month.stem, fourPillars.day.stem, fourPillars.hour.stem]
-  const tenGods = stems.filter((s) => s !== dayMaster).map((s) => getTenGod(dayMaster, s))
-  const hiddenStems = buildHiddenStems(fourPillars, dayMaster)
-  const tenGodPlacements = buildTenGodPlacements(fourPillars, dayMaster)
-  const interactions = buildInteractions(fourPillars)
-
-  const monthSupport = fourPillars.month.branchElement === dayMasterElement ? 0.8 : 0
-  const dmCount = weightedElements[dayMasterElement] + monthSupport
-  const total = Object.values(weightedElements).reduce((a, b) => a + b, 0) + monthSupport
-  const ratio = dmCount / total
-
-  let dayMasterStrength: SajuAnalysis['dayMasterStrength'] = 'balanced'
-  if (ratio >= 0.32) dayMasterStrength = 'strong'
-  else if (ratio <= 0.18) dayMasterStrength = 'weak'
-
-  const gyeokguk = buildGyeokguk(fourPillars, dayMaster)
-  const climate = buildClimateBalance(fourPillars, weightedElements)
-  const flowBridges = buildFlowBridges(weightedElements)
-  const usefulGod = flowBridges[0]?.bridge ?? climate.usefulElements[0] ?? inferUsefulGod(dayMasterStrength, weakElement, dayMasterElement)
+  const derived = deriveChart(fourPillars, true)
+  const { dayMaster, dayMasterElement, elementCount, dominantElement, weakElement, tenGods, usefulGod, dayMasterStrength } = derived
   const fortune = calculateFortuneCycle(birth)
-
-  const summary = [
-    `사주: ${pillarLabel(fourPillars.year)} ${pillarLabel(fourPillars.month)} ${pillarLabel(fourPillars.day)} ${pillarLabel(fourPillars.hour)}`,
-    `양력 기준일: ${idx.resolved.solarYear}-${String(idx.resolved.solarMonth).padStart(2, '0')}-${String(idx.resolved.solarDay).padStart(2, '0')} ${String(idx.resolved.hour).padStart(2, '0')}:${String(idx.resolved.minute).padStart(2, '0')} KST${idx.resolved.originalCalendar === 'lunar' ? ` (음력 ${idx.resolved.lunarYear}-${idx.resolved.lunarMonth}-${idx.resolved.lunarDay}${idx.resolved.isLeapMonth ? ' 윤달' : ''} 변환)` : ''}`,
-    `절기 기준: 년주 ${idx.pillarYear}년 입춘 기준, 월주 ${idx.month.termName} 이후`,
-    `일간(日干): ${dayMaster}(${STEM_KO[dayMaster]}·${ELEMENT_KO[dayMasterElement]}) — ${dayMasterStrength === 'strong' ? '강' : dayMasterStrength === 'weak' ? '약' : '중화'}`,
-    `오행: 목${elementCount.wood} 화${elementCount.fire} 토${elementCount.earth} 금${elementCount.metal} 수${elementCount.water}`,
-    `지장간 가중 오행: 목${weightedElements.wood.toFixed(1)} 화${weightedElements.fire.toFixed(1)} 토${weightedElements.earth.toFixed(1)} 금${weightedElements.metal.toFixed(1)} 수${weightedElements.water.toFixed(1)}`,
-    `강한 오행: ${ELEMENT_KO[dominantElement]}, 부족한 오행: ${ELEMENT_KO[weakElement]}`,
-    usefulGod ? `용신(用神) 추정: ${ELEMENT_KO[usefulGod]}` : '',
-    `격국 렌즈: ${gyeokguk.name} (${gyeokguk.basis}, 신뢰 ${gyeokguk.confidence}%)`,
-    `조후 판단: ${climate.season}/${climate.temperature}/${climate.moisture} — ${climate.note}`,
-    flowBridges.length > 0 ? `통관 후보: ${flowBridges.map((b) => `${ELEMENT_KO[b.conflict[0]]}-${ELEMENT_KO[b.conflict[1]]} 사이 ${ELEMENT_KO[b.bridge]}`).join(', ')}` : '통관 후보: 강한 상극 축은 약함',
-    `십신: ${tenGods.join(', ')}`,
-    tenGodPlacements.length > 0 ? `십신 위치: ${tenGodPlacements.map((p) => `${p.pillar}:${p.tenGod}`).join(', ')}` : '',
-    hiddenStems.length > 0 ? `지장간: ${hiddenStems.map((h) => `${h.branch}[${h.stems.map((s) => `${s.stem}/${s.tenGod}`).join('·')}]`).join(', ')}` : '',
-    interactions.length > 0 ? `합충형파해: ${interactions.map((i) => `${i.type}(${i.signs.join('')})`).join(', ')}` : '합충형파해: 주요 원국 충돌 신호 약함',
-    formatFortuneForPrompt(fortune),
-  ].filter(Boolean).join('\n')
+  const summary = chartSummary(fourPillars, derived, { resolvedBirth: idx.resolved, pillarYear: idx.pillarYear, monthTerm: idx.month.termName }, fortune, true)
 
   const base = {
     fourPillars,
@@ -394,13 +435,13 @@ export function analyzeSaju(birth: BirthInput): SajuAnalysis {
       monthTerm: idx.month.termName,
       dayBoundaryRule: idx.dayBoundaryRule,
       dayCalculationDate: idx.dayCalculationDate,
-      hiddenStems,
-      tenGodPlacements,
-      interactions,
-      weightedElements,
-      gyeokguk,
-      climate,
-      flowBridges,
+      hiddenStems: derived.hiddenStems,
+      tenGodPlacements: derived.tenGodPlacements,
+      interactions: derived.interactions,
+      weightedElements: derived.weightedElements,
+      gyeokguk: derived.gyeokguk,
+      climate: derived.climate,
+      flowBridges: derived.flowBridges,
       calculationNotes: [
         '년주와 월주는 절기(입춘 및 월절) 기준으로 계산합니다.',
         '24절기 시각은 lunar-typescript 절기 테이블의 중국 표준시 표기를 UTC로 환산한 뒤 KST 출생 시각과 비교합니다.',
@@ -420,8 +461,50 @@ export function analyzeSaju(birth: BirthInput): SajuAnalysis {
 
   return {
     ...base,
-    preview: buildPreview(base, birth.gender),
+    preview: buildPreview(base),
   }
+}
+
+/**
+ * 출생 시각을 모를 때의 풀이 재료(3단계, 2026-10-15). 임시 시각(12시)으로 계산된 명식에서
+ * 시주를 빼고 연·월·일 6글자만으로 오행·강약·용신·십신·합충을 다시 계산한다.
+ * 같은 날 태어났다면 몇 시를 넣었든 결과가 같다(절기 바뀌는 날은 그날 임시 시각 기준 — 보류하지 않는다).
+ * fourPillars.hour 는 타입상 남지만 계산에는 쓰지 않으니, 밖으로 내보낼 때는 시주를 빼야 한다.
+ */
+export function sixCharAnalysis(analysis: SajuAnalysis): SajuAnalysis {
+  if (analysis.manseryeok?.hourPillarExcluded) return analysis
+  const derived = deriveChart(analysis.fourPillars, false)
+  const { dayMaster, dayMasterElement, elementCount, dominantElement, weakElement, tenGods, usefulGod, dayMasterStrength } = derived
+  const manseryeok: ManseryeokMeta | undefined = analysis.manseryeok
+    ? {
+        ...analysis.manseryeok,
+        hiddenStems: derived.hiddenStems,
+        tenGodPlacements: derived.tenGodPlacements,
+        interactions: derived.interactions,
+        weightedElements: derived.weightedElements,
+        gyeokguk: derived.gyeokguk,
+        climate: derived.climate,
+        flowBridges: derived.flowBridges,
+        hourPillarExcluded: true,
+        calculationNotes: [...analysis.manseryeok.calculationNotes, SIX_CHAR_NOTE],
+      }
+    : undefined
+  const base = {
+    ...analysis,
+    dayMaster,
+    dayMasterElement,
+    elementCount,
+    dominantElement,
+    weakElement,
+    tenGods,
+    usefulGod,
+    dayMasterStrength,
+    summary: chartSummary(analysis.fourPillars, derived, analysis.manseryeok, analysis.fortune, false),
+    manseryeok,
+    // 대운 목록은 AI 재료에서 '약 ○세'로 바꿔 넘긴다. 제목·검색어에 들어가는 '지금 대운' 간지는 임시 시각 값이라 뺀다.
+    fortune: analysis.fortune ? { ...analysis.fortune, currentDaewoon: SIX_CHAR_CURRENT_DAEWOON } : undefined,
+  }
+  return { ...base, preview: buildPreview(base) }
 }
 
 export function buildSajuFeatureJson(

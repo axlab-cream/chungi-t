@@ -32,7 +32,8 @@ import { standardReading } from './standard-reading.js'
 import { cmdgChapterInstruction, cmdgRagContext, cmdgSectionContext, reviewCmdgStoryStructure } from './cmdg-reading-contract.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
-import { buildSajuFeatureJson } from '../saju/analyzer.js'
+import { buildSajuFeatureJson, SIX_CHAR_CURRENT_DAEWOON, sixCharAnalysis } from '../saju/analyzer.js'
+import { analysisForReading, unknownBirthTimeReading } from '../saju/unknown-time-reading.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { evaluateReportQuality } from './report-quality.js'
@@ -1269,7 +1270,7 @@ function daewoonWindow(analysis: SajuAnalysis): string {
   const fortune = analysis.fortune
   if (!fortune) return '현재 대운'
   const current = fortune.daewoon.find((d) => d.pillar === fortune.currentDaewoon)
-  if (!current) return `${fortune.currentDaewoon} 대운`
+  if (!current) return fortune.currentDaewoon === SIX_CHAR_CURRENT_DAEWOON ? SIX_CHAR_CURRENT_DAEWOON : `${fortune.currentDaewoon} 대운`
   const start = current.startYear ? `${current.startYear}년부터 열린 ` : ''
   return `${start}${current.age} ${current.pillar} 대운`
 }
@@ -1953,13 +1954,18 @@ export function buildTemplateSajuReport(
   birth: BirthInput,
   context: SajuReportContext = {},
 ): SajuReport {
-  const unknownTime = context.birthTimeKnown === false
+  // 시간을 몰라도 6글자 모드인 서비스는 시주를 뺀 계산으로 보통 풀이처럼 읽는다. 보류는 그 밖의 서비스만.
+  const reading = unknownBirthTimeReading(context)
+  const unknownTime = reading === 'withhold'
+  if (reading === 'six_char') analysis = sixCharAnalysis(analysis)
   const isLoveThisYear = isLoveThisYearContext(context)
   const isWorkMove = isWorkMoveContext(context)
   const isPassAngle = isPassAngleContext(context)
   const keys = [
     ...(context.serviceKey ? [`service:${context.serviceKey}`] : []),
-    ...(unknownTime ? patternKeys(analysis, birth).filter(key => /^(yearPillar|monthPillar|dayPillar|dayMaster|dayMasterElement):/.test(key)).concat('birthTime:unknown') : patternKeys(analysis, birth)),
+    ...(unknownTime ? patternKeys(analysis, birth).filter(key => /^(yearPillar|monthPillar|dayPillar|dayMaster|dayMasterElement):/.test(key)).concat('birthTime:unknown')
+      : reading === 'six_char' ? patternKeys(analysis, birth).filter(key => !/^(birth|hourPillar):/.test(key)).concat('birthTime:six_char')
+      : patternKeys(analysis, birth)),
     ...(context.target ? [`target:${context.target}`] : []),
     ...(context.orientation ? [`orientation:${context.orientation}`] : []),
     ...(context.relationship ? [`relationship:${context.relationship}`] : []),
@@ -2173,28 +2179,47 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
   // 그래서 호출자가 가려 주기를 기대하지 않고 이 함수가 직접 걷어낸다 — 호출자만 고치면
   // 다음 호출자가 다시 새게 된다(2026-09-10 Codex 리뷰 Critical).
   const context = publicReportContext(rawContext)
-  const features = buildSajuFeatureJson(analysis, context)
-  if (context.birthTimeKnown !== false) {
+  const reading = unknownBirthTimeReading(context)
+  if (reading === 'known') {
+    const features = buildSajuFeatureJson(analysis, context)
     return { ...features, calculation: promptCalculations(features) }
   }
+  if (reading === 'six_char') {
+    // 3단계(2026-10-15): 시주만 빼고 연·월·일 6글자로 다시 계산한 값을 확정값으로 넘긴다.
+    const features = buildSajuFeatureJson(sixCharAnalysis(analysis), context)
+    const { hour: _hour, ...pillars } = features.calculation.pillars
+    return {
+      ...features,
+      calculation: { ...promptCalculations(features), pillars },
+      timing: timeTolerantTiming(features.timing),
+      uncertainty: SIX_CHAR_UNCERTAINTY,
+    }
+  }
+  const features = buildSajuFeatureJson(analysis, context)
   return {
     calculation: {
       pillars: { year: features.calculation.pillars.year, month: features.calculation.pillars.month, day: features.calculation.pillars.day },
       dayMaster: features.calculation.dayMaster,
       dayMasterElement: features.calculation.dayMasterElement,
     },
-    // 대운 간지 순서와 세운은 시간을 몰라도 거의 같다(400명 측정: 순서 4%·세운 0% 차이). 시작 나이만 1세 안팎으로 달라질 수 있다.
-    timing: features.timing
-      ? {
-          currentYear: features.timing.currentYear,
-          yearPillar: features.timing.yearPillar,
-          daewoonList: features.timing.daewoonList?.map(({ pillar, ageStart, startYear }) => ({ pillar, approxAgeStart: ageStart, approxStartYear: startYear })),
-          yearlyFlow: features.timing.yearlyFlow,
-        }
-      : undefined,
+    timing: timeTolerantTiming(features.timing),
     uncertainty: '출생 시각 미상: 임시 시각 기반 시주·전체 오행 분포·강약·용신을 제외했습니다. 대운 시작 나이·연도는 1세 안팎 달라질 수 있으니 "약 ○세 무렵"으로 쓰세요. 초안이나 참고 자료에 남아 있어도 확정값으로 사용하지 마세요.',
     guardrails: features.guardrails,
   }
+}
+
+const SIX_CHAR_UNCERTAINTY = '출생 시각 미상: 시주(태어난 시간 두 글자)는 계산에서 뺐습니다. 오행·강약·용신·십신·합충은 연·월·일 6글자로 계산한 확정값이니 그대로 근거로 쓰세요. 시주·시주 십성·시주로 보는 자녀 자리는 쓰지 말고, 시간을 몰라 덜 정확하다는 안내 문장도 넣지 마세요. 대운 시작 나이·연도는 1세 안팎 달라질 수 있으니 "약 ○세 무렵"으로 쓰세요.'
+
+/** 대운 간지 순서와 세운은 시간을 몰라도 거의 같다(400명 측정: 순서 4%·세운 0% 차이). 시작 나이만 1세 안팎으로 달라질 수 있다. */
+function timeTolerantTiming(timing: ReturnType<typeof buildSajuFeatureJson>['timing']) {
+  return timing
+    ? {
+        currentYear: timing.currentYear,
+        yearPillar: timing.yearPillar,
+        daewoonList: timing.daewoonList?.map(({ pillar, ageStart, startYear }) => ({ pillar, approxAgeStart: ageStart, approxStartYear: startYear })),
+        yearlyFlow: timing.yearlyFlow,
+      }
+    : undefined
 }
 
 const PROMPT_FULL_SIBLING_WINDOW = 4
@@ -2273,9 +2298,11 @@ export function sectionPrompt(
     ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false } }
     : context
   const ragContext = cmdgRagContext(context, section.id)
+  // 6글자 모드면 시주 없는 계산으로 참고서를 고르고, 다른 항목 요약도 보통처럼 넘긴다.
+  const withholdsTime = unknownBirthTimeReading(context) === 'withhold'
   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(ragContext)}`,
-    analysis, runtimeConfig.report?.ragTopK ?? 4, ragContext, corpusSnapshot, context.birthTimeKnown,
+    analysisForReading(analysis, context), runtimeConfig.report?.ragTopK ?? 4, ragContext, corpusSnapshot, context.birthTimeKnown,
   )
   return [
     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
@@ -2304,10 +2331,10 @@ export function sectionPrompt(
           ? { fixedVerdict: { statement: verdict.statement, rankedChoices: verdict.rankedChoices ?? [] } }
           : {}),
       },
-      section: { id: section.id, order: section.order, category: section.category, classification: context.birthTimeKnown === false ? `${section.category} · 출생 시간 미상: 실제 조건 확인` : section.classification },
+      section: { id: section.id, order: section.order, category: section.category, classification: withholdsTime ? `${section.category} · 출생 시간 미상: 실제 조건 확인` : section.classification },
       // Previously saved drafts may still contain provisional-hour conclusions.
       // Keep their identity/coverage, not unverified personal evidence.
-      otherSections: context.birthTimeKnown === false
+      otherSections: withholdsTime
         ? siblings.filter(item => item.status === 'complete').map(item => ({ id: item.id, question: item.category }))
         : compactPromptSiblings(siblings),
     }) },
@@ -2715,7 +2742,7 @@ export function reviewGeneratedSajuReportSection(input: {
   const reviewRagContext = cmdgRagContext(publicReportContext(context), section.id)
   const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(reviewRagContext)}`,
-    analysis, runtimeConfig.report?.ragTopK ?? 4, reviewRagContext, corpusSnapshot,
+    analysisForReading(analysis, context), runtimeConfig.report?.ragTopK ?? 4, reviewRagContext, corpusSnapshot,
   )
   review.issues.push(...reviewToneCopy(interpretation, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'body' }).issues)
   review.issues.push(...reviewToneCopy(hook, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'hook' }).issues)

@@ -125,6 +125,8 @@ export interface ManseryeokMeta {
   climate: ClimateBalanceInfo
   flowBridges: FlowBridgeInfo[]
   calculationNotes: string[]
+  /** true면 출생 시각을 몰라 시주를 빼고 연·월·일 6글자로 계산한 값이다(sixCharAnalysis). */
+  hourPillarExcluded?: boolean
 }
 
 export interface SajuAnalysis {
@@ -180,6 +182,11 @@ export interface SajuReportContext {
   orientation?: string
   work?: string
   birthTimeKnown?: boolean
+  /**
+   * 출생 시각 미상 풀이 방식 표시(3단계, 2026-10-15). 6글자 모드 서비스에서 새로 만든 리포트에만 붙는다.
+   * 표시가 없는 예전 리포트는 만들어진 방식(보류) 그대로 유지된다. 리포트 ID 계산에는 넣지 않는다.
+   */
+  birthTimeReading?: 'six_char'
   /** Saved observed-cat inputs for the cat compatibility teaser and full reading. */
   catCompatibility?: {
     catName?: string

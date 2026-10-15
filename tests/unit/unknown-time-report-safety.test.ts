@@ -17,12 +17,16 @@ const birth: BirthInput = { year: 1991, month: 4, day: 12, hour: 12, gender: 'fe
 const analysis = analyzeSaju(birth)
 const changed: SajuAnalysis = { ...analysis, tenGods: ['편관'], dominantElement: 'water' as const, weakElement: 'fire' as const, dayMasterStrength: 'weak' as const, usefulGod: 'fire' as const, fortune: { ...analysis.fortune!, currentDaewoon: '임시대운_SENTINEL' } }
 const unknown: SajuReportContext = { serviceKey: 'saju_master', name: '테스트', birthTimeKnown: false, concern: '현재 조건을 비교하고 싶어요' }
+// 천명사주는 3단계(2026-10-15)부터 시간을 몰라도 6글자로 확정 풀이한다(unknown-time-six-char.test.ts).
+// 아래 보류 규칙은 6글자 모드를 아직 켜지 않은 서비스에 그대로 적용되는지 본다.
+const withheld: SajuReportContext = { ...unknown, serviceKey: 'work_move' }
+const withheldMasterLens: SajuReportContext = { ...unknown, serviceKey: 'today_fortune' }
 
 test('unknown verified calculations exclude provisional strength, full chart and personal timing', () => {
-  const features = groundedReportFeatures(analysis, unknown) as any
+  const features = groundedReportFeatures(analysis, withheld) as any
   assert.deepEqual(Object.keys(features.calculation).sort(), ['dayMaster', 'dayMasterElement', 'pillars'])
   assert.deepEqual(Object.keys(features.calculation.pillars).sort(), ['day', 'month', 'year'])
-  assert.deepEqual(groundedReportFeatures(changed, unknown), features)
+  assert.deepEqual(groundedReportFeatures(changed, withheld), features)
   assert.equal((groundedReportFeatures(analysis, { ...unknown, birthTimeKnown: true }) as any).calculation.dayMasterForce !== undefined, true)
   assert.equal((groundedReportFeatures(analysis, {}) as any).calculation.dayMasterForce !== undefined, true)
 })
@@ -38,14 +42,14 @@ test('unknown home evidence does not use provisional dominant element', () => {
 
 test('unknown strength and timing chapters explain the withheld calculation', () => {
   for (const id of ['day-master-strength', 'future-flow', 'daewoon-detail', 'sewoon-detail', 'love-timing', 'wealth-timing']) {
-    const copy = standardReading(id, '조건 확인', analysis, unknown)
+    const copy = standardReading(id, '조건 확인', analysis, withheldMasterLens)
     assert.match(copy, /출생 시간/)
     assert.doesNotMatch(copy, /임시대운_SENTINEL/)
   }
 })
 
 test('unknown template metadata stays independent of hour-dependent calculations', () => {
-  for (const serviceKey of ['saju_master', 'work_move', 'pass_angle', 'love_this_year']) {
+  for (const serviceKey of ['work_move', 'pass_angle', 'love_this_year']) {
     const context = { ...unknown, serviceKey }
     const first = buildTemplateSajuReport(analysis, birth, context)
     const second = buildTemplateSajuReport(changed, birth, context)
@@ -68,11 +72,11 @@ test('unknown job-choice opening and all fallback sections do not count provisio
 })
 
 test('all offline prompt builders omit the provisional hour and force', () => {
-  const section = buildTemplateSajuReport(analysis, birth, unknown).sections[0]
+  const section = buildTemplateSajuReport(analysis, birth, withheld).sections[0]
   const staleSection = { ...section, classification: '임시강약_SENTINEL', hook: '임시대운_SENTINEL', interpretation: '임시시주_SENTINEL', status: 'complete' as const }
-  const detailed = sectionPrompt(analysis, birth, unknown, staleSection, [staleSection])
+  const detailed = sectionPrompt(analysis, birth, withheld, staleSection, [staleSection])
   assert.doesNotMatch(detailed[1].content, /임시강약_SENTINEL|임시대운_SENTINEL|임시시주_SENTINEL/)
-  const prompts = [detailed, summaryPrompt(analysis, birth, unknown), verdictPrompt(analysis, birth, unknown), highlightPrompt(analysis, birth, unknown, { title: '조건', shape: '문단' } as any)]
+  const prompts = [detailed, summaryPrompt(analysis, birth, withheld), verdictPrompt(analysis, birth, withheld), highlightPrompt(analysis, birth, withheld, { title: '조건', shape: '문단' } as any)]
   for (const prompt of prompts) {
     const payload = JSON.parse(prompt[1].content)
     assert.equal(payload.evidenceLayers.userFacts.birth.hour, undefined)
@@ -92,7 +96,7 @@ test('unknown retrieval never reads the provisional analysis, including vector/g
     assert.deepEqual(first.map(c => c.id), retrieveRagChunks(query, changedAll, 12, context).map(c => c.id))
   }
   assert.ok(retrieveRagChunks('직업 역할', forbidden, 12, undefined, undefined, false).length > 0)
-  const partnerContext: SajuReportContext = { ...unknown, partner: { mode: 'known', dominantElement: 'fire', tenGods: ['정관'] } }
+  const partnerContext: SajuReportContext = { ...withheld, partner: { mode: 'known', dominantElement: 'fire', tenGods: ['정관'] } }
   const changedPartner: SajuReportContext = { ...partnerContext, partner: { ...partnerContext.partner!, dominantElement: 'water', tenGods: ['겁재'] } }
   assert.deepEqual(retrieveRagChunks('관계 조건 확인', forbidden, 12, partnerContext).map(c => c.id), retrieveRagChunks('관계 조건 확인', forbidden, 12, changedPartner).map(c => c.id))
   assert.deepEqual(retrieveRagChunks('직업 역할', analysis, 12, {}).map(c => c.id), retrieveRagChunks('직업 역할', analysis, 12, { birthTimeKnown: true }).map(c => c.id))
