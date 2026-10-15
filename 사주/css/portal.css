@@ -595,9 +595,10 @@ a:focus-visible {
   display: none;
 }
 
+/* 2026-10-15 연애·직장 포스터는 그림 원래 색 그대로 보인다. 글자 받침용 그늘은 아래쪽에만 깐다. */
 .poster.is-love :is(img, video) {
-  opacity: 0.78;
-  filter: saturate(1.06) contrast(1.04) brightness(0.82);
+  opacity: 1;
+  filter: none;
   object-position: center 34%;
   transform: scale(1.02);
 }
@@ -626,8 +627,7 @@ a:focus-visible {
 
 .poster.is-love .poster-shade {
   background:
-    linear-gradient(180deg, rgba(5, 5, 4, 0.06), rgba(5, 5, 4, 0.2) 34%, rgba(5, 5, 4, 0.9) 100%),
-    linear-gradient(90deg, rgba(5, 5, 4, 0.38), rgba(5, 5, 4, 0.02) 74%);
+    linear-gradient(180deg, rgba(5, 5, 4, 0) 0%, rgba(5, 5, 4, 0) 46%, rgba(5, 5, 4, 0.55) 72%, rgba(5, 5, 4, 0.88) 100%);
 }
 
 .poster.is-place .poster-shade {
@@ -645,22 +645,21 @@ a:focus-visible {
 .poster.is-work img,
 .poster.is-work video,
 .poster.is-work :is(img, video) {
-  opacity: 0.82;
-  filter: saturate(1.08) contrast(1.06) brightness(0.84);
+  opacity: 1;
+  filter: none;
   object-position: center 34%;
   transform: scale(1.02);
 }
 
 .poster.is-work .poster-shade {
   background:
-    linear-gradient(180deg, rgba(5, 5, 4, 0.04), rgba(5, 5, 4, 0.2) 34%, rgba(5, 5, 4, 0.9) 100%),
-    linear-gradient(90deg, rgba(5, 5, 4, 0.4), rgba(5, 5, 4, 0.02) 74%);
+    linear-gradient(180deg, rgba(5, 5, 4, 0) 0%, rgba(5, 5, 4, 0) 46%, rgba(5, 5, 4, 0.55) 72%, rgba(5, 5, 4, 0.88) 100%);
 }
 
 .poster.is-work:hover :is(img, video),
 .poster.is-work:focus-visible :is(img, video),
 .poster.is-work.is-pointed :is(img, video) {
-  filter: saturate(1.14) contrast(1.1) brightness(0.92);
+  filter: brightness(1.04);
   transform: scale(1.06);
 }
 
@@ -691,7 +690,7 @@ a:focus-visible {
 .poster.is-love:hover :is(img, video),
 .poster.is-love:focus-visible :is(img, video),
 .poster.is-love.is-pointed :is(img, video) {
-  filter: saturate(1.12) contrast(1.08) brightness(0.9);
+  filter: brightness(1.04);
   transform: scale(1.06);
 }
 
