@@ -843,8 +843,8 @@ a:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  /* 아래 섹션 제목과의 간격은 '인연과 악연 사이' 위 간격(40px)에 맞춘다. */
-  margin: 14px 20px 40px;
+  /* 아래 섹션 제목과의 간격은 '인연과 악연 사이' 위 간격(섹션이 다 나타난 뒤 28px)에 맞춘다. */
+  margin: 14px 20px 28px;
   padding: 16px;
   /*
    * 2026-09-18: 페이지 배경과 거의 같은 색이라 눈에 띄지 않았다. 매일 들어와 볼 무료 입구라
