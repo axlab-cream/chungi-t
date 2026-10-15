@@ -80,7 +80,7 @@ test('2026-10-14 비회원 집계를 넘기면 신규 회원 옆에 신규 비�
   assert.equal(guests.label, '신규 비회원')
   assert.equal(guests.today, 12)
   assert.equal(guests.yesterday, 9)
-  assert.equal(guests.href, '/members?kind=guest')
+  assert.equal(guests.href, '/guests', '2026-10-15 비회원은 비회원 관리 화면에서 본다')
   assert.ok(!(await buildDashboard(deps(), NOW)).kpis.some((item) => item.key === 'guests'), '집계를 안 넘기면 칸을 만들지 않는다')
 })
 
@@ -92,4 +92,12 @@ test('2026-10-14 비회원→회원 전환 수를 넘기면 비회원 칸 옆에
   assert.equal(conversions.label, '비회원→회원 전환')
   assert.equal(conversions.today, 3)
   assert.equal(conversions.yesterday, 1)
+})
+
+test('2026-10-15 30일 지난 비회원이 있으면 처리 필요에 정리 대기를 싣는다', async () => {
+  const dashboard = await buildDashboard(deps({ countStaleGuests: async () => 4 }), NOW)
+  const stale = dashboard.todo.find((item) => item.key === 'guest-stale')!
+  assert.equal(stale.count, 4)
+  assert.equal(stale.href, '/guests?filter=stale')
+  assert.ok(!(await buildDashboard(deps(), NOW)).todo.some((item) => item.key === 'guest-stale'))
 })
