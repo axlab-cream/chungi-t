@@ -1134,7 +1134,15 @@
       if (!slides[next]) return;
       slide = next;
       const mode = behavior || (prefersReducedMotion() ? 'auto' : 'smooth');
-      rail.scrollTo({ left: positionOf(next), behavior: mode });
+      if (mode === 'auto') {
+        // 'auto' means "whatever the CSS says", and the rail's CSS says smooth - so the
+        // clone-to-real swap used to visibly rewind the whole rail. Lift it for one jump.
+        rail.style.scrollBehavior = 'auto';
+        rail.scrollLeft = positionOf(next);
+        rail.style.scrollBehavior = '';
+      } else {
+        rail.scrollTo({ left: positionOf(next), behavior: mode });
+      }
       markActive(realIndexOf(next));
 
       // Landing on a clone means the loop just wrapped; swap to the real poster once
