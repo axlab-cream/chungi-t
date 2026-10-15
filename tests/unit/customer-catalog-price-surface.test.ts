@@ -54,6 +54,7 @@ test('올해 연애운 홈 카드는 캠페인 대표 이미지를 사용한다'
   const portal = readFileSync(join(SAJU, 'portal.html'), 'utf8')
   const card = portal.match(/<a class="poster service-card is-live is-love"[\s\S]*?<\/a>/)?.[0] ?? ''
 
-  assert.match(card, /campaign-2026\/year-love-home-banner-v1\.webp/)
+  // 2026-10-15 홈 포스터를 세로 인물 그림(v2)으로 바꿨다. 검색·보관함 썸네일은 v1 그대로 쓴다.
+  assert.match(card, /campaign-2026\/year-love-home-poster-v2\.webp/)
   assert.doesNotMatch(card, /<video|01-frontface-window/)
 })
