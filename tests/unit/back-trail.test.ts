@@ -129,6 +129,6 @@ describe('상단 뒤로 가기 버튼 연결', () => {
   })
   it('공용 크롬이 새 셸 스크립트 버전을 싣는다(캐시 갱신)', () => {
     const chrome = readFileSync(new URL('../../사주/js/umsh-chrome.js', import.meta.url), 'utf8')
-    assert.match(chrome, /service-shell\.js\?v=20261012-faq-back/)
+    assert.match(chrome, /service-shell\.js\?v=20261015-bottom-nav/)
   })
 })

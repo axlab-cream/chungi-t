@@ -148,13 +148,16 @@
   const showBack = topHost?.hasAttribute('data-umsh-service-back') || false;
   const activeTab = topHost?.dataset.umshServiceActive?.trim() || 'home';
 
-  /** Bottom tabs, kept in the same order the 하단 메뉴 has always used. */
+  /**
+   * Bottom tabs - the same four tabs and line icons as the home screen (portal.html), so
+   * the menu does not change shape when a tab opens another page. Search lives in the
+   * top bar now, as it does on the home screen.
+   */
   const bottomTabs = [
-    ['home', '홈'],
-    ['destiny', '운명록'],
-    ['search', '검색'],
-    ['vault', '보관함'],
-    ['account', 'MY'],
+    ['home', '홈', '<path d="M2.5 9.5c3-.6 6.2-2.6 9.5-5.5 3.3 2.9 6.5 4.9 9.5 5.5" /><path d="M5 9v11h14V9" /><path d="M9.5 20v-5.5h5V20" /><path d="M8.5 11.5h7" />'],
+    ['destiny', '운명록', '<path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v14.5H7.5A1.5 1.5 0 0 1 6 18Z" /><path d="M6 18a1.5 1.5 0 0 1 1.5-1.5h11" /><path d="M10 7.5h5M10 10.5h5" /><rect x="13" y="12.8" width="3" height="3" rx=".4" />'],
+    ['vault', '보관함', '<path d="M3.5 9.5h17V19a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1Z" /><path d="M4.5 9.5 6 5h12l1.5 4.5" /><path d="M10 13.5h4" /><path d="M12 9.5v-2" />'],
+    ['account', '내 정보', '<circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" />'],
   ];
 
   const categories = [
@@ -374,9 +377,9 @@
         </div>
 
         <footer class="bottom-nav" aria-label="주요 메뉴">
-          ${bottomTabs.map(([id, label]) => {
+          ${bottomTabs.map(([id, label, icon]) => {
             const active = id === activeTab ? ' class="is-active"' : '';
-            return `<button${active} type="button" data-shell-nav="${id}"><span class="tab-label">${escapeHtml(label)}</span></button>`;
+            return `<button${active} type="button" data-shell-nav="${id}"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg><span class="tab-label">${escapeHtml(label)}</span></button>`;
           }).join('')}
         </footer>
       </div>

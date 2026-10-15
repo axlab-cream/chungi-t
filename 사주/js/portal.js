@@ -1134,25 +1134,60 @@
       if (!slides[next]) return;
       slide = next;
       const mode = behavior || (prefersReducedMotion() ? 'auto' : 'smooth');
-      if (mode === 'auto') {
-        // 'auto' means "whatever the CSS says", and the rail's CSS says smooth - so the
-        // clone-to-real swap used to visibly rewind the whole rail. Lift it for one jump.
-        rail.style.scrollBehavior = 'auto';
-        rail.scrollLeft = positionOf(next);
-        rail.style.scrollBehavior = '';
-      } else {
-        rail.scrollTo({ left: positionOf(next), behavior: mode });
-      }
+      if (mode === 'auto') jumpTo(positionOf(next));
+      else rail.scrollTo({ left: positionOf(next), behavior: mode });
       markActive(realIndexOf(next));
 
       // Landing on a clone means the loop just wrapped; swap to the real poster once
       // the animation has finished so the jump is invisible.
-      window.clearTimeout(settle);
+      clearSettle();
       if (!looping()) return;
-      if (next === slides.length - 1) {
-        settle = window.setTimeout(() => goToSlide(firstReal(), 'auto'), mode === 'auto' ? 0 : SETTLE_MS);
-      } else if (next === 0) {
-        settle = window.setTimeout(() => goToSlide(lastReal(), 'auto'), mode === 'auto' ? 0 : SETTLE_MS);
+      if (next === slides.length - 1) settleTo(firstReal(), mode);
+      else if (next === 0) settleTo(lastReal(), mode);
+    }
+
+    /**
+     * 'auto' means "whatever the CSS says", and the rail's CSS says smooth - so the
+     * clone-to-real swap used to visibly rewind the whole rail. Smooth scrolling and
+     * snapping are both lifted for the one jump, with a forced style flush in between,
+     * because mobile Safari otherwise keeps animating with the old values.
+     */
+    function jumpTo(left) {
+      rail.style.scrollBehavior = 'auto';
+      rail.style.scrollSnapType = 'none';
+      void rail.offsetWidth;
+      rail.scrollLeft = left;
+      window.requestAnimationFrame(() => {
+        rail.style.scrollBehavior = '';
+        rail.style.scrollSnapType = '';
+      });
+    }
+
+    let settleListener = null;
+    function clearSettle() {
+      window.clearTimeout(settle);
+      if (settleListener) rail.removeEventListener('scrollend', settleListener);
+      settleListener = null;
+    }
+
+    /**
+     * A slow phone can still be mid-slide after SETTLE_MS, and swapping then shows a
+     * jump. Where the browser reports the end of a scroll, wait for that instead; the
+     * timer stays as a backstop.
+     */
+    function settleTo(index, mode) {
+      const swap = () => {
+        clearSettle();
+        goToSlide(index, 'auto');
+      };
+      if (mode === 'auto') {
+        settle = window.setTimeout(swap, 0);
+      } else if ('onscrollend' in rail) {
+        settleListener = swap;
+        rail.addEventListener('scrollend', swap, { once: true });
+        settle = window.setTimeout(swap, SETTLE_MS * 3);
+      } else {
+        settle = window.setTimeout(swap, SETTLE_MS);
       }
     }
 
@@ -1217,7 +1252,8 @@
 
     function start() {
       stop();
-      if (paused || prefersReducedMotion() || reals.length < 2 || document.hidden) return;
+      // Reduced motion still advances - goToSlide swaps without the slide animation then.
+      if (paused || reals.length < 2 || document.hidden) return;
       timer = window.setInterval(() => goToSlide(slide + 1), AUTOPLAY_MS);
     }
 
@@ -1273,11 +1309,19 @@
       });
     }, { passive: true });
 
-    ['pointerdown', 'mouseenter', 'focusin', 'touchstart'].forEach((type) => {
+    ['pointerdown', 'focusin', 'touchstart'].forEach((type) => {
       rail.addEventListener(type, pause, { passive: true });
     });
-    ['mouseleave', 'focusout', 'touchend', 'touchcancel'].forEach((type) => {
+    ['focusout', 'touchend', 'touchcancel'].forEach((type) => {
       rail.addEventListener(type, resume, { passive: true });
+    });
+    // A tap on a phone fires a late mouseenter with no mouseleave to follow, which
+    // left autoplay paused for good. Only a real mouse hover pauses it.
+    rail.addEventListener('pointerenter', (event) => {
+      if (event.pointerType === 'mouse') pause();
+    });
+    rail.addEventListener('pointerleave', (event) => {
+      if (event.pointerType === 'mouse') resume();
     });
     document.addEventListener('pointerup', () => {
       // A drag that ends on a clone still has to wrap back to the real poster.
