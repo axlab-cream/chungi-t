@@ -211,8 +211,8 @@ test('coupon balance joins free and paid access and permits sending; malformed c
 test('consultation retains shared navigation but omits portrait copy and company footer', () => {
   const page = readFileSync(new URL('../../사주/consultation/index.html', import.meta.url), 'utf8')
   assert.doesNotMatch(page, /consultation-stage-copy|<footer class="site-footer|42세|당신의 이야기를 듣는 시간/)
-  assert.match(page, /id="consultation-mode-chat"/)
-  assert.match(page, /id="consultation-mode-voice"/)
+  // Voice consultation withdrawn 2026-10-15: no voice entry points on the page.
+  assert.doesNotMatch(page, /id="consultation-mode-voice"|id="voice-button"|id="voice-scene-button"|consultation-live\.js/)
   assert.match(page, /<main[^>]+class="consultation-layout"[^>]+data-umsh-chrome/)
   assert.match(page, /data-service="천명상담"/)
   assert.match(page, /src="\/js\/umsh-chrome\.js/)
