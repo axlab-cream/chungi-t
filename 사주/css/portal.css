@@ -16,9 +16,10 @@
   --line-soft: rgba(247, 242, 233, 0.1);
   --seal: #8e3a29;
   --gold-gradient: linear-gradient(120deg, #846427 0%, #b99142 27%, #e0c47b 54%, #f1e3b1 72%, #9a7531 100%);
-  --font-brand: Georgia, "Times New Roman", serif;
-  --font-display: "Noto Serif KR", "Nanum Myeongjo", Batang, serif;
-  --font-ui: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  /* 2026-10-15 홈은 글꼴을 Pretendard 하나로 통일한다(사용자 요청). portal.css는 홈 전용이다. */
+  --font-brand: "Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: var(--font-brand);
+  --font-ui: var(--font-brand);
 }
 
 * {
@@ -2061,3 +2062,8 @@ a:focus-visible {
 .weekly-free-card:hover{border-color:#e8c879}
 .weekly-free-card:focus-visible{outline:3px solid #e8c879;outline-offset:4px}
 @media(max-width:360px){.weekly-free .section-title{gap:8px}.weekly-free .section-title h2{font-size:17px}.weekly-free-caption{padding:13px 12px;gap:8px}.weekly-free-caption strong{font-size:14px}}
+
+/* 천명상담 배너 제목은 consultation.css에서 serif로 잡혀 있어 홈에서만 Pretendard로 덮는다. */
+.consultation-promo .consultation-promo-copy strong {
+  font-family: var(--font-ui);
+}

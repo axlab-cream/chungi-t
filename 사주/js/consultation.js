@@ -99,7 +99,7 @@
         host.replaceChildren();
         if (!result.conversations.length) {
           host.className = 'consultation-vault-state';
-          stateContent(host, '아직 저장된 상담이 없어요', '천명과 나눈 텍스트·음성 상담은 여기에서 다시 읽고 이어갈 수 있어요.', '/consultation/', '천명상담 시작하기');
+          stateContent(host, '아직 저장된 상담이 없어요', '천명과 나눈 상담은 여기에서 다시 읽고 이어갈 수 있어요.', '/consultation/', '천명상담 시작하기');
           return;
         }
         host.className = '';
