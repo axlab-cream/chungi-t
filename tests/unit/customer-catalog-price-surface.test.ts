@@ -39,7 +39,10 @@ test('홈 카드·상세 가격은 결제 카탈로그와 같다', () => {
     /전체 풀이 9,900원/,
   )
 
-  assert.match(portal, new RegExp(`대표 · 종합사주[\\s\\S]{0,500}${won(catalog.cmdg)}`))
+  // 2026-10-15 홈 메인 포스터와 대표 궁합 배너에서는 금액을 뺐다. 가격은 상세 페이지에서 카탈로그와 맞춘다.
+  const cmdgPoster = portal.match(/<a class="poster service-card is-cmdg"[\s\S]*?<\/a>/)?.[0] ?? ''
+  assert.ok(cmdgPoster.includes('대표 · 종합사주'), '천명사주 포스터를 찾지 못했다')
+  assert.doesNotMatch(cmdgPoster, /원<\/b>|price-line/)
   const cmdgPage = readFileSync(join(SAJU, '사주', 'index.html'), 'utf8')
   assert.match(cmdgPage, new RegExp(won(catalog.cmdg)))
   assert.doesNotMatch(cmdgPage, /49,800원/)

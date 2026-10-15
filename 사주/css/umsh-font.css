@@ -1,0 +1,14 @@
+/* 2026-10-15 사이트 전체 글꼴을 Pretendard 하나로 맞춘다(사용자 요청).
+   화면마다 명조·마루부리·Georgia 등이 따로 잡혀 있어서, 각 화면을 고치는 대신 여기서 한 번에 덮는다.
+   글꼴 파일은 /assets/fonts/pretendard-variable/ 동적 서브셋(필요한 글자 조각만 받음)을 쓴다. */
+html body,
+html body *,
+html body *::before,
+html body *::after {
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif !important;
+}
+
+/* 코드·숫자 표기는 고정폭을 유지한다. */
+html body :is(code, pre, kbd, samp) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+}
