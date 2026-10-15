@@ -93,12 +93,12 @@ describe('kakao skill server', () => {
     const { send, calls } = setup()
     for (let i = 1; i <= KAKAO_FREE_DAILY; i += 1) {
       const res = await send(`질문 ${i}`)
-      if (i === KAKAO_FREE_DAILY) assert.match(texts(res.body), new RegExp(KAKAO_UPSELL))
+      if (i === KAKAO_FREE_DAILY) assert.ok(texts(res.body).includes(KAKAO_UPSELL))
     }
     const over = await send('하나만 더')
     assert.equal(calls.length, KAKAO_FREE_DAILY)
     assert.match(texts(over.body), /10번을 다 썼어/)
-    assert.match(texts(over.body), new RegExp(KAKAO_UPSELL))
+    assert.ok(texts(over.body).includes(KAKAO_UPSELL))
     assert.match(texts(over.body), /umsh\.kr\/\?utm_source=kakao/)
   })
 
@@ -124,7 +124,7 @@ describe('kakao skill server', () => {
     assert.match(calls[0].system, /우리궁합 맛보기/)
     assert.match(calls[0].system, /dayMaster/)
     assert.match(texts(done.body), /둘은 물과 불이야/)
-    assert.match(texts(done.body), new RegExp(KAKAO_UPSELL))
+    assert.ok(texts(done.body).includes(KAKAO_UPSELL))
     assert.match(texts(done.body), /match\/couple/)
   })
 
