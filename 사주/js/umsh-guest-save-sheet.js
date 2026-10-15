@@ -3,11 +3,16 @@
  * 비회원(Supabase 익명 계정)이 무료 결과를 보면 화면 아래 3분의 1 이하로 올라와
  * "SNS로 로그인하면 이 결과가 저장돼요"를 알린다. 결과 하나에 한 번만 띄우고,
  * 닫으면 결과 맨 아래에 한 줄짜리 저장 안내만 남긴다. 계획: docs/auth/guest-member-plan.md
+ * 2026-10-15: 같은 시트에서 약관 동의(필수 3·선택 1, umsh-consent.js)를 받고 SNS 로그인으로 바로 넘긴다.
+ * 필수를 빼고 SNS 버튼을 누르면 빠진 줄이 흔들린다. 누른 SNS 는 로그인 화면이 바로 이어서 시작한다.
  */
 (function (global) {
   'use strict';
 
   var SEEN_PREFIX = 'umsh:guest-save-sheet:';
+  /** 로그인 화면(/signup#login)이 이어서 시작할 SNS. 이 탭에만 둔다. */
+  var LOGIN_PROVIDER_KEY = 'umsh_login_provider_v1';
+  var CONSENT_SRC = '/js/umsh-consent.js?v=20261015a';
   var MARKS = {
     kakao: '<svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path fill="#000" d="M9 1.5C4.58 1.5 1 4.32 1 7.8c0 2.24 1.49 4.2 3.73 5.32-.16.6-.6 2.2-.69 2.54-.11.42.15.42.32.3.13-.09 2.1-1.43 2.95-2.01.55.08 1.11.12 1.69.12 4.42 0 8-2.82 8-6.3S13.42 1.5 9 1.5Z"/></svg>',
     naver: '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path fill="#fff" d="M13.56 10.7 6.17 0H0v20h6.44V9.3L13.83 20H20V0h-6.44v10.7Z"/></svg>',
@@ -18,7 +23,7 @@
   var CSS = [
     '.umsh-gs-backdrop{position:fixed;inset:0;z-index:9990;background:rgba(6,4,3,.28);opacity:0;transition:opacity .22s ease}',
     '.umsh-gs-backdrop.is-open{opacity:1}',
-    '.umsh-gs{position:fixed;left:50%;bottom:0;z-index:9991;box-sizing:border-box;width:100%;max-width:480px;max-height:34vh;max-height:34dvh;overflow:auto;',
+    '.umsh-gs{position:fixed;left:50%;bottom:0;z-index:9991;box-sizing:border-box;width:100%;max-width:480px;max-height:60vh;max-height:60dvh;overflow:auto;',
     'padding:10px 20px calc(14px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;border:1px solid rgba(214,178,110,.28);border-bottom:0;',
     'background:#15100d;color:#f6ead6;box-shadow:0 -12px 32px rgba(0,0,0,.38);transform:translate(-50%,105%);transition:transform .26s cubic-bezier(.2,.8,.2,1);',
     'font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;word-break:keep-all;line-height:1.45}',
@@ -27,7 +32,9 @@
     '.umsh-gs-handle{display:block;width:36px;height:4px;margin:0 auto 12px;border-radius:2px;background:rgba(246,234,214,.28)}',
     '.umsh-gs-close{position:absolute;top:8px;right:10px;width:36px;height:36px;border:0;background:transparent;color:rgba(246,234,214,.6);font-size:20px;line-height:1;cursor:pointer}',
     '.umsh-gs-title{margin:0 28px 4px 0;font-size:16px;font-weight:700;color:#f6ead6}',
-    '.umsh-gs-sub{margin:0 0 14px;font-size:13px;color:rgba(246,234,214,.66)}',
+    '.umsh-gs-sub{margin:0 0 10px;font-size:13px;color:rgba(246,234,214,.66)}',
+    '.umsh-gs-consent:empty{min-height:4px}',
+    '.umsh-gs-btn.is-waiting{opacity:.55}',
     '.umsh-gs-row{display:grid;grid-template-columns:repeat(var(--umsh-gs-cols,3),1fr);gap:8px}',
     '.umsh-gs-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:46px;padding:0 10px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer}',
     '.umsh-gs-btn.kakao{background:#fee500;color:rgba(0,0,0,.85)}',
@@ -71,7 +78,8 @@
     var head = '<span class="umsh-gs-handle" aria-hidden="true"></span>'
       + '<button type="button" class="umsh-gs-close" data-action="close" aria-label="닫기">×</button>'
       + '<p class="umsh-gs-title" id="umsh-gs-title">SNS로 로그인하면 이 결과가 저장돼요</p>'
-      + '<p class="umsh-gs-sub">로그인하지 않으면 1시간 뒤 사라져요.</p>';
+      + '<p class="umsh-gs-sub">로그인하지 않으면 1시간 뒤 사라져요.</p>'
+      + '<div class="umsh-gs-consent" data-consent-host></div>';
     if (opts.variant === 'b') {
       var rest = providers.slice(1).map(function (p) { return '<a href="#" data-provider="' + p + '">' + LABELS[p] + '</a>'; }).join('');
       return head + providerButton(providers[0], true)
@@ -96,14 +104,94 @@
     }
   }
 
+  function withProvider(url, provider) {
+    try {
+      var parsed = new URL(url, location.origin);
+      parsed.searchParams.set('provider', provider);
+      return parsed.origin === location.origin ? parsed.pathname + parsed.search + parsed.hash : parsed.toString();
+    } catch (_e) {
+      return url;
+    }
+  }
+
   function login(opts, provider) {
     track('login_' + provider, opts);
+    // 로그인 화면이 방금 누른 SNS 로 바로 이어 가게 남긴다. 화면마다 onLogin 주소를 고치지 않아도 된다.
+    try { global.sessionStorage.setItem(LOGIN_PROVIDER_KEY, JSON.stringify({ provider: provider, at: Date.now() })); } catch (_e) { /* 저장 불가면 로그인 화면에서 다시 고른다 */ }
     if (typeof opts.onLogin === 'function') { opts.onLogin(provider); return; }
     var entry = opts.entry || 'guest-save';
     var returnTo = opts.returnTo || (location.pathname + location.search);
-    location.href = global.UMSHCommonAuth && global.UMSHCommonAuth.commonLoginUrl
+    location.href = withProvider(global.UMSHCommonAuth && global.UMSHCommonAuth.commonLoginUrl
       ? global.UMSHCommonAuth.commonLoginUrl(entry, returnTo)
-      : '/signup?entry=' + encodeURIComponent(entry) + '&returnTo=' + encodeURIComponent(returnTo) + '#login';
+      : '/signup?entry=' + encodeURIComponent(entry) + '&returnTo=' + encodeURIComponent(returnTo) + '#login', provider);
+  }
+
+  var consentLoading = null;
+  function loadConsent() {
+    if (global.UMSHConsent) return Promise.resolve(global.UMSHConsent);
+    if (consentLoading) return consentLoading;
+    consentLoading = new Promise(function (resolve) {
+      var script = document.createElement('script');
+      script.src = CONSENT_SRC;
+      script.onload = function () { resolve(global.UMSHConsent || null); };
+      script.onerror = function () { consentLoading = null; resolve(null); };
+      document.head.appendChild(script);
+    });
+    return consentLoading;
+  }
+
+  function recordVisit(opts) {
+    try {
+      var auth = global.UMSHAuthSession;
+      if (auth && typeof auth.recordGuestVisit === 'function') auth.recordGuestVisit(opts.service || opts.entry || location.pathname);
+    } catch (_e) { /* 집계는 화면을 막지 않는다 */ }
+  }
+
+  /** 동의 묶음이 아직 안 그려졌으면(스크립트 로딩 중) 버튼을 흐리게 둔다. 그려진 뒤 필수 상태에 맞춰 칠한다. */
+  function paintProviders(state) {
+    if (!state.sheet) return;
+    var ready = Boolean(state.consent) && state.consent.isValid();
+    state.sheet.querySelectorAll('[data-provider]').forEach(function (button) {
+      button.classList.toggle('is-waiting', !ready);
+    });
+  }
+
+  function mountConsent(state) {
+    var host = state.sheet && state.sheet.querySelector('[data-consent-host]');
+    if (!host) return;
+    loadConsent().then(function (consent) {
+      if (!consent || !state.sheet || !host.isConnected) { state.consentFailed = !consent; paintProviders(state); return; }
+      state.consent = consent.render(host, { source: 'guest-sheet' });
+      state.consent.onChange(function () { paintProviders(state); });
+      paintProviders(state);
+    });
+  }
+
+  /**
+   * SNS 버튼: 필수 동의가 빠졌으면 흔들고 멈춘다. 다 됐으면 동의를 이 탭에 들고(로그인 뒤 회원 계정에 기록),
+   * 비회원 계정에도 바로 남긴 뒤 로그인으로 넘어간다. 동의 스크립트를 못 받았으면 로그인 화면이 다시 묻는다.
+   */
+  function onProvider(state, provider) {
+    var opts = state.opts;
+    if (state.consent && !state.consent.isValid()) {
+      state.consent.shakeMissing();
+      track('consent_missing', opts);
+      return;
+    }
+    if (!state.consent && !state.consentFailed) {
+      // 동의 묶음을 그리는 중이다. 막 열린 시트에서 바로 눌렀을 때 그대로 넘어가지 않는다.
+      return;
+    }
+    if (state.consent) {
+      var values = state.consent.values();
+      global.UMSHConsent.savePending(values);
+      var auth = global.UMSHAuthSession;
+      var guestToken = auth && typeof auth.currentGuestToken === 'function' ? auth.currentGuestToken() : '';
+      if (guestToken) global.UMSHConsent.postConsent(guestToken, values);
+      track('consent_ok' + (values.marketing ? '_marketing' : ''), opts);
+    }
+    close(state, 'login');
+    login(opts, provider);
   }
 
   /** 닫은 뒤 결과 맨 아래에 남기는 한 줄. opts.inlineHost 가 없으면 남기지 않는다. */
@@ -142,9 +230,11 @@
       if (!target) return;
       event.preventDefault();
       if (target.getAttribute('data-action') === 'close') { close(state, 'close'); return; }
-      close(state, 'login');
-      login(opts, target.getAttribute('data-provider'));
+      onProvider(state, target.getAttribute('data-provider'));
     });
+    mountConsent(state);
+    paintProviders(state);
+    recordVisit(opts);
     requestAnimationFrame(function () { requestAnimationFrame(function () { sheet.classList.add('is-open'); backdrop.classList.add('is-open'); }); });
     track('view', opts);
     return state;
@@ -156,6 +246,9 @@
    */
   function openWhenSeen(opts) {
     opts = opts || {};
+    // 결과가 그려진 시점에 방문을 남긴다. 시트를 보기 전에 떠나도 무료 결과를 본 비회원으로 센다.
+    recordVisit(opts);
+    loadConsent();
     var fired = false;
     var observer = null, mutation = null;
     function fire(anchor) {
@@ -226,5 +319,5 @@
     });
   }
 
-  global.UMSHGuestSaveSheet = { open: open, openWhenSeen: openWhenSeen, confirmClaim: confirmClaim };
+  global.UMSHGuestSaveSheet = { open: open, openWhenSeen: openWhenSeen, confirmClaim: confirmClaim, LOGIN_PROVIDER_KEY: LOGIN_PROVIDER_KEY };
 })(window);

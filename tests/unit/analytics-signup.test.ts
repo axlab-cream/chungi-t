@@ -165,7 +165,9 @@ test('actual modal counts entry and reopening, not config/error rerenders', () =
   const stage = { innerHTML: '', querySelector() { return this.innerHTML.includes('role="dialog"') ? {} : null } }
   const ctx: any = { stage, window: { UMSHAnalytics: api }, authConfigData: {}, authGateMessage: '',
     protectedEntryLabel: () => '', wantsTodayEntry: () => false, wantsPurchaseAfterAuth: () => false, wantsProtectedProfileEntry: () => false,
-    isStandaloneSignupFlow: () => true, escapeHtml: (s: string) => s, renderAuthProviderButton: () => '', shouldUseGoogleIdentity: () => false }
+    isStandaloneSignupFlow: () => true, escapeHtml: (s: string) => s, renderAuthProviderButton: () => '', shouldUseGoogleIdentity: () => false,
+    // 2026-10-15 약관 동의 묶음·SNS 이어서 시작은 tests/unit/guest-consent.test.ts 에서 본다.
+    mountLoginConsent: () => undefined, maybeAutoStartProvider: () => undefined }
   runInNewContext(pageFunction('function renderLogin()', 'function renderLoading()'), ctx)
   ctx.renderLogin()
   assert.match(stage.innerHTML, /role="dialog"/)
@@ -187,7 +189,8 @@ test('actual native provider clicks count before auth, including loading/unavail
       const calls: string[] = []
       const ctx: any = { window: { UMSHAnalytics: api }, document: { addEventListener: (_: string, cb: any) => { click = cb } },
         signInWithProvider: (m: string) => { assert.equal(events.length, 1); calls.push(m) },
-        setAuthMessage: () => { assert.equal(events.length, 1); calls.push('message') }, unavailableAuthMessage: () => '' }
+        setAuthMessage: () => { assert.equal(events.length, 1); calls.push('message') }, unavailableAuthMessage: () => '',
+        loginConsentReady: () => true }
       runInNewContext(pageFunction('document.addEventListener("click", (event) => {\n        const signupButton', 'function handleValue('), ctx)
       const key = 'auth' + kind[0].toUpperCase() + kind.slice(1)
       const button = { dataset: { [key]: method } }

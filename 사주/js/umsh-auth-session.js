@@ -330,7 +330,7 @@
     if (global.UMSHGuestSaveSheet || !global.document) return Promise.resolve(global.UMSHGuestSaveSheet);
     return new Promise(function (resolve) {
       var script = global.document.createElement('script');
-      script.src = '/js/umsh-guest-save-sheet.js?v=20261014c';
+      script.src = '/js/umsh-guest-save-sheet.js?v=20261015a';
       script.onload = function () { resolve(global.UMSHGuestSaveSheet); };
       script.onerror = function () { resolve(null); };
       global.document.head.appendChild(script);
@@ -385,6 +385,157 @@
     return claiming;
   }
 
+  /*
+   * 2026-10-15 비회원 집계·약관 동의. 계획: docs/auth/guest-member-plan.md
+   * - 기기 번호: 이 브라우저를 가리키는 무작위 값. 이름·사주는 담지 않는다. 비회원은 "기기 + 사주"로 한 사람을 센다.
+   * - 비회원이 무료 결과를 보면 서버에 방문을 남긴다(POST /api/guest/visit). 탭·계정·서비스마다 한 번.
+   * - 회원 세션이 생기면 로그인 전에 받아 둔 동의(umsh-consent.js)를 서버에 기록하고,
+   *   지금 버전 동의 기록이 없는 회원에게는 동의 시트를 한 번 띄운다.
+   */
+  var DEVICE_ID_KEY = 'umsh_device_id_v1';
+  var CONSENT_PENDING_KEY = 'umsh_consent_pending_v1';
+  var CONSENT_OK_KEY = 'umsh_consent_ok_v1';
+  var CONSENT_CHECKED_PREFIX = 'umsh_consent_checked:';
+  var GUEST_VISIT_PREFIX = 'umsh_guest_visit:';
+
+  function randomId() {
+    try {
+      if (global.crypto && typeof global.crypto.randomUUID === 'function') return global.crypto.randomUUID();
+    } catch (_error) { /* 오래된 브라우저 */ }
+    var hex = '';
+    for (var i = 0; i < 32; i += 1) hex += Math.floor(Math.random() * 16).toString(16);
+    return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-4' + hex.slice(13, 16) + '-a' + hex.slice(17, 20) + '-' + hex.slice(20, 32);
+  }
+
+  /** 이 브라우저의 기기 번호. 저장소가 막혔으면 빈 문자열(서버는 기기 없는 방문으로 센다). */
+  function deviceId() {
+    var existing = safeGet(global.localStorage, DEVICE_ID_KEY);
+    if (existing && /^[0-9a-f-]{36}$/i.test(existing)) return existing;
+    var next = randomId();
+    safeSet(global.localStorage, DEVICE_ID_KEY, next);
+    return safeGet(global.localStorage, DEVICE_ID_KEY) === next ? next : '';
+  }
+
+  function storedSession(store, wantAnonymous) {
+    try {
+      for (var i = 0; i < store.length; i += 1) {
+        var key = store.key(i);
+        if (!isAuthTokenKey(key)) continue;
+        var parsed = JSON.parse(store.getItem(key) || 'null');
+        var session = parsed && (parsed.currentSession || parsed);
+        if (!session || !session.access_token || !session.user) continue;
+        if ((session.user.is_anonymous === true) === wantAnonymous) return { token: session.access_token, userId: String(session.user.id || '') };
+      }
+    } catch (_error) { /* 저장소가 막힌 브라우저 */ }
+    return null;
+  }
+
+  function currentGuestToken() { var found = storedSession(global.sessionStorage, true); return found ? found.token : ''; }
+  function currentMemberToken() { var found = storedSession(global.localStorage, false); return found ? found.token : ''; }
+
+  /** 비회원이 무료 결과를 봤다고 서버에 남긴다. 회원이거나 비회원 세션이 없으면 하지 않는다. 실패는 조용히 넘긴다. */
+  function recordGuestVisit(service) {
+    if (typeof fetch !== 'function') return Promise.resolve(false);
+    if (storedSession(global.localStorage, false)) return Promise.resolve(false);
+    var guest = storedSession(global.sessionStorage, true);
+    if (!guest) return Promise.resolve(false);
+    var name = String(service || (global.location && global.location.pathname) || 'unknown').slice(0, 80);
+    var key = GUEST_VISIT_PREFIX + guest.userId + ':' + name;
+    if (safeGet(global.sessionStorage, key)) return Promise.resolve(false);
+    safeSet(global.sessionStorage, key, '1');
+    return fetch('/api/guest/visit', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + guest.token },
+      body: JSON.stringify({ deviceId: deviceId(), service: name }),
+    }).then(function (response) { return response.ok; }).catch(function () { return false; });
+  }
+
+  function loadConsentModule() {
+    if (global.UMSHConsent || !global.document) return Promise.resolve(global.UMSHConsent || null);
+    return new Promise(function (resolve) {
+      var script = global.document.createElement('script');
+      script.src = '/js/umsh-consent.js?v=20261015a';
+      script.onload = function () { resolve(global.UMSHConsent || null); };
+      script.onerror = function () { resolve(null); };
+      global.document.head.appendChild(script);
+    });
+  }
+
+  function readConsentPending() {
+    try {
+      var pending = JSON.parse(safeGet(global.sessionStorage, CONSENT_PENDING_KEY) || 'null');
+      if (!pending || pending.terms !== true || pending.privacy !== true || pending.age14 !== true) return null;
+      if (!Number.isFinite(pending.at) || Date.now() - pending.at > 24 * 60 * 60 * 1000) { safeRemove(global.sessionStorage, CONSENT_PENDING_KEY); return null; }
+      return pending;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function postConsentRecord(token, pending) {
+    return fetch('/api/consents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        version: pending.version,
+        terms: true, privacy: true, age14: true,
+        marketing: pending.marketing === true,
+        source: pending.source || 'login',
+        deviceId: deviceId(),
+      }),
+    }).then(function (response) { return { ok: response.ok, status: response.status }; })
+      .catch(function () { return { ok: false, status: 0 }; });
+  }
+
+  var consentChecking = null;
+  /**
+   * 회원 세션에서 한 번: 받아 둔 동의를 기록하고, 지금 버전 동의가 없으면 동의 시트를 띄운다.
+   * 동의 기록 저장소가 아직 없거나(503) 네트워크가 끊기면 묻지 않는다 — 로그인한 회원을 막지 않는다.
+   */
+  function syncMemberConsent() {
+    if (consentChecking) return consentChecking;
+    if (typeof fetch !== 'function') return Promise.resolve({ skipped: true });
+    var member = storedSession(global.localStorage, false);
+    if (!member) return Promise.resolve({ skipped: true });
+    var checkedKey = CONSENT_CHECKED_PREFIX + member.userId;
+    consentChecking = (async function () {
+      try {
+        var pending = readConsentPending();
+        if (pending) {
+          var recorded = await postConsentRecord(member.token, pending);
+          if (recorded.ok) {
+            safeRemove(global.sessionStorage, CONSENT_PENDING_KEY);
+            safeSet(global.localStorage, CONSENT_OK_KEY, String(pending.version || ''));
+            safeSet(global.sessionStorage, checkedKey, '1');
+            return { recorded: true };
+          }
+          // 필수 누락·버전이 바뀜: 받아 둔 동의는 버리고 아래에서 지금 버전으로 다시 묻는다.
+          if (recorded.status === 400 || recorded.status === 409) safeRemove(global.sessionStorage, CONSENT_PENDING_KEY);
+          else return { error: true };
+        }
+        if (safeGet(global.sessionStorage, checkedKey)) return { skipped: true };
+        var response = await fetch('/api/consents/status', { headers: { Authorization: 'Bearer ' + member.token } }).catch(function () { return null; });
+        if (!response || !response.ok) return { error: true };
+        var status = await response.json().catch(function () { return null; });
+        safeSet(global.sessionStorage, checkedKey, '1');
+        if (!status || status.current !== false) {
+          if (status && status.version) safeSet(global.localStorage, CONSENT_OK_KEY, String(status.version));
+          return { current: true };
+        }
+        var consent = await loadConsentModule();
+        if (!consent || typeof consent.openReconsent !== 'function') return { error: true };
+        var agreed = await consent.openReconsent({ token: member.token });
+        return { reconsented: agreed };
+      } catch (_error) {
+        return { error: true };
+      } finally {
+        consentChecking = null;
+      }
+    })();
+    return consentChecking;
+  }
+
   function watchSignedIn(auth, onSession) {
     if (!auth || auth.watching || !auth.client || !auth.client.auth || !auth.client.auth.onAuthStateChange) return;
     auth.watching = true;
@@ -426,12 +577,19 @@
     purgeGuest: purgeGuest,
     guestAwareStorage: guestAwareStorage,
     GUEST_IDLE_MS: GUEST_IDLE_MS,
+    deviceId: deviceId,
+    currentGuestToken: currentGuestToken,
+    currentMemberToken: currentMemberToken,
+    recordGuestVisit: recordGuestVisit,
+    syncMemberConsent: syncMemberConsent,
   };
 
   try { sweepGuestResidue(); } catch (_error) { /* 저장소가 막힌 브라우저 */ }
   // 로그인에서 돌아온 페이지: 회원 세션이 저장되는 데 시간이 걸릴 수 있어 두 번 살핀다.
+  // 결과 옮기기 확인이 먼저 끝나야 동의 시트가 그 위에 겹치지 않는다.
   if (typeof fetch === 'function' && global.document) {
-    setTimeout(function () { claimGuestNow(); }, 1500);
-    setTimeout(function () { claimGuestNow(); }, 5000);
+    var afterClaim = function () { return syncMemberConsent(); };
+    setTimeout(function () { claimGuestNow().then(afterClaim, afterClaim); }, 1500);
+    setTimeout(function () { claimGuestNow().then(afterClaim, afterClaim); }, 5000);
   }
 })(typeof window !== 'undefined' ? window : globalThis);
