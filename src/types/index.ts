@@ -82,7 +82,7 @@ export interface TenGodPlacement {
 }
 
 export interface SajuInteraction {
-  type: '천간합' | '육합' | '충' | '형' | '파' | '해'
+  type: '천간합' | '천간충' | '육합' | '충' | '형' | '자형' | '파' | '해' | '반합' | '삼합' | '방합'
   pillars: string[]
   signs: string[]
   meaning: string
@@ -112,6 +112,34 @@ export interface FlowBridgeInfo {
   note: string
 }
 
+/** 신살 하나(2026-10-15). 기준은 analysis/shinsal-research.html 5장 13개 결정. */
+export interface ShinsalInfo {
+  name: string
+  pillar: TenGodPlacement['pillar']
+  /** 신살이 걸린 글자(지지·천간 또는 일주) */
+  sign: string
+  /** 판정 기준: '연지 卯', '일지 寅', '일간 庚', '월지 午', '일주', '일지 寅와 짝' 등 */
+  basis: string
+  nature: 'good' | 'bad' | 'neutral'
+  /** 걸린 자리의 경중: 일·시 무거움, 월 보통, 연 가벼움 */
+  weight: 'heavy' | 'normal' | 'light'
+  /** 12신살의 기준 자리 자체(지살·장성·화개) */
+  self?: boolean
+  /** 원전끼리 엇갈리는 이설로 판정된 경우의 설명 */
+  variant?: string
+  /** 공망 자리: 길신·중립은 약화, 흉신은 해소 */
+  voidEffect?: 'weakened' | 'resolved'
+  /** 천덕·월덕이 일간에 걸린 정격 */
+  strongGrade?: boolean
+}
+
+export interface ShinsalResult {
+  items: ShinsalInfo[]
+  kongmang: { branches: [EarthlyBranch, EarthlyBranch]; pillars: Array<TenGodPlacement['pillar']> }
+  /** 출생 시각을 몰라 판정하지 못한 범위 */
+  undetermined?: string
+}
+
 export interface ManseryeokMeta {
   resolvedBirth: ResolvedBirthDate
   pillarYear: number
@@ -125,6 +153,9 @@ export interface ManseryeokMeta {
   gyeokguk: GyeokgukInfo
   climate: ClimateBalanceInfo
   flowBridges: FlowBridgeInfo[]
+  /** 용신을 고른 근거: 억부(강약) / 조후(계절) / 통관(부딪히는 두 기운의 중재). */
+  usefulGodBasis?: '억부' | '조후' | '통관'
+  shinsal?: ShinsalResult
   calculationNotes: string[]
   /** true면 출생 시각을 몰라 시주를 빼고 연·월·일 6글자로 계산한 값이다(sixCharAnalysis). */
   hourPillarExcluded?: boolean
@@ -334,6 +365,7 @@ export interface SajuFeatureJson {
     dominantElement: Element
     weakElement: Element
     usefulElement: Element | null
+    usefulElementBasis?: '억부' | '조후' | '통관'
     climate?: {
       season: string
       temperature: string
@@ -357,6 +389,8 @@ export interface SajuFeatureJson {
       stems: Array<{ stem: HeavenlyStem; tenGod?: TenGod; weight: number; main: boolean }>
     }>
     interactions: SajuInteraction[]
+    /** 계산한 신살 한 줄씩('이름 · 자리 · 기준 · 길흉 …'). 없는 신살을 만들지 않도록 이 목록만 근거로 쓴다. */
+    shinsal?: { items: string[]; kongmang: string; undetermined?: string }
     gyeokguk?: {
       name: string
       basis: string
@@ -368,8 +402,9 @@ export interface SajuFeatureJson {
     currentYear: number
     yearPillar: string
     currentDaewoon: string
-    daewoonList?: Array<{ age: string; pillar: string; ageStart?: number; startYear?: number }>
-    yearlyFlow?: Array<{ year: number; pillar: string; age: number }>
+    /** withChart: 그 운의 글자가 원국과 만드는 합·충·형·파·해(예: '충 午↔일지 子'). 시간을 모르면 시주는 빼고 본다. */
+    daewoonList?: Array<{ age: string; pillar: string; ageStart?: number; startYear?: number; withChart?: string[] }>
+    yearlyFlow?: Array<{ year: number; pillar: string; age: number; withChart?: string[] }>
     direction?: FortuneCycle['direction']
     startAge?: number
   }

@@ -14,6 +14,10 @@ const oldPath = 'tone-v2/corpus/marry-match-service.json'
 const newPath = 'tone-v2/corpus/releases/marry-match-service-2.1.0.json'
 const oldMarker = '둘 다 주도하는 쪽이면 속도와 주도권에서 부딪히고, 한쪽이 받쳐 주는 쪽이면 역할이 굳어 한쪽이 지친다'
 const newMarker = '일간 강약은 자원과 반응을 살피는 전통적 축이다'
+// 첫 장 프롬프트에 실제로 검색되는 판본 전용 문장(2.0.0 / 2.1.0). 장 검색은 강약·용신에 따라 순위가 바뀌므로
+// 강약 문장(위 표식)과 따로 둔다. 2026-10-15 강약에 인성을 넣으며 이 표본이 신강이 되어 강약 문장이 첫 장에서 빠졌다.
+const oldPromptMarker = '먼저 다가가 확인해야 안심하는 쪽과, 지켜보다 확신이 서면 움직이는 쪽은 애정의 크기가 아니라 리듬이 다르다'
+const newPromptMarker = '함께 사는 방식은 비용 분담, 개인 시간, 가사 기준과 주거 계약에 따라 달라진다'
 const birth: BirthInput = { year: 1985, month: 3, day: 20, hour: 9, gender: 'male', calendar: 'solar' }
 const context: SajuReportContext = { serviceKey: 'marry_match', concern: '결혼을 현실적으로 준비할 조건을 확인하고 싶어요.' }
 const hashFile = (path: string) => createHash('sha256').update(readFileSync(join(root, 'data', path), 'utf8')).digest('hex')
@@ -69,13 +73,13 @@ describe('[TASK P05] marry_match corpus/RAG release candidate', () => {
     const analysis = analyzeSaju(birth); const section = buildTemplateSajuReport(analysis, birth, context).sections[0]; assert.ok(section)
     const active = sectionPrompt(analysis, birth, context, section).map((item) => item.content).join('\n')
     const old = sectionPrompt(analysis, birth, context, section, [], oldSnapshot()).map((item) => item.content).join('\n')
-    assert.match(active, new RegExp(newMarker)); assert.doesNotMatch(active, new RegExp(oldMarker))
-    assert.match(old, new RegExp(oldMarker)); assert.doesNotMatch(old, new RegExp(newMarker))
+    assert.match(active, new RegExp(newPromptMarker)); assert.doesNotMatch(active, new RegExp(oldPromptMarker))
+    assert.match(old, new RegExp(oldPromptMarker)); assert.doesNotMatch(old, new RegExp(newPromptMarker))
   })
 
   it('reviews saved prose against the stored corpus snapshot', () => {
     const analysis = analyzeSaju(birth); const section = buildTemplateSajuReport(analysis, birth, context).sections[0]; assert.ok(section)
-    const common = { analysis, birth, context, section, hook: '결혼 조건은 두 사람이 확인한 사실로 판단해요.', interpretation: `${oldMarker}. 어느 조합이든 미리 알면 대비할 수 있다.` }
+    const common = { analysis, birth, context, section, hook: '결혼 조건은 두 사람이 확인한 사실로 판단해요.', interpretation: `${oldPromptMarker}. 어느 조합이든 미리 알면 대비할 수 있다.` }
     const issue = '코퍼스 문장을 복사하지 말고 현재 질문과 근거에 맞는 새 문장으로 다시 쓰세요.'
     assert.ok(!reviewGeneratedSajuReportSection(common).issues.includes(issue)); assert.ok(reviewGeneratedSajuReportSection({ ...common, corpusSnapshot: oldSnapshot() }).issues.includes(issue))
   })
