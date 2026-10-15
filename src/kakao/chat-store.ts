@@ -12,8 +12,10 @@ export interface KakaoBirthDraft {
   hour: number; minute: number; timeKnown: boolean
   gender: 'male' | 'female'; calendar: 'solar' | 'lunar'; isLeapMonth?: boolean
 }
+/** couple: 본인→상대 생일. cmdg(천명사주 무료)·today(오늘의 운): 본인 생일 한 번. */
+export type KakaoFlowKind = 'couple' | 'cmdg' | 'today'
 export interface KakaoCoupleFlow {
-  kind: 'couple'
+  kind: KakaoFlowKind
   step: 'self' | 'partner'
   startedAt: number
   self?: KakaoBirthDraft
@@ -116,5 +118,5 @@ function isTurn(value: unknown): value is KakaoTurn {
 
 function isCoupleFlow(value: unknown): value is KakaoCoupleFlow {
   const flow = value as KakaoCoupleFlow
-  return !!flow && flow.kind === 'couple' && (flow.step === 'self' || flow.step === 'partner') && typeof flow.startedAt === 'number'
+  return !!flow && (flow.kind === 'couple' || flow.kind === 'cmdg' || flow.kind === 'today') && (flow.step === 'self' || flow.step === 'partner') && typeof flow.startedAt === 'number'
 }
