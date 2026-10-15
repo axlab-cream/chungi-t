@@ -18,7 +18,8 @@ const chartOf = (...gz: string[]) => (['year', 'month', 'day', 'hour'] as const)
 const find = (items: ShinsalInfo[], name: string, pillarKey?: string, basis?: string) =>
   items.filter((s) => s.name === name && (!pillarKey || s.pillar === pillarKey) && (!basis || s.basis === basis))
 
-const PDF_BIRTH: BirthInput = { year: 1987, month: 6, day: 10, hour: 20, minute: 0, gender: 'female', calendar: 'solar' }
+// 1987-06-10은 서머타임 기간이라 지금 규칙으로는 20시가 사주 시각 18:30(酉시)이 된다. 이 테스트는 예전 시주(丙戌) 기준 값을 보므로 예전 규칙으로 고정한다.
+const PDF_BIRTH: BirthInput = { year: 1987, month: 6, day: 10, hour: 20, minute: 0, gender: 'female', calendar: 'solar', timeRule: 'legacy' }
 
 describe('신살 계산: 13개 기준', () => {
   it('참고 PDF 사례(丁卯 丙午 庚寅)가 조사 보고서의 기대값대로 나온다 — 시간 모름 3주', () => {

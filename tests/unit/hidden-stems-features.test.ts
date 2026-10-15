@@ -7,7 +7,8 @@ import { groundedReportFeatures } from '../../src/report/report-generator.js'
  * 지장간(지지 속 숨은 글자)은 계산만 하고 리포트 AI 에게 넘기지 않아, AI 가 "지장간 값이 제공되지 않았어"라고
  * 고객에게 쓰거나 스스로 계산했다(2026-10-15 비교). 모든 리포트 서비스가 같은 통로로 받는다.
  */
-const birth = { year: 1987, month: 6, day: 10, hour: 20, minute: 0, calendar: 'solar', gender: 'female' } as const
+// 1987-06-10은 서머타임 기간이라 지금 규칙으로는 20시가 사주 시각 18:30(酉시)이 된다. 이 테스트는 예전 시주(丙戌) 기준 값을 보므로 예전 규칙으로 고정한다.
+const birth = { year: 1987, month: 6, day: 10, hour: 20, minute: 0, calendar: 'solar', gender: 'female', timeRule: 'legacy' } as const
 type Hidden = Array<{ pillar: string; branch: string; stems: Array<{ stem: string; tenGod?: string; weight: number; main: boolean }> }>
 const hiddenOf = (context: Record<string, unknown>) =>
   (groundedReportFeatures(analyzeSaju(birth), { serviceKey: 'saju_master', birthTimeKnown: true, ...context }) as { relationshipSignals?: { hiddenStems: Hidden } }).relationshipSignals?.hiddenStems

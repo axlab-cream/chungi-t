@@ -14,7 +14,8 @@ const oldPath = 'tone-v2/corpus/couple-signal-service.json'
 const newPath = 'tone-v2/corpus/releases/couple-signal-service-2.1.0.json'
 const oldMarker = '표현의 양은 시기와 체력에 따라 쉽게 줄어든다'
 const newMarker = '관계 신호는 사용자가 확인한 행동과 직접 들은 말로만 설명한다'
-const birth: BirthInput = { year: 1985, month: 3, day: 20, hour: 9, gender: 'male', calendar: 'solar' }
+// 이 테스트는 참고서 판본 고르기를 보며, 표식 문장은 이 표본의 검색 순위에 묶여 있다. 출생 시각 규칙(2026-10-15)이 바뀌면 시주가 바뀌어 순위가 달라지므로 예전 규칙으로 고정한다.
+const birth: BirthInput = { year: 1985, month: 3, day: 20, hour: 9, gender: 'male', calendar: 'solar', timeRule: 'legacy' }
 const context: SajuReportContext = { serviceKey: 'couple_signal', concern: '교제 중 · 연락 간격이 달라졌지만 이유는 아직 직접 확인하지 않았어요.' }
 const hashFile = (path: string) => createHash('sha256').update(readFileSync(join(root, 'data', path), 'utf8')).digest('hex')
 function oldSnapshot(): CorpusSnapshot { const current = getCorpusSnapshot(); return { ...current, registryVersion: 'tone-v2.2.0.14', fingerprint: 'old-couple-signal', activePacks: current.activePacks.map((pack) => pack.id === 'couple-signal-service' ? { ...pack, path: oldPath, version: '2.0.0', contentHash: hashFile(oldPath).slice(0, 16) } : pack) } }

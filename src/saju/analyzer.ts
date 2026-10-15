@@ -367,7 +367,7 @@ function deriveChart(fourPillars: FourPillars, hourKnown: boolean) {
 }
 
 type DerivedChart = ReturnType<typeof deriveChart>
-type ChartCalendar = Pick<ManseryeokMeta, 'resolvedBirth' | 'pillarYear' | 'monthTerm'>
+type ChartCalendar = Pick<ManseryeokMeta, 'resolvedBirth' | 'pillarYear' | 'monthTerm' | 'sajuClock'>
 
 function chartSummary(fourPillars: FourPillars, derived: DerivedChart, calendar: ChartCalendar | undefined, fortune: SajuAnalysis['fortune'], hourKnown: boolean): string {
   const { dayMaster, dayMasterElement, dayMasterStrength, elementCount, weightedElements, dominantElement, weakElement, usefulGod, usefulGodBasis, shinsal, gyeokguk, climate, flowBridges, tenGods, tenGodPlacements, hiddenStems, interactions } = derived
@@ -377,6 +377,9 @@ function chartSummary(fourPillars: FourPillars, derived: DerivedChart, calendar:
     hourKnown ? `사주: ${shownPillars}` : `사주(시주 제외 6글자): ${shownPillars}`,
     resolved
       ? `양력 기준일: ${resolved.solarYear}-${String(resolved.solarMonth).padStart(2, '0')}-${String(resolved.solarDay).padStart(2, '0')}${hourKnown ? ` ${String(resolved.hour).padStart(2, '0')}:${String(resolved.minute).padStart(2, '0')} KST` : ' (출생 시각 미상)'}${resolved.originalCalendar === 'lunar' ? ` (음력 ${resolved.lunarYear}-${resolved.lunarMonth}-${resolved.lunarDay}${resolved.isLeapMonth ? ' 윤달' : ''} 변환)` : ''}`
+      : '',
+    calendar?.sajuClock && calendar.sajuClock.correctionMinutes !== 0 && hourKnown
+      ? `사주 시각: ${String(calendar.sajuClock.hour).padStart(2, '0')}:${String(calendar.sajuClock.minute).padStart(2, '0')} (${calendar.sajuClock.correctionMinutes}분 보정 — 서머타임·표준시·동경 127.5도 기준)`
       : '',
     calendar ? `절기 기준: 년주 ${calendar.pillarYear}년 입춘 기준, 월주 ${calendar.monthTerm} 이후` : '',
     `일간(日干): ${dayMaster}(${STEM_KO[dayMaster]}·${ELEMENT_KO[dayMasterElement]}) — ${dayMasterStrength === 'strong' ? '강' : dayMasterStrength === 'weak' ? '약' : '중화'}`,
@@ -419,7 +422,7 @@ export function analyzeSaju(birth: BirthInput): SajuAnalysis {
   const derived = deriveChart(fourPillars, true)
   const { dayMaster, dayMasterElement, elementCount, dominantElement, weakElement, tenGods, usefulGod, dayMasterStrength } = derived
   const fortune = calculateFortuneCycle(birth)
-  const summary = chartSummary(fourPillars, derived, { resolvedBirth: idx.resolved, pillarYear: idx.pillarYear, monthTerm: idx.month.termName }, fortune, true)
+  const summary = chartSummary(fourPillars, derived, { resolvedBirth: idx.resolved, pillarYear: idx.pillarYear, monthTerm: idx.month.termName, sajuClock: idx.clock }, fortune, true)
 
   const base = {
     fourPillars,
@@ -439,6 +442,7 @@ export function analyzeSaju(birth: BirthInput): SajuAnalysis {
       monthTerm: idx.month.termName,
       dayBoundaryRule: idx.dayBoundaryRule,
       dayCalculationDate: idx.dayCalculationDate,
+      sajuClock: idx.clock,
       hiddenStems: derived.hiddenStems,
       tenGodPlacements: derived.tenGodPlacements,
       interactions: derived.interactions,
@@ -460,9 +464,12 @@ export function analyzeSaju(birth: BirthInput): SajuAnalysis {
         '통관은 강하게 부딪히는 오행 쌍 사이의 상생 중재 오행을 후보로 산출합니다.',
         '합충형파해는 천간합·천간충·육합·충·형(두 글자·자형·삼형)·파·해·반합(왕지 포함)·삼합·방합을 보고, 대운·세운 글자와 원국 사이도 같은 표로 계산합니다.',
         '대운 시작 나이는 출생 시각과 인접 절기 간격을 3일=1년으로 환산한 근사값입니다.',
+        idx.resolved.timeRule === 'legacy'
+          ? '예전 규칙으로 계산한 저장 리포트입니다: 한국 출생은 늘 UTC+9, 시주는 정시 경계로 봅니다.'
+          : '한국 출생은 옛 서머타임·표준시를 반영한 실제 시각을 동경 127.5도 기준(UTC+8:30)으로 읽어 일주·시주를 정합니다(자시 23:30~01:29).',
         idx.dayBoundaryRule === 'zi_hour_next_day'
-          ? '23시 자시는 다음 날 일주로 계산하는 옵션을 적용했습니다.'
-          : '23시 자시는 날짜 기준 일주를 기본값으로 사용합니다. 필요하면 zi_hour_next_day 옵션으로 바꿀 수 있습니다.',
+          ? '자시(사주 시각 23시, 시계로 보통 23:30)부터 다음 날 일주로 계산합니다.'
+          : '23시 자시는 날짜 기준 일주를 사용합니다.',
       ],
     },
     fortune,
@@ -496,6 +503,8 @@ export function sixCharAnalysis(analysis: SajuAnalysis): SajuAnalysis {
         flowBridges: derived.flowBridges,
         usefulGodBasis: derived.usefulGodBasis,
         shinsal: derived.shinsal,
+        // 사주 시각은 임시 시각(12시)에서 나온 값이라 6글자에서는 쓰지 않는다.
+        sajuClock: undefined,
         hourPillarExcluded: true,
         calculationNotes: [...analysis.manseryeok.calculationNotes, SIX_CHAR_NOTE],
       }
