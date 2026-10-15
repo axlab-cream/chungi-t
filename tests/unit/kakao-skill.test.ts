@@ -2,7 +2,13 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseKakaoBirth, describeBirth } from '../../src/kakao/birth-parse.js'
 import { memoryKakaoChatStore } from '../../src/kakao/chat-store.js'
-import { KAKAO_FREE_DAILY, KAKAO_UPSELL, kakaoSkillHandler, kstDay, type KakaoReply, type SkillResponse } from '../../src/kakao/skill.js'
+import { KAKAO_FREE_DAILY, KAKAO_UPSELL, kakaoSkillHandler, kstDay, siteBirthInput, type KakaoReply, type SkillResponse, type UiAnalysisBuilder } from '../../src/kakao/skill.js'
+import { analyzeSaju } from '../../src/saju/analyzer.js'
+import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
+import { createSavedPreview } from '../../src/report/report-preview.js'
+import { markBirthTimeReading } from '../../src/saju/unknown-time-reading.js'
+import { buildTodayFortune } from '../../src/saju/today-fortune.js'
+import type { SajuReportContext } from '../../src/types/index.js'
 
 const NOW = new Date('2026-10-14T03:00:00Z') // KST 12:00
 
@@ -27,8 +33,19 @@ function payload(utterance: string, extra: Record<string, unknown> = {}) {
 function setup(reply: KakaoReply = async () => '나는 천명이야, 운명상회 상주.') {
   const store = memoryKakaoChatStore()
   const calls: Array<{ system: string; text: string }> = []
+  const uiCalls: Array<Parameters<UiAnalysisBuilder>> = []
+  const uiAnalysis: UiAnalysisBuilder = (...args) => {
+    uiCalls.push(args)
+    const [analysis, , , context] = args
+    const p = analysis.fourPillars
+    return {
+      pillars: { year: { hanja: `${p.year.stem}${p.year.branch}`, ko: 'YEAR' }, month: { hanja: 'M', ko: 'MONTH' }, day: { hanja: 'D', ko: 'DAY' }, ...(context.birthTimeKnown === false ? {} : { hour: { hanja: 'H', ko: 'HOUR' } }) },
+      dayMaster: { hanja: analysis.dayMaster, ko: 'DM', element: 'EL', strength: 'strong' },
+      elements: analysis.elementCount, dominantElement: 'DOM', weakElement: 'WEAK',
+    }
+  }
   const handler = kakaoSkillHandler({
-    store, now: () => NOW, secret: () => 'test-secret', syncBudgetMs: 200,
+    store, now: () => NOW, secret: () => 'test-secret', syncBudgetMs: 200, uiAnalysis,
     reply: async (system, history, text) => { calls.push({ system, text }); return reply(system, history, text) },
     waitUntil: () => undefined,
   })
@@ -37,7 +54,7 @@ function setup(reply: KakaoReply = async () => '나는 천명이야, 운명상�
     await handler(fakeReq(payload(utterance, extra), secret) as never, res as never)
     return res
   }
-  return { store, calls, send }
+  return { store, calls, send, uiCalls }
 }
 
 function texts(body: unknown): string {
@@ -84,6 +101,8 @@ describe('kakao skill server', () => {
     assert.match(texts(res.body), /나는 천명이야/)
     assert.match(calls[0].system, /천명/)
     assert.match(calls[0].system, /반말/)
+    assert.match(calls[0].system, /서늘하고 담담하게/)
+    assert.match(calls[0].system, /골목 끝 가게, 운명상회를 지키는 사람이야/)
     const saved = [...store.rows.values()].find(row => row.history.length)
     assert.equal(saved?.history.length, 2)
     assert.equal(saved?.historyDay, kstDay(NOW))
@@ -97,7 +116,8 @@ describe('kakao skill server', () => {
     }
     const over = await send('하나만 더')
     assert.equal(calls.length, KAKAO_FREE_DAILY)
-    assert.match(texts(over.body), /10번을 다 썼어/)
+    assert.match(texts(over.body), /이야기는 여기까지야/)
+    assert.doesNotMatch(texts(over.body), /무료|10번/)
     assert.ok(texts(over.body).includes(KAKAO_UPSELL))
     assert.match(texts(over.body), /umsh\.kr\/\?utm_source=kakao/)
   })
@@ -156,5 +176,68 @@ describe('kakao skill server', () => {
     assert.equal(posted.length, 1)
     assert.equal(posted[0].url, 'https://bot-api.kakao.com/callback/abc')
     assert.match(texts(posted[0].body), /천천히 답했어/)
+  })
+})
+
+describe('kakao free saju (same as umsh.kr free screens)', () => {
+  it('천명사주: shows the site projection and the site free teaser text, without AI or quota', async () => {
+    const { send, calls, uiCalls, store } = setup()
+    const start = await send('천명사주', { block: { name: '천명사주' } })
+    assert.match(texts(start.body), /명부부터 펼쳐 보자/)
+    const done = await send('1995년 3월 2일 양력 여자 오후 3시')
+    assert.equal(calls.length, 0, 'no model call')
+    assert.equal(uiCalls.length, 1)
+    const parsed = parseKakaoBirth('1995년 3월 2일 양력 여자 오후 3시', NOW)
+    assert.ok(parsed.ok)
+    if (!parsed.ok) return
+    const input = siteBirthInput(parsed.birth)
+    const [analysis, birth, report, context] = uiCalls[0]
+    assert.deepEqual(birth, input)
+    assert.deepEqual(analysis, analyzeSaju(input))
+    assert.deepEqual(report.sections, [])
+    assert.equal(context.birthTimeKnown, true)
+    // 무료 풀이 문장은 사이트 미리보기와 같은 템플릿에서 나온다.
+    const siteContext = markBirthTimeReading({ birthTimeKnown: true } as SajuReportContext)
+    const sitePreview = createSavedPreview(buildTemplateSajuReport(analyzeSaju(input), input, siteContext), siteContext)
+    const out = texts(done.body)
+    assert.ok(out.includes(JSON.stringify(sitePreview.headline).slice(1, -1).slice(0, 20)))
+    assert.match(out, /YEAR\(.+\) · 월 MONTH/)
+    assert.match(out, /일간 DM/)
+    assert.match(out, /신강/)
+    assert.ok(out.includes(KAKAO_UPSELL))
+    assert.match(out, /umsh\.kr\/cmdg\//)
+    assert.equal([...store.rows.values()].every(row => row.used === 0), true, 'quota untouched')
+  })
+
+  it('천명사주: unknown birth time is passed through so the site masking applies', async () => {
+    const { send, uiCalls } = setup()
+    await send('천명사주')
+    const done = await send('1990년 7월 15일 남자 모름')
+    assert.equal(uiCalls[0][3].birthTimeKnown, false)
+    assert.match(texts(done.body), /사주 여섯 글자/)
+    assert.doesNotMatch(texts(done.body), /HOUR/)
+  })
+
+  it('오늘의 운: same buildTodayFortune result as the site, without AI or quota', async () => {
+    const { send, calls } = setup()
+    const start = await send('오늘의 운', { block: { name: '오늘의운' } })
+    assert.match(texts(start.body), /어떤 기운이 흘러드는지/)
+    const done = await send('950302 여 15:00')
+    assert.equal(calls.length, 0)
+    const parsed = parseKakaoBirth('950302 여 15:00', NOW)
+    assert.ok(parsed.ok)
+    if (!parsed.ok) return
+    const expected = buildTodayFortune({ userId: 'kakao', name: '손님', birth: siteBirthInput(parsed.birth), birthTimeKnown: true, context: {}, createdAt: NOW.toISOString(), updatedAt: NOW.toISOString() } as Parameters<typeof buildTodayFortune>[0], NOW)
+    const out = texts(done.body)
+    assert.ok(out.includes(JSON.stringify(expected.reading.title).slice(1, -1)))
+    assert.ok(out.includes(`일 ${expected.reading.score.work} · 돈 ${expected.reading.score.money}`))
+    assert.match(out, /today\/free/)
+  })
+
+  it('cancelling a 천명사주 input uses the right wording', async () => {
+    const { send } = setup()
+    await send('천명사주')
+    const cancel = await send('그만')
+    assert.match(texts(cancel.body), /명부는 여기까지/)
   })
 })
