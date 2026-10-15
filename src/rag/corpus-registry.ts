@@ -68,6 +68,25 @@ export function getCorpusDomainBoost(domain: string | undefined, snapshot?: Corp
   return pack?.retrievalBoost ?? 0
 }
 
+/**
+ * 서비스 전용 팩의 우선 점수는 "자기 서비스 화면에서 전용 팩이 범용 팩에 밀리지 않게" 붙인 것이다
+ * (2026-09-04). 그런데 점수가 현재 서비스를 보지 않아 다른 서비스에서도 그대로 붙었고, 천명사주의
+ * 성격 장에 이직운 팩이 올라왔다. 이제 다른 서비스 팩은 우선 점수 없이 관련도로만 겨룬다.
+ * 2026-10-14 측정: 19개 서비스 전부 다른 서비스 자료 56 → 9칸, 자기 팩은 그대로.
+ */
+export function getCorpusDomainBoostForService(
+  domain: string | undefined,
+  serviceKey: string | undefined,
+  snapshot?: CorpusSnapshot,
+): number {
+  if (!domain) return 0
+  const pack = getActiveCorpusPacks(undefined, snapshot).find((item) => item.domain === domain)
+  if (!pack) return 0
+  // 서비스를 모르는 호출(문맥 없는 검색)에서도 어느 서비스의 '자기' 팩도 아니므로 우선 점수를 주지 않는다.
+  if (pack.serviceKey && pack.serviceKey !== serviceKey) return 0
+  return pack.retrievalBoost ?? 0
+}
+
 export function getServiceCorpusDomain(serviceKey: string | undefined, snapshot?: CorpusSnapshot): string | undefined {
   if (!serviceKey) return undefined
   const matches = getActiveCorpusPacks('chunks', snapshot).filter((pack) => pack.serviceKey === serviceKey)

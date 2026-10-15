@@ -43,7 +43,7 @@ const { default: app } = await import('../../src/server/app.js')
 let server: Server
 
 const OWNER = 'sweep-owner'
-const PAUSED_CUSTOMER_KEYS = new Set(['home_pungsu', 'lucky_color', 'pass_angle', 'newyear_flow', 'wedding_day'])
+const PAUSED_CUSTOMER_KEYS = new Set(['home_pungsu', 'lucky_color', 'pass_angle', 'newyear_flow', 'wedding_day', 'cat_compatibility'])
 const profile: UserBirthProfile = {
   userId: OWNER,
   name: '합성점검',

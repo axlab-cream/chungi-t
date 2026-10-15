@@ -37,6 +37,24 @@ export function calculateSamjaeCycle(birthBranch: EarthlyBranch, pillarYear: num
 }
 
 /** O(n) — 절기 기반 대운 흐름 */
+/** 세운 목록 길이. 참고 PDF처럼 3년·10년 계획과 "역전의 해"를 근거 있게 쓰려면 10년이 필요하다. */
+const YEARLY_FLOW_YEARS = 10
+
+/**
+ * 해마다의 세운. 입춘 경계에 걸리지 않도록 그해 7월 1일 기준으로 연주를 구한다(올해 세운 계산과 같은 함수).
+ * 나이는 대운 표와 같은 셈(연도 − 출생 양력 연도)이다.
+ */
+export function yearlyFortuneFlow(birth: BirthInput, fromYear: number, count: number, birthSolarYear: number): NonNullable<FortuneCycle['yearlyFlow']> {
+  const flow: NonNullable<FortuneCycle['yearlyFlow']> = []
+  for (let i = 0; i < count; i++) {
+    const year = fromYear + i
+    const idx = calculateStemBranchIndices({ year, month: 7, day: 1, hour: 12, gender: birth.gender, calendar: 'solar' })
+    const pillar = buildPillar(idx.year.stemIdx, idx.year.branchIdx)
+    flow.push({ year, pillar: `${pillar.stem}${pillar.branch}`, age: year - birthSolarYear })
+  }
+  return flow
+}
+
 export function calculateFortuneCycle(birth: BirthInput): FortuneCycle {
   const indices = calculateStemBranchIndices(birth)
   const resolved = resolveBirthDate(birth)
@@ -84,6 +102,7 @@ export function calculateFortuneCycle(birth: BirthInput): FortuneCycle {
     yearPillar: `${yearPillar.stem}${yearPillar.branch}`,
     daewoon,
     currentDaewoon,
+    yearlyFlow: yearlyFortuneFlow(birth, currentYear, YEARLY_FLOW_YEARS, resolved.solarYear),
     samjae: calculateSamjaeCycle(buildPillar(indices.year.stemIdx, indices.year.branchIdx).branch, currentIndices.pillarYear),
     direction,
     startAge,

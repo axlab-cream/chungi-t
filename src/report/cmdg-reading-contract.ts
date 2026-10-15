@@ -17,6 +17,7 @@ export const CMDG_READING_CONTRACT = [
   '다른 장의 직함·권한·기준 문장을 반복해 분량을 채우지 마세요. 선택·결·자리·기준·흐름 대신 행동과 관계를 구체적으로 쓰세요.',
   '중학생이 처음 읽어도 이해하게 쓰세요. 전문 이름을 나열하지 말고 그 뜻과 생활 장면부터 말하세요. 명궁은 내 성격, 천이는 낯선 곳에서의 행동, 재백은 돈을 벌고 쓰는 습관, 관록은 일하는 모습, 부처궁은 연애·결혼 생활입니다. 별 이름·명반·사화·용신·일간·십신은 필요할 때만 쉬운 설명 뒤 괄호로 한 번 쓰세요. 한 문장에 새 전문 용어는 하나 이하, 설명 없는 궁 이름과 간지 나열은 금지합니다. 용어를 정의하는 문장으로 분량을 채우지 말고 개인 질문에 직접 답하세요.',
   '상대의 실제 외모·속마음·미래 사건은 사주로 확정하지 마세요. 한자는 생활말로 풀어 쓰세요.',
+  '연애 상대의 성별은 입력된 관계 기준에 적힌 "연애 상대 남자/여자"를 따르세요. "성별 무관"이거나 입력이 없으면 상대를 성별 없이 그 사람·상대로 쓰고, 본인 성별로 상대 성별을 짐작하지 마세요.',
 ].join('\n')
 
 export const CMDG_RELATIONSHIP_SECTIONS = new Set(['love-loop', 'destiny-partner', 'avoid-relationship', 'love-timing'])
@@ -53,6 +54,34 @@ export function cmdgSectionContext(context: SajuReportContext, sectionId: string
     orientation: context.orientation, partner: context.partner,
     concern: /연애|애인|연인|결혼|이별|재회|짝사랑|인연|썸/.test(context.concern || '') ? context.concern : undefined,
   }
+}
+
+const CAREER_CONCERN = /이직|퇴사|직장|회사|업무|취업|진로|사업|커리어|승진|일자리|알바|프리랜서/
+const MONEY_CONCERN = /돈|재물|저축|투자|빚|대출|수입|지출|월급|연봉|부동산|소비/
+const LOVE_CONCERN = /연애|애인|연인|결혼|이별|재회|짝사랑|인연|썸/
+// true: 고민을 항상 쓴다 / 정규식: 고민이 그 주제일 때만 쓴다 / 없음: 쓰지 않는다
+const CMDG_CONCERN_SEARCH: Record<string, true | RegExp> = {
+  'concern-loop': true,
+  'action-guide': true,
+  'career-money': CAREER_CONCERN,
+  'career-transition': CAREER_CONCERN,
+  'wealth-flow': MONEY_CONCERN,
+  'love-loop': LOVE_CONCERN,
+  'destiny-partner': LOVE_CONCERN,
+  'avoid-relationship': LOVE_CONCERN,
+  'love-timing': LOVE_CONCERN,
+}
+
+/**
+ * 참고서(RAG) 검색에 쓸 문맥. 고민 문장은 관련 장에서만 검색어에 넣는다.
+ * 9월 30일 "이직 결론을 연애·성격 장에 강제하지 않는다"를 연애 장 문맥에만 적용해, 성격 장 검색에는
+ * 여전히 "이직"이 들어가 이직 자료가 올라왔다. 본문 작성 문맥(AI에게 보이는 고민)은 바꾸지 않는다.
+ */
+export function cmdgRagContext(context: SajuReportContext, sectionId: string): SajuReportContext {
+  if (context.serviceKey !== 'saju_master' || !context.concern) return context
+  const rule = CMDG_CONCERN_SEARCH[sectionId]
+  const keep = rule === true || (rule instanceof RegExp && rule.test(context.concern))
+  return keep ? context : { ...context, concern: undefined }
 }
 
 export function reviewCmdgStoryStructure(text: string): string[] {

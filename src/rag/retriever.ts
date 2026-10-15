@@ -3,8 +3,9 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { CorpusSnapshot, RagChunk, RagKnowledgeBlock, SajuAnalysis, SajuReportContext } from '../types/index.js'
-import { getChunkCorpusFiles, getCorpusDomainBoost, getCorpusSnapshot, getServiceCorpusDomain } from './corpus-registry.js'
+import { getActiveCorpusPacks, getChunkCorpusFiles, getCorpusDomainBoostForService, getCorpusSnapshot, getServiceCorpusDomain } from './corpus-registry.js'
 import { normalizeServiceKey } from '../prompt/service-system.js'
+import { isCustomerPausedProduct } from '../server/service-directory.js'
 import { retrieveVectorRagChunks } from './embedder.js'
 import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk } from './knowledge-block.js'
 
@@ -394,6 +395,7 @@ function scoreChunk(
   vectorBoost: number,
   pinnedContextIds: Set<string>,
   corpusSnapshot?: CorpusSnapshot,
+  serviceKey?: string,
 ): number {
   const topic = normalizeText(chunk.topic)
   const content = normalizeText(chunkSearchText(chunk))
@@ -451,7 +453,7 @@ function scoreChunk(
     }
   }
 
-  score += getCorpusDomainBoost(chunk.domain, corpusSnapshot)
+  score += getCorpusDomainBoostForService(chunk.domain, serviceKey, corpusSnapshot)
   if (pinnedContextIds.has(chunk.id)) score += 40
 
   const binarySignals = [
@@ -518,9 +520,21 @@ function contextText(context?: SajuReportContext): string {
   ].filter(Boolean).join(' ')
 }
 
+/**
+ * 천명사주는 입력 안내 조각(본인·관계·일·고민 안내)을 7칸에 고정하지 않고 후보에서도 뺀다.
+ * 이 조각들은 옛 형식이라 AI 에게 제목만 가고(2026-08-31 결정), 손님의 답 자체는 userFacts 로 따로 간다.
+ * 고정하면 관계·일 입력을 받은 뒤 7칸 중 6칸이 제목뿐인 안내로 차서 사주 해석이 1칸만 남았다(2026-10-14 측정).
+ * 안내 내용은 참고서를 새 형식으로 다시 쓸 때 필요한 장에서만 뽑히게 되살린다.
+ */
+const INPUT_GUIDE_DOMAIN = 'input_context_interpretation'
+function skipsInputGuides(context?: SajuReportContext): boolean {
+  return Boolean(context?.serviceKey) && normalizeServiceKey(context!.serviceKey!) === 'saju_master'
+}
+
 function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
   const ids = new Set<string>()
   if (!context) return ids
+  if (skipsInputGuides(context)) return ids
 
   const target = context?.target ?? ''
   const orientation = context?.orientation ?? ''
@@ -636,8 +650,9 @@ export function retrieveRagChunks(
   const gbrTokens = unknownTime ? [] : graphBoostTokens(queryTokens, saju, context)
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
   const pinnedIds = pinnedContextChunkIds(context)
-  const serviceDomain = context?.serviceKey
-    ? getServiceCorpusDomain(normalizeServiceKey(context.serviceKey), corpusSnapshot)
+  const currentServiceKey = context?.serviceKey ? normalizeServiceKey(context.serviceKey) : undefined
+  const serviceDomain = currentServiceKey
+    ? getServiceCorpusDomain(currentServiceKey, corpusSnapshot)
     : undefined
 
   // The vector index represents the currently active registry. Keep its boost
@@ -650,10 +665,17 @@ export function retrieveRagChunks(
     ) : []
   const vectorRank = new Map(vectorResults.map((chunk, index) => [chunk.id, Math.max(0, 8 - index)]))
 
-  const scored = corpus
+  // 천명사주는 판매 중지된 서비스의 전용 팩도 후보에서 뺀다(그 상품 규칙으로 쓴 자료라 고객이 볼 수 없는 상품을 근거로 삼게 된다).
+  const pausedDomains = skipsInputGuides(context)
+    ? new Set(getActiveCorpusPacks(undefined, corpusSnapshot).filter((pack) => pack.serviceKey && isCustomerPausedProduct(pack.serviceKey)).map((pack) => pack.domain))
+    : new Set<string>()
+  const candidates = skipsInputGuides(context)
+    ? corpus.filter((chunk) => chunk.domain !== INPUT_GUIDE_DOMAIN && !pausedDomains.has(chunk.domain ?? ''))
+    : corpus
+  const scored = candidates
     .map((chunk) => ({
       chunk,
-      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds, corpusSnapshot),
+      score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds, corpusSnapshot, currentServiceKey),
     }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || a.chunk.id.localeCompare(b.chunk.id))
@@ -665,8 +687,8 @@ export function retrieveRagChunks(
   const serviceChunks = serviceDomain
     ? corpus
       .filter((chunk) => chunk.domain === serviceDomain)
-      .sort((a, b) => scoreChunk(b, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(b.id) ?? 0, pinnedIds, corpusSnapshot)
-        - scoreChunk(a, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(a.id) ?? 0, pinnedIds, corpusSnapshot))
+      .sort((a, b) => scoreChunk(b, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(b.id) ?? 0, pinnedIds, corpusSnapshot, currentServiceKey)
+        - scoreChunk(a, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(a.id) ?? 0, pinnedIds, corpusSnapshot, currentServiceKey))
       .slice(0, Math.min(2, topK))
     : []
 

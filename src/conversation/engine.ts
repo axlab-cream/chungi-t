@@ -14,9 +14,10 @@ export function prepareConversation(input: ConversationInput): ConversationResul
   const topK = runtimeConfig.conversation?.ragTopK ?? 5
   const maxHistory = runtimeConfig.conversation?.maxHistoryTurns ?? 10
 
-  const retrievedChunks = retrieveRagChunks(input.message, sajuAnalysis, topK)
-  const history = (input.history ?? []).slice(-maxHistory)
   const serviceKey = input.serviceKey
+  // 서비스를 알면 넘긴다. 그래야 그 서비스 팩만 우선 점수를 받는다(다른 서비스 팩은 관련도로만 겨룬다).
+  const retrievedChunks = retrieveRagChunks(input.message, sajuAnalysis, topK, serviceKey ? { serviceKey } : undefined)
+  const history = (input.history ?? []).slice(-maxHistory)
 
   const messages = buildConversationMessages({
     systemPrompt: loadSystemPrompt(serviceKey),

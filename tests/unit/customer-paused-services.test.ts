@@ -10,6 +10,7 @@ const PAUSED_PATHS = [
   '/me/pass-angle/01-step-1-story/index.html',
   '/flow/newyear/01-step-1-story/index.html',
   '/day/wedding/01-step-1-story/index.html',
+  '/match/cat/01-step-1-story/index.html',
 ]
 
 let server: Server
@@ -58,7 +59,7 @@ test('보류 서비스 직접 경로는 홈으로 돌려보낸다', async () => 
 test('포털 화면에는 보류 서비스 링크가 보이지 않는다', async () => {
   const portal = await (await fetch(`${origin}/`)).text()
   const visible = portal.replace(/<!--\s*[\s\S]*?-->/g, '')
-  for (const href of ['/place/home', '/me/lucky', '/me/pass-angle', '/flow/newyear', '/day/wedding']) {
+  for (const href of ['/place/home', '/me/lucky', '/me/pass-angle', '/flow/newyear', '/day/wedding', '/match/cat']) {
     assert.ok(!visible.includes(`href="${href}"`), `포털에 ${href} 가 남아 있습니다`)
   }
   assert.ok(!visible.includes('data-filter="풍수"'))

@@ -686,6 +686,7 @@ app.use('/me/lucky', holdPausedCustomerPages)
 app.use('/me/pass-angle', holdPausedCustomerPages)
 app.use('/flow/newyear', holdPausedCustomerPages)
 app.use('/day/wedding', holdPausedCustomerPages)
+app.use('/match/cat', holdPausedCustomerPages)
 // 집 풍수 공개 재개 시 위 게이트만 열면 아래 01~06 경로를 그대로 다시 쓸 수 있다.
 app.get(['/place/home', '/place/home/', '/place/home/index.html'], (_req, res) => {
   res.redirect(302, '/place/home/01-step-1-story/index.html')
