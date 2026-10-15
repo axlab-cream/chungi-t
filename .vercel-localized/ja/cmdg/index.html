@@ -2275,57 +2275,6 @@
         height: auto;
       }
 
-      .brand-proof {
-        position: relative;
-        background: #121212;
-      }
-
-      .brand-proof .solo-logo {
-        display: grid;
-        place-items: center;
-        gap: 4px;
-        padding: 36px 0;
-        color: #ff1f66;
-        font-weight: 800;
-      }
-
-      .brand-proof .solo-logo img {
-        width: 237px;
-        height: auto;
-      }
-
-      .brand-proof .proof-bg {
-        display: block;
-        width: 100%;
-        height: auto;
-      }
-
-      .brand-stats {
-        display: grid;
-        gap: 24px;
-        padding: 28px 24px 60px;
-        background: #121212;
-      }
-
-      .brand-stats div {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .brand-stats span {
-        color: #c9a227;
-        font-size: 14px;
-        font-weight: 800;
-      }
-
-      .brand-stats strong {
-        color: #e4e4e7;
-        font-size: 42px;
-        line-height: 1;
-      }
-
       .story-visual {
         --panel-image: url("assets/cut-01-intro.webp");
         position: relative;
@@ -4320,8 +4269,6 @@
         speechBubbleTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_2.svg",
         speechBubbleThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_3.svg",
         wealthChart: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/wealth_chart.png",
-        soloLogo: "https://cdn.sajutight.me/common/solorun_x_tight.png",
-        brandPrize: "https://cdn.sajutight.me/products-media/hyundai/brand_prize_v2.png",
       };
 
       function readReportHistory() {
@@ -5391,7 +5338,6 @@
         priceCharacter = sampleAssets.priceCharacter,
         priceCharacterCopy = `\x3cp>軽く流してよい流れと\x3cbr />大切にしたい流れを分ける\x3c/p>`,
         showFinalSajuSection = true,
-        showBrandProof = true,
         handReach = sampleAssets.handReach,
         handReachCopy = `\x3ch2>数多くの\x3cspan class="red">古書\x3c/span>と解釈で\x3cbr />読み解いた話だ\x3c/h2>`
       ) {
@@ -5555,19 +5501,6 @@
             ${sourceImg("finalSajuBg", "source-img", "最後の四柱背景")}
             \x3cdiv class="source-fade">\x3c/div>
             \x3cdiv class="source-copy mid">\x3ch2>これまで\x3cbr />数多くの鑑定をしてきました\x3c/h2>\x3c/div>
-          \x3c/section>` : ""}
-
-          ${showBrandProof ? `\x3csection class="brand-proof" data-sample-section="brand-proof">
-            \x3cdiv class="solo-logo">
-              \x3cspan>「私はSOLO」の出演者とともに\x3c/span>
-              ${sourceImg("soloLogo", "", "ソロラン X TIGHT")}
-            \x3c/div>
-            ${sourceImg("brandPrize", "proof-bg", "ブランドの信頼指標")}
-            \x3cdiv class="brand-stats">
-              \x3cdiv>\x3cspan>累計顧客\x3c/span>\x3cstrong>2,001,882\x3c/strong>\x3c/div>
-              \x3cdiv>\x3cspan>カカオチャンネルの友だち\x3c/span>\x3cstrong>58,182\x3c/strong>\x3c/div>
-              \x3cdiv>\x3cspan>感謝のレビュー\x3c/span>\x3cstrong>35,760\x3c/strong>\x3c/div>
-            \x3c/div>
           \x3c/section>` : ""}
         `;
       }
@@ -6035,7 +5968,6 @@
               '\x3ch2>さあ、そなたの\x3cspan class="red">命式\x3c/span>の中に\x3cbr />隠れた\x3cspan class="red">真実\x3c/span>が広がるのだ。\x3c/h2>',
               landingSourceAssets.priceCharacter,
               "",
-              false,
               false,
               landingSourceAssets.handReach,
               '\x3ch2>数々の\x3cspan class="red">古書\x3c/span>と名士たちの\x3cbr />解釈で解く\x3cbr />君だけの\x3cspan class="red">詳しい分析\x3c/span>\x3c/h2>'
