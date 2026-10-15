@@ -2714,12 +2714,47 @@
         return rawFetch(path, Object.assign({}, options, { headers: Object.assign({ 'Content-Type': 'application/json' }, headerCache || {}) }));
       }, function(text){return richText(cmdgDirectVoice(cmdgPlainText(text)));}, function () { return epoch === ownerEpoch; }, cmdgDirectVoice);
     }
+    mountCmdgReviewWriter(payload, epoch);
     if (global.UMSHCmdgReaderTools) { mount(); return; }
     var script = document.getElementById('cmdg-reader-tools-script');
     if (script) { script.addEventListener('load', mount, { once: true }); return; }
     script = document.createElement('script');
     script.id = 'cmdg-reader-tools-script';
     script.src = '/js/umsh-cmdg-reader-tools.js?v=20261012-full-tone';
+    script.addEventListener('load', mount, { once: true });
+    document.head.appendChild(script);
+  }
+  /**
+   * 다녀간 손님들의 말(2026-10-15): 결제한 천명사주를 끝까지 만든 뒤 맨 아래에 한 줄 후기 칸을 붙인다.
+   * 장이 아직 만들어지는 중이면 붙이지 않는다(새로고침마다 다시 그려져 적던 글이 사라진다).
+   */
+  function mountCmdgReviewWriter(payload, epoch) {
+    var report = payload && payload.report;
+    var sections = report && Array.isArray(report.sections) ? report.sections : [];
+    if (!sections.length || sections.some(function (s) { return s.status !== 'complete'; })) return;
+    var id = identity(payload);
+    if (!id || document.querySelector('[data-umsh-review-writer], [data-umsh-review-slot]')) return;
+    function mount() {
+      if (epoch !== ownerEpoch || !global.UMSHReviews) return;
+      var host = document.querySelector('[data-umsh-slot="sections"]') || document.getElementById('umsh-verified-reading');
+      if (!host || document.querySelector('[data-umsh-review-slot]')) return;
+      var slot = document.createElement('div');
+      slot.setAttribute('data-umsh-review-slot', 'cmdg');
+      host.insertAdjacentElement('afterend', slot);
+      global.UMSHReviews.mountWriter(slot, {
+        product: 'cmdg',
+        reportId: id,
+        fetch: function (path, options) {
+          return rawFetch(path, Object.assign({}, options, { headers: Object.assign({}, (options && options.headers) || {}, headerCache || {}) }));
+        },
+      });
+    }
+    if (global.UMSHReviews) { mount(); return; }
+    var script = document.getElementById('umsh-reviews-script');
+    if (script) { script.addEventListener('load', mount, { once: true }); return; }
+    script = document.createElement('script');
+    script.id = 'umsh-reviews-script';
+    script.src = '/js/umsh-reviews.js?v=20261015a';
     script.addEventListener('load', mount, { once: true });
     document.head.appendChild(script);
   }
