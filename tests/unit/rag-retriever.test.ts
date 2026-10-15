@@ -176,7 +176,9 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
 
     it('대상 선택 본인 context → 본인 사주 청크 우선 검색', () => {
       const saju = analyzeSaju(sampleBirth)
+      // 키 없는 문맥은 천명사주(입력 안내를 고정하지 않음)라 안내를 고정하는 서비스로 확인한다.
       const chunks = retrieveRagChunks('현재 고민을 보고 싶어요', saju, 5, {
+        serviceKey: 'love_this_year',
         target: '본인',
         relationship: '솔로예요',
         orientation: '이성 관계 중심',
@@ -190,6 +192,7 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
     it('동성 관계 중심 context → 동성 관계 청크 검색', () => {
       const saju = analyzeSaju(sampleBirth)
       const chunks = retrieveRagChunks('관계운을 봐주세요', saju, 5, {
+        serviceKey: 'love_this_year',
         target: '친구',
         orientation: '동성 관계 중심',
         relationship: '마음에 둔 사람이 있어요',
