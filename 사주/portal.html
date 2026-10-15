@@ -88,10 +88,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
-    <link rel="preload" as="image" href="/assets/umsh-thisyear-card-bg.webp" />
-    <link rel="preload" as="image" href="/assets/umsh-jobchoice-card-bg.webp" />
-    <link rel="preload" as="image" href="/assets/umsh-place-card-bg.webp?v=20260902-miniature-v3" />
-    <link rel="stylesheet" href="/css/portal.css?v=20261015-gap28" />
+    <link rel="stylesheet" href="/css/portal.css?v=20261015-poster-color" />
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
@@ -113,7 +110,7 @@
       <main class="phone" aria-label="운명상회 메인">
         <header class="appbar">
           <a class="app-brand" href="/" aria-label="운명상회 홈">
-            <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
+            <img src="/assets/umsh-brand-logo-480.webp" alt="운명상회" width="480" height="180" />
           </a>
           <div class="appbar-actions">
             <a class="appbar-icon" href="/search" aria-label="검색">
@@ -164,7 +161,7 @@
                 class="poster-video"
                 src="/love/this-year/assets/thisyear/campaign-2026/year-love-home-poster-v2.webp"
                 alt=""
-                loading="lazy"
+                fetchpriority="low"
                 decoding="async"
                 aria-hidden="true"
               />
@@ -180,7 +177,7 @@
                 class="poster-video"
                 src="/assets/umsh-jobchoice-home-poster-v2.webp"
                 alt=""
-                loading="lazy"
+                fetchpriority="low"
                 decoding="async"
                 aria-hidden="true"
               />
@@ -229,7 +226,7 @@
               <span class="weekly-free-caption"><strong>금사빠·금사식 테스트</strong><span>무료로 해보기 ↗</span></span>
             </a>
                 <a data-rail-slide class="consultation-promo" href="/consultation/" aria-roledescription="슬라이드" aria-label="천명상담 · 텍스트와 음성으로 상담하기" hidden>
-                  <div class="consultation-promo-visual"><img data-consultation-image src="/assets/cheonmyeong-scenes/01-idle.png" width="1080" height="1920" alt="상담실에서 이야기를 기다리는 천명" loading="lazy" />
+                  <div class="consultation-promo-visual"><img data-consultation-image src="/assets/cheonmyeong-scenes/01-idle-720.webp" width="720" height="1280" alt="상담실에서 이야기를 기다리는 천명" loading="lazy" />
                   <div class="consultation-promo-copy"><small>나의 사주, 지금의 고민</small><strong data-consultation-title>천명상담</strong><p data-consultation-body>혼자 품었던 질문을<br />천명에게 꺼내보세요.</p></div></div><span class="weekly-free-caption"><strong>천명상담</strong><span>텍스트·음성 상담 ↗</span></span>
                 </a>
               </div>
@@ -303,7 +300,7 @@
             <a class="match-banner service-card is-live" href="/match/couple" data-category="궁합" data-glyph="緣" aria-label="대표 궁합 우리 둘, 진짜 잘 맞아? 명리궁합 · 오행 · 일지 19,900원 · 보러 가기">
               <span class="match-banner-visual has-image" aria-hidden="true">
                 <video
-                  poster="/assets/umsh-match-banner-visual.png"
+                  poster="/assets/umsh-match-banner-visual.webp"
                   src="/match/couple/assets/couple/01-hero.mp4"
                   muted
                   loop
@@ -335,7 +332,7 @@
                 data-glyph="業"
                 aria-label="WORK · 이직운 나, 회사 옮겨도 될까? 대운 · 세운 · 관성 14,900원 · 이 풀이 보기"
               >
-                <img class="product-card-img" src="/assets/umsh-signature-card-bg.png" alt="" />
+                <img class="product-card-img" src="/assets/umsh-signature-card-bg.webp" alt="" />
               </a>
 
               <a
@@ -355,7 +352,7 @@
                 data-glyph="婚"
                 aria-label="MATCH · 결혼궁합 연애말고 결혼까지 가능? 배우자궁 · 대운 · 합충 24,900원 · 이 풀이 보기"
               >
-                <img class="product-card-img" src="/assets/umsh-match-card-bg.png" alt="" />
+                <img class="product-card-img" src="/assets/umsh-match-card-bg.webp" alt="" />
               </a>
 
               <a
@@ -365,7 +362,7 @@
                 data-glyph="秘"
                 aria-label="SECRET · 연애 내 애인 바람 필까? 도화 · 배우자성 · 합충 19,900원 · 이 풀이 보기"
               >
-                <img class="product-card-img" src="/assets/umsh-affair-card-bg.png" alt="" />
+                <img class="product-card-img" src="/assets/umsh-affair-card-bg.webp" alt="" />
               </a>
 
             </div>
