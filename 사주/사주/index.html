@@ -2878,57 +2878,6 @@
         height: auto;
       }
 
-      .brand-proof {
-        position: relative;
-        background: #121212;
-      }
-
-      .brand-proof .solo-logo {
-        display: grid;
-        place-items: center;
-        gap: 4px;
-        padding: 36px 0;
-        color: #ff1f66;
-        font-weight: 800;
-      }
-
-      .brand-proof .solo-logo img {
-        width: 237px;
-        height: auto;
-      }
-
-      .brand-proof .proof-bg {
-        display: block;
-        width: 100%;
-        height: auto;
-      }
-
-      .brand-stats {
-        display: grid;
-        gap: 24px;
-        padding: 28px 24px 60px;
-        background: #121212;
-      }
-
-      .brand-stats div {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .brand-stats span {
-        color: #c9a227;
-        font-size: 14px;
-        font-weight: 800;
-      }
-
-      .brand-stats strong {
-        color: #e4e4e7;
-        font-size: 42px;
-        line-height: 1;
-      }
-
       .story-visual {
         --panel-image: url("assets/cut-01-intro.webp");
         position: relative;
@@ -5505,8 +5454,6 @@
         speechBubbleTwo: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_2.svg",
         speechBubbleThree: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/speech_bubble_3.svg",
         wealthChart: "https://cdn.sajutight.me/products-media/products/mzmudang/teaser/wealth_chart.png",
-        soloLogo: "https://cdn.sajutight.me/common/solorun_x_tight.png",
-        brandPrize: "https://cdn.sajutight.me/products-media/hyundai/brand_prize_v2.png",
       };
 
       /**
@@ -6764,7 +6711,6 @@
         priceCharacter = sampleAssets.priceCharacter,
         priceCharacterCopy = `<p>계속 품을 것과<br />이제 놓아도 될 것을 나눠봅니다</p>`,
         showFinalSajuSection = true,
-        showBrandProof = true,
         handReach = sampleAssets.handReach,
         handReachCopy = `<h2>오래된 해석에 머물지 않고<br /><span class="red">지금 당신의 생활</span>까지 함께 읽습니다</h2>`
       ) {
@@ -6928,19 +6874,6 @@
             ${sourceImg("finalSajuBg", "source-img", "마지막 사주 배경")}
             <div class="source-fade"></div>
             <div class="source-copy mid"><h2>내가 지금까지<br />풀어온 점사가 많습니다</h2></div>
-          </section>` : ""}
-
-          ${showBrandProof ? `<section class="brand-proof" data-sample-section="brand-proof">
-            <div class="solo-logo">
-              <span>나는솔로 출연진과 함께한</span>
-              ${sourceImg("soloLogo", "", "솔로런 X TIGHT")}
-            </div>
-            ${sourceImg("brandPrize", "proof-bg", "브랜드 신뢰 지표")}
-            <div class="brand-stats">
-              <div><span>누적 고객</span><strong>2,001,882</strong></div>
-              <div><span>카카오 채널 친구</span><strong>58,182</strong></div>
-              <div><span>감사 후기</span><strong>35,760</strong></div>
-            </div>
           </section>` : ""}
         `;
       }
@@ -9036,12 +8969,18 @@
           return;
         }
         const plans = [
-          { id: "single", title: "운명신당 정통사주", badge: "기본", discount: "약 54%", origin: "63,000원", price: "29,000원" },
+          { id: "single", title: "천명사주", badge: "기본", discount: "약 54%", origin: "63,000원", originAmount: 63000, price: "29,000원" },
         ];
         // Show the amount checkout will actually charge for every plan the catalog sells.
+        // 할인율은 정가와 실제 결제금액으로 다시 계산해 가격이 바뀌어도 어긋나지 않게 한다.
         plans.forEach((plan) => {
           const product = catalogProduct(PLAN_PRODUCT_KEYS[plan.id]);
-          if (product) plan.price = `${Number(product.amount).toLocaleString("ko-KR")}원`;
+          if (product) {
+            const amount = Number(product.amount);
+            plan.price = `${amount.toLocaleString("ko-KR")}원`;
+            if (product.title) plan.title = product.title;
+            if (plan.originAmount > amount) plan.discount = `약 ${Math.round((1 - amount / plan.originAmount) * 100)}%`;
+          }
         });
         const selected = plans.find((plan) => plan.id === state.plan) || plans[0];
         const live = isCheckoutLive() && Boolean(PLAN_PRODUCT_KEYS[selected.id]);
@@ -9112,7 +9051,7 @@
             <h1>결제 직전 단계입니다</h1>
             <p>원본 흐름에서는 이 다음에 외부 결제/주문 진행이 이어집니다. 이 데모는 안전하게 화면 전환까지만 구현했습니다.</p>
             <div class="result-list">
-              <div class="result-item"><strong>선택 상품</strong><span>${state.plan === "single" ? "운명신당 정통사주" : state.plan === "solo" ? "솔로탈출 패키지" : "MZ 운세 패키지"}</span></div>
+              <div class="result-item"><strong>선택 상품</strong><span>${escapeHtml(catalogProduct(PLAN_PRODUCT_KEYS[state.plan] || PLAN_PRODUCT_KEYS.single)?.title || "천명사주")}</span></div>
               <div class="result-item"><strong>필수 동의</strong><span>개인정보 처리방침, 결제 진행 필수 동의 완료</span></div>
             </div>
             <button class="next-cta" type="button" data-action="restart" style="width: 100%">처음부터 다시 보기</button>
