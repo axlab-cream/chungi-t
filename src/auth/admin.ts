@@ -1,13 +1,15 @@
-/** Super-admin emails that unlock paid reports without checkout. */
-
-const DEFAULT_ADMIN_EMAILS = ['good1621@gmail.com', 'axlabtest@gmail.com']
-
+/**
+ * Super-admin emails that unlock paid reports without checkout.
+ *
+ * 2026-10-15: 공개 저장소라 주소를 코드에 두지 않는다. 목록은 Vercel 환경변수
+ * `UMSH_ADMIN_EMAILS`(쉼표로 구분)에만 있다. 비어 있으면 아무도 무료로 열지 못한다.
+ */
 export function adminEmails(): string[] {
   const fromEnv = String(process.env.UMSH_ADMIN_EMAILS ?? '')
     .split(',')
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
-  return [...new Set([...DEFAULT_ADMIN_EMAILS.map((email) => email.toLowerCase()), ...fromEnv])]
+  return [...new Set(fromEnv)]
 }
 
 export function isAdminEmail(email?: string | null): boolean {
