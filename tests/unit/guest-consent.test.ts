@@ -278,3 +278,17 @@ test('결과 시트에서 고른 SNS 는 시트에서 받은 동의가 있을 �
   assert.match(take, /sessionStorage\.removeItem\(LOGIN_PROVIDER_KEY\)/, '한 번 쓰면 지운다')
   assert.match(take, /params\.delete\("provider"\)/)
 })
+
+// 2026-10-15 운영 QA: 비회원 첫 결과(04)는 서버 프로필 저장 전이라 "로컬 입력만 있음" 길로 온다. 그 길에서도 동의 시트를 건다.
+test('단계형 서비스 04: 로컬 입력만 있는 비회원도 동의·저장 시트를 건다', () => {
+  const gate = readFileSync(new URL('../../사주/js/umsh-funnel-auth-gate.js', import.meta.url), 'utf8')
+  assert.match(gate, /if \(hasLocalGuestProfile\(\)\) \{ if \(isGuest\) armGuestSaveSheet\(\); return reveal\(\); \}/)
+  assert.match(gate, /if \(onTeaser && isGuest\) armGuestSaveSheet\(\)/)
+})
+
+// 2026-10-15 운영 QA: 결과 시트에서 동의하고 로그인 화면이 SNS 를 이어 시작할 때, "동의한 곳"이 로그인 화면으로 덮이지 않는다.
+test('로그인 화면이 이어 시작할 때 시트 동의의 출처(guest-sheet)를 지킨다', () => {
+  const cmdg = readFileSync(new URL('../../사주/사주/index.html', import.meta.url), 'utf8')
+  const save = cmdg.slice(cmdg.indexOf('function saveLoginConsent()'), cmdg.indexOf('function takeRequestedProvider()'))
+  assert.match(save, /readPending\?\.\(\)\?\.source === "guest-sheet"\) values\.source = "guest-sheet"/)
+})

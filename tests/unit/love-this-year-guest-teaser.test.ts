@@ -141,7 +141,7 @@ describe('화면 연결', () => {
     for (const page of [inputPage, teaserPage]) {
       assert.match(page, /umsh-funnel-auth-gate\.js[^>]*data-guest-teaser="umsh:love_thisyear:session_draft"/)
     }
-    assert.match(gate, /if \(hasLocalGuestProfile\(\)\) return reveal\(\);/)
+    assert.match(gate, /if \(hasLocalGuestProfile\(\)\) \{[^}]*return reveal\(\); \}/)
   })
 
   it('02 제출: 비회원은 로그인으로 보내지 않고 04 로 간다(직접 입력이 모자라면 안내)', () => {

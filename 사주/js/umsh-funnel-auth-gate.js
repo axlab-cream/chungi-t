@@ -179,15 +179,17 @@
       // 04 무료 티저는 **결과 화면**이다. 사주 입력이 없으면 보여줄 결과가 없다.
       // 예전에는 입력 없이 들어와 "입력값 없음" 복구 패널을 보는 경로가 있었는데,
       // 그건 티저가 아니라 막다른 길이다. 입력 화면으로 되돌린다.
+      var isGuest = Boolean(global.UMSHAuthSession.isGuestSession && global.UMSHAuthSession.isGuestSession(session));
       if (onTeaser && !(await hasSajuProfile(session))) {
         // 가입 직후: 계정엔 아직 없지만 비회원으로 입력해 둔 사주가 있으면 04 가 계정에 저장한다.
-        if (hasLocalGuestProfile()) return reveal();
+        // 2026-10-15 QA: 비회원은 첫 결과가 늘 이 길로 온다(서버 저장 전). 여기서도 동의·저장 시트를 건다.
+        if (hasLocalGuestProfile()) { if (isGuest) armGuestSaveSheet(); return reveal(); }
         if (settled || alreadySent()) return reveal();
         markSent();
         global.location.replace(inputUrl());
         return;
       }
-      if (onTeaser && global.UMSHAuthSession.isGuestSession && global.UMSHAuthSession.isGuestSession(session)) armGuestSaveSheet();
+      if (onTeaser && isGuest) armGuestSaveSheet();
       return reveal();
     } catch (_error) {
       reveal();
