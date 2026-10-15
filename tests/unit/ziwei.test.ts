@@ -18,8 +18,9 @@ test('시간 미상은 명반을 만들지 않고, 날짜 경계 설정은 요�
   assert.equal(calculateZiwei(birth, false).available, false)
   assert.equal(ziweiSection(birth, false), undefined)
   const before = astro.getConfig().dayDivide
-  const midnight = calculateZiwei({ ...birth, hour: 23, dayBoundaryRule: 'midnight' })
-  const next = calculateZiwei({ ...birth, hour: 23, dayBoundaryRule: 'zi_hour_next_day' })
+  // 지금 규칙은 사주 시각(시계 -30분)으로 보므로 사주 시각 23시대가 되도록 23:40을 쓴다.
+  const midnight = calculateZiwei({ ...birth, hour: 23, minute: 40, dayBoundaryRule: 'midnight' })
+  const next = calculateZiwei({ ...birth, hour: 23, minute: 40, dayBoundaryRule: 'zi_hour_next_day' })
   assert.notDeepEqual(midnight, next)
   assert.equal(astro.getConfig().dayDivide, before)
 })

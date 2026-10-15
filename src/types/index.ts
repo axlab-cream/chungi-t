@@ -22,7 +22,7 @@ export interface BirthInput {
   calendar: CalendarType
   isLeapMonth?: boolean
   dayBoundaryRule?: DayBoundaryRule
-  /** IANA zone of the birthplace civil clock. Omitted means Asia/Seoul, so Korean readings stay unchanged. */
+  /** IANA zone of the birthplace civil clock. Omitted means Asia/Seoul. */
   birthTimeZone?: string
   birthTimeDisambiguation?: 'earlier' | 'later'
 }
@@ -47,6 +47,17 @@ export interface ResolvedBirthDate {
   lunarDay?: number
   birthTimeZone?: string
   birthTimeDisambiguation?: 'earlier' | 'later'
+}
+
+/** 일주·시주를 정하는 시각(사주 시각). 한국 출생은 실제 시각을 UTC+8:30(동경 127.5도)으로 읽은 값이다(2026-10-15 결정). */
+export interface SajuClock {
+  solarYear: number
+  solarMonth: number
+  solarDay: number
+  hour: number
+  minute: number
+  /** 입력한 시계 시각과의 차이(분). 평소 -30, 서머타임 -90, 1954~61년 0, 해외 출생 0 */
+  correctionMinutes: number
 }
 
 export interface FourPillars {
@@ -155,6 +166,8 @@ export interface ManseryeokMeta {
   flowBridges: FlowBridgeInfo[]
   /** 용신을 고른 근거: 억부(강약) / 조후(계절) / 통관(부딪히는 두 기운의 중재). */
   usefulGodBasis?: '억부' | '조후' | '통관'
+  /** 일주·시주를 정한 사주 시각(2026-10-15 규칙) */
+  sajuClock?: SajuClock
   shinsal?: ShinsalResult
   calculationNotes: string[]
   /** true면 출생 시각을 몰라 시주를 빼고 연·월·일 6글자로 계산한 값이다(sixCharAnalysis). */

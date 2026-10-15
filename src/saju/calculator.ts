@@ -2,7 +2,7 @@ import { civilUtcMs } from './civil-time.js'
 export { civilUtcMs } from './civil-time.js'
 import KoreanLunarCalendar from 'korean-lunar-calendar'
 import { Solar } from 'lunar-typescript'
-import type { BirthInput, DayBoundaryRule, EarthlyBranch, HeavenlyStem, Pillar, ResolvedBirthDate, SolarTermName } from '../types/index.js'
+import type { BirthInput, DayBoundaryRule, EarthlyBranch, HeavenlyStem, Pillar, ResolvedBirthDate, SajuClock, SolarTermName } from '../types/index.js'
 
 type KoreanLunarCalendarCtor = new () => {
   setLunarDate(lunarYear: number, lunarMonth: number, lunarDay: number, isIntercalation: boolean): boolean
@@ -40,6 +40,27 @@ function mod(n: number, m: number): number {
 
 function birthInstantMs(resolved: ResolvedBirthDate): number {
   return civilUtcMs(resolved.solarYear, resolved.solarMonth, resolved.solarDay, resolved.hour, resolved.minute, resolved.birthTimeZone, resolved.birthTimeDisambiguation)
+}
+
+/**
+ * 한국 만세력 관례의 시(時) 기준: 동경 127.5도 = UTC+8:30(2026-10-15 결정, 논문 "–30분이 가장 보편적",
+ * 국내 만세력 13곳 중 6곳 기본값). 실제 시각을 이 시각으로 읽으면 평소 30분, 서머타임 90분, 1954~61년 0분이 보정된다.
+ */
+const KOREA_SAJU_MERIDIAN_OFFSET_MINUTES = 8 * 60 + 30
+
+/** 일주·시주를 정하는 시각. 해외 출생은 입력한 시계 시각 그대로다. */
+export function sajuClock(resolved: ResolvedBirthDate): SajuClock {
+  const wall = { solarYear: resolved.solarYear, solarMonth: resolved.solarMonth, solarDay: resolved.solarDay, hour: resolved.hour, minute: resolved.minute }
+  const korean = !resolved.birthTimeZone || resolved.birthTimeZone === 'Asia/Seoul'
+  if (!korean) return { ...wall, correctionMinutes: 0 }
+  const shifted = new Date(birthInstantMs(resolved) + KOREA_SAJU_MERIDIAN_OFFSET_MINUTES * 60000)
+  const clock = {
+    solarYear: shifted.getUTCFullYear(), solarMonth: shifted.getUTCMonth() + 1, solarDay: shifted.getUTCDate(),
+    hour: shifted.getUTCHours(), minute: shifted.getUTCMinutes(),
+  }
+  const correctionMinutes = Math.round((Date.UTC(clock.solarYear, clock.solarMonth - 1, clock.solarDay, clock.hour, clock.minute)
+    - Date.UTC(wall.solarYear, wall.solarMonth - 1, wall.solarDay, wall.hour, wall.minute)) / 60000)
+  return { ...clock, correctionMinutes }
 }
 
 export function getSolarTermUtcMs(year: number, name: SolarTermName): number {
@@ -102,7 +123,7 @@ export function resolveBirthDate(birth: BirthInput): ResolvedBirthDate {
     lunarMonth: birth.month,
     lunarDay: birth.day,
     birthTimeZone: birth.birthTimeZone,
-      birthTimeDisambiguation: birth.birthTimeDisambiguation,
+    birthTimeDisambiguation: birth.birthTimeDisambiguation,
   }
 }
 
@@ -138,19 +159,24 @@ function nextSolarDate(year: number, month: number, day: number): { solarYear: n
   }
 }
 
-function resolveDayCalculationDate(resolved: ResolvedBirthDate, rule: DayBoundaryRule): {
+function resolveDayCalculationDate(clock: Pick<SajuClock, 'solarYear' | 'solarMonth' | 'solarDay' | 'hour'>, rule: DayBoundaryRule): {
   solarYear: number
   solarMonth: number
   solarDay: number
 } {
-  if (rule === 'zi_hour_next_day' && resolved.hour === 23) {
-    return nextSolarDate(resolved.solarYear, resolved.solarMonth, resolved.solarDay)
+  if (rule === 'zi_hour_next_day' && clock.hour === 23) {
+    return nextSolarDate(clock.solarYear, clock.solarMonth, clock.solarDay)
   }
   return {
-    solarYear: resolved.solarYear,
-    solarMonth: resolved.solarMonth,
-    solarDay: resolved.solarDay,
+    solarYear: clock.solarYear,
+    solarMonth: clock.solarMonth,
+    solarDay: clock.solarDay,
   }
+}
+
+/** 사주 시각 23시(시계로 보통 23:30)부터 다음 날 일주가 기본이다(2026-10-15 결정, 국내 만세력 기본값·논문 다수). */
+export function defaultDayBoundaryRule(birth: Pick<BirthInput, 'dayBoundaryRule'>): DayBoundaryRule {
+  return birth.dayBoundaryRule ?? 'zi_hour_next_day'
 }
 
 /** 五虎遁 — 년간 기준 월간 */
@@ -236,15 +262,17 @@ export function calculateStemBranchIndices(birth: BirthInput): {
   pillarYear: number
   dayBoundaryRule: DayBoundaryRule
   dayCalculationDate: { solarYear: number; solarMonth: number; solarDay: number }
+  clock: SajuClock
 } {
   const resolved = resolveBirthDate(birth)
-  const dayBoundaryRule = birth.dayBoundaryRule ?? 'midnight'
-  const dayCalculationDate = resolveDayCalculationDate(resolved, dayBoundaryRule)
+  const dayBoundaryRule = defaultDayBoundaryRule(birth)
+  const clock = sajuClock(resolved)
+  const dayCalculationDate = resolveDayCalculationDate(clock, dayBoundaryRule)
   const year = getYearIndicesByIpchun(resolved)
   const monthBoundary = getMonthBoundary(resolved)
   const monthStemIdx = getMonthStemIndex(year.stemIdx, monthBoundary.branchIdx)
   const day = getDayIndices(dayCalculationDate.solarYear, dayCalculationDate.solarMonth, dayCalculationDate.solarDay)
-  const hourBranchIdx = getHourBranchIndex(resolved.hour)
+  const hourBranchIdx = getHourBranchIndex(clock.hour)
   const hourStemIdx = getHourStemIndex(day.stemIdx, hourBranchIdx)
 
   return {
@@ -256,6 +284,7 @@ export function calculateStemBranchIndices(birth: BirthInput): {
     pillarYear: year.pillarYear,
     dayBoundaryRule,
     dayCalculationDate,
+    clock,
   }
 }
 
