@@ -66,7 +66,7 @@ import { workMoveTeaserPreview, workMoveTeaserSection } from '../work/move-tease
 import { selectAdminVaultReadings, selectPurchasedReadings } from '../report/vault-list.js'
 import type { BirthInput, ConversationTurn, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import type { ReportOwner, ReportRecord } from '../report/report-store.js'
-import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
+import { applyAdminReportUnlock, forgetAdminAccountCache, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
@@ -1665,12 +1665,12 @@ function parseUserProfileRequest(body: Record<string, unknown>, owner: ReportOwn
   })
 }
 
-function userProfilePayload(profile: UserBirthProfile | null, owner?: ReportOwner) {
+async function userProfilePayload(profile: UserBirthProfile | null, owner?: ReportOwner) {
   return {
     profile,
     complete: Boolean(profile?.name && profile.birth.year && profile.birth.month && profile.birth.day),
     storage: getUserProfileStorageMode(),
-    admin: isAdminOwner(owner),
+    admin: await isAdminOwner(owner),
   }
 }
 
@@ -1980,7 +1980,7 @@ function queueReportCompletionAfterPayment(reportId: string | undefined): void {
  * reading so the vault lists it, then enqueue background section generation.
  */
 async function rememberAdminPaidEquivalent(owner: ReportOwner | undefined, reportId: string | undefined): Promise<void> {
-  if (!owner || !isAdminOwner(owner) || !reportId) return
+  if (!owner || !reportId || !await isAdminOwner(owner)) return
   await mutateReportRecord(reportId, owner, (current) => {
     if (current.adminAcquiredAt) return false
     current.adminAcquiredAt = new Date().toISOString()
@@ -2137,7 +2137,7 @@ async function resolvePaidAccess(
   reportId = '',
   lineageId = '',
 ): Promise<PaidAccess> {
-  if (isAdminOwner(owner)) return { entitled: true, reason: 'admin' }
+  if (await isAdminOwner(owner)) return { entitled: true, reason: 'admin' }
   if (!isCheckoutLive()) return { entitled: true, reason: 'open' }
   if (!owner) return { entitled: false, reason: 'none' }
 
@@ -2157,13 +2157,13 @@ async function resolvePaidAccess(
 }
 
 /** Stamps the unlock flags the report UI reads before revealing paid chapters. */
-function applyReportEntitlement(report: SajuReport, access: PaidAccess, owner?: ReportOwner): SajuReport {
+function applyReportEntitlement(report: SajuReport, access: PaidAccess, _owner?: ReportOwner): SajuReport {
   if (!access.entitled) {
     report.sections = []
     report.isPaid = report.paid = false
     return report
   }
-  if (access.reason === 'admin') return applyAdminReportUnlock(report, owner)
+  if (access.reason === 'admin') return applyAdminReportUnlock(report)
   report.isPaid = true
   report.paid = true
   report.entitlement = 'paid'
@@ -2180,7 +2180,7 @@ async function ensurePaidServiceAccess(
   reportId = '',
   lineageId = '',
 ): Promise<boolean> {
-  if (isAdminOwner(owner)) {
+  if (await isAdminOwner(owner)) {
     await rememberAdminPaidEquivalent(owner, reportId)
     return true
   }
@@ -3975,7 +3975,7 @@ app.post('/api/admin/v1/admin-accounts', async (req, res) => {
   try {
     const command = await executeAdminCommand(postgrestAdminCommandStore(), {
       actorEmail: membership.email, action: 'admin.account.create', idempotencyKey, body: { email }, target: { type: 'admin_account', id: email },
-    }, async () => adminAccountSummary(await createAdminAccount({ email, passwordHash: await hashAdminPassword(password) })))
+    }, async () => { const created = adminAccountSummary(await createAdminAccount({ email, passwordHash: await hashAdminPassword(password) })); forgetAdminAccountCache(); return created })
     res.status(command.replayed ? 200 : 201).json({ account: command.result, replayed: command.replayed })
   } catch (error) {
     if (error instanceof AdminCommandConflict) { res.status(409).json({ code: error.message, error: '같은 멱등 키로 다른 변경을 요청할 수 없습니다.' }); return }
@@ -4007,7 +4007,7 @@ app.patch('/api/admin/v1/admin-accounts/:id/status', async (req, res) => {
       const accounts = await listAdminAccounts(); const target = accounts.find((account) => account.id === id)
       if (!target) throw new AdminCommandConflict('ADMIN_ACCOUNT_NOT_FOUND')
       if (!isActive && target.email === membership.email) throw new AdminCommandConflict('ADMIN_SELF_DEACTIVATION_FORBIDDEN')
-      const account = await updateAdminAccountActive({ id, isActive, expectedRevision }); if (!account) throw new AdminCommandConflict('ADMIN_ACCOUNT_REVISION_CONFLICT'); return adminAccountSummary(account)
+      const account = await updateAdminAccountActive({ id, isActive, expectedRevision }); if (!account) throw new AdminCommandConflict('ADMIN_ACCOUNT_REVISION_CONFLICT'); forgetAdminAccountCache(); return adminAccountSummary(account)
     })
     res.json({ account: command.result, replayed: command.replayed })
   } catch (error) { res.status(error instanceof AdminCommandConflict ? 409 : 503).json({ code: error instanceof Error ? error.message : 'ADMIN_ACCOUNT_STATUS_FAILED', error: '관리자 상태를 변경하지 못했습니다.' }) }
@@ -4753,7 +4753,7 @@ app.get('/api/user/profile', async (req, res) => {
     const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const profile = await getUserBirthProfile(owner)
-    res.json(userProfilePayload(profile, owner))
+    res.json(await userProfilePayload(profile, owner))
   } catch (err) {
     respondRequestFailure(res, err, '사주 프로필 조회 실패')
   }
@@ -4765,7 +4765,7 @@ async function saveUserProfileHandler(req: Request, res: Response) {
     if (!owner) return
     const profile = parseUserProfileRequest(req.body, owner)
     const saved = await saveUserBirthProfile(profile, owner)
-    res.json(userProfilePayload(saved, owner))
+    res.json(await userProfilePayload(saved, owner))
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : '사주 프로필 저장 실패' })
   }
@@ -4839,7 +4839,7 @@ app.get('/api/user/reports', async (req, res) => {
         userId: owner.id,
         storage: getReportStorageMode(),
         // 관리자 계정에만 보관함 카드에 삭제 버튼이 붙는다(QA 기록 정리). 화면은 이 값만 본다.
-        admin: isAdminOwner(owner),
+        admin: await isAdminOwner(owner),
         purchasedOnly: false,
         reports: records.filter(isCustomerFacingReport).map((record) => historyEntryFromRecord(record, { slim })).slice(0, limit),
       }
@@ -4848,14 +4848,15 @@ app.get('/api/user/reports', async (req, res) => {
       res.json(body)
       return
     }
-    const listings = isAdminOwner(owner)
+    const admin = await isAdminOwner(owner)
+    const listings = admin
       ? selectAdminVaultReadings(records, orders)
       : selectPurchasedReadings(records, orders, coupons)
     const body = {
       userId: owner.id,
       storage: getReportStorageMode(),
-      admin: isAdminOwner(owner),
-      purchasedOnly: !isAdminOwner(owner),
+      admin,
+      purchasedOnly: !admin,
       reports: listings
         .filter((item) => isCustomerFacingReport(item.record))
         .slice(0, limit)
@@ -4948,7 +4949,7 @@ app.post('/api/today/fortune', async (req, res) => {
     res.json({
       todayFortune: record.auxiliary?.todayFortune,
       reportId: record.reportId, resultId: record.resultId, publicUrl: savedReadingHref('today_fortune', record.resultId),
-      ...userProfilePayload(profile, owner),
+      ...await userProfilePayload(profile, owner),
     })
   } catch (err) {
     if (err instanceof Error && err.message === 'REPORT_ACCESS_DENIED') { res.status(403).json({ error: '다른 계정의 해석은 볼 수 없습니다.' }); return }
@@ -5927,7 +5928,7 @@ app.use('/api/report/:reportId/reader', async (req, res, next) => {
     const record = await findReportRecord(String(req.params.reportId), owner)
     if (!record) { res.status(404).json({ error: '저장된 해석을 찾지 못했습니다.' }); return }
     if ((record.context.serviceKey || 'saju_master') !== 'saju_master') { res.status(400).json({ error: '천명사주에서 이용해 주세요.' }); return }
-    if (!isAdminOwner(owner) && !await findUnlockingOrder(owner, productKeyForContext(record.context), record.reportId, record.lineageId)) {
+    if (!await isAdminOwner(owner) && !await findUnlockingOrder(owner, productKeyForContext(record.context), record.reportId, record.lineageId)) {
       res.status(402).json({ error: '구매한 천명사주에서 이용할 수 있습니다.' }); return
     }
     res.locals.readerRecord = record
@@ -6065,7 +6066,7 @@ app.get(['/api/report/:reportId', '/api/reports/:reportId'], async (req, res) =>
       ...(memberContext ? { memberContext } : {}),
       chatHistory: record.chatHistory ?? [],
       // 관리자 계정에만. 실패한 항목이 왜 막혔는지(검수 사유) 화면 없이 볼 수 있어야 한다.
-      ...(owner && isAdminOwner(owner) ? { diagnostics: reportDiagnostics(record) } : {}),
+      ...(owner && await isAdminOwner(owner) ? { diagnostics: reportDiagnostics(record) } : {}),
     })
   } catch (err) {
     const denied = err instanceof Error && err.message === 'REPORT_ACCESS_DENIED'

@@ -29,8 +29,8 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
 
 process.env.SUPABASE_URL = 'https://synthetic-auth.invalid'
 process.env.SUPABASE_PUBLISHABLE_KEY = 'synthetic-public-fixture-only'
-// `UMSH_ADMIN_EMAILS` 는 **결제 없이 유료 리포트를 여는 레거시 unlock** 목록이다.
-// 운영 권한과 무관해야 하므로 이 픽스처에서 두 목록을 서로 다른 계정으로 갈라 둔다.
+// `UMSH_ADMIN_EMAILS` 는 예전 무료 열람 목록이다. 2026-10-15 에 없앴다(무료 = 관리자 계정).
+// Vercel 에 값이 남아 있어도 무료로도, 관리자 권한으로도 쓰이지 않아야 하므로 일부러 넣어 둔다.
 process.env.UMSH_ADMIN_EMAILS = 'staff@synthetic.invalid'
 // 운영 관리자 권한의 유일한 근거(`src/auth/staff.ts`). 배포 설정으로만 주고 회수한다.
 process.env.UMSH_ADMIN_SUPER_EMAILS = 'super@synthetic.invalid'
@@ -124,14 +124,16 @@ describe('관리자 셸 (T07)', { concurrency: false }, () => {
       assert.equal(JSON.parse(text).scopes, undefined, '권한 없는 회원에게 scope 를 내려보냈다')
     })
 
-    it('레거시 unlock 이메일로는 관리자 권한이 열리지 않는다', async () => {
+    it('예전 무료 열람 목록(UMSH_ADMIN_EMAILS) 이메일로는 관리자 권한도, 무료 열람도 열리지 않는다', async () => {
       // A02. `isAdminEmail`·`isAdminOwner` 는 **결제 없이 유료 리포트를 여는 레거시
       // unlock** 목록이다. 그것을 운영 권한으로 재사용하면 직원 membership 없이 관리자
       // API 가 열리고 회수·감사 경로가 없는 "코드에 박힌 권한"이 된다.
       // 초판 구현이 실제로 그렇게 열려 있었다(2026-09-10 Codex 리뷰 Critical).
       const { isAdminEmail } = await import('../../src/auth/admin.js')
       const { staffMembership } = await import('../../src/auth/staff.js')
-      assert.equal(isAdminEmail('staff@synthetic.invalid'), true, '픽스처가 unlock 목록에 있어야 이 검사가 성립한다')
+      // 2026-10-15: 무료 열람은 관리자 계정만 받는다. 예전 목록에 남은 값은 아무 의미가 없다.
+      assert.equal(await isAdminEmail('staff@synthetic.invalid'), false, '없앤 무료 목록이 아직 읽힌다')
+      assert.equal(await isAdminEmail('super@synthetic.invalid'), true, '관리자는 무료로 연다')
       // 두 목록은 서로를 참조하지 않는다. unlock 목록에 있다는 사실이 권한 근거가 되면 안 된다.
       assert.equal(staffMembership({ email: 'staff@synthetic.invalid' }), undefined, 'unlock 목록이 직원 권한으로 새어 들어갔다')
 
