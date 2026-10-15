@@ -55,7 +55,7 @@
 | `/admin` 경로 충돌 없음 | `'/admin` 등록 0건 |
 | `express.static`이 683~684행. 마지막 등록문 아니며 fall-through함 | app.ts. 위험은 "경로에 실제 파일이 있으면 인증 없이 서빙" |
 | `/api` 응답에 no-store + Vary 이미 적용 | app.ts:196 |
-| `src/auth/admin.ts`의 `DEFAULT_ADMIN_EMAILS` 하드코딩 | env는 추가만 가능, 제거 불가 (주소는 문서에 옮기지 않음) |
+| `src/auth/admin.ts` 무료 열람 이메일 | 2026-10-15부터 코드 기본값 없음. Vercel `UMSH_ADMIN_EMAILS` 에서만 추가·제거 |
 | 로컬 주문 저장 모드 `memory`, `checkoutEnabled:false`, `testMode:false` | 로컬 `GET /api/payment/config` 실측. Development/Preview는 **미검증** |
 | 운영 주문 저장 모드 `supabase` | `node scripts/check-integrations.mjs` |
 | prompt 20키 / catalog 19키 / hidden 4건 | manifest·catalog·directory 실측 (E11, E12 확인) |
