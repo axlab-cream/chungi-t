@@ -44,7 +44,7 @@ test('writer shows for eligible buyers only, mentions the reward only when offer
 test('천명사주 teaser mounts the list below the price card and the paid reader mounts the writer', () => {
   const page = readFileSync('사주/사주/index.html', 'utf8')
   assert.match(page, /<script src="\/js\/umsh-reviews\.js\?v=\d+\w*"><\/script>/)
-  assert.match(page, /mountCmdgReviewList\(\);/)
+  assert.match(page, /if \(window\.UMSHReviews\) mountCmdgReviewList\(\);/)
   assert.match(page, /\[data-sample-section="package"\]/)
   const reader = readFileSync('사주/js/umsh-report-access.js', 'utf8')
   assert.match(reader, /mountCmdgReviewWriter\(payload, epoch\);/)
