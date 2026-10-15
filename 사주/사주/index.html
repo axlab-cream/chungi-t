@@ -4071,7 +4071,7 @@
         }
       }
     </style>
-  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261015a"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261015a"></script><script src="/js/umsh-reviews.js?v=20261015a"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -8539,11 +8539,30 @@
         }).join("");
       }
 
+      /**
+       * 다녀간 손님들의 말(2026-10-15). 복채 카드 바로 아래, 결제 직전에 둔다.
+       * 후기가 기준(5개)보다 적으면 서버가 숨김을 주고, 자리는 사라진다.
+       */
+      function mountCmdgReviewList() {
+        if (!window.UMSHReviews || isLoveThisYearService()) return;
+        const anchor = stage.querySelector('[data-sample-section="package"]');
+        const slot = document.createElement("div");
+        slot.setAttribute("data-umsh-reviews", "cmdg");
+        if (anchor) anchor.insertAdjacentElement("afterend", slot);
+        else {
+          const footer = stage.querySelector(".site-footer");
+          if (footer) footer.insertAdjacentElement("beforebegin", slot);
+          else stage.appendChild(slot);
+        }
+        window.UMSHReviews.mountList(slot, { product: "cmdg" });
+      }
+
       function renderResult() {
         // 시간을 몰라도 천명사주는 티저로 간다(티저가 시주·오행·대운 없이 읽는다). 연애운이거나 티저가 없을 때만 안내 화면이다.
         if ((state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) && (isLoveThisYearService() || !window.UmshMasterTeaser)) { renderUnknownTimeResult(); return; }
         if (!isLoveThisYearService() && window.UmshMasterTeaser) {
           stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
+          mountCmdgReviewList();
           // 티저는 화면을 통째로 다시 그린다. 그 뒤에 걸어야 플로팅 전환이 산다.
           setupFloatingCta(".sticky-story-cta");
           return;
