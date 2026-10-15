@@ -96,27 +96,18 @@ describe('[TASK] 사주 분석 테스트 하네스', () => {
       assert.ok(pillars.hour)
     })
 
-    it('23시 자시는 옵션에 따라 다음 날 일주로 계산할 수 있다', () => {
-      const defaultPillars = calculateFourPillars({
-        year: 1990,
-        month: 5,
-        day: 15,
-        hour: 23,
-        gender: 'female',
-        calendar: 'solar',
-      })
-      const nextDayPillars = calculateFourPillars({
-        year: 1990,
-        month: 5,
-        day: 15,
-        hour: 23,
-        gender: 'female',
-        calendar: 'solar',
-        dayBoundaryRule: 'zi_hour_next_day',
-      })
+    it('자정 경계를 직접 고르면(midnight) 23:40도 그날 일주로 계산한다', () => {
+      const late = { year: 1990, month: 5, day: 15, hour: 23, minute: 40, gender: 'female', calendar: 'solar' } as const
+      const midnight = calculateFourPillars({ ...late, dayBoundaryRule: 'midnight' })
+      const nextDay = calculateFourPillars(late)
+      assert.notEqual(label(midnight, 'day'), label(nextDay, 'day'))
+      assert.notEqual(label(midnight, 'hour'), label(nextDay, 'hour'))
+    })
 
-      assert.notEqual(label(defaultPillars, 'day'), label(nextDayPillars, 'day'))
-      assert.notEqual(label(defaultPillars, 'hour'), label(nextDayPillars, 'hour'))
+    it('지금 규칙은 사주 시각 23시(시계 23:30)부터 다음 날 일주가 기본이다', () => {
+      const late = { year: 1990, month: 5, day: 15, hour: 23, minute: 40, gender: 'female', calendar: 'solar' } as const
+      assert.equal(label(calculateFourPillars(late), 'day'), label(calculateFourPillars({ ...late, day: 16, hour: 12, minute: 0 }), 'day'))
+      assert.equal(label(calculateFourPillars({ ...late, minute: 10 }), 'day'), label(calculateFourPillars({ ...late, hour: 12, minute: 0 }), 'day'), '23:10은 아직 그날')
     })
 
     it('입춘 경계 전후로 년주와 월주가 갈린다', () => {

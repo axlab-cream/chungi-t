@@ -59,7 +59,8 @@ test('every reading is grounded and complete, never a pending stub', () => {
 
 test('the reading reads this chart, not a generic one', () => {
   const spring = buildReport({ year: 1988, month: 2, day: 20 })
-  const winter = buildReport({ year: 2001, month: 12, day: 3, gender: 'male' })
+  // 출생 시각 규칙(2026-10-15) 뒤 2001-12-03 남성은 용신이 봄 표본과 같은 화(火)가 되어, 다른 기운(목)의 겨울 표본으로 바꿈
+  const winter = buildReport({ year: 2001, month: 12, day: 10, gender: 'male' })
 
   assert.notEqual(spring.subtitle, winter.subtitle)
   assert.notEqual(spring.sections[0].interpretation, winter.sections[0].interpretation)
