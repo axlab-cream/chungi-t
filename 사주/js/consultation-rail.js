@@ -100,6 +100,9 @@
     count = slides.length; rail.querySelector('.consultation-rail-controls').hidden = false; render(0); schedule();
     if (banner.title) rail.querySelector('[data-consultation-title]').textContent = banner.title;
     if (banner.body) rail.querySelector('[data-consultation-body]').textContent = banner.body;
-    if (banner.image && /^\/(?!\/)/.test(banner.image)) rail.querySelector('[data-consultation-image]').src = banner.image;
+    // 관리자 기본값은 4MB 원본 PNG다. 홈에는 같은 그림의 WebP(01-idle-720.webp)가 이미 박혀 있으니
+    // 기본 그림이면 바꾸지 않는다. 관리자가 다른 그림을 고른 경우에만 갈아 끼운다.
+    const DEFAULT_IMAGE = '/assets/cheonmyeong-scenes/01-idle.png';
+    if (banner.image && banner.image !== DEFAULT_IMAGE && /^\/(?!\/)/.test(banner.image)) rail.querySelector('[data-consultation-image]').src = banner.image;
   }).catch(hideConsultation);
 })();
