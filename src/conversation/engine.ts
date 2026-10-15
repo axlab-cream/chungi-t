@@ -9,7 +9,7 @@ import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
  * 실제 LLM API 호출은 외부 어댑터(OpenAI, Anthropic 등)에서 messages를 받아 처리합니다.
  */
 export function prepareConversation(input: ConversationInput): ConversationResult {
-  const sajuAnalysis = analyzeSaju(input.birth)
+  const sajuAnalysis = input.sajuOverride?.analysis ?? analyzeSaju(input.birth)
   const intent = detectIntent(input.message)
   const topK = runtimeConfig.conversation?.ragTopK ?? 5
   const maxHistory = runtimeConfig.conversation?.maxHistoryTurns ?? 10
@@ -21,7 +21,7 @@ export function prepareConversation(input: ConversationInput): ConversationResul
 
   const messages = buildConversationMessages({
     systemPrompt: loadSystemPrompt(serviceKey),
-    sajuPrompt: formatSajuForPrompt(sajuAnalysis),
+    sajuPrompt: input.sajuOverride?.prompt ?? formatSajuForPrompt(sajuAnalysis),
     ragPrompt: formatRagForPrompt(retrievedChunks),
     intent,
     history,

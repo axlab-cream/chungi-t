@@ -22,5 +22,8 @@
     "ragTopK": 7,
     "sectionMaxTokens": 9000,
     "maxTokens": 24000
+  },
+  "unknownBirthTime": {
+    "sixCharServices": ["saju_master"]
   }
 }

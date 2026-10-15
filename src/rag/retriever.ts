@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import type { CorpusSnapshot, RagChunk, RagKnowledgeBlock, SajuAnalysis, SajuReportContext } from '../types/index.js'
 import { getActiveCorpusPacks, getChunkCorpusFiles, getCorpusDomainBoostForService, getCorpusSnapshot, getServiceCorpusDomain } from './corpus-registry.js'
 import { normalizeServiceKey } from '../prompt/service-system.js'
+import { readsSixChars } from '../saju/unknown-time-reading.js'
 import { isCustomerPausedProduct } from '../server/service-directory.js'
 import { retrieveVectorRagChunks } from './embedder.js'
 import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk } from './knowledge-block.js'
@@ -646,8 +647,12 @@ export function retrieveRagChunks(
     ...intentKeywords.flatMap(tokenize),
     ...contextTokens(context),
   ])
-  const personalTokens = unknownTime ? [] : sajuTokens(saju)
-  const gbrTokens = unknownTime ? [] : graphBoostTokens(queryTokens, saju, context)
+  // 6글자 모드 서비스가 시주를 뺀 계산(sixCharAnalysis)을 넘기면 임시 시각 값이 없으니 그 값으로 개인화한다.
+  // 서비스가 명시되고 6글자 모드일 때만 명식을 열어 본다 — 보류 모드에서는 임시 명식을 아예 읽지 않는다.
+  const personalizes = !unknownTime
+    || (context !== undefined && readsSixChars(context) && saju.manseryeok?.hourPillarExcluded === true)
+  const personalTokens = personalizes ? sajuTokens(saju) : []
+  const gbrTokens = personalizes ? graphBoostTokens(queryTokens, saju, context) : []
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
   const pinnedIds = pinnedContextChunkIds(context)
   const currentServiceKey = context?.serviceKey ? normalizeServiceKey(context.serviceKey) : undefined
@@ -658,7 +663,7 @@ export function retrieveRagChunks(
   // The vector index represents the currently active registry. Keep its boost
   // for a newly stored current snapshot, but never let it rank an older pack.
   const usesCurrentVectorIndex = !corpusSnapshot || corpusSnapshot.fingerprint === getCorpusSnapshot().fingerprint
-  const vectorResults = !unknownTime && usesCurrentVectorIndex ? retrieveVectorRagChunks(
+  const vectorResults = personalizes && usesCurrentVectorIndex ? retrieveVectorRagChunks(
       [...queryTokens, ...personalTokens].join(' '),
       saju,
       Math.max(topK * 3, topK),

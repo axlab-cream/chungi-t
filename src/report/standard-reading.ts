@@ -2,6 +2,7 @@ import type { SajuAnalysis, SajuReportContext } from '../types/index.js'
 import { passAngleOutlineItem, type PassAngleLensKey } from './pass-angle-outline.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { normalizeUserCopy } from './copy-guide.js'
+import { unknownBirthTimeReading } from '../saju/unknown-time-reading.js'
 
 type Lens = [meaning: string, scene: string, criterion: string, action: string]
 
@@ -111,6 +112,8 @@ export function standardReading(id: string, category: string, analysis: SajuAnal
   const lens = outlineItem ? EXAM_OUTLINE_LENSES[outlineItem.lensKey] : lenses[id]
   if (!lens) throw new Error(`항목별 해석 기준이 없습니다: ${id}`)
   const [meaning, scene, criterion, action] = lens
+  // 6글자 모드 서비스는 시간을 몰라도 시주를 뺀 계산값으로 읽는다(호출자가 sixCharAnalysis 로 넘긴다).
+  const withholdsTime = unknownBirthTimeReading(context) === 'withhold'
   let facts = stateLine(context)
   let evidence = ''
   const name = context.name?.trim() ? `${context.name.trim()}님, ` : ''
@@ -141,10 +144,10 @@ export function standardReading(id: string, category: string, analysis: SajuAnal
     const pillar = id === 'year-pillar' ? p.year : id === 'month-pillar' ? p.month : id === 'hour-pillar' ? p.hour : p.day
     const label = `${STEM_KO[pillar.stem]}${BRANCH_KO[pillar.branch]}`
     if (id === 'hour-pillar' && context.birthTimeKnown === false) evidence = '출생 시간을 모른다고 입력했으므로 시주와 시주에 의존하는 세부 결론은 보류합니다.'
-    else if (/balance|element|useful/.test(id)) evidence = context.birthTimeKnown === false ? '출생 시간을 모르므로 임시 시각을 포함한 전체 기운의 개수나 강약을 확정하지 않습니다. 확인된 연·월·일의 관계만 참고하고 시각에 따라 달라지는 결론은 보류합니다.' : `단순 오행 개수에서 ${ELEMENT_KO[analysis.dominantElement]} 기운이 상대적으로 많고, ${ELEMENT_KO[analysis.weakElement]} 기운은 ${analysis.elementCount[analysis.weakElement]}개로 표시됩니다. 계절과 다른 기운의 관계를 함께 보아야 하며 이 수치가 개인의 능력이나 실제 생활 상태를 뜻하지는 않습니다.`
+    else if (/balance|element|useful/.test(id)) evidence = withholdsTime ? '출생 시간을 모르므로 임시 시각을 포함한 전체 기운의 개수나 강약을 확정하지 않습니다. 확인된 연·월·일의 관계만 참고하고 시각에 따라 달라지는 결론은 보류합니다.' : `단순 오행 개수에서 ${ELEMENT_KO[analysis.dominantElement]} 기운이 상대적으로 많고, ${ELEMENT_KO[analysis.weakElement]} 기운은 ${analysis.elementCount[analysis.weakElement]}개로 표시됩니다. 계절과 다른 기운의 관계를 함께 보아야 하며 이 수치가 개인의 능력이나 실제 생활 상태를 뜻하지는 않습니다.`
     else evidence = `확인된 명식에서 ${id.includes('pillar') ? '해당 기둥' : '일주'}는 ${label}입니다. 일간은 태어난 날의 천간으로, 다른 기운의 관계를 읽는 기준점입니다. 이 구조를 현재 질문에 참고하되 기호 하나로 경험하지 않은 사건을 만들지 않습니다.`
   }
-  if (context.birthTimeKnown === false && /strength|hidden|ten-gods|useful|future|daewoon|sewoon|timing|turning/.test(id)) {
+  if (withholdsTime && /strength|hidden|ten-gods|useful|future|daewoon|sewoon|timing|turning/.test(id)) {
     evidence = '출생 시간을 모르므로 임시 시각을 포함한 강약·십성 전체 요약·용신과 개인 대운 및 세부 시기 계산은 이 항목의 근거로 사용하지 않습니다. 전통적 개념 설명과 실제 입력한 일정·조건을 구분해서 읽고, 시각에 따라 달라지는 개인 결론은 보류합니다.'
   }
   return normalizeUserCopy([`${name}${meaning} ${facts}`, evidence, scene, criterion, `[확인할 기준] ${category}에 대한 결론은 위의 조건이 실제 상황과 맞는지에 따라 달라집니다. 맞지 않는 장면은 내 특성으로 받아들이지 않아도 됩니다.`, `[다음 선택] ${action}`].join('\n\n'))

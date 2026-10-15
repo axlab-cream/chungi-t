@@ -50,7 +50,7 @@ export function cmdgSectionContext(context: SajuReportContext, sectionId: string
   if (context.serviceKey !== 'saju_master' || !CMDG_RELATIONSHIP_SECTIONS.has(sectionId)) return context
   return {
     serviceKey: context.serviceKey, name: context.name, target: context.target,
-    birthTimeKnown: context.birthTimeKnown, relationship: context.relationship,
+    birthTimeKnown: context.birthTimeKnown, birthTimeReading: context.birthTimeReading, relationship: context.relationship,
     orientation: context.orientation, partner: context.partner,
     concern: /연애|애인|연인|결혼|이별|재회|짝사랑|인연|썸/.test(context.concern || '') ? context.concern : undefined,
   }

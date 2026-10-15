@@ -18,17 +18,19 @@
   function relation(a,b){var i=keys.indexOf(a),j=keys.indexOf(b);return i<0||j<0?-1:(j-i+5)%5;}
   function render(state){
     var a=state.analysis,dm=a&&a.dayMaster,counts=a&&a.elements;
-    // 시간을 모르면 시주·오행 개수·대운을 계산하지 않는다. 연·월·일 기둥, 일간, 올해 기운만으로 읽는다.
+    // 시간을 모르면 시주·대운 시점은 쓰지 않는다. 서버가 6글자 모드(시주를 뺀 연·월·일 계산)로 보낸 오행 개수는 그대로 보여 준다(2026-10-15).
     var unknown=state.birthTimeKnown===false||(a&&a.birthTimeKnown===false)||/모름/.test(state.time||'');
-    if(unknown)counts=null;
-    if(!a||!dm||!a.pillars||!a.pillars.day||(!unknown&&(!counts||keys.some(function(k){return !Number.isFinite(counts[k]);})))) return '<article class="story cmdg-master-teaser"><section class="story-section"><h2>사주를 아직 불러오지 못했어</h2><p>입력한 생년월일을 확인한 뒤 다시 열어 줘.</p><button type="button" data-action="restart">입력 다시 확인하기</button></section></article>';
+    var sixChar=unknown&&!!(a&&a.uncertainty&&a.uncertainty.mode==='six_char');
+    var noCounts=unknown&&!sixChar;
+    if(noCounts)counts=null;
+    if(!a||!dm||!a.pillars||!a.pillars.day||(!noCounts&&(!counts||keys.some(function(k){return !Number.isFinite(counts[k]);})))) return '<article class="story cmdg-master-teaser"><section class="story-section"><h2>사주를 아직 불러오지 못했어</h2><p>입력한 생년월일을 확인한 뒤 다시 열어 줘.</p><button type="button" data-action="restart">입력 다시 확인하기</button></section></article>';
     var day=element(dm.element), dominant=counts?keys.reduce(function(best,k){return counts[k]>counts[best]?k:best;},keys[0]):null;
     if(!day)return '<p role="status">일간 계산값을 확인하지 못했어. 잠시 후 다시 열어 줘.</p>';
     var zeros=counts?keys.filter(function(k){return counts[k]===0;}):[];
     var name=state.name||'회원', concern=state.concern||'지금 궁금한 방향';
     var personal=paras([
       '태어난 날의 중심은 '+(dm.ko||koPillar(dm.hanja))+' · '+names[day]+' 기운이야. '+meanings[day][0]+'을 네 사주의 기준으로 읽어. '+meanings[day][1],
-      (unknown?'':names[dominant]+' 기운이 '+counts[dominant]+'개로 가장 많아. '+(zeros.length?zeros.map(function(k){return names[k];}).join('·')+' 기운은 0개로 잡혀. 없다고 그 능력까지 없다는 뜻은 아니야. 의식적으로 챙길 과정을 돌아보는 힌트로 보면 돼.':'다섯 기운이 모두 있어. 개수만으로 좋고 나쁨을 나누기보다 서로 어떻게 쓰이는지 봐야 해.')),
+      (noCounts?'':names[dominant]+' 기운이 '+counts[dominant]+'개로 가장 많아. '+(zeros.length?zeros.map(function(k){return names[k];}).join('·')+' 기운은 0개로 잡혀. 없다고 그 능력까지 없다는 뜻은 아니야. 의식적으로 챙길 과정을 돌아보는 힌트로 보면 돼.':'다섯 기운이 모두 있어. 개수만으로 좋고 나쁨을 나누기보다 서로 어떻게 쓰이는지 봐야 해.')),
       state.concern?'지금 적어 준 고민은 “'+state.concern+'”이네. 이 기질이 그 상황에서 어떻게 드러나는지 떠올리며 읽어 봐.':'겉으로 보이는 반응과 안에서 생각한 시간이 꼭 같지는 않잖아. 최근 있었던 일 하나를 떠올리며 이 해석과 맞는 부분을 살펴봐.'
     ]);
     var f=a.fortune||{},rows=Array.isArray(f.daewoon)?f.daewoon:[],index=rows.findIndex(function(r){return r.pillar===f.currentDaewoon;}),current=rows[index],next=index>=0?rows[index+1]:null;
@@ -39,7 +41,7 @@
     ]);
     var wealthKey=keys[(keys.indexOf(day)+2)%5],wealthCount=counts?counts[wealthKey]:undefined;
     var wealth=paras([
-      names[day]+' 일간이 다루는 '+names[wealthKey]+' 기운을 전통적으로 재성, 돈과 자원을 살피는 관계로 읽어.'+(unknown?'':' 네 계산에서는 '+wealthCount+'개야.'),
+      names[day]+' 일간이 다루는 '+names[wealthKey]+' 기운을 전통적으로 재성, 돈과 자원을 살피는 관계로 읽어.'+(noCounts?'':' 네 계산에서는 '+wealthCount+'개야.'),
       wealthCount===0?'수가 적다고 돈을 못 번다는 뜻은 아니야. 수입을 만들고 남기는 실제 방식은 계약과 지출, 맡은 일의 조건을 함께 봐야 알 수 있거든.':'기회가 보인다고 손에 남는 돈까지 정해지는 건 아니잖아. 맡을 일의 범위와 받을 대가, 끝내야 할 조건을 함께 살펴봐.',
       '최근 들어온 돈과 나간 돈을 한 번 나눠 적어 봐. 어디에서 시간과 비용이 더 들었는지 확인해야 지금 바꿀 부분도 선명해져.'
     ]);
