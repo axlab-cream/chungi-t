@@ -8562,7 +8562,7 @@
         if ((state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) && (isLoveThisYearService() || !window.UmshMasterTeaser)) { renderUnknownTimeResult(); return; }
         if (!isLoveThisYearService() && window.UmshMasterTeaser) {
           stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
-          mountCmdgReviewList();
+          if (window.UMSHReviews) mountCmdgReviewList();
           // 티저는 화면을 통째로 다시 그린다. 그 뒤에 걸어야 플로팅 전환이 산다.
           setupFloatingCta(".sticky-story-cta");
           return;
