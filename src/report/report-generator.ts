@@ -18,7 +18,7 @@ import { SERVICE_VOICE_CONTRACTS, type ServiceVoiceContract } from '../prompt/se
 import { InterpretationQualityError, reviewInterpretation, type InterpretationReview } from './interpretation-validation.js'
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
-import { normalizeUserCopy } from './copy-guide.js'
+import { normalizeUserCopy, SHINSAL_NAMES_PER_SECTION, WELL_KNOWN_SHINSAL } from './copy-guide.js'
 import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReadableCopy, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import type { HighlightTopic } from './longform-blocks.js'
 import {
@@ -31,9 +31,9 @@ import {
 import { standardReading } from './standard-reading.js'
 import { cmdgChapterInstruction, cmdgRagContext, cmdgSectionContext, reviewCmdgStoryStructure } from './cmdg-reading-contract.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
-import { formatRagForPrompt, retrieveRagChunks } from '../rag/retriever.js'
+import { capShinsalChunks, formatRagForPrompt, keepAssignedShinsalChunks, retrieveRagChunks } from '../rag/retriever.js'
 import { buildSajuFeatureJson, SHINSAL_PROMPT_SEPARATOR, sixCharAnalysis } from '../saju/analyzer.js'
-import { inventedShinsalNames } from '../saju/shinsal.js'
+import { inventedShinsalNamesWithLuck, mentionedShinsalNames, namesFromLuckShinsalLines, stripInventedShinsalSentences } from '../saju/shinsal.js'
 import { analysisForReading, partnerBirthTimeReading, unknownBirthTimeReading } from '../saju/unknown-time-reading.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
@@ -1985,16 +1985,18 @@ export function buildTemplateSajuReport(
   ]
   const name = addressName(context)
   const isSajuMaster = normalizeServiceKey(context.serviceKey) === 'saju_master'
+  const ragTopK = runtimeConfig.report?.ragTopK ?? 4
+  const shinsalUsed = new Set<string>()
   const sections: SajuReportSection[] = blueprintsForContext(context).map((blueprint, index) => {
     const ragContext = cmdgRagContext(context, blueprint.id)
-    const chunks = retrieveRagChunks(
+    const chunks = capShinsalChunks(retrieveRagChunks(
       `${blueprint.query} ${reportContextQuery(ragContext)}`,
       analysis,
-      runtimeConfig.report?.ragTopK ?? 4,
+      ragTopK + 1,
       ragContext,
       undefined,
       context.birthTimeKnown,
-    )
+    ), shinsalUsed, ragTopK)
     const ragTopics = chunks.map((c) => c.topic)
     // cmdg-style emotional beats: emotion first, mechanics under the hood.
     const loveStory = isLoveThisYear && !unknownTime
@@ -2075,8 +2077,10 @@ const INTERPRETATION_INSTRUCTION = [
   '사용자가 연락 거부·차단을 알리면 재접촉보다 그 의사 존중을 우선하세요.',
   '다른 항목과 같은 문단을 쓰지 마세요. 미래 날짜·점수·자미두수 명반을 새로 계산하거나 만들어내지 마세요.',
   // 신살은 계산값(2026-10-15)만 쓴다. 전에는 계산이 없어 AI가 신살을 스스로 지어냈다.
-  '대운·세운의 withChart는 그 시기에 들어온 글자가 내 사주 글자와 합·충·형으로 만나는 계산값입니다. 시기 풀이의 근거로 쓰되, 목록에 없는 합충을 만들지 말고 충·형을 사고나 사건으로 단정하지 마세요.',
-  '신살은 verifiedCalculations.relationshipSignals.shinsal 목록에 있는 것만 쓰세요. 목록에 없는 신살을 만들지 말고, 공망으로 약화·해소된 것과 이설(variant)은 그만큼 낮춰 쓰며, 신살 하나로 사건이나 운명을 단정하지 마세요.',
+  '대운·세운의 withChart는 그 시기에 들어온 글자가 내 사주 글자와 합·충·형으로 만나는 계산값과, 그 시기에 들어오는 신살("신살 …" 줄)입니다. 시기 풀이의 근거로 쓰되, 목록에 없는 합충·신살을 만들지 말고 충·형·흉살을 사고나 사건으로 단정하지 마세요.',
+  '신살은 verifiedCalculations.relationshipSignals.shinsal 목록에 있는 것만 쓰고, 공망으로 약화·해소된 것과 이설은 낮춰 쓰며, 하나로 사건이나 운명을 단정하지 마세요. 계산 기준은 설명하지 말고 뜻만 쉽게 쓰세요.',
+  // 짧은 뜻은 copy-guide 가 처음 나올 때 붙인다(프롬프트 크기 절약).
+  `신살 이름은 ${WELL_KNOWN_SHINSAL.map(([name]) => name).join('·')}만 쓰고 나머지는 뜻만 쓰세요. 이름은 한 문장에 하나, 한 항목에 ${SHINSAL_NAMES_PER_SECTION}개까지.`,
   '천명사주는 otherSections의 nextCriterion을 확인하고, 현재 제목에 맞는 다른 확인 대상과 행동으로 끝내세요. 다른 항목의 마지막 판단 문장을 재사용하지 마세요.',
   '특정 행동이 승패를 가른다거나 이기는 사람의 조건이라고 말하지 마세요. 실력 재현·판단에 도움이 될 수 있는 방법과 결과 보장을 구별하세요.',
   ...SECTION_CLOSING_RULES,
@@ -2331,10 +2335,11 @@ export function sectionPrompt(
   const ragContext = cmdgRagContext(userContext, section.id)
   // 6글자 모드면 시주 없는 계산으로 참고서를 고르고, 다른 항목 요약도 보통처럼 넘긴다.
   const withholdsTime = unknownBirthTimeReading(context) === 'withhold'
-  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
+  const ragTopK = runtimeConfig.report?.ragTopK ?? 4
+  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : keepAssignedShinsalChunks(retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(ragContext)}`,
-    analysisForReading(analysis, context), runtimeConfig.report?.ragTopK ?? 4, ragContext, corpusSnapshot, context.birthTimeKnown,
-  )
+    analysisForReading(analysis, context), ragTopK + 1, ragContext, corpusSnapshot, context.birthTimeKnown,
+  ), section.ragTopics, ragTopK)
   return [
     { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
     { role: 'user', content: JSON.stringify({
@@ -2748,6 +2753,49 @@ function sectionRepairInstruction(issues: string[], mode: 'rewrite' | 'edit' = '
 }
 
 
+export const INVENTED_SHINSAL_ISSUE = '계산된 신살 목록에 없는 신살'
+
+/** 고객 글의 신살 이름 규칙: 많이 알려진 이름만, 한 문장에 하나, 한 항목에 SHINSAL_NAMES_PER_SECTION 개까지(문체 지적). */
+export function reviewShinsalNameUse(text: string): string[] {
+  const known = new Set(WELL_KNOWN_SHINSAL.map(([name]) => name))
+  const issues: string[] = []
+  const all = mentionedShinsalNames(text)
+  const lessKnown = all.filter((name) => !known.has(name))
+  if (lessKnown.length > 0) issues.push(`잘 알려지지 않은 신살 이름(${lessKnown.join(', ')})은 쓰지 말고 그 뜻만 쉬운 말로 쓰세요.`)
+  if (text.split(/(?<=[.!?。])\s+|\n+/).some((sentence) => mentionedShinsalNames(sentence).length > 1)) issues.push('한 문장에는 신살 이름을 하나만 쓰세요.')
+  if (all.length > SHINSAL_NAMES_PER_SECTION) issues.push(`한 항목에 신살 이름은 ${SHINSAL_NAMES_PER_SECTION}개까지만 쓰고 나머지는 뜻으로 풀어 쓰세요.`)
+  return issues
+}
+
+/** 원국 신살 이름과 대운·세운 withChart '신살 …' 줄의 이름(검수·마지막 채택 단계가 같은 목록을 쓴다). */
+function shinsalAllowance(grounded: unknown): { chartNames: string[]; luckNames: string[] } {
+  const shown = grounded as { relationshipSignals?: { shinsal?: { items: string[] } }; timing?: { daewoonList?: Array<{ withChart?: string[] }>; yearlyFlow?: Array<{ withChart?: string[] }> } }
+  const luckLines = [...(shown.timing?.daewoonList ?? []), ...(shown.timing?.yearlyFlow ?? [])].flatMap((item) => item.withChart ?? [])
+  return {
+    chartNames: shown.relationshipSignals?.shinsal?.items.map((line) => line.split(SHINSAL_PROMPT_SEPARATOR)[0]) ?? [],
+    luckNames: namesFromLuckShinsalLines(luckLines),
+  }
+}
+
+/**
+ * 다시 쓰기를 다 해도 없는 신살이 남은 초안을 마지막 단계에서 어떻게 할지(2026-10-15, 운영 테스트로 정할 때까지 스위치).
+ * keep = 그대로 내보내고 운영 메모만 남김(기본) · remove_sentence = 그 문장만 빼고 내보냄.
+ * 막기(내보내지 않음)는 두지 않는다 — 고객은 어떤 경우에도 결과를 받아야 한다(사용자 결정).
+ */
+export type InventedShinsalFallback = 'keep' | 'remove_sentence'
+export function inventedShinsalFallback(): InventedShinsalFallback {
+  const value = (runtimeConfig.report as { inventedShinsalFallback?: string } | undefined)?.inventedShinsalFallback
+  return value === 'remove_sentence' ? value : 'keep'
+}
+
+/** remove_sentence 일 때 hook·본문에서 없는 신살을 쓴 문장만 뺀다. 뺄 것이 없으면 그대로 돌려준다. */
+export function removeInventedShinsalSentences(params: { analysis: SajuAnalysis; context: SajuReportContext; hook: string; interpretation: string }): { hook: string; interpretation: string; removed: boolean } {
+  const { chartNames, luckNames } = shinsalAllowance(groundedReportFeatures(params.analysis, params.context))
+  const hook = stripInventedShinsalSentences(params.hook, chartNames, luckNames)
+  const interpretation = stripInventedShinsalSentences(params.interpretation, chartNames, luckNames)
+  return { hook, interpretation, removed: hook !== params.hook.trim() || interpretation !== params.interpretation.trim() }
+}
+
 export function reviewGeneratedSajuReportSection(input: {
   analysis: SajuAnalysis
   birth: BirthInput
@@ -2772,10 +2820,11 @@ export function reviewGeneratedSajuReportSection(input: {
     serviceNumericHints(context),
   )
   const reviewRagContext = cmdgRagContext(publicReportContext(context), section.id)
-  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : retrieveRagChunks(
+  const ragTopK = runtimeConfig.report?.ragTopK ?? 4
+  const chunks = context.serviceKey === HOME_FIT_SERVICE_KEY ? homeReadingCorpus(section.id, corpusSnapshot) : keepAssignedShinsalChunks(retrieveRagChunks(
     `${section.category} ${section.classification} ${section.ragTopics.join(' ')} ${reportContextQuery(reviewRagContext)}`,
-    analysisForReading(analysis, context), runtimeConfig.report?.ragTopK ?? 4, reviewRagContext, corpusSnapshot,
-  )
+    analysisForReading(analysis, context), ragTopK + 1, reviewRagContext, corpusSnapshot,
+  ), section.ragTopics, ragTopK)
   review.issues.push(...reviewToneCopy(interpretation, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'body' }).issues)
   review.issues.push(...reviewToneCopy(hook, context.serviceKey, { numericEvidence, corpusEvidence: chunks, context, contentRole: 'hook' }).issues)
   review.issues.push(...reviewReadableCopy(`${hook}\n${interpretation}`, { role: 'body' }).issues)
@@ -2807,11 +2856,13 @@ export function reviewGeneratedSajuReportSection(input: {
   }).issues)
   review.issues.push(...reviewEngineLabelExposure(interpretation).issues)
   review.issues.push(...reviewEngineLabelExposure(hook).issues)
-  // AI가 본 계산값(grounded)과 같은 신살 목록으로 판정한다.
-  const shownShinsal = (grounded as { relationshipSignals?: { shinsal?: { items: string[] } } }).relationshipSignals?.shinsal
-  const invented = inventedShinsalNames(`${hook}
-${interpretation}`, shownShinsal?.items.map((line) => line.split(SHINSAL_PROMPT_SEPARATOR)[0]) ?? [])
-  if (invented.length > 0) review.issues.push(`계산된 신살 목록에 없는 신살(${invented.join(', ')})을 쓰지 마세요. verifiedCalculations.relationshipSignals.shinsal 에 있는 것만 쉬운 말로 쓰세요.`)
+  // AI가 본 계산값(grounded)과 같은 신살 목록으로 판정한다. 운에만 들어오는 신살은 그 해·그 대운을 말하는 문장에서만 허용한다.
+  const allowance = shinsalAllowance(grounded)
+  const invented = inventedShinsalNamesWithLuck(`${hook}
+${interpretation}`, allowance.chartNames, allowance.luckNames)
+  if (invented.length > 0) review.issues.push(`${INVENTED_SHINSAL_ISSUE}(${invented.join(', ')})을 쓰지 마세요. verifiedCalculations.relationshipSignals.shinsal 에 있는 것만 쉬운 말로 쓰세요.`)
+  review.issues.push(...reviewShinsalNameUse(`${hook}
+${interpretation}`))
   if (normalizeServiceKey(context.serviceKey) === 'saju_master') review.issues.push(...reviewCmdgStoryStructure(interpretation))
   if (!hook) review.issues.push('현재 항목의 답을 담은 한 줄 요약을 새로 작성하세요.')
   review.passed = review.issues.length === 0

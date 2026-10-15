@@ -23,7 +23,7 @@ import type {
 } from '../types/index.js'
 import { buildPillar, calculateStemBranchIndices, pillarLabel } from './calculator.js'
 import { calculateFortuneCycle, formatFortuneForPrompt } from './fortune-cycle.js'
-import { calculateShinsal } from './shinsal.js'
+import { calculateShinsal, luckShinsalLine } from './shinsal.js'
 import { groupRelations, luckRelations, pairRelations } from './relations.js'
 import {
   BRANCH_KO,
@@ -298,9 +298,13 @@ function buildInteractions(chart: ChartPillar[]): SajuInteraction[] {
 
 /** 운(대운·세운)과 원국의 관계 줄. 시간을 모르면(6글자) 시주는 빼고 본다. */
 function luckWithChart(analysis: SajuAnalysis): (pillar: string) => string[] {
-  const chart = chartPillars(analysis.fourPillars, !analysis.manseryeok?.hourPillarExcluded)
-    .map(([key, p]) => ({ label: SHINSAL_PILLAR[key], stem: p.stem, branch: p.branch }))
-  return (pillar) => luckRelations(pillar, chart)
+  const pillars = chartPillars(analysis.fourPillars, !analysis.manseryeok?.hourPillarExcluded)
+  const chart = pillars.map(([key, p]) => ({ label: SHINSAL_PILLAR[key], stem: p.stem, branch: p.branch }))
+  // 해마다 들어오는 신살(2026-10-15): 그 운의 글자가 원국과 만드는 신살을 한 줄로 덧붙인다.
+  return (pillar) => {
+    const shinsal = luckShinsalLine(pillar, pillars)
+    return [...luckRelations(pillar, chart), ...(shinsal ? [shinsal] : [])]
+  }
 }
 
 function buildPreview(analysis: Omit<SajuAnalysis, 'preview' | 'fortune'>): SajuPreview {

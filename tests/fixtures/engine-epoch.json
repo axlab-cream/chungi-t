@@ -10,6 +10,11 @@
       "cacheEpoch": "2026-10-15-six-char",
       "engineHash": "9bd9f717af1c4cf9",
       "change": "출생 시간 모름 6글자 확정 풀이를 12개 서비스·오늘의 운세로 확대, 대운 단정(지금 대운 실제 간지)"
+    },
+    {
+      "cacheEpoch": "2026-10-15-shinsal",
+      "engineHash": "70c3aae318dc35d3",
+      "change": "해마다 들어오는 신살(대운·세운 × 원국), 없는 신살 문장 빼기 도구"
     }
   ]
 }

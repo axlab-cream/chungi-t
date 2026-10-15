@@ -7,6 +7,7 @@ import { FAILED_RETRY_COOLDOWN_MS, SECTION_ATTEMPT_LIMIT, generateReportSectionN
 import { createOrGetReportRecord, getReportRecord, mutateReportRecord, toClientReport } from '../../src/report/report-store.js'
 import { loadHighlightTopics } from '../../src/report/longform-blocks.js'
 import { isSafetyIssue } from '../../src/report/tone-v2-review.js'
+import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 import type { BirthInput, SajuReport, SajuReportSection } from '../../src/types/index.js'
 
 /**
@@ -114,6 +115,51 @@ describe('1차 미완성은 2·3차 재검증으로 완성된다', { concurrency
     assert.equal(calls, SECTION_ATTEMPT_LIMIT)
     assert.equal(result.status, 'failed')
     assert.equal(result.reviewMode, undefined)
+  })
+
+  // 2026-10-15: 다시 쓰기를 다 해도 없는 신살(백호살은 계산하지 않음)이 남은 초안. 운영 테스트로 정할 때까지 스위치로 고른다.
+  const inventedSentence = '기운이 강한 편이라 백호살 이야기를 듣기도 해요.'
+  const inventedShinsalReading = `${styleOnlyReading}
+
+${inventedSentence} 그래도 지금 관계를 바꿀 이유는 없어요. 편한 방식을 그대로 이어 가요.`
+  async function withFallback(mode: string, run: () => Promise<void>) {
+    const report = runtimeConfig.report as { inventedShinsalFallback?: string }
+    const previous = report.inventedShinsalFallback
+    report.inventedShinsalFallback = mode
+    try { await run() } finally { report.inventedShinsalFallback = previous }
+  }
+
+  it('없는 신살이 남은 초안: 기본(keep)은 그대로 내보내고 운영 메모만 남긴다', async () => {
+    assert.equal((runtimeConfig.report as { inventedShinsalFallback?: string }).inventedShinsalFallback, 'keep')
+    const reportId = await freshReport()
+    OpenAI.Chat.Completions.prototype.create = (async () => reply(inventedShinsalReading)) as unknown as typeof sdkCreate
+    const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner })
+    assert.equal(result.status, 'complete', `미완성으로 남았다: ${result.error ?? ''}`)
+    assert.equal(result.reviewMode, 'lenient')
+    assert.ok(result.interpretation.includes(inventedSentence))
+    assert.ok(result.reviewNotes?.some((note) => note.includes('계산된 신살 목록에 없는 신살(백호살)')), JSON.stringify(result.reviewNotes))
+  })
+
+  it('없는 신살이 남은 초안: remove_sentence 는 그 문장만 빼고 내보낸다', async () => {
+    await withFallback('remove_sentence', async () => {
+      const reportId = await freshReport()
+      OpenAI.Chat.Completions.prototype.create = (async () => reply(inventedShinsalReading)) as unknown as typeof sdkCreate
+      const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner })
+      assert.equal(result.status, 'complete', `미완성으로 남았다: ${result.error ?? ''}`)
+      assert.ok(!result.interpretation.includes('백호살'))
+      assert.ok(result.interpretation.includes('그래도 지금 관계를 바꿀 이유는 없어요.'), '다른 문장은 남는다')
+      assert.ok(result.reviewNotes?.some((note) => note.includes('빼고 내보냈습니다')))
+    })
+  })
+
+  it('없는 신살이 남은 초안: 스위치에 막기 값을 넣어도 막지 않고 그대로 내보낸다', async () => {
+    await withFallback('block', async () => {
+      const reportId = await freshReport()
+      OpenAI.Chat.Completions.prototype.create = (async () => reply(inventedShinsalReading)) as unknown as typeof sdkCreate
+      const result = await generateReportSectionNow({ reportId, birth, analysis, context, sectionId: 'one', owner })
+      assert.equal(result.status, 'complete')
+      assert.ok(result.interpretation.includes(inventedSentence))
+    })
   })
 
   it('글이 아닌 초안("짧습니다.")은 문체 지적만 있어도 채택하지 않는다', async () => {

@@ -308,6 +308,56 @@ function contextTokens(context?: SajuReportContext): string[] {
   return expandTokens([...rawTokens, ...direct])
 }
 
+/** 계산된 신살 중 생활 가까이 드러나는 자리(일·시·월)와 공망으로 약해지지 않은 것(2026-10-15). */
+function heavyShinsalNames(saju: SajuAnalysis): string[] {
+  return saju.manseryeok?.shinsal?.items
+    .filter((item) => item.weight !== 'light' && item.voidEffect !== 'weakened')
+    .map((item) => item.name.replace(/\(.*\)$/, '')) ?? []
+}
+
+export const SHINSAL_DOMAIN = 'shinsal_interpretation'
+const MAX_SHINSAL_SECTIONS = 2
+
+/**
+ * 여러 장으로 된 리포트용: 신살 블록은 블록마다 한 번, 리포트 전체에서 MAX_SHINSAL_SECTIONS 장까지만 쓴다.
+ * 서비스 문맥(예: 이직)이 모든 장의 질문에 섞여 같은 블록이 모든 장을 차지하는 것을 막는다. topK+1 개를 받아 topK 로 자른다.
+ */
+export function capShinsalChunks(chunks: RagChunk[], used: Set<string>, topK: number): RagChunk[] {
+  const kept = chunks.filter((chunk) => {
+    if (chunk.domain !== SHINSAL_DOMAIN) return true
+    if (used.has(chunk.id) || used.size >= MAX_SHINSAL_SECTIONS) return false
+    used.add(chunk.id)
+    return true
+  })
+  return kept.slice(0, topK)
+}
+
+/** 같은 리포트의 2단계(본문 작성·검수): 1단계에서 이 장에 배정된 신살 블록만 남긴다. */
+export function keepAssignedShinsalChunks(chunks: RagChunk[], ragTopics: string[], topK: number): RagChunk[] {
+  return chunks.filter((chunk) => chunk.domain !== SHINSAL_DOMAIN || ragTopics.includes(chunk.topic)).slice(0, topK)
+}
+
+/**
+ * 신살 해석 블록은 일반 팩보다 점수가 낮아 그냥 두면 한 번도 뽑히지 않는다(2026-10-15 측정 0회).
+ * 그 사람에게 무겁게 계산된 신살이고, 블록의 주제어(신살 이름 포함)가 이번 질문과 겹칠 때만 한 칸을 내준다.
+ * 운(대운·세운)에만 들어오는 신살은 시기 재료(withChart)로만 넘기고 해석 블록은 붙이지 않는다.
+ * 계산되지 않은 신살 블록은 절대 뽑지 않는다(지어낸 신살 방지).
+ */
+function matchedShinsalChunk(corpus: RagChunk[], saju: SajuAnalysis, queryRaw: string, queryTokens: string[]): RagChunk | undefined {
+  const names = new Set(heavyShinsalNames(saju))
+  if (names.size === 0) return undefined
+  return corpus
+    .filter((chunk) => chunk.domain === SHINSAL_DOMAIN && chunk.keywords.some((keyword) => names.has(keyword)))
+    .map((chunk) => ({
+      chunk,
+      score: chunk.keywords
+        .filter((keyword) => !keyword.includes(' '))
+        .reduce((total, keyword) => total + keywordScore(keyword, queryRaw, queryTokens), 0),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.chunk.id.localeCompare(b.chunk.id))[0]?.chunk
+}
+
 function sajuTokens(saju: SajuAnalysis): string[] {
   const terms = [
     saju.dayMaster,
@@ -327,6 +377,8 @@ function sajuTokens(saju: SajuAnalysis): string[] {
     saju.manseryeok?.climate.moisture ?? '',
     ...(saju.manseryeok?.flowBridges.map((bridge) => bridge.bridge) ?? []),
     ...(saju.manseryeok?.interactions.flatMap((item) => [item.type, ...item.signs]) ?? []),
+    // 계산된 신살 중 생활 가까이 드러나는 자리(일·시·월)와 공망으로 약해지지 않은 것만 검색어로 쓴다(2026-10-15).
+    ...heavyShinsalNames(saju),
   ].filter(Boolean)
   return expandTokens(terms.map(String).flatMap(tokenize))
 }
@@ -680,10 +732,16 @@ export function retrieveRagChunks(
   const pausedDomains = skipsInputGuides(context)
     ? new Set(getActiveCorpusPacks(undefined, corpusSnapshot).filter((pack) => pack.serviceKey && isCustomerPausedProduct(pack.serviceKey)).map((pack) => pack.domain))
     : new Set<string>()
-  const candidates = skipsInputGuides(context)
+  // 서비스 금지 규칙과 부딪히는 팩은 그 서비스에서 뺀다(registry 의 excludedServiceKeys).
+  const excludedDomains = new Set(getActiveCorpusPacks(undefined, corpusSnapshot)
+    .filter((pack) => currentServiceKey && pack.excludedServiceKeys?.includes(currentServiceKey))
+    .map((pack) => pack.domain))
+  const candidates = (skipsInputGuides(context)
     ? corpus.filter((chunk) => chunk.domain !== INPUT_GUIDE_DOMAIN && !pausedDomains.has(chunk.domain ?? ''))
-    : corpus
+    : corpus).filter((chunk) => !excludedDomains.has(chunk.domain ?? ''))
+  // 신살 블록은 아래 matchedShinsalChunk 로만 들어온다. 질문에 신살 이름이 있다는 이유로 계산되지 않은 신살 블록이 뽑히면 안 된다.
   const scored = candidates
+    .filter((chunk) => chunk.domain !== SHINSAL_DOMAIN)
     .map((chunk) => ({
       chunk,
       score: scoreChunk(chunk, queryRaw, queryTokens, personalTokens, gbrTokens, vectorRank.get(chunk.id) ?? 0, pinnedIds, corpusSnapshot, currentServiceKey),
@@ -703,15 +761,19 @@ export function retrieveRagChunks(
       .slice(0, Math.min(2, topK))
     : []
 
+  const shinsalChunk = personalizes ? matchedShinsalChunk(candidates, saju, queryRaw, queryTokens) : undefined
+  const reserved = new Set([...pinnedIds, ...serviceChunks.map((chunk) => chunk.id), ...(shinsalChunk ? [shinsalChunk.id] : [])])
+
   const rankedChunks = [
     ...pinnedChunks,
     ...serviceChunks.filter((chunk) => !pinnedIds.has(chunk.id)),
+    ...(shinsalChunk && !pinnedIds.has(shinsalChunk.id) ? [shinsalChunk] : []),
     ...scored
       .map((item) => item.chunk)
-      .filter((chunk) => !pinnedIds.has(chunk.id) && !serviceChunks.some((serviceChunk) => serviceChunk.id === chunk.id)),
+      .filter((chunk) => !reserved.has(chunk.id)),
   ]
 
-  if (rankedChunks.length === 0) return corpus.slice(0, topK)
+  if (rankedChunks.length === 0) return corpus.filter((chunk) => chunk.domain !== SHINSAL_DOMAIN).slice(0, topK)
   return rankedChunks.slice(0, topK)
 }
 

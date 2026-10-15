@@ -3,12 +3,15 @@ import type { BirthInput, SajuAnalysis, SajuReportContext, SajuReportHighlight, 
 import { analyzeSaju } from '../saju/analyzer.js'
 import { OpenAiTruncatedError, isOpenAiConfigured, isOpenAiKeyRejected, isOpenAiQuotaExhausted, isTransientOpenAiFailure, type OpenAiResult } from '../llm/openai-adapter.js'
 import { isBlockingIssue } from './tone-v2-review.js'
-import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReportVerdict, buildOpenAiSajuReportSection, getReportModel, parseGeneratedSajuReportSection, reviewGeneratedSajuReportSection } from './report-generator.js'
+import { buildOpenAiReportHighlight, buildOpenAiReportSummary, buildOpenAiReportVerdict, buildOpenAiSajuReportSection, getReportModel, INVENTED_SHINSAL_ISSUE, inventedShinsalFallback, parseGeneratedSajuReportSection, removeInventedShinsalSentences, reviewGeneratedSajuReportSection } from './report-generator.js'
 import { loadHighlightTopics } from './longform-blocks.js'
 import { InterpretationQualityError } from './interpretation-validation.js'
 import { assertReportOwner, getReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord } from './report-store.js'
 import { getCorpusSnapshot, isCorpusSnapshotUsable } from '../rag/corpus-registry.js'
 import { isGenerationPaused } from '../admin/ops-queue.js'
+
+/** 운영 메모: 마지막 단계에서 없는 신살 문장을 빼고 내보냈다. */
+export const INVENTED_SHINSAL_REMOVED_NOTE = '없는 신살을 쓴 문장을 빼고 내보냈습니다(inventedShinsalFallback=remove_sentence).'
 
 interface GenerationParams {
   reportId: string
@@ -599,12 +602,22 @@ export async function generateReportSectionNow(params: GenerationParams & { sect
     }
 
     // 3차 — 안전·구조 지적이 없는 초안을 채택한다. 최신 초안부터.
+    // 없는 신살이 남은 초안은 스위치(runtime-config report.inventedShinsalFallback)대로: 그대로 내보내거나 그 문장만 빼고 내보낸다.
+    const shinsalFallback = inventedShinsalFallback()
     for (const draft of (await loadDrafts()).reverse()) {
       if (draft.issues.some(isBlockingIssue)) continue
+      const stripped = shinsalFallback === 'remove_sentence' && draft.issues.some((issue) => issue.startsWith(INVENTED_SHINSAL_ISSUE))
+        ? removeInventedShinsalSentences({ analysis, context: record.context, hook: draft.hook, interpretation: draft.interpretation })
+        : undefined
+      // 문장을 빼서 글이 아니게 되면(구조·안전 지적) 원래 초안을 그대로 쓴다.
+      const cleaned = stripped?.removed && !reviewGeneratedSajuReportSection({
+        analysis, birth: record.birth, context: record.context, section: storedSection,
+        hook: stripped.hook, interpretation: stripped.interpretation, siblings, corpusSnapshot, verdict: record.report.verdict,
+      }).issues.some(isBlockingIssue) ? stripped : undefined
       await saveComplete(
-        { hook: draft.hook, interpretation: draft.interpretation, generatedAt: draft.attempt.finishedAt ?? new Date().toISOString(), tokenUsage: draft.attempt.tokenUsage, model: draft.attempt.model },
+        { hook: cleaned?.hook ?? draft.hook, interpretation: cleaned?.interpretation ?? draft.interpretation, generatedAt: draft.attempt.finishedAt ?? new Date().toISOString(), tokenUsage: draft.attempt.tokenUsage, model: draft.attempt.model },
         undefined,
-        { reviewMode: 'lenient', reviewNotes: draft.issues },
+        { reviewMode: 'lenient', reviewNotes: cleaned ? [...draft.issues, INVENTED_SHINSAL_REMOVED_NOTE] : draft.issues },
       )
       return true
     }
