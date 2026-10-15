@@ -216,11 +216,14 @@
   function controls() {
     input.disabled = !ready || busy || liveConnecting;
     send.disabled = !ready || busy || liveConnecting;
-    voice.disabled = !ready || (!liveVoice && busy);
-    voice.textContent = liveVoice ? (liveConnecting ? '음성 연결 취소' : '실시간 음성 종료') : '◉ 음성으로 말하기';
-    voice.setAttribute('aria-pressed', String(Boolean(liveVoice)));
+    // Voice consultation is withdrawn from the page (2026-10-15); keep guards for old cached markup.
+    if (voice) {
+      voice.disabled = !ready || (!liveVoice && busy);
+      voice.textContent = liveVoice ? (liveConnecting ? '음성 연결 취소' : '실시간 음성 종료') : '◉ 음성으로 말하기';
+      voice.setAttribute('aria-pressed', String(Boolean(liveVoice)));
+    }
     const sceneVoice = $('#voice-scene-button');
-    if (sceneVoice) { sceneVoice.disabled = voice.disabled; sceneVoice.textContent = liveVoice ? voice.textContent : '음성 연결'; sceneVoice.setAttribute('aria-pressed', String(Boolean(liveVoice))); }
+    if (sceneVoice && voice) { sceneVoice.disabled = voice.disabled; sceneVoice.textContent = liveVoice ? voice.textContent : '음성 연결'; sceneVoice.setAttribute('aria-pressed', String(Boolean(liveVoice))); }
     $('#consultation-form').setAttribute('aria-busy', String(busy));
   }
   function showGate(error) {
@@ -333,7 +336,7 @@
     });
     liveVoice = connection; controls(); await connection.start();
   }
-  voice.addEventListener('click', () => { selectMode('voice'); void toggleVoice(); });
+  voice?.addEventListener('click', () => { selectMode('voice'); void toggleVoice(); });
   $('#voice-scene-button')?.addEventListener('click', toggleVoice);
   document.addEventListener('visibilitychange', () => { if (document.hidden) liveVoice?.stop('화면을 벗어나 음성 연결을 종료했어요.'); });
   window.addEventListener('pagehide', () => { sessionVersion++; liveVoice?.stop(); ready = false; waiting(false); stopAudio(); pending = null; });
