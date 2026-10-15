@@ -528,8 +528,14 @@ function contextText(context?: SajuReportContext): string {
  * 안내 내용은 참고서를 새 형식으로 다시 쓸 때 필요한 장에서만 뽑히게 되살린다.
  */
 const INPUT_GUIDE_DOMAIN = 'input_context_interpretation'
+// 천명사주 리포트 문맥은 서비스 키가 비어 있다(app.ts parseReportContext). 문맥이 있는데 키가 없으면 천명사주로 본다.
+// 키가 있을 때만 켜던 2026-10-14 수정은 실제 천명사주 경로에서 꺼져 있었다(10/15 발견).
+function contextServiceKey(context?: SajuReportContext): string | undefined {
+  return context ? normalizeServiceKey(context.serviceKey) : undefined
+}
+
 function skipsInputGuides(context?: SajuReportContext): boolean {
-  return Boolean(context?.serviceKey) && normalizeServiceKey(context!.serviceKey!) === 'saju_master'
+  return contextServiceKey(context) === 'saju_master'
 }
 
 function pinnedContextChunkIds(context?: SajuReportContext): Set<string> {
@@ -655,7 +661,7 @@ export function retrieveRagChunks(
   const gbrTokens = personalizes ? graphBoostTokens(queryTokens, saju, context) : []
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))
   const pinnedIds = pinnedContextChunkIds(context)
-  const currentServiceKey = context?.serviceKey ? normalizeServiceKey(context.serviceKey) : undefined
+  const currentServiceKey = contextServiceKey(context)
   const serviceDomain = currentServiceKey
     ? getServiceCorpusDomain(currentServiceKey, corpusSnapshot)
     : undefined
