@@ -15,8 +15,9 @@ Document public APIs, internal contracts, events, and schemas.
 `UMSH_ADMIN_SUPER_EMAILS` 하나다. 코드에 권한을 박지 않으며, 설정에서 이메일을 지우면
 코드 변경 없이 권한이 회수된다. 설정이 비어 있으면 아무에게도 권한이 없다.
 
-`UMSH_ADMIN_EMAILS`(`isAdminEmail`/`isAdminOwner`)는 **결제 없이 유료 리포트를 여는
-레거시 unlock 목록**이며 운영 권한 판정에 절대 쓰지 않는다.
+`isAdminEmail`/`isAdminOwner`는 **결제 없이 유료 리포트를 여는** 판정이다. 2026-10-15부터
+관리자 계정(활성 `umsh_admin_accounts`, `UMSH_ADMIN_SUPER_EMAILS`, `UMSH_LOCAL_ADMIN_EMAIL`)만 무료로 연다.
+예전 `UMSH_ADMIN_EMAILS` 목록은 없앴다. 이 판정을 운영 권한 판정에 쓰지 않는다(관리자 → 무료, 반대 방향은 없음).
 
 | 상태 | 조건 | 본문 |
 | --- | --- | --- |

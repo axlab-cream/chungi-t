@@ -68,7 +68,9 @@ test('삭제 버튼은 서버가 admin 을 준 응답에서만 그려지고, 두
   assert.match(html, /method: 'DELETE'/)
   const app = readFileSync(join(root, 'src', 'server', 'app.ts'), 'utf8')
   const route = app.slice(app.indexOf("app.get('/api/user/reports'"), app.indexOf("app.get(", app.indexOf("app.get('/api/user/reports'") + 1))
-  assert.equal((route.match(/admin: isAdminOwner\(owner\)/g) ?? []).length, 2, '두 응답 분기 모두 admin 을 실어야 한다')
+  // 2026-10-15: 관리자 판정이 비동기가 됐다. 한 분기는 바로 싣고, 다른 분기는 한 번 구한 값을 쓴다.
+  assert.match(route, /admin: await isAdminOwner\(owner\)/)
+  assert.match(route, /const admin = await isAdminOwner\(owner\)[\s\S]*\n\s+admin,\n/)
   const del = app.slice(app.indexOf("app.delete('/api/user/reports/:reportId'"), app.indexOf('app.post(', app.indexOf("app.delete('/api/user/reports/:reportId'")))
   assert.match(del, /deleteOpsJobsForTarget\(reportId\)/, '지운 리포트의 큐 작업이 남아 dead 만 쌓인다')
 })
