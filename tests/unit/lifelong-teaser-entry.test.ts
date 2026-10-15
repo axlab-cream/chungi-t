@@ -9,7 +9,7 @@ const end = html.indexOf('      const sampleVideo =', start)
 assert.ok(start >= 0 && end > start)
 const source = html.slice(start, end)
 
-function harness(options: { authenticated?: boolean; profile?: object | null; fetchError?: Error } = {}) {
+function harness(options: { authenticated?: boolean; profile?: object | null; fetchError?: Error; guest?: boolean } = {}) {
   const events: string[] = []
   const state = { concern: '이전 고민', serviceKey: '이전 서비스' }
   const context = {
@@ -28,6 +28,13 @@ function harness(options: { authenticated?: boolean; profile?: object | null; fe
     showNudge: (message: string) => events.push(`nudge:${message}`),
     beginAnalysisAfterAuth: () => events.push('analyze'),
     state,
+    // 2026-10-14 비회원: 서버가 비회원 로그인을 켜 둔 경우만 비회원 세션이 생긴다(기본은 꺼짐).
+    todayGuestSession: async () => options.guest ? { access_token: 'guest-token', user: { is_anonymous: true } } : null,
+    window: { UMSHAuthSession: { isGuestSession: (session: { user?: { is_anonymous?: boolean } } | null) => Boolean(session?.user?.is_anonymous) } },
+    fetch: async (url: string, init: { headers: Record<string, string> }) => {
+      events.push(`guest-profile:${url}:${init.headers.Authorization}`)
+      return { ok: true, json: async () => ({ profile: { name: '비회원이름', birth: {} } }) }
+    },
   }
   const run = runInNewContext(`${source}\nbeginLifelongTeaserAfterAuth`, context) as () => Promise<void>
   return { run, events, state }
@@ -61,4 +68,10 @@ test('lifelong entry does not silently analyze with a stale cached profile after
   await h.run()
   assert.match(h.events.join('|'), /go:name\|nudge:프로필 조회 실패/)
   assert.doesNotMatch(h.events.join('|'), /apply-profile|analyze/)
+})
+
+test('2026-10-14 비회원은 같은 탭의 비회원 계정 프로필로 평생운 티저를 연다', async () => {
+  const h = harness({ authenticated: false, guest: true })
+  await h.run()
+  assert.deepEqual(h.events, ['clear-today', 'guest-profile:/api/user/profile:Bearer guest-token', 'apply-profile', 'analyze'])
 })

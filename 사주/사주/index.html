@@ -4701,6 +4701,18 @@
         go(profile ? "concern" : "name");
       }
 
+      /*
+       * 2026-10-14 오늘운은 비회원도 본다(docs/auth/guest-member-plan.md). 이 화면의 회원 세션은 localStorage 에만 있고
+       * 비회원 세션은 공용 클라이언트(sessionStorage)에만 있어, 회원이 없으면 비회원 세션을 쓴다(없으면 만든다).
+       * 서버가 비회원 로그인을 꺼 두었으면 null — 예전처럼 가입 화면으로 보낸다.
+       */
+      async function todayGuestSession() {
+        const helper = window.UMSHAuthSession;
+        if (!helper?.ensureGuestSession || !authConfigData?.guestSignIn) return null;
+        const session = await helper.ensureGuestSession({ config: authConfigData, client: null, session: null }, 0).catch(() => null);
+        return helper.isGuestSession?.(session) ? session : null;
+      }
+
       async function beginTodayAfterAuth() {
         todayRequestError = "";
         setTodayEntryPending();
@@ -4711,10 +4723,14 @@
           showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
           return;
         }
+        if (!session?.access_token) session = await todayGuestSession();
         if (!session?.access_token) {
           showAuthGate("오늘의 운을 보려면 먼저 가입해주세요.");
           return;
         }
+        const guestToday = Boolean(window.UMSHAuthSession?.isGuestSession?.(session));
+        // 비회원으로 오늘운을 보다 로그인한 경우: 사주 정보·결과를 먼저 회원 계정으로 옮겨야 다시 입력하라고 묻지 않는다.
+        if (!guestToday) await window.UMSHAuthSession?.claimGuestNow?.().catch(() => undefined);
 
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         sessionStorage.removeItem(AUTH_FORM_KEY);
@@ -4725,7 +4741,7 @@
           const requestedTodayId = todayParams.get("reportId") || todayParams.get("resultId");
           const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/today/fortune", {
             method: "POST",
-            headers: await authHeaders({ "Content-Type": "application/json" }),
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
             body: requestedTodayId ? JSON.stringify({ reportId: requestedTodayId }) : undefined,
           });
           const json = await res.json();
@@ -4749,6 +4765,14 @@
           syncBirthSessionFromState();
           clearTodayEntryPending();
           go("todayResult", false);
+          if (guestToday) {
+            window.UMSHGuestSaveSheet?.openWhenSeen({
+              entry: "today",
+              resultKey: "today:" + new Date().toISOString().slice(0, 10),
+              anchor: ".today-result-card .actions",
+              onLogin: () => { persistAuthFormState(); setTodayEntryPending(); showAuthGate("로그인하면 오늘의 운이 저장돼요."); },
+            });
+          }
         } catch (err) {
           todayRequestError = err.message || "오늘의 운세를 불러오지 못했습니다.";
           go("todayResult", false);
@@ -4760,6 +4784,8 @@
         go("loading", false);
         try {
           await saveCurrentUserProfile();
+          // 회원이 아니면 위 저장은 이 기기 캐시에만 남는다. 비회원 계정에 사주 정보를 저장해야 오늘운을 계산할 수 있다.
+          if (!(await currentAuthSession().catch(() => null))?.access_token) await registerGuestVisit();
           await beginTodayAfterAuth();
         } catch (err) {
           go("time", false);
@@ -5203,15 +5229,20 @@
           showAuthGate(err.message || "회원 인증 상태를 확인하지 못했습니다.");
           return;
         }
+        // 2026-10-14 비회원도 오늘운 다음 평생운 티저까지 본다(오늘운과 같은 비회원 세션).
+        if (!session?.access_token) session = await todayGuestSession();
         if (!session?.access_token) {
           showAuthGate("평생운을 보려면 먼저 로그인해주세요.");
           return;
         }
 
-        // 오늘운 결과의 이름·생년월일을 URL로 옮기지 않는다. 현재 계정의 서버 프로필만 사용한다.
+        // 오늘운 결과의 이름·생년월일을 URL로 옮기지 않는다. 현재 계정(비회원이면 이 탭의 비회원 계정)의 서버 프로필만 사용한다.
         let profile = null;
         try {
-          profile = await fetchUserProfile({ apply: false });
+          profile = window.UMSHAuthSession?.isGuestSession?.(session)
+            ? await fetch("/api/user/profile", { headers: { Authorization: `Bearer ${session.access_token}` } })
+              .then(async (response) => { const json = await response.json(); if (!response.ok) throw new Error(json.error || "저장된 사주 프로필을 불러오지 못했습니다."); return json.profile || null; })
+            : await fetchUserProfile({ apply: false });
         } catch (err) {
           go("name", false);
           showNudge(err.message || "저장된 사주 정보를 불러오지 못했습니다. 다시 확인해주세요.");
