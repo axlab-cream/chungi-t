@@ -43,7 +43,7 @@ const SEEDS: DirectorySeed[] = [
   { key: 'cmdg', tagline: '내 인생, 원래 이런 팔자야?', category: '종합', href: '/cmdg/', image: '/assets/umsh-cmdg-card-bg.webp', reportPath: '/cmdg/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'love_this_year', tagline: '도화가 들어오는 달과 놓치는 타이밍', category: '연애', href: '/love/this-year', image: '/love/this-year/assets/thisyear/campaign-2026/year-love-home-banner-v1.webp', reportPath: '/love/this-year/06-step-6_1-report-detail/index.html#step-6_1-report' },
   { key: 'job_choice', tagline: '관록·재백궁으로 보는 이 회사와 나의 결', category: '직업', href: '/work/job-choice', image: '/assets/umsh-jobchoice-card-bg.webp', reportPath: '/work/job-choice/06-step-6_1-report-detail/index.html#step-6_1-report' },
-  { key: 'cat_compatibility', tagline: '집사 사주와 고양이 성향을 겹쳐서', category: '궁합', href: '/match/cat', image: '/assets/umsh-petmatch-card-bg.webp', reportPath: '/match/cat/06-step-6_1-report-detail/index.html#step-6_1-report' },
+  { key: 'cat_compatibility', tagline: '집사 사주와 고양이 성향을 겹쳐서', category: '궁합', href: '/match/cat', image: '/assets/umsh-petmatch-card-bg.webp', reportPath: '/match/cat/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
   { key: 'lucky_color', tagline: '채울 색과 덜어낼 색, 지니면 좋은 것까지', category: '흐름', href: '/me/lucky', image: '/assets/umsh-luckycolor-card-bg.webp', reportPath: '/me/lucky/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
   { key: 'newyear_flow', tagline: '입춘 전환과 열두 달 월운으로 2027년을 미리', category: '흐름', href: '/flow/newyear', image: '/assets/umsh-newyear-card-bg.webp', reportPath: '/flow/newyear/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
   { key: 'wedding_day', tagline: '후보일마다 두 사람 조건을 세어 비교하고', category: '택일', href: '/day/wedding', image: '/assets/umsh-wedding-card-bg.webp', reportPath: '/day/wedding/06-step-6_1-report-detail/index.html#step-6_1-report', hidden: true },
@@ -71,6 +71,8 @@ export const CUSTOMER_PAUSED_PRODUCT_KEYS = new Set<PaymentProductKey>([
   'pass_angle',
   'newyear_flow',
   'wedding_day',
+  // 2026-10-14: 고양이 궁합 판매 중단(이전에는 포털·검색 노출만 숨겼다).
+  'cat_compatibility',
 ])
 
 export function listServiceDirectory(): ServiceDirectoryEntry[] {
