@@ -16,9 +16,10 @@
   --line-soft: rgba(247, 242, 233, 0.1);
   --seal: #8e3a29;
   --gold-gradient: linear-gradient(120deg, #846427 0%, #b99142 27%, #e0c47b 54%, #f1e3b1 72%, #9a7531 100%);
-  --font-brand: Georgia, "Times New Roman", serif;
-  --font-display: "Noto Serif KR", "Nanum Myeongjo", Batang, serif;
-  --font-ui: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  /* 2026-10-15 홈은 글꼴을 Pretendard 하나로 통일한다(사용자 요청). portal.css는 홈 전용이다. */
+  --font-brand: "Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: var(--font-brand);
+  --font-ui: var(--font-brand);
 }
 
 * {
@@ -595,9 +596,10 @@ a:focus-visible {
   display: none;
 }
 
+/* 2026-10-15 연애·직장 포스터는 그림 원래 색 그대로 보인다. 글자 받침용 그늘은 아래쪽에만 깐다. */
 .poster.is-love :is(img, video) {
-  opacity: 0.78;
-  filter: saturate(1.06) contrast(1.04) brightness(0.82);
+  opacity: 1;
+  filter: none;
   object-position: center 34%;
   transform: scale(1.02);
 }
@@ -626,8 +628,7 @@ a:focus-visible {
 
 .poster.is-love .poster-shade {
   background:
-    linear-gradient(180deg, rgba(5, 5, 4, 0.06), rgba(5, 5, 4, 0.2) 34%, rgba(5, 5, 4, 0.9) 100%),
-    linear-gradient(90deg, rgba(5, 5, 4, 0.38), rgba(5, 5, 4, 0.02) 74%);
+    linear-gradient(180deg, rgba(5, 5, 4, 0) 0%, rgba(5, 5, 4, 0) 46%, rgba(5, 5, 4, 0.55) 72%, rgba(5, 5, 4, 0.88) 100%);
 }
 
 .poster.is-place .poster-shade {
@@ -645,22 +646,21 @@ a:focus-visible {
 .poster.is-work img,
 .poster.is-work video,
 .poster.is-work :is(img, video) {
-  opacity: 0.82;
-  filter: saturate(1.08) contrast(1.06) brightness(0.84);
+  opacity: 1;
+  filter: none;
   object-position: center 34%;
   transform: scale(1.02);
 }
 
 .poster.is-work .poster-shade {
   background:
-    linear-gradient(180deg, rgba(5, 5, 4, 0.04), rgba(5, 5, 4, 0.2) 34%, rgba(5, 5, 4, 0.9) 100%),
-    linear-gradient(90deg, rgba(5, 5, 4, 0.4), rgba(5, 5, 4, 0.02) 74%);
+    linear-gradient(180deg, rgba(5, 5, 4, 0) 0%, rgba(5, 5, 4, 0) 46%, rgba(5, 5, 4, 0.55) 72%, rgba(5, 5, 4, 0.88) 100%);
 }
 
 .poster.is-work:hover :is(img, video),
 .poster.is-work:focus-visible :is(img, video),
 .poster.is-work.is-pointed :is(img, video) {
-  filter: saturate(1.14) contrast(1.1) brightness(0.92);
+  filter: brightness(1.04);
   transform: scale(1.06);
 }
 
@@ -691,7 +691,7 @@ a:focus-visible {
 .poster.is-love:hover :is(img, video),
 .poster.is-love:focus-visible :is(img, video),
 .poster.is-love.is-pointed :is(img, video) {
-  filter: saturate(1.12) contrast(1.08) brightness(0.9);
+  filter: brightness(1.04);
   transform: scale(1.06);
 }
 
@@ -2062,3 +2062,8 @@ a:focus-visible {
 .weekly-free-card:hover{border-color:#e8c879}
 .weekly-free-card:focus-visible{outline:3px solid #e8c879;outline-offset:4px}
 @media(max-width:360px){.weekly-free .section-title{gap:8px}.weekly-free .section-title h2{font-size:17px}.weekly-free-caption{padding:13px 12px;gap:8px}.weekly-free-caption strong{font-size:14px}}
+
+/* 천명상담 배너 제목은 consultation.css에서 serif로 잡혀 있어 홈에서만 Pretendard로 덮는다. */
+.consultation-promo .consultation-promo-copy strong {
+  font-family: var(--font-ui);
+}

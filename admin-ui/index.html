@@ -667,6 +667,7 @@
       <summary class="admin-nav-label">회원</summary>
       <div class="admin-nav-links">
         <a href="/ops/constellation-7f3c/members" data-admin-route="members">회원 관리</a>
+        <a href="/ops/constellation-7f3c/guests" data-admin-route="guests">비회원 관리</a>
         <a href="/ops/constellation-7f3c/support" data-admin-route="support">고객 지원</a>
       </div>
     </details>
@@ -955,6 +956,7 @@
           { path: '/analytics', label: '방문 · 전환', dates: { label: '방문 시각', fallback: '7d', maxDays: 92, tip: '최대 92일까지 볼 수 있습니다. 결제 완료·가입 수도 같은 기간으로 셉니다.' }, load: function (body) { loadFunnelAnalytics(body); } },
         ] },
         { path: '/members', key: 'members', title: '회원 관리', detail: '회원의 가입·결제·리포트 이력을 확인합니다.', dates: { label: '가입일' }, load: function (body) { loadLiveMembers(body); } },
+        { path: '/guests', key: 'guests', title: '비회원 관리', detail: '사주를 넣고 SNS 로그인은 안 한 비회원을 사람 단위로 봅니다.', load: function (body) { loadGuestPeople(body); } },
         { path: '/support', key: 'support', title: '고객 지원', detail: '문의 접수부터 처리 완료까지 관리합니다.', dates: { label: '접수일', tip: '기간을 고르면 그 기간에 접수된 문의를 최대 500건, 전체 기간이면 최근에 손댄 100건을 보여 줍니다.' }, load: function (body) { loadSupportCases(body); } },
         { path: '/payments', key: 'payments', title: '결제 관리', detail: '결제 내역과 환불, 매출을 한곳에서 봅니다.', tabs: [
           { path: '', label: '결제 내역', dates: { label: '결제일' }, load: function (body) { loadPaymentsHistory(body); } },
@@ -1599,6 +1601,106 @@
         body.appendChild(notice);
       }
       /*
+       * 회원 › 비회원 관리 (2026-10-15, docs/auth/guest-member-plan.md).
+       * 비회원 한 사람 = 한 줄: 같은 기기(브라우저) + 같은 사주면 같은 사람, 기기가 다르면 다른 사람.
+       * SNS 로그인하면 "회원 전환"으로 바뀌고 회원 상세에서 이어 본다. 마지막 방문 30일이 지나면 정리 대상(이름·생일만 지우고 통계는 남김).
+       */
+      var guestListState = { offset: 0, limit: 20, q: '', filter: 'all', sort: 'recent' };
+      var GUEST_FILTERS = [['all', '전체'], ['open', '전환 안 함'], ['converted', '회원 전환'], ['stale', '30일 지남']];
+      var GUEST_GENDERS = { male: '남', female: '여' };
+      async function loadGuestPeople(body) {
+        body.replaceChildren();
+        guestListState.offset = 0;
+        var linked = new URLSearchParams(window.location.search).get('filter');
+        guestListState.filter = GUEST_FILTERS.some(function (entry) { return entry[0] === linked; }) ? linked : 'all';
+        var filters = document.createElement('form'); filters.className = 'admin-filterbar'; filters.setAttribute('role', 'search');
+        var search = document.createElement('input'); search.type = 'search'; search.name = 'q'; search.placeholder = '이름'; search.setAttribute('aria-label', '비회원 검색'); search.value = guestListState.q; search.style.minWidth = '180px';
+        var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
+        var seg = document.createElement('div'); seg.className = 'admin-seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', '비회원 구분');
+        GUEST_FILTERS.forEach(function (entry) {
+          var button = document.createElement('button'); button.type = 'button'; button.dataset.filter = entry[0]; button.dataset.label = entry[1]; button.textContent = entry[1];
+          button.addEventListener('click', function () { guestListState.filter = entry[0]; guestListState.offset = 0; refresh(); });
+          seg.appendChild(button);
+        });
+        var sort = document.createElement('select'); sort.setAttribute('aria-label', '정렬');
+        [['recent', '최근 방문순'], ['first', '첫 방문 최신순'], ['visits', '방문 많은 순'], ['name', '이름 가나다순']].forEach(function (entry) { var option = document.createElement('option'); option.value = entry[0]; option.textContent = entry[1]; sort.appendChild(option); });
+        sort.value = guestListState.sort;
+        filters.append(search, submit, seg, sort);
+        filters.addEventListener('submit', function (event) { event.preventDefault(); guestListState.q = search.value.trim(); guestListState.offset = 0; refresh(); });
+        sort.addEventListener('change', function () { guestListState.sort = sort.value; guestListState.offset = 0; refresh(); });
+        var note = document.createElement('p'); note.className = 'admin-hint';
+        note.textContent = '같은 기기에서 같은 사주로 다시 보면 한 사람(방문 수 +1)으로 셉니다. 기기가 다르면 이름·생일이 같아도 다른 사람으로 셉니다. 마지막 방문 30일이 지나면 정리 대상입니다.';
+        var section = document.createElement('section'); section.className = 'admin-section';
+        section.appendChild(memberEmpty('불러오는 중입니다.'));
+        body.append(filters, note, section);
+        function refresh() {
+          seg.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.filter === guestListState.filter ? 'true' : 'false'); });
+          return renderGuestsPage(body, section, refresh);
+        }
+        await refresh();
+      }
+      async function renderGuestsPage(body, section, refresh) {
+        var params = new URLSearchParams({ limit: String(guestListState.limit), offset: String(guestListState.offset), sort: guestListState.sort, filter: guestListState.filter });
+        if (guestListState.q) params.set('q', guestListState.q);
+        section.setAttribute('aria-busy', 'true');
+        try {
+          var response = await fetch('/api/admin/v1/guests?' + params.toString(), { credentials: 'same-origin' });
+          var payload = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw new Error(payload.error || '비회원 목록을 불러오지 못했습니다.');
+          var guests = Array.isArray(payload.guests) ? payload.guests : [];
+          var total = Number(payload.total || 0);
+          var counts = payload.counts || null;
+          adminCount(body.querySelector('form.admin-filterbar'), counts ? counts.all : null, total, '명', Boolean(guestListState.q || guestListState.filter !== 'all'));
+          if (counts) body.querySelectorAll('.admin-seg[aria-label="비회원 구분"] button').forEach(function (button) {
+            button.textContent = button.dataset.label + ' ' + Number(counts[button.dataset.filter] || 0).toLocaleString('ko-KR');
+          });
+          section.replaceChildren();
+          if (guestListState.filter === 'stale' && total > 0) {
+            var bar = document.createElement('div'); bar.style.margin = '0 0 12px';
+            var clean = document.createElement('button'); clean.type = 'button'; clean.className = 'admin-button';
+            clean.textContent = '30일 지난 비회원 ' + total.toLocaleString('ko-KR') + '명 정리';
+            clean.addEventListener('click', function () { anonymizeGuestsFlow(total, refresh); });
+            bar.appendChild(clean); section.appendChild(bar);
+          }
+          if (!guests.length) {
+            section.appendChild(memberEmpty(guestListState.q || guestListState.filter !== 'all' ? '조건에 맞는 비회원이 없습니다.' : '비회원 기록이 아직 없습니다.'));
+            return;
+          }
+          section.appendChild(memberTable(['이름', '출생 연도·성별', '첫 방문', '마지막 방문', '#방문', '본 결과', '약관 동의', '회원 전환', '상태'], guests, function (item) {
+            var person = [item.birthYear ? item.birthYear + '년' : null, GUEST_GENDERS[item.gender] || null].filter(Boolean).join(' · ');
+            var services = item.services && item.services.length ? item.services.slice(-3).join(', ') + (item.services.length > 3 ? ' 외 ' + (item.services.length - 3) : '') : '—';
+            var converted = item.convertedTo ? adminLink('회원 보기 · ' + memberDay(item.convertedAt), '/members?id=' + encodeURIComponent(item.convertedTo)) : '—';
+            var state = item.anonymizedAt ? memberChip('정리됨', '') : item.stale ? memberChip('30일 지남', 'warn') : memberChip('보관 중', 'ok');
+            var consent = item.consentedAt ? memberChip('동의 ' + memberDay(item.consentedAt) + (item.marketingConsented ? ' · 마케팅' : ''), 'ok') : memberChip('미동의', '');
+            var name = item.name || (item.anonymizedAt ? '(정리됨)' : item.hasSaju ? '이름 미등록' : '사주 미입력');
+            return [name, person || '—', memberWhen(item.firstSeenAt), memberWhen(item.lastSeenAt), String(item.visits || 1) + '회', services, consent, converted, state];
+          }));
+          var pager = document.createElement('div'); pager.className = 'admin-pager';
+          var first = total ? guestListState.offset + 1 : 0; var last = Math.min(total, guestListState.offset + guests.length);
+          var summary = document.createElement('span'); summary.textContent = total.toLocaleString('ko-KR') + '명 중 ' + first + '–' + last;
+          var buttons = document.createElement('div'); buttons.className = 'admin-pager-buttons';
+          var prev = document.createElement('button'); prev.type = 'button'; prev.textContent = '‹'; prev.setAttribute('aria-label', '이전 페이지'); prev.disabled = guestListState.offset <= 0;
+          var next = document.createElement('button'); next.type = 'button'; next.textContent = '›'; next.setAttribute('aria-label', '다음 페이지'); next.disabled = guestListState.offset + guestListState.limit >= total;
+          prev.addEventListener('click', function () { guestListState.offset = Math.max(0, guestListState.offset - guestListState.limit); refresh(); });
+          next.addEventListener('click', function () { guestListState.offset += guestListState.limit; refresh(); });
+          buttons.append(prev, next); pager.append(summary, buttons); section.appendChild(pager);
+        } catch (error) {
+          section.replaceChildren(memberEmpty(error.message));
+        } finally {
+          section.removeAttribute('aria-busy');
+        }
+      }
+      async function anonymizeGuestsFlow(total, refresh) {
+        var ok = await adminConfirm('마지막 방문 30일이 지난 비회원 ' + total.toLocaleString('ko-KR') + '명(한 번에 최대 200명)의 이름·생일(월·일)·태어난 시를 지웁니다. 방문마다 생긴 비회원 계정과 그 결과 기록도 지웁니다. 출생 연도·성별·본 결과·방문 수·날짜는 통계로 남습니다. 되돌릴 수 없습니다.', { title: '30일 지난 비회원 정리', okLabel: '정리', danger: true });
+        if (!ok) return;
+        try {
+          var result = await adminJson('/api/admin/v1/guests/anonymize', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ confirm: true }) });
+          var done = (result && result.result) || {};
+          adminToast('비회원 ' + Number(done.people || 0).toLocaleString('ko-KR') + '명을 정리했습니다.' + (done.failedAccounts ? ' 계정 ' + done.failedAccounts + '개는 지우지 못했습니다. 다시 누르면 남은 것만 시도합니다.' : ''));
+          refresh();
+        } catch (error) { adminToast(error.message, 'error'); }
+      }
+      /*
        * 회원 › 회원 관리 (2026-10 개편 4단계, docs/admin-ia.md).
        * 목록은 서버에서 검색(이름·회원 번호)·결제 여부·가입일·정렬을 걸고, 거른 결과의 전체 수로 페이지를 나눈다.
        * 행마다 서버가 인증·주문을 한 번씩 더 조회하므로 한 화면은 최대 100명이다.
@@ -1633,7 +1735,9 @@
           seg.appendChild(button);
         });
         var linkedKind = new URLSearchParams(window.location.search).get('kind');
-        if (linkedKind === 'member' || linkedKind === 'guest') memberListState.kind = linkedKind;
+        // 2026-10-15 회원 관리는 SNS 회원만. 옛 비회원 링크(?kind=guest)는 비회원 관리로 보낸다.
+        if (linkedKind === 'guest') { window.location.replace(ADMIN_BASE + '/guests'); return; }
+        memberListState.kind = 'member';
         var kindSeg = document.createElement('div'); kindSeg.className = 'admin-seg'; kindSeg.setAttribute('role', 'group'); kindSeg.setAttribute('aria-label', '회원 구분');
         [['', '전체'], ['member', '회원'], ['guest', '비회원']].forEach(function (entry) {
           var button = document.createElement('button'); button.type = 'button'; button.dataset.kind = entry[0]; button.dataset.label = entry[1]; button.textContent = entry[1];
@@ -1644,7 +1748,7 @@
         [['recent', '최근 활동순'], ['joined', '최근 가입순'], ['joined_asc', '오래된 가입순'], ['name', '이름 가나다순'], ['name_desc', '이름 역순']].forEach(function (entry) { var option = document.createElement('option'); option.value = entry[0]; option.textContent = entry[1]; sort.appendChild(option); });
         sort.value = memberListState.sort;
         var submit = document.createElement('button'); submit.type = 'submit'; submit.className = 'admin-button'; submit.textContent = '검색';
-        filters.append(search, submit, kindSeg, seg, sort);
+        filters.append(search, submit, seg, sort);
         filters.addEventListener('submit', function (event) { event.preventDefault(); memberListState.q = search.value.trim(); memberListState.offset = 0; refresh(); });
         sort.addEventListener('change', function () { memberListState.sort = sort.value; memberListState.offset = 0; refresh(); });
         var section = document.createElement('section'); section.className = 'admin-section';
@@ -1685,23 +1789,24 @@
           var total = Number(payload.total || 0);
           // 2026-10-14 요청: 전체 회원 수와 지금 조건에 맞는 회원 수를 검색줄 오른쪽에, 회원·비회원 수는 구분 버튼에 붙인다.
           var counts = payload.counts || null;
-          adminCount(body.querySelector('form.admin-filterbar'), counts ? counts.all : null, total, '명', Boolean(memberListState.q || memberListState.paid || memberListState.kind || adminRange()));
+          adminCount(body.querySelector('form.admin-filterbar'), counts ? counts.member : null, total, '명', Boolean(memberListState.q || memberListState.paid || adminRange()));
           if (counts) body.querySelectorAll('.admin-seg[aria-label="회원 구분"] button').forEach(function (button) {
             var n = button.dataset.kind === 'member' ? counts.member : button.dataset.kind === 'guest' ? counts.guest : counts.all;
             button.textContent = button.dataset.label + ' ' + Number(n || 0).toLocaleString('ko-KR');
           });
           // 서버가 거르고 나눈 페이지라 화면 쪽 정렬·페이지(enhanceTable)는 겹치지 않게 끈다.
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
-          table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">구분</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col">풀이·결제 알림</th><th scope="col">이벤트 알림</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
+          table.innerHTML = '<thead><tr><th scope="col" data-server-sort="name">이름</th><th scope="col">약관 동의</th><th scope="col">회원 ID</th><th scope="col">이메일</th><th scope="col">상태</th><th scope="col" data-server-sort="joined">가입일</th><th scope="col">최근 로그인</th><th scope="col">가입 경로</th><th scope="col">풀이·결제 알림</th><th scope="col">이벤트 알림</th><th scope="col" class="admin-num">결제</th><th scope="col" class="admin-num">누적 결제액</th><th scope="col" class="admin-actions-col">관리</th></tr></thead>';
           var rows = document.createElement('tbody');
           if (!members.length) {
-            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="13">' + (memberListState.q || memberListState.paid || memberListState.kind || adminRange() ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
+            var empty = document.createElement('tr'); empty.innerHTML = '<td class="admin-empty" colspan="13">' + (memberListState.q || memberListState.paid || adminRange() ? '조건에 맞는 회원이 없습니다.' : '회원 프로필이 아직 없습니다.') + '</td>'; rows.appendChild(empty);
           }
           members.forEach(function (item) {
             var row = document.createElement('tr'); row.tabIndex = 0;
             // 2026-10-07: 동명이인 구분용 회원 ID(로그인 계정 번호, 결제·리포트가 모두 이 번호로 묶인다). 앞 8자리만 보이고 복사는 전체.
             var nameCell = document.createElement('td'); nameCell.textContent = item.name || '—'; row.appendChild(nameCell);
-            var kindCell = document.createElement('td'); kindCell.appendChild(memberKindChip(item.accountType)); row.appendChild(kindCell);
+            // 2026-10-15 지금 버전 약관에 동의했는지. 기존 회원은 다음 로그인 때 다시 받는다. undefined = 표가 아직 없음.
+            var kindCell = document.createElement('td'); kindCell.appendChild(item.consentedAt === undefined ? document.createTextNode('—') : item.consentedAt ? memberChip('동의 ' + memberDay(item.consentedAt), 'ok') : memberChip('미동의', 'warn')); row.appendChild(kindCell);
             var idCell = document.createElement('td'); idCell.className = 'admin-mono'; idCell.title = item.id; idCell.appendChild(copyChip(item.id, String(item.id).slice(0, 8))); row.appendChild(idCell);
             var emailCell = document.createElement('td'); emailCell.textContent = item.email || '—'; row.appendChild(emailCell);
             var stateCell = document.createElement('td'); stateCell.appendChild(item.banned ? memberChip('정지', 'error') : memberChip('정상', 'ok')); row.appendChild(stateCell);
@@ -1971,6 +2076,7 @@
           ['support', '문의', data.support ? data.support.length : null, renderSupport],
           ['coupons', '쿠폰', data.coupons ? data.coupons.length : null, renderCoupons],
           ['devices', '앱 기기', data.devices ? data.devices.length : null, renderDevices],
+          ['consents', '동의 이력', data.consents ? data.consents.length : null, renderConsents],
         ];
         sections.forEach(function (entry) {
           var link = document.createElement('a'); link.href = '#'; link.dataset.tab = entry[0];
@@ -2075,6 +2181,21 @@
           if (!data.devices.length) { target.appendChild(memberEmpty('앱에 로그인한 기기가 없습니다. 웹에서만 이용한 회원일 수 있습니다.')); return; }
           target.appendChild(memberTable(['기기', '앱 버전', '알림', '최근 사용', '처음 연결'], data.devices, function (item) {
             return [(MEMBER_PLATFORM[item.platform] || item.platform) + (item.deviceName ? ' · ' + item.deviceName : ''), item.appVersion || '—', item.isActive ? memberChip('받음', 'ok') : memberChip('꺼짐', ''), memberWhen(item.lastActiveAt), memberDay(item.createdAt)];
+          }));
+        }
+        // 2026-10-15 약관 동의 이력(쌓기만 하는 증빙)과 비회원 시절 기록(기기별 한 줄).
+        function renderConsents(target) {
+          var SOURCES = { 'guest-sheet': '무료 결과 시트(비회원)', login: '로그인 화면', reconsent: '로그인 후 재동의' };
+          if (!data.consents) target.appendChild(memberFailed('동의 이력'));
+          else if (!data.consents.length) target.appendChild(memberEmpty('약관 동의 기록이 없습니다. 다음 로그인 때 동의를 받습니다.'));
+          else target.appendChild(memberTable(['동의 시각', '약관 버전', '필수(약관·개인정보·만 14세)', '마케팅 수신', '동의한 곳'], data.consents, function (item) {
+            return [memberWhen(item.agreedAt), item.version, memberChip('모두 동의', 'ok'), item.marketing ? memberChip('동의', 'ok') : memberChip('안 함', ''), (SOURCES[item.source] || item.source) + (item.isGuest ? ' · 비회원 때' : '')];
+          }));
+          var h = document.createElement('h4'); h.textContent = '비회원 시절 기록'; h.style.marginTop = '20px'; target.appendChild(h);
+          if (!data.guestHistory) target.appendChild(memberFailed('비회원 시절 기록'));
+          else if (!data.guestHistory.length) target.appendChild(memberEmpty('비회원으로 이용하다 로그인한 기록이 없습니다.'));
+          else target.appendChild(memberTable(['첫 방문', '마지막 방문', '#방문', '본 결과', '회원 전환'], data.guestHistory, function (item) {
+            return [memberWhen(item.firstSeenAt), memberWhen(item.lastSeenAt), String(item.visits || 1) + '회', (item.services || []).join(', ') || '—', memberWhen(item.convertedAt)];
           }));
         }
         show('basic');

@@ -70,6 +70,7 @@ import { applyAdminReportUnlock, isAdminOwner } from '../auth/admin.js'
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
+import { CONSENT_VERSION, LedgerError, listGuestPeopleForMember, anonymizeStaleGuests, countGuestPeople, countGuestPeopleConverted, countGuestPeopleCreated, countStaleGuests, currentConsentTimes, hasCurrentConsent, listConsents, listGuestPeople, markGuestConverted, parseConsentInput, recordConsent, recordGuestVisit, type GuestFilter, type GuestSort } from '../user/guest-ledger.js'
 import { type MemberContact, countLiveMembers, countMemberKinds, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
@@ -1407,6 +1408,8 @@ function authConfig() {
       naver: NAVER_LOGIN_ENABLED ? SUPABASE_NAVER_PROVIDER : '',
     },
     guestSignIn: GUEST_SIGNIN_ENABLED,
+    // 2026-10-15 약관 동의 버전. 화면이 보여 준 버전과 서버 버전이 같을 때만 동의를 기록한다.
+    consentVersion: CONSENT_VERSION,
   }
 }
 
@@ -3268,6 +3271,51 @@ app.get('/api/admin/v1/payments/revenue', async (req, res) => {
 })
 
 /**
+ * 2026-10-15 회원 › 비회원 관리. 비회원 한 사람(같은 기기 + 같은 사주) = 한 줄. 필터: 전체·전환 안 함·회원 전환·30일 지남.
+ */
+app.get('/api/admin/v1/guests', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  const filter: GuestFilter = req.query?.filter === 'open' || req.query?.filter === 'converted' || req.query?.filter === 'stale' ? req.query.filter : 'all'
+  const sort: GuestSort = req.query?.sort === 'first' || req.query?.sort === 'visits' || req.query?.sort === 'name' ? req.query.sort : 'recent'
+  try {
+    const [{ guests, total }, counts] = await Promise.all([
+      listGuestPeople({ filter, sort, q: trimmedString(req.query?.q), limit: Number(req.query?.limit ?? 20), offset: Number(req.query?.offset ?? 0) }),
+      countGuestPeople().catch(() => null),
+    ])
+    res.json({ guests, total, counts, filter, asOf: new Date().toISOString() })
+  } catch (err) {
+    if (err instanceof LedgerError && err.code === 'LEDGER_NOT_READY') { res.status(503).json({ code: 'LEDGER_NOT_READY', error: '비회원 표가 아직 없습니다. Supabase에 마이그레이션(20261015120000)을 적용해 주세요.' }); return }
+    res.status(503).json({ code: 'GUEST_LOOKUP_FAILED', error: '비회원 목록을 불러오지 못했습니다.' })
+  }
+})
+
+/**
+ * 30일 지난 비회원 정리(대표 결정 2026-10-15). 이름·생일을 지우고 통계만 남기며, 방문마다 생긴 익명 계정과 그 프로필·리포트를 지운다.
+ * 되돌릴 수 없어 confirm:true 와 멱등 키를 요구하고 감사 기록(member.guest.anonymize)을 남긴다.
+ */
+app.post('/api/admin/v1/guests/anonymize', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const idempotencyKey = adminCommandKey(req)
+  const body = asObject(req.body)
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id): id is string => typeof id === 'string').slice(0, 200) : null
+  if (body.confirm !== true || idempotencyKey.length < 8 || (ids && !ids.length)) {
+    res.status(422).json({ code: 'INVALID_GUEST_ANONYMIZE', error: '정리할 비회원과 확인 여부를 다시 확인해 주세요.' }); return
+  }
+  try {
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.guest.anonymize', idempotencyKey,
+      body: { ids: ids ?? 'all-stale' },
+      target: { type: 'guest_people', id: ids ? String(ids.length) + '명' : 'all-stale' },
+    }, async () => anonymizeStaleGuests(ids))
+    res.status(command.replayed ? 200 : 202).json({ result: command.result, replayed: command.replayed })
+  } catch (err) {
+    if (err instanceof LedgerError && err.code === 'LEDGER_NOT_READY') { res.status(503).json({ code: 'LEDGER_NOT_READY', error: '비회원 표가 아직 없습니다.' }); return }
+    console.error('[guests/anonymize]', err instanceof Error ? err.message : err)
+    res.status(503).json({ code: 'GUEST_ANONYMIZE_FAILED', error: '비회원을 정리하지 못했습니다.' })
+  }
+})
+
+/**
  * 2026-09-19: 가입·최종 방문·SNS·구매 요약까지 목록에 그대로 보여 달라는 요청으로
  * 행마다 외부 호출이 붙는다(listLiveMembers 주석 참고) — 그래서 페이지당 20건으로 자르고
  * total 을 함께 내려 화면이 페이지네이션을 할 수 있게 한다.
@@ -3282,12 +3330,14 @@ app.get('/api/admin/v1/members', async (req, res) => {
   const sort = req.query?.sort === 'joined' || req.query?.sort === 'joined_asc' || req.query?.sort === 'name' || req.query?.sort === 'name_desc' ? req.query.sort : 'recent'
   const from = trimmedString(req.query?.from) || undefined
   const to = trimmedString(req.query?.to) || undefined
-  // 2026-10-14 회원/비회원 구분. 없으면 둘 다.
-  const kind = req.query?.kind === 'member' || req.query?.kind === 'guest' ? req.query.kind : undefined
+  // 2026-10-15 회원 관리는 SNS 회원만 보인다. 비회원은 비회원 관리(/api/admin/v1/guests)에서 사람 단위로 본다. kind=guest 는 옛 링크 호환.
+  const kind = req.query?.kind === 'guest' ? 'guest' : 'member'
   try {
     // 2026-10-14: 조건 없는 전체 수(회원·비회원 따로)도 함께 준다. 세다가 실패해도 목록은 그대로 나간다.
     const [{ members, total }, counts] = await Promise.all([searchLiveMembers({ q, paid, from, to, sort, kind, limit, offset }), countMemberKinds().catch(() => null)])
-    res.json({ members, total, counts, limit, offset, asOf: new Date().toISOString() })
+    // 2026-10-15 약관 동의 칸: 지금 버전에 동의한 시각. 표가 없으면 null(화면은 "—").
+    const consents = await currentConsentTimes(members.map((member) => member.id)).catch(() => null)
+    res.json({ members: members.map((member) => ({ ...member, consentedAt: consents ? consents.get(member.id.toLowerCase()) ?? null : undefined })), total, counts, limit, offset, asOf: new Date().toISOString() })
   } catch {
     res.status(503).json({ code: 'LIVE_MEMBER_LOOKUP_FAILED', error: '실제 회원 저장소를 불러오지 못했습니다.' })
   }
@@ -3342,6 +3392,9 @@ app.get('/api/admin/v1/members/:id/overview', async (req, res) => {
     support: listSupportCasesForMember(userId),
     coupons: listWallet(userId),
     devices: Promise.resolve().then(() => pushStore().listUserDevices(userId)),
+    // 2026-10-15 약관 동의 이력과 비회원 시절 기록(기기별). 표가 없으면 errors 에만 오른다.
+    consents: listConsents(userId),
+    guestHistory: listGuestPeopleForMember(userId),
   }
   const names = Object.keys(parts) as Array<keyof typeof parts>
   const settled = await Promise.allSettled(names.map((name) => parts[name]))
@@ -3619,7 +3672,11 @@ app.get('/api/admin/v1/dashboard', async (req, res) => {
   const kpiRange = range && before ? { from: before, to: range.to } : null
   try {
     const dashboard = await buildDashboard({
-      countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions,
+      countMembersCreated, countReportsCreated,
+      // 2026-10-15 비회원은 장부(사람 단위)로 센다. 표가 아직 없으면 예전 방식(익명 계정 단위)으로 센다.
+      countGuestsCreated: (from, to) => countGuestPeopleCreated(from, to).catch(() => countGuestsCreated(from, to)),
+      countGuestConversions: (from, to) => countGuestPeopleConverted(from, to).catch(() => countGuestConversions(from, to)),
+      countStaleGuests: () => countStaleGuests(),
       async listOrdersSince(from) {
         const orders: PaymentOrder[] = []
         let cursor: string | undefined
@@ -3654,7 +3711,7 @@ app.get('/api/admin/v1/dashboard', async (req, res) => {
 app.get('/api/admin/v1/operations-snapshot', async (req, res) => {
   if (!await requireStaff(req, res, 'reports:read')) return
   try {
-    const [members, reports, guests] = await Promise.all([countLiveMembers(), countLiveReports(), countLiveGuests().catch(() => null)])
+    const [members, reports, guests] = await Promise.all([countLiveMembers(), countLiveReports(), countGuestPeople().then((counts) => counts.open).catch(() => countLiveGuests().catch(() => null))])
     const corpus = getCorpusSnapshot()
     res.json({
       members,
@@ -4634,9 +4691,60 @@ app.post('/api/auth/claim-guest', async (req, res) => {
       await saveUserBirthProfile({ ...guestProfile, userId: member.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, member)
     }
     if (guestProfile) await markGuestProfileClaimed(guest, member.id).catch((err) => console.error('[claim-guest] 전환 표시 실패', err instanceof Error ? err.message : err))
+    // 2026-10-15 비회원 관리 장부에도 회원 계정을 적는다(표가 아직 없으면 건너뛴다).
+    await markGuestConverted(guest.id, member.id).catch((err) => console.error('[claim-guest] 장부 전환 표시 실패', err instanceof Error ? err.message : err))
     res.json({ reports, profile: profilePlan })
   } catch (err) {
     respondRequestFailure(res, err, '비회원 기록 이어받기 실패')
+  }
+})
+
+/**
+ * 2026-10-15 약관 동의 기록. 비회원 결과 시트·로그인 화면에서 필수(이용약관·개인정보·만 14세 이상)를 모두 체크하면
+ * 그 계정(비회원 또는 회원)으로 한 줄 쌓는다. 비회원이 시트에서 동의하고 SNS 로그인하면 화면이 회원 토큰으로 한 번 더 보낸다.
+ */
+function respondLedgerFailure(res: Response, err: unknown, fallback: string): void {
+  if (err instanceof LedgerError) { res.status(err.status).json({ code: err.code, error: fallback, ...(err.code === 'CONSENT_VERSION_MISMATCH' ? { version: CONSENT_VERSION } : {}) }); return }
+  respondRequestFailure(res, err, fallback)
+}
+
+app.post('/api/consents', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    const input = parseConsentInput(req.body)
+    await recordConsent(owner, input)
+    res.json({ ok: true, version: CONSENT_VERSION })
+  } catch (err) {
+    respondLedgerFailure(res, err, '약관 동의를 기록하지 못했습니다.')
+  }
+})
+
+/** 회원이 지금 버전 약관에 동의했는지. 기존 회원은 다음 로그인 때 한 번 다시 받는다. */
+app.get('/api/consents/status', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const owner = await requireMemberUser(req, res)
+    if (!owner) return
+    res.json({ version: CONSENT_VERSION, current: await hasCurrentConsent(owner.id) })
+  } catch (err) {
+    respondLedgerFailure(res, err, '약관 동의 기록을 확인하지 못했습니다.')
+  }
+})
+
+/** 비회원이 무료 결과를 볼 때 한 번. 같은 기기 + 같은 사주면 같은 비회원으로 쌓는다(src/user/guest-ledger.ts). */
+app.post('/api/guest/visit', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const owner = await requireSupabaseUser(req, res)
+    if (!owner) return
+    if (!owner.isAnonymous) { res.json({ ok: true, skipped: 'member' }); return }
+    const profile = await getUserBirthProfile(owner).catch(() => null)
+    await recordGuestVisit({ guest: owner, deviceId: req.body?.deviceId, service: req.body?.service, profile })
+    res.json({ ok: true })
+  } catch (err) {
+    respondLedgerFailure(res, err, '비회원 방문을 기록하지 못했습니다.')
   }
 })
 

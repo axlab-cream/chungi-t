@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
+import { cmdgRagContext } from '../../src/report/cmdg-reading-contract.js'
 import { createOrGetReportRecord, createReportId, deleteReportRecord, listReportRecords, saveReportRecord, toClientReport } from '../../src/report/report-store.js'
 import { getCorpusSnapshot } from '../../src/rag/corpus-registry.js'
 import type { BirthInput, SajuReportContext } from '../../src/types/index.js'
@@ -43,7 +44,10 @@ describe('[TASK] 사주 리포트 생성 테스트 하네스', () => {
     // 남은 목차로 본다 - 관계는 love-loop, 일과 돈은 career-money 가 같은 입력을 읽는다.
     assert.ok(report.sections.some((section) => section.id === 'love-loop'))
     assert.ok(report.sections.some((section) => section.id === 'career-money'))
-    assert.ok(report.sections.some((section) => section.ragTopics.some((topic) => topic.includes('직장'))))
+    // 예전엔 '직장' 입력 안내 조각 제목이 ragTopics 에 들어오는지 봤다. 천명사주는 2026-10-14부터 입력 안내를
+    // 참고서 7칸에 고정하지 않으므로(키 없는 실제 경로도 10/15부터 적용), 일 답이 일·돈 장 검색어로 가는지 본다.
+    assert.equal(cmdgRagContext(sampleContext, 'career-money').work, '직장 다녀요')
+    assert.equal(cmdgRagContext(sampleContext, 'hidden-personality').work, undefined)
     assert.ok(report.sections.every((section) => section.interpretation.includes('\n\n')))
     assert.doesNotMatch(report.sections.map((section) => section.interpretation).join('\n'), /95점 번들|상담 의도:|hot\/dry/)
     assert.ok(report.quality)

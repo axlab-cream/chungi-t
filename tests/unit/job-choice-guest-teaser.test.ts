@@ -147,7 +147,8 @@ describe('로그인 게이트 옵트인', () => {
   })
 
   it('가입 직후 로컬 입력이 있으면 04 를 02 로 되돌리지 않는다', () => {
-    assert.match(gate, /if \(onTeaser && !\(await hasSajuProfile\(session\)\)\) \{\s*\/\/[^\n]*\n\s*if \(hasLocalGuestProfile\(\)\) return reveal\(\);/)
+    // 2026-10-15: 비회원이면 그 자리에서 동의·저장 시트도 건다. 되돌리지 않고 화면을 여는 건 같다.
+    assert.match(gate, /if \(onTeaser && !\(await hasSajuProfile\(session\)\)\) \{(?:\s*\/\/[^\n]*\n)+\s*if \(hasLocalGuestProfile\(\)\) \{[^}]*return reveal\(\); \}/)
   })
 })
 

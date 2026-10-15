@@ -1,4 +1,5 @@
 import type { SajuReportContext } from '../types/index.js'
+import { normalizeServiceKey } from '../prompt/service-system.js'
 /** Structure is shared; facts and conclusions must come from the individual record. */
 export const CMDG_READING_CONTRACT = [
   '문체의 핵심은 친밀한 통찰이다. 보고서식 명령 나열이나 어미 치환이 아니다. 확인된 상황에서 무엇이 답답할 수 있는지 짚고, 겉의 조건과 실제 원하는 것의 차이를 생활말로 이어 준다. ~네, ~잖아, ~거야를 문맥에 맞게 쓰되 미확인 감정을 사실처럼 단정하지 않는다. 너·네를 매 문장 반복하지 말고 주어를 자연스럽게 생략한다. 직함보다 권한처럼 같은 결론을 전 장에서 복제하지 않는다. 전문 근거는 뜻을 설명하는 문장 속에 녹이고 행동 제안은 앞에서 짚은 사정에서 자연스럽게 나온다.',
@@ -83,7 +84,8 @@ const CMDG_WORK_SECTIONS = new Set(['concern-loop', 'career-money', 'career-tran
 const CMDG_LOVE_SECTIONS = new Set(['concern-loop', 'love-loop', 'destiny-partner', 'avoid-relationship', 'love-timing', 'action-guide'])
 
 export function cmdgRagContext(context: SajuReportContext, sectionId: string): SajuReportContext {
-  if (context.serviceKey !== 'saju_master') return context
+  // 실제 천명사주 문맥은 키가 비어 있으므로 키 이름 그대로 비교하지 않는다.
+  if (normalizeServiceKey(context.serviceKey) !== 'saju_master') return context
   const next = { ...context }
   if (next.concern) {
     const rule = CMDG_CONCERN_SEARCH[sectionId]

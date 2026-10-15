@@ -54,6 +54,21 @@ describe('천명사주 참고서 검색 범위', () => {
     assert.equal(cmdgRagContext({ ...full, serviceKey: 'work_move' }, 'hidden-personality').work, full.work, '다른 서비스는 그대로')
   })
 
+  it('실제 천명사주 경로처럼 서비스 키가 비어 있어도 같은 범위·같은 7칸이 된다', () => {
+    // app.ts parseReportContext 는 천명사주 키를 비워 둔다. 키를 넣은 테스트만 있어 10/14 수정이 운영에서 꺼진 걸 놓쳤다.
+    const full = { ...context, orientation: '이성 관계 중심 · 연애 상대 남자', relationship: '솔로예요', work: '직장 다녀요' }
+    const { serviceKey: _serviceKey, ...emptyKey } = full
+    const { serviceKey: _scoped, ...scopedFull } = cmdgRagContext(full, 'hidden-personality')
+    assert.deepEqual(cmdgRagContext(emptyKey, 'hidden-personality'), scopedFull)
+    const analysis = analyzeSaju(birth)
+    const sections = buildTemplateSajuReport(analysis, birth, full).sections
+    for (const section of sections) {
+      const query = `${section.category} ${section.classification}`
+      const ids = (ctx: typeof full | typeof emptyKey) => retrieveRagChunks(query, analysis, 7, cmdgRagContext(cmdgSectionContext(ctx, section.id), section.id), undefined, true).map((chunk) => chunk.id)
+      assert.deepEqual(ids(emptyKey), ids(full), section.id)
+    }
+  })
+
   it('판매 중지 서비스 자료는 어디에도 오지 않고, 고민이 이직이어도 성격 장(1~5장)에는 다른 서비스 자료가 오지 않는다', () => {
     const analysis = analyzeSaju(birth)
     const sections = buildTemplateSajuReport(analysis, birth, context).sections
