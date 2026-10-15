@@ -121,6 +121,31 @@ describe('saved chat generation identity and immutable reply', { concurrency: fa
     assert.equal(requests.length, 1)
   })
 
+  it('6글자로 만든 천명사주 풀이에서 이어지는 상담은 임시 12시 명식 대신 시주를 뺀 6글자 재료를 넘긴다', async () => {
+    const unknownBirth: BirthInput = { year: 1987, month: 6, day: 10, hour: 12, minute: 0, gender: 'female', calendar: 'solar' }
+    const { analyzeSaju } = await import('../../src/saju/analyzer.js')
+    const placeholderHour = analyzeSaju(unknownBirth).fourPillars.hour
+    const parentReport: SajuReport = { title: '천명사주', subtitle: '', generatedBy: 'template', model: 'template', sections: [{ id: 'profile', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '성격', categoryEn: '', classification: '성격', hook: '', patternKeys: [], ragTopics: [], interpretation: '저장된 6글자 풀이입니다.' }] }
+    const sajuMessage = async (context: Record<string, unknown>) => {
+      requests = []
+      const input = params()
+      const parent = await store.createOrGetReportRecord({ reportId: randomUUID(), birth: unknownBirth, context, templateReport: parentReport, owner: input.owner })
+      await generateSavedChat({ ...input, parentReportId: parent.record.resultId, serviceKey: undefined })
+      return requests[0].messages.map((message) => message.content).join('\n')
+    }
+    // 천명사주 문맥은 서비스 키를 비워 둔다. 새로 만든 리포트에만 6글자 표시가 있다.
+    const six = await sajuMessage({ birthTimeKnown: false, birthTimeReading: 'six_char' })
+    const personal = six.slice(six.indexOf('<personal_saju>'), six.indexOf('</personal_saju>'))
+    assert.ok(personal.length > 0)
+    assert.doesNotMatch(personal, new RegExp(placeholderHour.stem + placeholderHour.branch))
+    assert.doesNotMatch(personal, /12:00|"hour"/)
+    assert.match(personal, /"earth": 0/)
+    assert.match(six, /6글자 계산값을 확정 근거/)
+    // 표시 없는 예전 리포트의 상담은 예전 보류 안내를 그대로 쓴다.
+    const old = await sajuMessage({ birthTimeKnown: false })
+    assert.match(old, /임시 시각으로 계산한 시주 및 시각 의존 결론은 사용하지 말고/)
+  })
+
   it('caps saved history and rejects system-role injection without calling the model', async () => {
     const input = params()
     const history = Array.from({ length: 30 }, (_, index) => ({ role: 'user' as const, content: `${index}:` + '가'.repeat(5000) }))

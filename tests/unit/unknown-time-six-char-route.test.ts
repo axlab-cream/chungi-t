@@ -93,6 +93,27 @@ describe('천명사주 시간 모름 6글자 모드(실제 경로)', () => {
     assert.doesNotMatch(res.json.report.subtitle ?? '', /보류/)
   })
 
+  it('표시 없는 예전 리포트는 다시 열어도 예전 방식(보류) 그대로다 — 같은 주소, 섞이지 않음', async () => {
+    // 서버가 실제로 읽은 생년월일·문맥을 얻는다.
+    const probe = await analyze(input, 'six-char-probe')
+    const parsed = await store.getReportRecord(probe.json.report.reportId, { id: 'six-char-probe' } as any)
+    const { birthTimeReading: _marker, ...oldContext } = parsed!.context
+    // 3단계 이전에 만들어진 리포트: 같은 ID 규칙, 표시 없는 문맥, 보류 방식 기본 풀이.
+    const owner = { id: 'six-char-old-record' } as any
+    const { analyzeSaju } = await import('../../src/saju/analyzer.js')
+    const { buildTemplateSajuReport } = await import('../../src/report/report-generator.js')
+    const analysis = analyzeSaju(parsed!.birth)
+    const reportId = store.createReportId(parsed!.birth, oldContext, undefined, owner.id)
+    await store.createOrGetReportRecord({ reportId, birth: parsed!.birth, context: oldContext, analysis, templateReport: buildTemplateSajuReport(analysis, parsed!.birth, oldContext), owner, lineageId: store.createReportLineageId(parsed!.birth, oldContext, owner.id) })
+    const again = await analyze(input, owner.id)
+    assert.equal(again.status, 200, JSON.stringify(again.json))
+    assert.equal(again.json.report.reportId, reportId)
+    assert.notEqual(again.json.uncertainty?.mode, 'six_char')
+    assert.equal(again.json.elements, undefined)
+    assert.equal(again.json.dayMaster.strength, undefined)
+    assert.match(again.json.report.subtitle, /보류/)
+  })
+
   it('6글자 모드를 켜지 않은 서비스(이직운)는 시간 모름이면 기존처럼 보류한다', async () => {
     const res = await analyze({ ...input, serviceKey: 'work_move', context: { serviceKey: 'work_move' } }, 'six-char-work-move')
     assert.equal(res.status, 200, JSON.stringify(res.json))

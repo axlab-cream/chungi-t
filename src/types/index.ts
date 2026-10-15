@@ -595,6 +595,11 @@ export interface ConversationInput {
   history?: ConversationTurn[]
   /** Optional product/service key for per-service voice prompts. */
   serviceKey?: string | null
+  /**
+   * 출생 시각을 모르는 6글자 풀이에서 이어지는 상담처럼, 호출자가 이미 정리한 사주 재료를 넘길 때 쓴다.
+   * 없으면 birth 로 다시 계산한 전체 명식을 쓴다.
+   */
+  sajuOverride?: { analysis: SajuAnalysis; prompt: string }
 }
 
 export interface LlmMessage {
