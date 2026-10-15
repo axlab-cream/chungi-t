@@ -364,7 +364,8 @@ app.use(['/api/consultation/context', '/api/consultation/chat'], (_req, res, nex
 })
 app.use('/api/consultation', express.json({ limit: '4mb' }), consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
 // 카카오톡 채널 챗봇 "상주 천명" 스킬 서버. 비밀 헤더(KAKAO_SKILL_SECRET)로만 받는다. src/kakao/skill.ts
-app.post('/api/kakao/skill', express.json({ limit: '256kb' }), kakaoSkillHandler())
+// 천명사주 무료 계산값은 사이트 무료 화면과 같은 함수(buildUiAnalysisPayload)로 만든다. 따로 만들면 값이 어긋난다.
+app.post('/api/kakao/skill', express.json({ limit: '256kb' }), kakaoSkillHandler({ uiAnalysis: buildUiAnalysisPayload }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 // 푸시 발송(src/push/google-auth.ts)은 이 헤더의 OIDC 토큰으로 구글 인증을 받는다. 모듈 시점에는
