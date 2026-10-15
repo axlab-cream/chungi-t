@@ -204,11 +204,12 @@ describe('회원 상세·수정·정지 라우트는 감사 명령을 거치고,
   })
 })
 
+// 2026-10-15: 회원만 고른 목록은 DB가 바로 페이지를 나눈다. 비회원이 섞인 목록은 같은 사람을 묶느라 다 받아 서버에서 자른다(admin-live-data.test).
 describe('회원 목록 검색·필터 (2026-10 4단계)', { concurrency: false }, () => {
   const lastProfileQuery = () => calls.filter((call) => call.method === 'GET' && call.url.pathname === '/rest/v1/cheongi_user_profiles').at(-1)!.url
 
   it('이름 일부는 ilike 로, 필터 문법 글자는 지우고 보낸다', async () => {
-    await liveData.searchLiveMembers({ q: '김*철,수)', sort: 'name', limit: 50, offset: 50 })
+    await liveData.searchLiveMembers({ q: '김*철,수)', sort: 'name', kind: 'member', limit: 50, offset: 50 })
     const url = lastProfileQuery()
     assert.equal(url.searchParams.get('name'), 'ilike.*김철수*')
     assert.equal(url.searchParams.get('order'), 'name.asc')
@@ -217,7 +218,7 @@ describe('회원 목록 검색·필터 (2026-10 4단계)', { concurrency: false 
   })
 
   it('회원 번호 전체는 정확히 일치로 찾고, 행 수는 거른 결과 기준으로 센다', async () => {
-    const result = await liveData.searchLiveMembers({ q: PROFILE_ROW.user_id.toUpperCase() })
+    const result = await liveData.searchLiveMembers({ q: PROFILE_ROW.user_id.toUpperCase(), kind: 'member' })
     assert.equal(lastProfileQuery().searchParams.get('user_id'), `eq.${PROFILE_ROW.user_id}`)
     assert.equal(lastProfileQuery().searchParams.get('name'), null)
     assert.equal(result.members.length, 1)
@@ -226,7 +227,7 @@ describe('회원 목록 검색·필터 (2026-10 4단계)', { concurrency: false 
   })
 
   it('가입일 범위는 created_at 두 조건으로, 한 번에 100명을 넘지 않는다', async () => {
-    await liveData.searchLiveMembers({ from: '2026-09-01T00:00:00.000Z', to: '2026-10-01T00:00:00.000Z', limit: 500 })
+    await liveData.searchLiveMembers({ from: '2026-09-01T00:00:00.000Z', to: '2026-10-01T00:00:00.000Z', kind: 'member', limit: 500 })
     const url = lastProfileQuery()
     assert.deepEqual(url.searchParams.getAll('created_at'), ['gte.2026-09-01T00:00:00.000Z', 'lt.2026-10-01T00:00:00.000Z'])
     assert.equal(url.searchParams.get('limit'), '100')

@@ -1468,7 +1468,7 @@
       var memberListState = { offset: 0, limit: 20, q: '', paid: '', kind: '', from: '', to: '', sort: 'recent' };
       // 2026-10-14 회원(SNS 로그인) / 비회원(사주만 입력한 익명 계정). docs/auth/guest-member-plan.md
       var MEMBER_KINDS = { member: '회원', guest: '비회원' };
-      function memberKindChip(kind) { return kind === 'guest' ? memberChip('비회원', 'warn') : memberChip('회원'); }
+      function memberKindChip(kind, visits) { return kind === 'guest' ? memberChip(visits > 1 ? '비회원 · 방문 ' + visits + '회' : '비회원', 'warn') : memberChip('회원'); }
       var MEMBER_PROVIDERS = { kakao: '카카오', google: '구글', email: '이메일', apple: '애플', naver: '네이버', 'custom:naver': '네이버', anonymous: '비회원(SNS 미연결)' };
       function memberDay(value) {
         if (!value) return '—';
@@ -1541,6 +1541,8 @@
           if (counts) body.querySelectorAll('.admin-seg[aria-label="회원 구분"] button').forEach(function (button) {
             var n = button.dataset.kind === 'member' ? counts.member : button.dataset.kind === 'guest' ? counts.guest : counts.all;
             button.textContent = button.dataset.label + ' ' + Number(n || 0).toLocaleString('ko-KR');
+            // 2026-10-15 비회원은 같은 사람을 한 명으로 센다. 들어온 횟수는 따로 보인다.
+            if (button.dataset.kind === 'guest' && Number(counts.guestVisits) > Number(counts.guest)) button.title = '같은 사람은 한 명으로 셉니다. 방문 ' + Number(counts.guestVisits).toLocaleString('ko-KR') + '회';
           });
           // 서버가 거르고 나눈 페이지라 화면 쪽 정렬·페이지(enhanceTable)는 겹치지 않게 끈다.
           var table = document.createElement('table'); table.className = 'admin-table admin-table-clickable'; table.setAttribute('data-plain', '');
@@ -1553,7 +1555,7 @@
             var row = document.createElement('tr'); row.tabIndex = 0;
             // 2026-10-07: 동명이인 구분용 회원 ID(로그인 계정 번호, 결제·리포트가 모두 이 번호로 묶인다). 앞 8자리만 보이고 복사는 전체.
             var nameCell = document.createElement('td'); nameCell.textContent = item.name || '—'; row.appendChild(nameCell);
-            var kindCell = document.createElement('td'); kindCell.appendChild(memberKindChip(item.accountType)); row.appendChild(kindCell);
+            var kindCell = document.createElement('td'); kindCell.appendChild(memberKindChip(item.accountType, Number(item.visits || 0))); row.appendChild(kindCell);
             var idCell = document.createElement('td'); idCell.className = 'admin-mono'; idCell.title = item.id; idCell.appendChild(copyChip(item.id, String(item.id).slice(0, 8))); row.appendChild(idCell);
             var emailCell = document.createElement('td'); emailCell.textContent = item.email || '—'; row.appendChild(emailCell);
             var stateCell = document.createElement('td'); stateCell.appendChild(item.banned ? memberChip('정지', 'error') : memberChip('정상', 'ok')); row.appendChild(stateCell);

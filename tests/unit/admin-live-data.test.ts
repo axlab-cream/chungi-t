@@ -317,24 +317,22 @@ describe('2026-10-14 회원/비회원 구분', { concurrency: false }, () => {
     }
   })
 
-  it('비회원 수는 비회원 표시가 있는 프로필만 센다', async () => {
+  it('신규 비회원 수는 비회원 표시가 있는 프로필만, 기간 끝 전까지 받아 처음 온 사람만 센다', async () => {
     const before = requests.length
     await liveData.countGuestsCreated(new Date('2026-10-01T00:00:00.000Z'), new Date('2026-10-02T00:00:00.000Z'))
     const call = requests.slice(before)[0]
     assert.equal(call.url.searchParams.get('profile_payload->>account_type'), 'eq.guest')
-    assert.equal(call.headers.get('prefer'), 'count=exact')
+    assert.deepEqual(call.url.searchParams.getAll('created_at'), ['lt.2026-10-02T00:00:00.000Z'], '기간 전에 왔던 사람을 가려내려면 시작일로 자르면 안 된다')
   })
 
   it('2026-10-14 회원 관리 전체 수: 조건 없이 전체·회원·비회원을 따로 센다', async () => {
     const before = requests.length
     const counts = await liveData.countMemberKinds()
     const calls = requests.slice(before).filter((r) => r.url.pathname.endsWith('/cheongi_user_profiles'))
-    assert.deepEqual(calls.map((r) => r.url.searchParams.get('profile_payload->>account_type')).sort(), ['eq.guest', 'is.null', null].sort())
-    for (const call of calls) {
-      assert.equal(call.headers.get('prefer'), 'count=exact')
-      assert.equal(call.url.searchParams.get('name'), null, '검색 조건이 섞이면 안 된다')
-    }
-    assert.deepEqual(counts, { all: 6, member: 6, guest: 6 })
+    // 2026-10-15: 비회원은 같은 사람을 한 명으로 센 수(행을 받아 묶음)와 방문 수(exact count)를 따로 낸다.
+    assert.deepEqual(calls.map((r) => r.url.searchParams.get('profile_payload->>account_type')).sort(), ['eq.guest', 'eq.guest', 'is.null'])
+    for (const call of calls) assert.equal(call.url.searchParams.get('name'), null, '검색 조건이 섞이면 안 된다')
+    assert.deepEqual(counts, { all: 7, member: 6, guest: 1, guestVisits: 6 })
   })
 
   it('비회원→회원 전환 수는 content-range 의 전체 수를 읽는다(한 줄만 받아도 1로 세지 않는다)', async () => {

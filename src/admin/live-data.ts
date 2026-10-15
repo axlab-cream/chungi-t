@@ -8,6 +8,8 @@ type RestRow = Record<string, unknown>
 export type AdminMemberSummary = {
   /** 2026-10-14 회원(SNS 로그인) / 비회원(익명 계정, 사주만 입력). 어드민 회원 목록에서 둘 다 보여 주고 구분한다. */
   accountType?: 'member' | 'guest'
+  /** 2026-10-15 비회원만: 같은 사람(이름·생년월일시·성별·양음력 일치)으로 묶인 방문(익명 계정) 수. 행은 그중 하나를 대표로 보인다. */
+  visits?: number
   /** Page-relative display ordinal (offset + index + 1) — not a stored membership number, shifts if the page or sort order changes. */
   no?: number
   /** Raw, unmasked user_id — this screen is a deliberate lookup (list page or exact-ID search), not a scan-safe public listing. */
@@ -161,6 +163,61 @@ const GUEST_PROFILE_FILTER = { 'profile_payload->>account_type': 'eq.guest' }
 
 function accountTypeOf(value: unknown): 'member' | 'guest' {
   return value === 'guest' ? 'guest' : 'member'
+}
+
+/**
+ * 2026-10-15 비회원은 탭을 닫거나 1시간 쉬면 익명 계정이 새로 생긴다(PC방 보호를 위해 일부러 탭에만 둔다).
+ * 그래서 같은 사람이 여러 행으로 쌓인다. 이름(공백·대소문자 무시)·생년월일시·성별·양음력이 같으면 한 사람으로 본다.
+ * 생일과 이름이 모두 같은 다른 사람은 한 명으로 잡히지만 드물다. 사주 정보가 비면 계정 번호로 따로 센다.
+ */
+const GUEST_PERSON_COLUMNS = 'name,birth_year,birth_month,birth_day,birth_hour,birth_minute,gender,calendar,is_leap_month'
+
+export function guestPersonKey(row: RestRow): string {
+  const name = typeof row.name === 'string' ? row.name.replace(/\s+/g, '').toLowerCase() : ''
+  if (!name || row.birth_year == null) return `id:${String(row.user_id ?? '').toLowerCase()}`
+  return [name, row.birth_year, row.birth_month, row.birth_day, row.birth_hour, row.birth_minute ?? 0, row.gender, row.calendar, row.is_leap_month ? 1 : 0].join('|')
+}
+
+/** 회원은 그대로, 비회원은 같은 사람끼리 묶어 처음 나온 행(정렬 순서상 앞)을 대표로 남긴다. */
+function groupGuestRows(rows: RestRow[]): Array<{ row: RestRow; visits: number }> {
+  const groups: Array<{ row: RestRow; visits: number }> = []
+  const byKey = new Map<string, { row: RestRow; visits: number }>()
+  for (const row of rows) {
+    if (accountTypeOf(row.accountType) !== 'guest') { groups.push({ row, visits: 1 }); continue }
+    const key = guestPersonKey(row)
+    const found = byKey.get(key)
+    if (found) { found.visits += 1; continue }
+    const group = { row, visits: 1 }
+    byKey.set(key, group)
+    groups.push(group)
+  }
+  return groups
+}
+
+/** 묶으려면 조건에 맞는 행을 다 받아야 한다. 가벼운 열만 1,000행씩, 최대 20,000행까지. */
+const ALL_ROWS_PAGE = 1000
+const ALL_ROWS_CAP = 20000
+async function fetchAllRows(url: URL): Promise<RestRow[]> {
+  const rows: RestRow[] = []
+  for (let offset = 0; offset < ALL_ROWS_CAP; offset += ALL_ROWS_PAGE) {
+    const page = new URL(url)
+    page.searchParams.set('limit', String(ALL_ROWS_PAGE))
+    page.searchParams.set('offset', String(offset))
+    const response = await fetch(page, { headers: serviceHeaders() })
+    if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
+    const chunk = await response.json() as RestRow[]
+    rows.push(...chunk)
+    if (chunk.length < ALL_ROWS_PAGE) break
+  }
+  return rows
+}
+
+async function guestRows(extra: Record<string, string> = {}): Promise<RestRow[]> {
+  const url = new URL(tableUrl('cheongi_user_profiles'))
+  url.searchParams.set('select', `user_id,created_at,${GUEST_PERSON_COLUMNS}`)
+  url.searchParams.set('order', 'created_at.asc')
+  for (const [column, filter] of Object.entries({ ...GUEST_PROFILE_FILTER, ...extra })) url.searchParams.append(column, filter)
+  return fetchAllRows(url)
 }
 
 /** 주어진 계정 중 비회원(익명 계정) 프로필인 것. 리포트 목록의 회원/비회원 표시에 쓴다. */
@@ -350,17 +407,34 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
       url.searchParams.append('user_id', `in.(${ids.join(',')})`)
     } else if (ids.length) url.searchParams.append('user_id', `not.in.(${ids.join(',')})`)
   }
-  const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
-  if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
-  const rows = await response.json() as RestRow[]
-  const range = response.headers.get('content-range')?.split('/')[1]
-  const total = range && /^\d+$/.test(range) ? Number(range) : safeOffset + rows.length
+  let rows: RestRow[]
+  let total: number
+  const visits = new Map<RestRow, number>()
+  if (query.kind === 'member') {
+    const response = await fetch(url, { headers: { ...serviceHeaders(), prefer: 'count=exact' } })
+    if (!response.ok) throw new Error('LIVE_MEMBER_LOOKUP_FAILED')
+    rows = await response.json() as RestRow[]
+    const range = response.headers.get('content-range')?.split('/')[1]
+    total = range && /^\d+$/.test(range) ? Number(range) : safeOffset + rows.length
+  } else {
+    // 2026-10-15 비회원이 섞이면 같은 사람을 한 줄로 묶어야 해서, 조건에 맞는 행을 다 받아 묶은 뒤 페이지를 자른다.
+    url.searchParams.set('select', `user_id,created_at,updated_at,accountType:profile_payload->>account_type,${GUEST_PERSON_COLUMNS}`)
+    url.searchParams.delete('limit')
+    url.searchParams.delete('offset')
+    const groups = groupGuestRows(await fetchAllRows(url))
+    total = groups.length
+    const page = groups.slice(safeOffset, safeOffset + safeLimit)
+    rows = page.map((group) => group.row)
+    for (const group of page) visits.set(group.row, group.visits)
+  }
   const prefs = await memberNotifications(rows.map((row) => clipped(row.user_id, '')))
   const members = await Promise.all(rows.map(async (row, index) => {
     const userId = clipped(row.user_id, '')
     const [auth, purchases] = await Promise.all([memberAuthFacts(userId), memberPurchaseFacts(userId)])
+    const accountType = accountTypeOf(row.accountType)
     return {
-      accountType: accountTypeOf(row.accountType),
+      accountType,
+      ...(accountType === 'guest' ? { visits: visits.get(row) ?? 1 } : {}),
       notifications: notificationsFor(prefs, userId),
       no: safeOffset + index + 1,
       id: userId,
@@ -383,13 +457,14 @@ export async function searchLiveMembers(query: MemberListQuery = {}): Promise<{ 
  * 2026-10-14 요청: 회원 관리에서 전체 몇 명인지, 거른 결과가 몇 명인지 함께 본다.
  * 조건 없이 센 전체(회원+비회원)와 회원·비회원 수. 목록 조회와 별개라 실패하면 화면은 거른 수만 보여 준다.
  */
-export async function countMemberKinds(): Promise<{ all: number; member: number; guest: number }> {
-  const [all, member, guest] = await Promise.all([
-    countRows('cheongi_user_profiles', 'user_id'),
+export async function countMemberKinds(): Promise<{ all: number; member: number; guest: number; guestVisits: number }> {
+  // 2026-10-15 비회원은 같은 사람을 한 명으로 센 수(guest)와 들어온 횟수(guestVisits)를 따로 준다. 전체 = 회원 + 비회원(사람).
+  const [member, guest, guestVisits] = await Promise.all([
     countLiveMembers(),
     countLiveGuests(),
+    countRows('cheongi_user_profiles', 'user_id', GUEST_PROFILE_FILTER),
   ])
-  return { all, member, guest }
+  return { all: member + guest, member, guest, guestVisits }
 }
 
 export type AdminMemberReport = { reportId: string; serviceTitle: string; status: string; createdAt: string; updatedAt: string }
@@ -463,9 +538,9 @@ export function countLiveMembers(): Promise<number> {
   return countRows('cheongi_user_profiles', 'user_id', MEMBER_PROFILE_FILTER)
 }
 
-/** 사주 정보를 넣었지만 SNS 로그인은 안 한 비회원 수. */
-export function countLiveGuests(): Promise<number> {
-  return countRows('cheongi_user_profiles', 'user_id', GUEST_PROFILE_FILTER)
+/** 사주 정보를 넣었지만 SNS 로그인은 안 한 비회원 수. 2026-10-15부터 같은 사람은 한 명으로 센다(guestPersonKey). */
+export async function countLiveGuests(): Promise<number> {
+  return new Set((await guestRows()).map(guestPersonKey)).size
 }
 
 export async function findLiveMember(memberId: string): Promise<AdminMemberSummary | null> {
@@ -776,8 +851,17 @@ export async function countGuestConversions(from: Date, to: Date): Promise<numbe
   return (await response.json() as unknown[]).length
 }
 
-export function countGuestsCreated(from: Date, to: Date): Promise<number> {
-  return countCreatedBetween('cheongi_user_profiles', 'user_id', from, to, GUEST_PROFILE_FILTER)
+/** 2026-10-15 기간 안에 처음 들어온 비회원(사람) 수. 전에 들어왔던 사람이 다시 오면 신규로 세지 않는다. */
+export async function countGuestsCreated(from: Date, to: Date): Promise<number> {
+  const firstSeen = new Map<string, string>()
+  for (const row of await guestRows({ created_at: `lt.${to.toISOString()}` })) {
+    const key = guestPersonKey(row)
+    const at = clipped(row.created_at, '')
+    const seen = firstSeen.get(key)
+    if (seen === undefined || at < seen) firstSeen.set(key, at)
+  }
+  const fromMs = from.getTime()
+  return [...firstSeen.values()].filter((at) => Date.parse(at) >= fromMs).length
 }
 
 export function countReportsCreated(from: Date, to: Date): Promise<number> {
