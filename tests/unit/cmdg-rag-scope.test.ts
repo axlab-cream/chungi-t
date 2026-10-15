@@ -38,6 +38,22 @@ describe('천명사주 참고서 검색 범위', () => {
     assert.equal(cmdgRagContext({ ...context, serviceKey: 'work_move' }, 'hidden-personality').concern, context.concern, '다른 서비스는 그대로')
   })
 
+  it('일 답은 일·돈 장에만, 연애 상대·관계 답은 연애 장에만 검색어로 쓴다', () => {
+    const full = { ...context, orientation: '이성 관계 중심 · 연애 상대 남자', relationship: '솔로예요', work: '직장 다녀요' }
+    const personality = cmdgRagContext(full, 'hidden-personality')
+    assert.equal(personality.work, undefined)
+    assert.equal(personality.relationship, undefined)
+    assert.equal(personality.orientation, undefined)
+    assert.equal(cmdgRagContext(full, 'career-money').work, full.work)
+    assert.equal(cmdgRagContext(full, 'career-money').relationship, undefined)
+    assert.equal(cmdgRagContext(full, 'destiny-partner').relationship, full.relationship)
+    assert.equal(cmdgRagContext(full, 'destiny-partner').orientation, full.orientation)
+    assert.equal(cmdgRagContext(full, 'destiny-partner').work, undefined)
+    assert.equal(cmdgRagContext(full, 'concern-loop').work, full.work, '고민 장은 둘 다 본다')
+    assert.equal(cmdgRagContext(full, 'concern-loop').relationship, full.relationship)
+    assert.equal(cmdgRagContext({ ...full, serviceKey: 'work_move' }, 'hidden-personality').work, full.work, '다른 서비스는 그대로')
+  })
+
   it('판매 중지 서비스 자료는 어디에도 오지 않고, 고민이 이직이어도 성격 장(1~5장)에는 다른 서비스 자료가 오지 않는다', () => {
     const analysis = analyzeSaju(birth)
     const sections = buildTemplateSajuReport(analysis, birth, context).sections

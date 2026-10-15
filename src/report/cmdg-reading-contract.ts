@@ -77,11 +77,25 @@ const CMDG_CONCERN_SEARCH: Record<string, true | RegExp> = {
  * 9월 30일 "이직 결론을 연애·성격 장에 강제하지 않는다"를 연애 장 문맥에만 적용해, 성격 장 검색에는
  * 여전히 "이직"이 들어가 이직 자료가 올라왔다. 본문 작성 문맥(AI에게 보이는 고민)은 바꾸지 않는다.
  */
+// 생활 입력(관계·연애 상대·일)도 고민과 같다. 성격 장 검색에 "직장 다녀요"가 들어가면 직업 자료가,
+// "연애 중이에요"가 들어가면 연애 자료가 올라왔다(2026-10-15 측정). 관련 장에서만 검색어로 쓴다.
+const CMDG_WORK_SECTIONS = new Set(['concern-loop', 'career-money', 'career-transition', 'wealth-flow', 'action-guide'])
+const CMDG_LOVE_SECTIONS = new Set(['concern-loop', 'love-loop', 'destiny-partner', 'avoid-relationship', 'love-timing', 'action-guide'])
+
 export function cmdgRagContext(context: SajuReportContext, sectionId: string): SajuReportContext {
-  if (context.serviceKey !== 'saju_master' || !context.concern) return context
-  const rule = CMDG_CONCERN_SEARCH[sectionId]
-  const keep = rule === true || (rule instanceof RegExp && rule.test(context.concern))
-  return keep ? context : { ...context, concern: undefined }
+  if (context.serviceKey !== 'saju_master') return context
+  const next = { ...context }
+  if (next.concern) {
+    const rule = CMDG_CONCERN_SEARCH[sectionId]
+    const keep = rule === true || (rule instanceof RegExp && rule.test(next.concern))
+    if (!keep) next.concern = undefined
+  }
+  if (!CMDG_WORK_SECTIONS.has(sectionId)) next.work = undefined
+  if (!CMDG_LOVE_SECTIONS.has(sectionId)) {
+    next.relationship = undefined
+    next.orientation = undefined
+  }
+  return next
 }
 
 export function reviewCmdgStoryStructure(text: string): string[] {
