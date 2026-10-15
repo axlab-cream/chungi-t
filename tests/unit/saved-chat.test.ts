@@ -150,12 +150,12 @@ describe('saved chat generation identity and immutable reply', { concurrency: fa
     requests = []
     const input = params()
     const parentReport: SajuReport = { title: '커플궁합', subtitle: '', generatedBy: 'template', model: 'template', sections: [{ id: 'overview', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '총평', categoryEn: '', classification: '총평', hook: '', patternKeys: [], ragTopics: [], interpretation: '저장된 궁합 풀이입니다.' }] }
-    const context = { serviceKey: 'match_couple', birthTimeKnown: true, birthTimeReading: 'six_char' as const, partner: { mode: 'known' as const, name: '합성', relationship: '연인', birthTimeKnown: false, pillars: { year: '甲戌', month: '癸酉', day: '丙寅', hour: '壬辰' } } }
+    const context = { serviceKey: 'match_couple', birthTimeKnown: true, birthTimeReading: 'six_char' as const, partner: { mode: 'known' as const, name: '합성', relationship: '연인', birthTimeKnown: false, pillars: { year: '甲戌', month: '癸酉', day: '丙寅', hour: 'HOUR_SENTINEL' } } }
     const parent = await store.createOrGetReportRecord({ reportId: randomUUID(), birth, context, templateReport: parentReport, owner: input.owner })
     await generateSavedChat({ ...input, parentReportId: parent.record.resultId })
     const sent = requests[0].messages.map((message) => message.content).join('\n')
     assert.match(sent, /丙寅/)
-    assert.doesNotMatch(sent, /壬辰/)
+    assert.doesNotMatch(sent, /HOUR_SENTINEL/)
   })
 
   it('caps saved history and rejects system-role injection without calling the model', async () => {
