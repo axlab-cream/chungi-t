@@ -427,7 +427,7 @@
             location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
           });
         } else {
-          primary.textContent = `전체 보기 (${SERVICE.price})`;
+          primary.textContent = '전체 보기';
           primary.addEventListener('click', (event) => {
             event.preventDefault();
             pay();
@@ -453,7 +453,7 @@
         if (node) node.textContent = '아직 계산 전입니다. 위 안내를 마치면 이 자리에 내 사주 기준 풀이가 들어옵니다.';
       });
       if (primary && reason === 'login') {
-        primary.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
+        primary.textContent = '로그인하고 전체 보기';
         primary.addEventListener('click', (event) => {
           event.preventDefault();
           location.assign(loginUrl());

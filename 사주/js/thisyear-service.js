@@ -528,7 +528,7 @@
       }
       setStatus('핵심 결론을 먼저 열었습니다', '무료 공개', GATE_COPY.payment);
       const pay = () => location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
-      takeOverCta(`전체 보기 (${SERVICE.price})`, pay);
+      takeOverCta('전체 보기', pay);
       routePurchase(outcome, pay);
       return;
     }
@@ -551,7 +551,7 @@
 
       if (reason === 'login') {
         setStatus('로그인하면 내 사주로 계산합니다', '비로그인', GATE_COPY.login);
-        takeOverCta(`로그인하고 전체 보기 (${SERVICE.price})`, () => location.assign(loginUrl()));
+        takeOverCta('로그인하고 전체 보기', () => location.assign(loginUrl()));
       } else if (reason === 'profile') {
         setStatus('기본 사주 정보가 필요합니다', '프로필 필요', GATE_COPY.profile);
         takeOverCta('내 사주 등록하기', () => {
@@ -559,7 +559,7 @@
         });
       } else if (reason === 'payment') {
         setStatus('결제 후 전체 리포트가 열립니다', '미결제', GATE_COPY.payment);
-        takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
+        takeOverCta('전체 보기', () => {
           location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
         });
       } else if (reason === 'input') {

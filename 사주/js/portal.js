@@ -120,7 +120,7 @@
       search: true,
       items: [
         { label: '전체 상품', meta: '모든 운세 메뉴 보기', action: 'filter', category: 'all', status: '전체' },
-        { label: '종합사주', meta: '내 인생 전체 흐름', action: 'filter', category: '종합', status: '29,000원' },
+        { label: '종합사주', meta: '내 인생 전체 흐름', action: 'filter', category: '종합', status: '보기' },
         { label: '오늘운', meta: '오늘의 선택과 피할 일', action: 'filter', category: '흐름', status: '무료' },
         { label: '연애', meta: '도화와 관계 타이밍', action: 'filter', category: '연애', status: '검색' },
         { label: '궁합', meta: '둘의 끌림과 갈등', action: 'filter', category: '궁합', status: '검색' },

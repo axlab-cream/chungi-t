@@ -340,7 +340,7 @@
         const insight = insights[index];
         if (body && insight) body.textContent = insight && typeof insight === 'object' ? String(insight.body || insight.text || insight.title || '') : String(insight);
       });
-      takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
+      takeOverCta('전체 보기', () => {
         location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
       });
       return;
@@ -364,13 +364,13 @@
       });
 
       if (reason === 'login') {
-        takeOverCta(`로그인하고 전체 보기 (${SERVICE.price})`, () => location.assign(loginUrl()));
+        takeOverCta('로그인하고 전체 보기', () => location.assign(loginUrl()));
       } else if (reason === 'profile') {
         takeOverCta('내 사주 등록하기', () => {
           location.assign(`/profile?returnTo=${encodeURIComponent(location.pathname)}`);
         });
       } else if (reason === 'payment') {
-        takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
+        takeOverCta('전체 보기', () => {
           location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
         });
       } else {

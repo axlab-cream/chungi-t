@@ -169,7 +169,6 @@
     host.setAttribute('data-umsh-service-category', options.category);
     host.setAttribute('data-umsh-service-back', '');
     if (options.service) host.setAttribute('data-umsh-service-name', options.service);
-    if (options.price) host.setAttribute('data-umsh-service-price', options.price);
     if (options.active) host.setAttribute('data-umsh-service-active', options.active);
     return host;
   }

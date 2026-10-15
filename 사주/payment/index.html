@@ -35,6 +35,8 @@
       /* 공용 하단 메뉴는 화면에 고정된다. 본문 아래에 그만큼 자리를 비워 두지 않으면
          마지막 버튼이 메뉴 뒤로 들어간다. 서비스 페이지들과 같은 규칙이다. */
       body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      /* 2026-10-15: 금액은 결제창(이니시스·구글플레이)에서 처음 보인다. payment.css 의 display:flex 를 이긴다. */
+      .payment-price[hidden] { display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/umsh-chrome.js?v=20260916-mobile"></script>
@@ -56,7 +58,7 @@
           <small data-product-eyebrow>상품 확인 중</small>
           <strong data-product-title>상품을 불러오는 중입니다.</strong>
           <p data-product-summary></p>
-          <div class="payment-price"><span>결제금액</span><b data-product-price>-</b></div>
+          <div class="payment-price" hidden><span>결제금액</span><b data-product-price>-</b></div>
         </div>
         <form class="payment-form" id="payment-form">
           <label class="payment-label">쿠폰 선택<select name="couponId" data-payment-coupon><option value="">쿠폰 없이 결제</option></select></label>
