@@ -532,7 +532,7 @@
         insightBodies(outcome.preview),
       );
       if (!window.UMSHReportAccess?.isEntitled?.(outcome)) {
-        retargetCtas('전체 보기 (14,900원)', pay);
+        retargetCtas('전체 보기', pay);
         return;
       }
       retargetCtas('전체 목차 열기', () => location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat'));
@@ -547,9 +547,9 @@
           reportPromise = null;
           enhanceTeaser();
         });
-        retargetCtas('로그인하고 전체 보기 (14,900원)', () => location.assign(loginUrl()));
+        retargetCtas('로그인하고 전체 보기', () => location.assign(loginUrl()));
       } else if (reason === 'payment') {
-        retargetCtas('전체 보기 (14,900원)', () => {
+        retargetCtas('전체 보기', () => {
           location.assign(outcome.paymentUrl || `/payment?product=${SERVICE.apiKey}&returnTo=${encodeURIComponent(location.pathname)}`);
         });
       } else {

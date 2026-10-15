@@ -4163,7 +4163,6 @@
           path: "/love/this-year",
           title: "나, 올해 연애 가능?",
           eyebrow: "LOVE · 연애운",
-          price: "12,900원",
           cta: "운명상회 상담",
           plan: "love-this-year",
           defaultConcern: "올해 새로운 연애가 들어오는 시기와 놓치기 쉬운 타이밍이 궁금해요.",
@@ -7283,7 +7282,7 @@
             </section>
 
             <section class="story-section deep" data-sample-section="love-service-summary">
-              <span class="chapter">${escapeHtml(service.price)}</span>
+              <span class="chapter">전체 풀이</span>
               <h2>내 사주만 봐도 되고<br />상대 사주까지 넣어도 됩니다</h2>
               <p>특정 상대가 없으면 올해 새 인연 가능성으로, 마음에 둔 사람이 있으면 상대방 사주까지 받아 궁합 흐름과 감정 온도 차이를 같이 봅니다.</p>
               <div class="story-list">
@@ -7682,7 +7681,7 @@
         stage.innerHTML = `
           <section class="panel teaser-panel">
             ${stepBackButton()}
-            <div class="status">${escapeHtml(service.eyebrow)} · ${escapeHtml(service.price)}</div>
+            <div class="status">${escapeHtml(service.eyebrow)}</div>
             <h1>${escapeHtml(service.title)}</h1>
             <p>내 사주만으로 올해 새 인연을 볼 수도 있고, 특정 상대가 있으면 상대방 사주까지 넣어 궁합 흐름을 같이 봅니다.</p>
 
@@ -8245,7 +8244,7 @@
             ${paidReportMarkup}
 
             <section class="story-section flush-bottom" data-sample-section="love-final-cta">
-              <span class="chapter">${escapeHtml(service.price)}</span>
+              <span class="chapter">전체 풀이</span>
               <h2>도화가 들어오는 달과<br />놓치는 타이밍을 끝까지 봅니다</h2>
               <p>무료 요약은 입구입니다. 전체 풀이에서는 월별 흐름, 상대 사주 궁합, 감정 온도 차이, 연애 성사 전략까지 한 장씩 펼칩니다.</p>
               <div class="proof-stack">
@@ -8779,11 +8778,6 @@
                   <li>연애운과 오래 남을 인연의 패턴</li>
                   <li>${concernText}에 맞춘 맞춤 상담</li>
                 </ul>
-                <div class="price-slate" aria-label="복채 안내">
-                  <div class="price-line"><span>기본 복채</span><span>63,000원</span></div>
-                  <div class="price-line"><span>천명사주 상담 연결</span><span>-34,000원</span></div>
-                  <div class="price-line final"><span>지금 열기</span><span>29,000원</span></div>
-                </div>
               </div>
             </section>
 
@@ -8917,8 +8911,6 @@
         }
         const service = currentService();
         const live = isCheckoutLive();
-        const product = catalogProduct(LOVE_THIS_YEAR_SERVICE_KEY);
-        const priceLabel = product ? `${Number(product.amount).toLocaleString("ko-KR")}원` : service.price;
         stage.innerHTML = `
           <section class="panel teaser-panel purchase-panel">
             <div class="status">${live ? "결제 안내" : "결제 안내 데모"}</div>
@@ -8931,7 +8923,6 @@
                 <div class="timeline-row"><strong>상품</strong><span>${escapeHtml(service.title)}</span></div>
                 <div class="timeline-row"><strong>구성</strong><span>10개 연애운 전용 목차</span></div>
                 <div class="timeline-row"><strong>상대방 사주</strong><span>${state.partnerMode === "known" ? "입력 포함" : "새 인연 기준"}</span></div>
-                <div class="timeline-row"><strong>결제금액</strong><span>${escapeHtml(priceLabel)}</span></div>
               </div>
             </div>
 
@@ -8969,18 +8960,13 @@
           return;
         }
         const plans = [
-          { id: "single", title: "천명사주", badge: "기본", discount: "약 54%", origin: "63,000원", originAmount: 63000, price: "29,000원" },
+          // 2026-10-15: 결제창(PG)이 열리기 전에는 금액을 보이지 않는다. 금액은 결제 카탈로그가 정한다.
+          { id: "single", title: "천명사주", badge: "기본" },
         ];
-        // Show the amount checkout will actually charge for every plan the catalog sells.
-        // 할인율은 정가와 실제 결제금액으로 다시 계산해 가격이 바뀌어도 어긋나지 않게 한다.
+        // 상품 이름만 결제 카탈로그와 맞춘다. 금액은 결제창에서만 보인다(2026-10-15).
         plans.forEach((plan) => {
           const product = catalogProduct(PLAN_PRODUCT_KEYS[plan.id]);
-          if (product) {
-            const amount = Number(product.amount);
-            plan.price = `${amount.toLocaleString("ko-KR")}원`;
-            if (product.title) plan.title = product.title;
-            if (plan.originAmount > amount) plan.discount = `약 ${Math.round((1 - amount / plan.originAmount) * 100)}%`;
-          }
+          if (product && product.title) plan.title = product.title;
         });
         const selected = plans.find((plan) => plan.id === state.plan) || plans[0];
         const live = isCheckoutLive() && Boolean(PLAN_PRODUCT_KEYS[selected.id]);
@@ -8997,7 +8983,6 @@
                   (plan) => `
                     <button class="result-item choice ${state.plan === plan.id ? "is-selected" : ""}" type="button" data-key="plan" data-value="${plan.id}">
                       <strong>${plan.badge} · ${plan.title}</strong>
-                      <span>${plan.discount} 할인 · <s>${plan.origin}</s> → ${plan.price}</span>
                     </button>
                   `,
                 )
@@ -9008,9 +8993,6 @@
               <span class="chapter">결제 요약</span>
               <div class="timeline">
                 <div class="timeline-row"><strong>상품</strong><span>${selected.title}</span></div>
-                <div class="timeline-row"><strong>판매가</strong><span>${selected.origin}</span></div>
-                <div class="timeline-row"><strong>할인</strong><span>${selected.discount} 적용</span></div>
-                <div class="timeline-row"><strong>결제금액</strong><span>${selected.price}</span></div>
               </div>
               <button class="ghost" type="button" style="width: 100%; margin-top: 12px;">쿠폰 적용</button>
             </div>
@@ -9037,7 +9019,6 @@
               <p>원본 흐름에서는 이 다음에 외부 결제/주문 진행이 이어집니다. 이 데모는 안전하게 화면 전환까지만 구현했습니다.</p>
               <div class="result-list">
                 <div class="result-item"><strong>선택 상품</strong><span>${escapeHtml(service.title)}</span></div>
-                <div class="result-item"><strong>결제금액</strong><span>${escapeHtml(service.price)}</span></div>
                 <div class="result-item"><strong>상대방 사주</strong><span>${state.partnerMode === "known" ? "입력 포함" : "새 인연 기준"}</span></div>
               </div>
               <button class="next-cta" type="button" data-action="restart" style="width: 100%">처음부터 다시 보기</button>

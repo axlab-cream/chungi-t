@@ -146,6 +146,18 @@ describe('saved chat generation identity and immutable reply', { concurrency: fa
     assert.match(old, /임시 시각으로 계산한 시주 및 시각 의존 결론은 사용하지 말고/)
   })
 
+  it('상대 시간만 모르는 6글자 궁합 리포트의 상담은 상대 임시 시주를 AI 에 넘기지 않는다', async () => {
+    requests = []
+    const input = params()
+    const parentReport: SajuReport = { title: '커플궁합', subtitle: '', generatedBy: 'template', model: 'template', sections: [{ id: 'overview', order: 1, imageKey: '', imageSrc: '', imageAlt: '', category: '총평', categoryEn: '', classification: '총평', hook: '', patternKeys: [], ragTopics: [], interpretation: '저장된 궁합 풀이입니다.' }] }
+    const context = { serviceKey: 'match_couple', birthTimeKnown: true, birthTimeReading: 'six_char' as const, partner: { mode: 'known' as const, name: '합성', relationship: '연인', birthTimeKnown: false, pillars: { year: '甲戌', month: '癸酉', day: '丙寅', hour: 'HOUR_SENTINEL' } } }
+    const parent = await store.createOrGetReportRecord({ reportId: randomUUID(), birth, context, templateReport: parentReport, owner: input.owner })
+    await generateSavedChat({ ...input, parentReportId: parent.record.resultId })
+    const sent = requests[0].messages.map((message) => message.content).join('\n')
+    assert.match(sent, /丙寅/)
+    assert.doesNotMatch(sent, /HOUR_SENTINEL/)
+  })
+
   it('caps saved history and rejects system-role injection without calling the model', async () => {
     const input = params()
     const history = Array.from({ length: 30 }, (_, index) => ({ role: 'user' as const, content: `${index}:` + '가'.repeat(5000) }))

@@ -114,14 +114,32 @@ describe('천명사주 시간 모름 6글자 모드(실제 경로)', () => {
     assert.match(again.json.report.subtitle, /보류/)
   })
 
-  it('6글자 모드를 켜지 않은 서비스(이직운)는 시간 모름이면 기존처럼 보류한다', async () => {
+  it('이직운도 천명사주와 같은 6글자 모드로 만들어진다(10/15 확대)', async () => {
     const res = await analyze({ ...input, serviceKey: 'work_move', context: { serviceKey: 'work_move' } }, 'six-char-work-move')
     assert.equal(res.status, 200, JSON.stringify(res.json))
-    assert.notEqual(res.json.uncertainty?.mode, 'six_char')
-    assert.equal(res.json.elements, undefined)
-    assert.equal(res.json.dayMaster.strength, undefined)
+    assertSixChar(res.json)
     const stored = await store.getReportRecord(res.json.report.reportId, { id: 'six-char-work-move' } as any)
-    assert.equal(stored?.context.birthTimeReading, undefined)
+    assert.equal(stored?.context.birthTimeReading, 'six_char')
+  })
+
+  it('전문 서비스 비회원 맛보기(저축·커플 궁합): 6글자로 그리고, 시간 칸은 입력하지 않음', async () => {
+    const post = async (path: string, body: Record<string, unknown>) => {
+      const response = await fetch(`${origin}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      return { status: response.status, json: await response.json() as Record<string, any> }
+    }
+    const teaserText = (json: Record<string, any>) => JSON.stringify(json.teaserSections ?? [])
+    const chartSum = (json: Record<string, any>, from = 0, to?: number) => (json.teaserSections ?? []).flatMap((t: any) => (t.storytelling?.chartPoints ?? []).slice(from, to)).reduce((sum: number, p: any) => sum + p.value, 0)
+    const money = await post('/api/money/save/analyze', { ...input, guestTeaser: true, preview: true, moneyHabit: '예산대로 씁니다', incomePattern: '월급', savingGoal: '여유자금', concern: '현재 습관 확인' })
+    assert.equal(money.status, 200, JSON.stringify(money.json))
+    assert.ok((money.json.teaserSections ?? []).length > 0, '맛보기 항목이 있어야 검사가 의미 있다')
+    assert.match(teaserText(money.json), /태어난 시간 \| 입력하지 않음/)
+    assert.equal(chartSum(money.json), 6)
+    const couple = await post('/api/match/couple/analyze', { guestTeaser: true, preview: true, selfName: '테스트', selfBirth: { year: 1987, month: 6, day: 10, gender: 'female', calendar: 'solar' }, selfBirthTimeKnown: false, partnerName: '합성', partnerBirthText: '19940912', partnerBirth: { gender: 'male', calendar: 'solar' }, relationshipStage: '연애 중', conflictPattern: '연락 속도와 빈도', concern: '같은 문제로 자꾸 다퉈요.' })
+    assert.equal(couple.status, 200, JSON.stringify(couple.json))
+    assert.ok((couple.json.teaserSections ?? []).length > 0, '맛보기 항목이 있어야 검사가 의미 있다')
+    assert.match(teaserText(couple.json), /태어난 시간 \| 입력하지 않음 \| 입력하지 않음/)
+    assert.equal(chartSum(couple.json, 0, 5), 6)
+    assert.equal(chartSum(couple.json, 5), 6)
   })
 
   it('시간을 알면 그대로 8글자다', async () => {

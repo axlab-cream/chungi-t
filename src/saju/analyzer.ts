@@ -406,8 +406,6 @@ function chartSummary(fourPillars: FourPillars, derived: DerivedChart, calendar:
 }
 
 const SIX_CHAR_NOTE = '출생 시각 미상: 시주를 빼고 연·월·일 6글자로 오행·강약·용신·십신·합충을 계산했습니다.'
-/** 임시 시각 기준의 '지금 대운'은 시각에 따라 바뀐다. 6글자 모드에서는 간지 대신 이 이름만 쓴다. */
-export const SIX_CHAR_CURRENT_DAEWOON = '지금 대운'
 
 export function analyzeSaju(birth: BirthInput): SajuAnalysis {
   const idx = calculateStemBranchIndices(birth)
@@ -523,8 +521,7 @@ export function sixCharAnalysis(analysis: SajuAnalysis): SajuAnalysis {
     dayMasterStrength,
     summary: chartSummary(analysis.fourPillars, derived, analysis.manseryeok, analysis.fortune, false),
     manseryeok,
-    // 대운 목록은 AI 재료에서 '약 ○세'로 바꿔 넘긴다. 제목·검색어에 들어가는 '지금 대운' 간지는 임시 시각 값이라 뺀다.
-    fortune: analysis.fortune ? { ...analysis.fortune, currentDaewoon: SIX_CHAR_CURRENT_DAEWOON } : undefined,
+    // 대운(지금 대운 포함)은 그대로 둔다. 10/15 결정: 시간을 몰라도 대운은 참고 PDF처럼 단정해서 쓴다.
   }
   return { ...base, preview: buildPreview(base) }
 }

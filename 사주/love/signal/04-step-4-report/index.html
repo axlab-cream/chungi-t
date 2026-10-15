@@ -765,7 +765,6 @@
           <strong>내 애인 바람필까?</strong>
           <span>무료 요약 · 전체 리포트 안내</span>
         </div>
-        <span class="top-pill">19,900원</span>
       </header>
 
       <main id="step-4-report">
@@ -855,10 +854,6 @@
             <p class="body-copy" data-cta-copy="">
               무료 요약은 입구입니다. 결제 후에는 관계 온도, 관계 밖 활동과 합의한 경계, 관계 변화, 연인궁 시그널, 현실 확인 액션까지 이어집니다.
             </p>
-            <div class="price-row">
-              <span>전체 리포트</span>
-              <strong>19,900원</strong>
-            </div>
             <div class="agreement" data-agreements="">
               <label class="check-row check-all">
                 <input type="checkbox" data-agree-all="">
@@ -887,7 +882,7 @@
 
       <div class="actions">
         <button class="ghost" type="button" data-back="">입력 수정</button>
-        <button class="primary" type="button" data-primary="">로그인하고 전체 보기 (19,900원)</button>
+        <button class="primary" type="button" data-primary="">로그인하고 전체 보기</button>
       </div>
 
       <div class="toast hidden" data-toast="" role="status" aria-live="polite"></div>
@@ -1158,7 +1153,7 @@
         }
 
         if (state === "payment_failed") {
-          primary.textContent = "다시 결제하고 전체 보기 (19,900원)";
+          primary.textContent = "다시 결제하고 전체 보기";
           kicker.textContent = "무료 요약 유지";
           title.textContent = "결제가 완료되지 않았어요";
           copy.textContent = "입력값과 무료 요약은 유지됩니다. 결제 정보를 다시 확인한 뒤 전체 리포트를 열 수 있습니다.";
@@ -1166,14 +1161,14 @@
         }
 
         if (state === "logged_out_paid") {
-          primary.textContent = "전체 보기 (19,900원)";
+          primary.textContent = "전체 보기";
           kicker.textContent = "결제 안내";
           title.textContent = "전체 리포트와 상담형 풀이를 열어볼까요?";
           copy.textContent = "관계 온도, 실제로 관찰한 관계 변화, 궁합 마찰, 확인 대화 문장을 한 번에 정리합니다.";
           return;
         }
 
-        primary.textContent = "로그인하고 전체 보기 (19,900원)";
+        primary.textContent = "로그인하고 전체 보기";
         kicker.textContent = "로그인 필요";
         title.textContent = "로그인 후 이 결과를 이어서 볼 수 있어요";
         copy.textContent = "입력한 서비스와 단계만 보존하고, 로그인 뒤 같은 무료 요약으로 돌아와 결제를 이어갑니다.";

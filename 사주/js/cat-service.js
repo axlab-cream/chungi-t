@@ -441,7 +441,7 @@
         // 가입은 여기서 받는다. 돌아오면 아래 purchaseAfterAuth 로 결제까지 이어 준다.
         ? () => { writeJson('sessionStorage', STORAGE.purchaseAfterAuth, '1'); location.assign(loginUrl()); }
         : payNow;
-      takeOverCta(`전체 보기 (${SERVICE.price})`, pay);
+      takeOverCta('전체 보기', pay);
       if (outcome.guest) {
         // 공용 스크립트가 결제 링크를 그리는 경우에도 비회원이면 결제 대신 가입으로 보낸다.
         document.addEventListener('click', (event) => {
@@ -475,7 +475,7 @@
         setText('#state-pill', '비로그인');
         setText('#state-title', '로그인하면 내 사주로 계산합니다');
         setText('#state-copy', GATE_COPY.login);
-        takeOverCta(`로그인하고 전체 보기 (${SERVICE.price})`, () => location.assign(loginUrl()));
+        takeOverCta('로그인하고 전체 보기', () => location.assign(loginUrl()));
       } else if (reason === 'profile') {
         setText('#state-pill', '프로필 필요');
         setText('#state-title', '기본 사주 정보가 필요합니다');
@@ -487,7 +487,7 @@
         setText('#state-pill', '미결제');
         setText('#state-title', '결제 후 전체 리포트가 열립니다');
         setText('#state-copy', GATE_COPY.payment);
-        takeOverCta(`전체 보기 (${SERVICE.price})`, () => {
+        takeOverCta('전체 보기', () => {
           location.assign(outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`);
         });
       } else if (reason === 'input') {

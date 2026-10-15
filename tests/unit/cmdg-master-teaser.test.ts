@@ -24,10 +24,10 @@ test('server UI element labels include hanja and render without falling into mis
 test('member input is escaped and paid report sections are not consumed',()=>{
  const html=render({...state,name:'<img onerror=alert(1)>',concern:'<script>alert(2)</script>',analysis:{...state.analysis,report:{sections:[{interpretation:'PAID_SECRET'}]}}});assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<script>alert|PAID_SECRET/)
 })
-test('sale price and discount match catalog, existing checkout action remains',()=>{
- const html=render(state);assert.equal(listPaymentProducts().find(p=>p.key==='cmdg')?.amount,29000);assert.match(html,/63,000원/);assert.match(html,/-34,000원/);assert.match(html,/약 54%/);assert.match(html,/data-action="open-chat"/)
- // 2026-10-12: CTA 문구는 '운명 거래하기'. 가격은 바로 위 결제 카드에서 보여 준다.
- assert.match(html,/29,000원<\/span>/);assert.match(html,/class="cta-label">운명 거래하기/)
+test('no price before the PG window; catalog amount and existing checkout action remain',()=>{
+ // 2026-10-15: 금액은 결제창(이니시스·구글플레이)에서 처음 보인다. 복채 카드(기본·할인·지금 열기)를 뺐다.
+ const html=render(state);assert.equal(listPaymentProducts().find(p=>p.key==='cmdg')?.amount,29000);assert.doesNotMatch(html,/\d{1,3}(?:,\d{3})+원|price-slate|약 54%/);assert.match(html,/data-action="open-chat"/)
+ assert.match(html,/class="cta-label">운명 거래하기/)
 })
 test('every imported artwork URL exists; no embedded binary or desktop path ships',()=>{
  const css=readFileSync('사주/css/cmdg-master-teaser.css','utf8');const urls=[...css.matchAll(/url\("(\/assets\/[^\"]+)"\)/g)];assert.ok(urls.length>=18);for(const [,url] of urls)assert.ok(existsSync(join('사주',url)),url);assert.doesNotMatch(css,/base64|C:\\Users/)

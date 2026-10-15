@@ -6,6 +6,7 @@ import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { practicalReading, quotedInput, reportedState, workSymbol } from '../report/practical-service-copy.js'
 import { WORK_DETAILS } from './practical-readings.js'
+import { withholdsBirthTime } from '../saju/unknown-time-reading.js'
 
 export const WORK_JOB_SERVICE_KEY = 'work_job'
 
@@ -186,7 +187,7 @@ export function buildWorkJobReport(
           birth,
           input,
           chunks: categoryChunks,
-          birthTimeKnown: context.birthTimeKnown,
+          birthTimeKnown: !withholdsBirthTime(context),
           index: order + itemIndex,
         }),
         generatedBy: 'template',
@@ -200,7 +201,7 @@ export function buildWorkJobReport(
   return finalizeSpecializedReport({
     reportId,
     title: '직업운 해석문',
-    subtitle: context.birthTimeKnown === false ? '출생 시간 미상: 입력한 업무와 실제 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·적성 흐름으로 봅니다`,
+    subtitle: withholdsBirthTime(context) ? '출생 시간 미상: 입력한 업무와 실제 조건을 중심으로 확인합니다.' : `${context.name ?? '본인'}님의 관성·식상·적성 흐름으로 봅니다`,
     model: 'work-job-rag-template',
     generatedBy: 'template',
     status: 'complete',

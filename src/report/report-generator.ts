@@ -32,9 +32,9 @@ import { standardReading } from './standard-reading.js'
 import { cmdgChapterInstruction, cmdgRagContext, cmdgSectionContext, reviewCmdgStoryStructure } from './cmdg-reading-contract.js'
 import { PASS_ANGLE_OUTLINE } from './pass-angle-outline.js'
 import { capShinsalChunks, formatRagForPrompt, keepAssignedShinsalChunks, retrieveRagChunks } from '../rag/retriever.js'
-import { buildSajuFeatureJson, SHINSAL_PROMPT_SEPARATOR, SIX_CHAR_CURRENT_DAEWOON, sixCharAnalysis } from '../saju/analyzer.js'
+import { buildSajuFeatureJson, SHINSAL_PROMPT_SEPARATOR, sixCharAnalysis } from '../saju/analyzer.js'
 import { inventedShinsalNamesWithLuck, mentionedShinsalNames, namesFromLuckShinsalLines, stripInventedShinsalSentences } from '../saju/shinsal.js'
-import { analysisForReading, unknownBirthTimeReading } from '../saju/unknown-time-reading.js'
+import { analysisForReading, partnerBirthTimeReading, unknownBirthTimeReading } from '../saju/unknown-time-reading.js'
 import { pillarLabel } from '../saju/calculator.js'
 import { BRANCH_KO, ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { evaluateReportQuality } from './report-quality.js'
@@ -1271,7 +1271,7 @@ function daewoonWindow(analysis: SajuAnalysis): string {
   const fortune = analysis.fortune
   if (!fortune) return '현재 대운'
   const current = fortune.daewoon.find((d) => d.pillar === fortune.currentDaewoon)
-  if (!current) return fortune.currentDaewoon === SIX_CHAR_CURRENT_DAEWOON ? SIX_CHAR_CURRENT_DAEWOON : `${fortune.currentDaewoon} 대운`
+  if (!current) return `${fortune.currentDaewoon} 대운`
   const start = current.startYear ? `${current.startYear}년부터 열린 ` : ''
   return `${start}${current.age} ${current.pillar} 대운`
 }
@@ -2182,11 +2182,32 @@ function promptCalculations(features: ReturnType<typeof buildSajuFeatureJson>): 
   return { ...calculation, dayMasterForce: strengthMeaning(dayMasterStrength) }
 }
 
+/**
+ * 상대 출생 시각을 모를 때 AI 에 넘기는 상대 정보.
+ *  - 6글자 모드: 상대 명식도 시주를 뺀 계산으로 저장돼 있다. 임시 시각의 시주 칸만 걷어낸다.
+ *  - 보류 모드: 임시 시각 명식이므로 이름·관계만 남긴다.
+ */
+export function partnerContextForAi(context: SajuReportContext): SajuReportContext {
+  const partner = context.partner
+  if (!partner || partner.birthTimeKnown !== false) return context
+  if (partnerBirthTimeReading(context) === 'six_char') {
+    const { pillars, pillarElements, ...rest } = partner
+    const withoutHour = <T extends { hour: unknown }>(value: T | undefined) => {
+      if (!value) return undefined
+      const { hour: _hour, ...threePillars } = value
+      return threePillars
+    }
+    return { ...context, partner: { ...rest, pillars: withoutHour(pillars), pillarElements: withoutHour(pillarElements) } as SajuReportContext['partner'] }
+  }
+  return { ...context, partner: { mode: partner.mode, name: partner.name, relationship: partner.relationship, birthTimeKnown: false } }
+}
+
 export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuReportContext): unknown {
   // `buildSajuFeatureJson` 은 문맥을 `userContext` 로 통째로 실어 모델에 보낸다.
   // 그래서 호출자가 가려 주기를 기대하지 않고 이 함수가 직접 걷어낸다 — 호출자만 고치면
   // 다음 호출자가 다시 새게 된다(2026-09-10 Codex 리뷰 Critical).
-  const context = publicReportContext(rawContext)
+  // 상대 시간을 모르면 임시 시각의 상대 시주도 여기서 걷어낸다(userContext 로 함께 실리므로).
+  const context = partnerContextForAi(publicReportContext(rawContext))
   const reading = unknownBirthTimeReading(context)
   if (reading === 'known') {
     const features = buildSajuFeatureJson(analysis, context)
@@ -2199,7 +2220,7 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
     return {
       ...features,
       calculation: { ...promptCalculations(features), pillars },
-      timing: timeTolerantTiming(features.timing, { keepChart: true }),
+      timing: timeTolerantTiming(features.timing, { keepChart: true, approximate: false }),
       uncertainty: SIX_CHAR_UNCERTAINTY,
     }
   }
@@ -2216,16 +2237,21 @@ export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuR
   }
 }
 
-const SIX_CHAR_UNCERTAINTY = '출생 시각 미상: 시주(태어난 시간 두 글자)는 계산에서 뺐습니다. 오행·강약·용신·십신·합충은 연·월·일 6글자로 계산한 확정값이니 그대로 근거로 쓰세요. 시주·시주 십성·시주로 보는 자녀 자리는 쓰지 말고, 시간을 몰라 덜 정확하다는 안내 문장도 넣지 마세요. 대운 시작 나이·연도는 1세 안팎 달라질 수 있으니 "약 ○세 무렵"으로 쓰세요.'
+const SIX_CHAR_UNCERTAINTY = '출생 시각 미상: 시주(태어난 시간 두 글자)는 계산에서 뺐습니다. 오행·강약·용신·십신·합충은 연·월·일 6글자로 계산한 확정값이니 그대로 근거로 쓰세요. 시주·시주 십성·시주로 보는 자녀 자리는 쓰지 말고, 시간을 몰라 덜 정확하다는 안내 문장도 넣지 마세요. 대운 시작 나이·연도도 계산된 값 그대로 "○세부터"처럼 단정해서 쓰세요("약", "무렵"을 붙이지 않습니다). 6글자에 없는 기운·십성·신살은 "없다"고 확정해서 말하고, 바로 이어서 6글자에 있는 글자로 그 주제(돈·관계·일 등)가 어떻게 작동하는지 설명하세요.'
 
 /** 대운 간지 순서와 세운은 시간을 몰라도 거의 같다(400명 측정: 순서 4%·세운 0% 차이). 시작 나이만 1세 안팎으로 달라질 수 있다. */
 // 원국과의 관계(withChart)는 6글자 계산일 때만 남긴다. 보류 모드의 timing 은 임시 시각 원국 기준이라 뺀다.
-function timeTolerantTiming(timing: ReturnType<typeof buildSajuFeatureJson>['timing'], { keepChart = false }: { keepChart?: boolean } = {}) {
+// 6글자 모드는 참고 PDF처럼 대운 시작 나이를 단정한다(10/15 결정) — 근사 표시(approx…) 없이 그대로 넘긴다.
+function timeTolerantTiming(timing: ReturnType<typeof buildSajuFeatureJson>['timing'], { keepChart = false, approximate = true }: { keepChart?: boolean; approximate?: boolean } = {}) {
   return timing
     ? {
         currentYear: timing.currentYear,
         yearPillar: timing.yearPillar,
-        daewoonList: timing.daewoonList?.map(({ pillar, ageStart, startYear, withChart }) => ({ pillar, approxAgeStart: ageStart, approxStartYear: startYear, ...(keepChart && withChart ? { withChart } : {}) })),
+        daewoonList: timing.daewoonList?.map(({ pillar, ageStart, startYear, withChart }) => ({
+          pillar,
+          ...(approximate ? { approxAgeStart: ageStart, approxStartYear: startYear } : { ageStart, startYear }),
+          ...(keepChart && withChart ? { withChart } : {}),
+        })),
         yearlyFlow: timing.yearlyFlow?.map(({ withChart, ...flow }) => (keepChart && withChart ? { ...flow, withChart } : flow)),
       }
     : undefined
@@ -2303,10 +2329,10 @@ export function sectionPrompt(
   // `context` 필드만 가려도 부족하다(2026-09-10 Codex 리뷰). 과거에 저장된 레코드에는
   // 원본이 남아 있으므로(소급 삭제하지 않는다) 입구에서 한 번에 걷어낸다.
   const context = publicReportContext(rawContext)
-  const userContext = context.partner?.birthTimeKnown === false
-    ? { ...context, partner: { mode: context.partner.mode, name: context.partner.name, relationship: context.partner.relationship, birthTimeKnown: false } }
-    : context
-  const ragContext = cmdgRagContext(context, section.id)
+  // 상대 시간을 모르면 6글자 모드는 상대 6글자 명식을, 보류 모드는 이름·관계만 넘긴다.
+  const userContext = partnerContextForAi(context)
+  // 참고서 검색어에도 상대의 임시 시주가 섞이지 않게 같은 정리 문맥을 쓴다.
+  const ragContext = cmdgRagContext(userContext, section.id)
   // 6글자 모드면 시주 없는 계산으로 참고서를 고르고, 다른 항목 요약도 보통처럼 넘긴다.
   const withholdsTime = unknownBirthTimeReading(context) === 'withhold'
   const ragTopK = runtimeConfig.report?.ragTopK ?? 4

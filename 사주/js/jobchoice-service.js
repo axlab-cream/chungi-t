@@ -387,7 +387,7 @@
             location.assign(window.UMSHReportAccess?.tocHref?.(outcome.payload?.reportId) || '../05-step-5-chat/chat.html#step-5-chat');
           });
         } else {
-          fresh.textContent = `전체 보기 (${SERVICE.price})`;
+          fresh.textContent = '전체 보기';
           fresh.addEventListener('click', () => {
             if (outcome.guest) {
               // 가입은 여기서 받는다. 돌아오면 아래 purchase-after-auth 로 결제까지 이어 준다.
@@ -426,13 +426,13 @@
     const action = document.createElement('a');
     action.className = 'link-button';
     if (reason === 'login') {
-      action.textContent = `로그인하고 전체 보기 (${SERVICE.price})`;
+      action.textContent = '로그인하고 전체 보기';
       action.href = loginUrl();
     } else if (reason === 'profile') {
       action.textContent = '내 사주 등록하기';
       action.href = `/profile?returnTo=${encodeURIComponent(location.pathname)}`;
     } else if (reason === 'payment' || reason === 'limit') {
-      action.textContent = `전체 보기 (${SERVICE.price})`;
+      action.textContent = '전체 보기';
       action.href = outcome.paymentUrl || `/payment?service=${SERVICE.apiKey}`;
     } else if (reason === 'input') {
       action.textContent = '입력하러 가기';

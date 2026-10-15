@@ -15,6 +15,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { BRANCH_ELEMENT, STEM_ELEMENT } from '../saju/analyzer-helpers.js'
+import { hourPillarHidden, UNKNOWN_HOUR_CELL } from '../saju/unknown-time-reading.js'
 
 export const LOVE_THISYEAR_SERVICE_KEY = 'love_this_year'
 
@@ -286,7 +287,8 @@ function thisYearFacts(context: SajuReportContext) {
 
 function pillarElementTable(analysis: SajuAnalysis): string {
   const labels = [['해', analysis.fourPillars.year], ['달', analysis.fourPillars.month], ['날', analysis.fourPillars.day], ['시간', analysis.fourPillars.hour]] as const
-  const rows = labels.map(([label, pillar]) => `| ${label} 기둥 | ${ELEMENT_NAME[pillar.stemElement]} · ${ELEMENT_NAME[pillar.branchElement]} | ${label === '날' ? '가까운 관계에서 먼저 나오는 반응' : label === '달' ? '사람들과 어울릴 때 드러나는 방식' : label === '시간' ? '속으로 기대하는 관계의 모습' : '처음 사람을 만날 때 보이는 인상'} |`)
+  // 6글자 계산이면 임시 시각의 시간 기둥 대신 '입력하지 않음'을 보여 준다.
+  const rows = labels.map(([label, pillar]) => `| ${label} 기둥 | ${label === '시간' && hourPillarHidden(analysis) ? UNKNOWN_HOUR_CELL : `${ELEMENT_NAME[pillar.stemElement]} · ${ELEMENT_NAME[pillar.branchElement]}`} | ${label === '날' ? '가까운 관계에서 먼저 나오는 반응' : label === '달' ? '사람들과 어울릴 때 드러나는 방식' : label === '시간' ? '속으로 기대하는 관계의 모습' : '처음 사람을 만날 때 보이는 인상'} |`)
   return ['| 내 사주의 기둥 | 두 기운 | 연애에서 보는 장면 |', '| --- | --- | --- |', ...rows].join('\n')
 }
 
@@ -294,7 +296,7 @@ function elementChart(analysis: SajuAnalysis) {
   return (Object.entries(analysis.elementCount) as Array<[keyof typeof ELEMENT_NAME, number]>).map(([element, value]) => ({
     label: `${ELEMENT_NAME[element]} 기운`,
     value,
-    note: '저장된 생년월일시의 네 기둥에서 계산한 실제 개수',
+    note: hourPillarHidden(analysis) ? '입력된 해·달·날 세 기둥에서 계산한 개수' : '저장된 생년월일시의 네 기둥에서 계산한 실제 개수',
   }))
 }
 
@@ -320,7 +322,7 @@ function loveThisYearInterpretation(index: number, analysis: SajuAnalysis | unde
   const annual = yearElementSentence(analysis)
   if (index === 0) return [
     `[주요 포인트] ${facts.name}님의 올해 연애는 기다리는 마음보다 “누구와 다음 약속을 실제로 잡는가”에서 시작됩니다. 현재 상태는 ${facts.relationshipStatus}, 가장 궁금한 것은 “${facts.concern}”입니다. 이 질문에 대한 첫 답은 연락의 양이 아니라 만남이 구체적인 날짜로 이어지는지에 있습니다.`,
-    `${facts.name}님의 태어난 날 중심 기운은 ${day}이고, 네 기둥 전체에서는 ${dominant} 기운이 가장 많이 나타납니다. ${dayCopy}. 호감이 생겼을 때 상대의 반응만 오래 살피면 ${weak} 기운이 필요한 장면, 즉 감정을 현실의 약속으로 바꾸는 순간을 놓치기 쉽습니다.`,
+    `${facts.name}님의 태어난 날 중심 기운은 ${day}이고, ${hourPillarHidden(analysis) ? '해·달·날 세 기둥에서는' : '네 기둥 전체에서는'} ${dominant} 기운이 가장 많이 나타납니다. ${dayCopy}. 호감이 생겼을 때 상대의 반응만 오래 살피면 ${weak} 기운이 필요한 장면, 즉 감정을 현실의 약속으로 바꾸는 순간을 놓치기 쉽습니다.`,
     `[사주와 올해를 함께 보면] ${annual} 올해 눈에 띄는 사람은 말이 화려한 사람보다 ${facts.name}님의 생활 속도 안으로 들어와 시간을 내는 사람입니다. 대화가 즐거웠다면 “언제 한 번”에서 멈추지 않고 가능한 날짜를 서로 하나씩 내놓는 장면이 관계의 시작을 가릅니다.`,
     `[확인할 장면] 최근 마음이 간 사람이나 새로 알게 된 사람과의 대화를 떠올려 보세요. 질문을 되돌려 주는지, 바쁠 때 이유를 말하는지, 만남이 어려우면 다른 날을 제안하는지가 올해 인연을 알아보는 실제 신호입니다.`,
     `[결정 전에 물어볼 질문] “다음 주에 나는 화요일과 토요일이 괜찮아. 언제가 편해?”라고 물었을 때 상대가 자기 시간을 내어 답하나요? 답이 모호한 채 따뜻한 말만 이어진다면 더 큰 고백보다 다음 약속부터 확인하는 편이 맞습니다.`,
@@ -364,12 +366,12 @@ export function loveThisYearTeaserSection(section: SajuReportSection, index: num
     scene: '', actions: [], imagePrompt: { ko: '', en: '' },
   } : {
     feel: '설렘이 생긴 뒤, 어떤 사람과 진지한 관계까지 이어질까요?',
-    softBridge: '네 기둥의 기운을 생활 언어로 풀면, 가까워질수록 강해지는 장점과 놓치기 쉬운 반응을 함께 볼 수 있습니다.',
+    softBridge: `${analysis && hourPillarHidden(analysis) ? '해·달·날 세 기둥' : '네 기둥'}의 기운을 생활 언어로 풀면, 가까워질수록 강해지는 장점과 놓치기 쉬운 반응을 함께 볼 수 있습니다.`,
     ...(analysis ? {
       tableMd: pillarElementTable(analysis),
-      tableCaption: '저장된 생년월일시의 네 기둥을 한자 없이 관계 장면으로 풀었습니다.',
+      tableCaption: hourPillarHidden(analysis) ? '입력된 해·달·날 세 기둥을 한자 없이 관계 장면으로 풀었습니다. 태어난 시간은 입력하지 않아 비워 두었습니다.' : '저장된 생년월일시의 네 기둥을 한자 없이 관계 장면으로 풀었습니다.',
       chartPoints: elementChart(analysis),
-      chartCaption: '저장 사주에서 계산한 다섯 기운의 실제 개수입니다. 연애 점수나 상대의 마음을 뜻하지 않습니다.',
+      chartCaption: (hourPillarHidden(analysis) ? '입력된 해·달·날 세 기둥에서' : '저장 사주에서') + ' 계산한 다섯 기운의 실제 개수입니다. 연애 점수나 상대의 마음을 뜻하지 않습니다.',
     } : {}),
     flowSteps: [
       { label: '1. 즐거운 만남 뒤', value: '다음 일정이 이어지는지 보기', note: '한 번의 호감과 반복 가능한 관계 구분' },

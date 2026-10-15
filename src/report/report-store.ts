@@ -7,6 +7,7 @@ import { corpusCacheSalt, getCorpusSnapshot } from '../rag/corpus-registry.js'
 import { createSavedPreview, type ReportPreview } from './report-preview.js'
 import type { TodayFortune } from '../saju/today-fortune.js'
 import type { BirthInput, ConversationTurn, CorpusSnapshot, SajuAnalysis, SajuReport, SajuReportContext, SajuReportSection } from '../types/index.js'
+import { withholdsBirthTime } from '../saju/unknown-time-reading.js'
 
 export type ReportStatus = 'pending' | 'generating' | 'complete' | 'failed'
 export type ReportStorageMode = 'postgres' | 'supabase' | 'file' | 'memory'
@@ -301,9 +302,13 @@ export function toClientReport(record: ReportRecord): SajuReport {
   if (record.context.birthTimeKnown === false) {
     // These legacy generator keys encode provisional-hour/full-chart calculations.
     // Mask only the returned clone; paid prose and storytelling remain unchanged.
+    // 6글자 모드 리포트는 시주를 뺀 계산값(강약·용신 등)을 확정값으로 쓰므로 출생 시각·시주 키만 가린다.
+    const masked = withholdsBirthTime(record.context)
+      ? /^(?:birth|hourPillar|dayMasterStrength|dominantElement|weakElement|usefulGod|tenGod|gyeokguk|climate|flowBridge):/
+      : /^(?:birth|hourPillar):/
     report.sections = report.sections.map(section => Array.isArray(section.patternKeys) ? {
       ...section,
-      patternKeys: section.patternKeys.filter(key => !/^(?:birth|hourPillar|dayMasterStrength|dominantElement|weakElement|usefulGod|tenGod|gyeokguk|climate|flowBridge):/.test(key)),
+      patternKeys: section.patternKeys.filter(key => !masked.test(key)),
     } : section)
   }
   // 하이라이트도 검수 방식과 지적은 운영자용이다. 고객 응답에서는 뺀다.

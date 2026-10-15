@@ -2,6 +2,7 @@ import type { BirthInput, EarthlyBranch, Element, HeavenlyStem } from '../types/
 import { analyzeSaju, calculateFourPillars, BRANCH_KO, ELEMENT_KO, STEM_ELEMENT, STEM_KO } from './analyzer.js'
 import { BRANCH_BREAK_PAIRS, BRANCH_CLASH_PAIRS, BRANCH_COMBINATION_PAIRS, BRANCH_ELEMENT, BRANCH_HARM_PAIRS } from './analyzer-helpers.js'
 import type { UserBirthProfile } from '../user/profile-store.js'
+import { markBirthTimeReading, readsSixChars } from './unknown-time-reading.js'
 
 type TodayRelation = 'same' | 'support' | 'output' | 'wealth' | 'pressure'
 type TodayDetailKey = 'work' | 'money' | 'relationship' | 'caution'
@@ -425,8 +426,9 @@ const DAILY_LENSES: readonly DailyLens[] = [
   { title: '한 번 숨을 고르고 보는', summary: '오늘은 바로 답하기보다 한 번 숨을 고르고 볼게.', body: '한 번 숨을 고르고 보면,', action: '잠깐 멈춰 본 뒤,', zodiac: '마음을 가라앉혀 쓰려면,' },
 ] as const
 
-function dailyLensIndex(daySerial: number, birth: BirthInput): number {
-  const birthSeed = birth.year + birth.month * 31 + birth.day * 17 + (birth.hour ?? 0) * 7 + (birth.minute ?? 0)
+function dailyLensIndex(daySerial: number, birth: BirthInput, hourHidden = false): number {
+  // 6글자 모드(시간 모름)면 임시 시각으로 테마가 갈리지 않게 시·분을 넣지 않는다.
+  const birthSeed = birth.year + birth.month * 31 + birth.day * 17 + (hourHidden ? 0 : (birth.hour ?? 0) * 7 + (birth.minute ?? 0))
   return ((daySerial + birthSeed) % DAILY_LENSES.length + DAILY_LENSES.length) % DAILY_LENSES.length
 }
 
@@ -639,16 +641,19 @@ export function buildTodayFortune(profile: UserBirthProfile, now = new Date(), o
   const relation = relationFor(analysis.dayMasterElement, todayElement)
   const branchRelation = relationFor(analysis.dayMasterElement, BRANCH_ELEMENT[todayBranch])
   const tenGod = tenGodOf(analysis.dayMaster, todayStem)
+  // 시간을 모르고 오늘 운세가 6글자 모드로 켜져 있으면 임시 12시 시지는 쓰지 않는다(설정 스위치를 따른다).
+  const hourHidden = readsSixChars(markBirthTimeReading({ serviceKey: 'today_fortune', birthTimeKnown: profile.birthTimeKnown }))
   // 내 네 기둥의 지지와 견준다. 여기서 같은 날도 사람마다 갈린다.
+  // 시간을 모르면 임시 12시로 계산된 시지는 빼고 해·달·날 지지만 견준다(시주를 뺀 6글자 풀이와 같은 기준).
   const tie = branchTie(todayBranch, [
     analysis.fourPillars.year.branch,
     analysis.fourPillars.month.branch,
     analysis.fourPillars.day.branch,
-    analysis.fourPillars.hour.branch,
+    ...(hourHidden ? [] : [analysis.fourPillars.hour.branch]),
   ])
   const daySerial = Math.floor(Date.UTC(kst.year, kst.month - 1, kst.day) / 86_400_000)
   const purchaseX: 0 | 1 = options.purchaseDepth ? 1 : 0
-  const lensIndex = dailyLensIndex(daySerial, profile.birth)
+  const lensIndex = dailyLensIndex(daySerial, profile.birth, hourHidden)
   const baseReading = composeReading(
     relationText(relation, profile.name, todayElement),
     todayStem, todayBranch,

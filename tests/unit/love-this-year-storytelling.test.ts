@@ -99,7 +99,8 @@ describe('love_this_year storytelling shape', () => {
     const source = readFileSync('사주/js/umsh-report-access.js', 'utf8')
     const server = readFileSync('src/server/app.ts', 'utf8')
     assert.match(server, /record\.analysis\?\.fortune\?\.currentYear \?\? analysis\.fortune\?\.currentYear/)
-    assert.match(server, /calculateLoveMonthlySignals\(record\.birth, currentAnalysisForRecord\(record\), loveReportYear\)/)
+    // 6글자 모드 리포트는 시주를 뺀 계산으로 월별 신호를 그린다(10/15).
+    assert.match(server, /calculateLoveMonthlySignals\(record\.birth, analysisForReading\(currentAnalysisForRecord\(record\), record\.context\), loveReportYear\)/)
     assert.match(source, /payload && payload\.loveMonthlySignals/)
     assert.match(source, /renderStoryChart\(monthly, .*?, 3\)/)
     assert.match(source, /section\.id === 'love-monthly-flow'/)
