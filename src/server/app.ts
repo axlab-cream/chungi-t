@@ -6,7 +6,8 @@ import soloNaraSpec from '../../data/solo-nara-spec.json' with { type: 'json' }
 import { InputError, respondRequestFailure } from './input-error.js'
 import { storedResultRoute } from '../i18n/stored-result-route.js'
 import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
-import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet } from '../coupons/store.js'
+import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet, grantCoupon } from '../coupons/store.js'
+import { productReviewRouter } from '../reviews/router.js'
 import { CouponError } from '../coupons/contracts.js'
 import { getConsultationCouponUsage } from '../consultation/backend.js'
 import { consultationRouter, isConsultationRecord, getConsultationAccess, reserveConsultationCheckout } from '../consultation/backend.js'
@@ -4074,6 +4075,46 @@ app.use('/api/coupons', couponRouter({
   queueReport: queueReportCompletionAfterPayment,
   available: async key => { const product = getPaymentProduct(key); return !!product && !PUBLICLY_DISABLED_PRODUCT_KEYS.has(product.key) && await isServiceSaleAvailable(product.key) },
   couponUsage: getConsultationCouponUsage,
+}))
+
+/**
+ * 후기 보상 쿠폰 설정. `REVIEW_REWARD_CAMPAIGNS='{"cmdg":"<쿠폰 캠페인 id>"}'`.
+ * 관리자에서 회원 지급 전용 캠페인을 만든 뒤 그 id 를 넣는다. 없으면 보상 안내도 띄우지 않는다.
+ */
+function reviewRewardCampaigns(): Record<string, string> {
+  try {
+    const parsed = JSON.parse(process.env.REVIEW_REWARD_CAMPAIGNS || '{}') as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    return Object.fromEntries(Object.entries(parsed as Record<string, unknown>).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(entry[1])))
+  } catch { return {} }
+}
+// 다녀간 손님들의 말(후기), 2026-10-15. 결제한 풀이 1건당 1번, 공개 목록은 성만(박**)과 일주만 보인다.
+app.use('/api/reviews', productReviewRouter({
+  authenticate: requireMemberUser,
+  resolveEligibility: async (owner, productKey, reportId) => {
+    try {
+      const record = await findReportRecord(reportId, owner)
+      if (!record || isConsultationRecord(record) || productKeyForContext(record.context) !== productKey) return null
+      const order = await findUnlockingOrder(owner, productKey, record.reportId, record.lineageId ?? '')
+      if (!order) return null
+      let ilju: string | null = null
+      try {
+        const day = currentAnalysisForRecord(record).fourPillars.day
+        ilju = `${STEM_KO[day.stem]}${BRANCH_KO[day.branch]}`
+      } catch { ilju = null }
+      return { orderId: order.orderId, reportId: record.reportId, name: record.context?.name || '', ilju }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REPORT_ACCESS_DENIED') return null
+      throw error
+    }
+  },
+  rewardOffered: (productKey) => Boolean(reviewRewardCampaigns()[productKey]),
+  grantReward: async (owner, productKey, reviewId) => {
+    const campaignId = reviewRewardCampaigns()[productKey]
+    if (!campaignId) return null
+    const wallet = await grantCoupon(campaignId, owner.id, 'system:product-reviews', `review-${reviewId}`)
+    return { walletId: wallet.id, title: wallet.title, expiresAt: wallet.expiresAt }
+  },
 }))
 
 /**
