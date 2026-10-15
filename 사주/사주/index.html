@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <script src="/js/umsh-analytics.js?v=ga-20261001-signup-funnel"></script>
-<script src="/js/umsh-chrome.js?v=20260922c" defer></script>
+<script src="/js/umsh-chrome.js?v=20261015-no-bottom-nav" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -1306,6 +1306,25 @@
         line-height: 1.45;
       }
 
+      /* 칸이 하나뿐이고 제목이 이미 무엇을 넣을지 말하는 화면은 라벨을 화면에서만 숨긴다(2026-10-15 요청).
+         화면 읽기 프로그램은 계속 라벨을 읽는다. 칸이 여럿인 상대 정보 화면은 라벨을 그대로 보인다. */
+      .label-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* 오류가 없을 때 빈 줄(18px + 칸 간격)이 입력칸 아래에 남지 않게 한다(2026-10-15 요청). */
+      .field-error:empty {
+        display: none;
+      }
+
       .segmented {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1357,6 +1376,20 @@
         font-size: 14px;
         font-weight: 800;
         cursor: pointer;
+      }
+
+      /* 이전 버튼 아래 칩(다른 서비스 안내 화면의 "분야 · 가격")은 이전 버튼과 같은 줄 오른쪽에 둔다.
+         천명 입력 화면의 칩(1단계·앞 답 요약)은 화면마다 뜻이 달라 2026-10-15 요청으로 뺐다.
+         이전 버튼 줄(위 여백 22px - 8px, 높이 44px)의 가운데에 맞춘다. */
+      .panel {
+        position: relative;
+      }
+
+      .panel > .step-back + .status {
+        position: absolute;
+        top: 20px;
+        right: 22px;
+        margin: 0;
       }
 
       .step-back:hover,
@@ -1582,6 +1615,14 @@
          오늘운 화면은 위아래를 따로 잡고 있어 건드리지 않는다. */
       body.umsh-has-chrome .phone:not([data-step="todayResult"]) .stage {
         height: calc(100% - var(--topbar-height) - var(--umsh-chrome-bottom-h, 74px) - env(safe-area-inset-bottom, 0px));
+      }
+
+      /* 결과 화면도 실제 공용 헤더 높이에서 시작한다(첫 화면과 같은 방식). 고정 72px(--topbar-height)로
+         두면 헤더(46~65px) 아래에 검은 띠가 생겼다(2026-10-15). 위 규칙과 같은 우선순위라 뒤에 둔다. */
+      body.umsh-has-chrome .phone[data-scene="result"] .stage {
+        top: var(--umsh-chrome-appbar-h, var(--topbar-height));
+        bottom: var(--umsh-chrome-bottom-h, 0px);
+        height: auto;
       }
 
       /* 보관함 패널은 stage 밖에서 inset: 0 으로 깔리는 오버레이라 위 규칙이 닿지
@@ -7477,7 +7518,6 @@
         stage.innerHTML = `
           <section class="panel">
             ${stepBackButton()}
-            <div class="status">${state.name || "이름"} · ${state.gender || "성별"}</div>
             <h1>생년월일을 알려주세요</h1>
             <p>날짜 하나로 첫 번째 운의 결을 펼쳐봅니다.</p>
             <div class="segmented" role="group" aria-label="달력 선택">
@@ -7486,7 +7526,7 @@
             </div>
             <div class="field-grid">
               <div class="field">
-                <label for="birth">생년월일</label>
+                <label class="label-hidden" for="birth">생년월일</label>
                 <input id="birth" type="text" inputmode="numeric" placeholder="19750926" value="${state.birth}" aria-describedby="birth-error" />
                 <div class="field-error" id="birth-error" aria-live="polite"></div>
               </div>
@@ -7518,12 +7558,11 @@
         stage.innerHTML = `
           <section class="panel">
             ${stepBackButton()}
-            <div class="status">${state.calendar} ${state.birth || "생년월일 미입력"}</div>
             <h1>태어난 시각 · 선택</h1>
             <p id="birthtime-help">시간을 입력하면 더 정확해져요.</p>
             <div class="field-grid">
               <div class="field">
-                <label for="birthtime">태어난 시간</label>
+                <label class="label-hidden" for="birthtime">태어난 시간</label>
                 <input id="birthtime" type="text" inputmode="numeric" placeholder="13:30" value="${isKnownBirthTime(state.birthTimeKnown, state.time) ? state.time : ""}" aria-describedby="birthtime-help birthtime-error" />
                 <div class="field-error" id="birthtime-error" aria-live="polite"></div>
               </div>
@@ -7541,12 +7580,11 @@
         stage.innerHTML = `
           <section class="panel">
             ${stepBackButton()}
-            <div class="status">1단계</div>
             <h1>이름과 성별</h1>
             <p>사주 풀이에 사용할 기본 정보를 먼저 적어주세요.</p>
             <div class="field-grid">
               <div class="field">
-                <label for="name">이름</label>
+                <label class="label-hidden" for="name">이름</label>
                 <input id="name" type="text" placeholder="홍길동" value="${state.name}" autocomplete="off" aria-describedby="name-error" />
                 <div class="field-error" id="name-error" aria-live="polite"></div>
               </div>
@@ -7607,7 +7645,6 @@
         stage.innerHTML = `
           <section class="panel">
             ${stepBackButton()}
-            <div class="status">${escapeHtml(state.name || "이름")} · ${state.calendar} ${state.birth || "생년월일"}</div>
             <h1>${title}</h1>
             <p>${description}</p>
             <div class="choices single" role="group" aria-label="${title}">
@@ -7745,7 +7782,7 @@
 
             <div class="field-grid">
               <div class="field">
-                <label for="concern">질문</label>
+                <label class="label-hidden" for="concern">질문</label>
                 <input id="concern" type="text" placeholder="올해 연애에서 제일 궁금한 점" value="${escapeHtml(state.concern || service.defaultConcern)}" autocomplete="off" />
               </div>
             </div>
@@ -7771,12 +7808,11 @@
         stage.innerHTML = `
           <section class="panel">
             ${stepBackButton()}
-            <div class="status">${state.name || "이름"} · ${state.calendar} ${state.birth || "생년월일"}</div>
             <h1>고민</h1>
             <p>지금 가장 마음에 걸리는 질문을 적어주세요. 바로 건너뛰어도 됩니다.</p>
             <div class="field-grid">
               <div class="field">
-                <label for="concern">고민</label>
+                <label class="label-hidden" for="concern">고민</label>
                 <input id="concern" type="text" placeholder="고민 입력하기" value="${state.concern}" autocomplete="off" />
               </div>
             </div>
@@ -9109,7 +9145,7 @@
       });
       function mountCommonBottomNav() {
         if (!window.UMSHChrome || document.getElementById("umsh-verified-layout")) return;
-        const chrome = window.UMSHChrome.mount({ root: ".phone", service: "천명사주", category: "종합" });
+        const chrome = window.UMSHChrome.mount({ root: ".phone", service: "천명사주", category: "종합", bottomNav: false });
         if (!chrome) return;
         chrome.appbar.hidden = false;
         chrome.bottomNav.hidden = false;

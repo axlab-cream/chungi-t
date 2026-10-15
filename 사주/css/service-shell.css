@@ -883,6 +883,16 @@ body.umsh-has-chrome {
   padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px));
 }
 
+/* 하단 탭을 끈 서비스(UMSHChrome.mount 의 bottomNav: false). ☰ 메뉴 패널은 그대로 쓴다.
+   탭 높이는 syncChromeHeights 가 0으로 다시 재므로 --umsh-chrome-bottom-h 를 쓰는 화면도 자리를 돌려받는다. */
+body.umsh-no-bottom-nav .umsh-service-bottom .bottom-nav {
+  display: none;
+}
+
+body.umsh-has-chrome.umsh-no-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* 선택 칸을 눌렀을 때 뜨는 목록(2026-10-13).
    안드로이드는 목록 바탕색은 페이지 CSS를 따르면서 글자색은 기본 검정으로 그린다.
    어두운 바탕을 주면 검은 글자가 묻혀 안 보이므로, 어느 기기에서도 읽히도록 밝은 바탕·어두운 글자로 통일한다.
