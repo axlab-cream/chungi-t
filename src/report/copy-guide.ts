@@ -9,6 +9,17 @@ const INTERNAL_COPY_REPLACEMENTS: Array<[RegExp, string]> = [
 ]
 
 const EMPHASIS_LABEL = /^\[[^\]]+\]/
+
+/**
+ * 고객 글에 이름을 써도 되는 신살(많이 알려진 것)과 짧은 뜻(2026-10-15 사용자 결정).
+ * '홍염(감정을 드러내는 매력)이 있어서 …'처럼 이름(짧은 뜻) 꼴로 쓴다. 나머지 신살은 이름 없이 뜻만.
+ * 한 문장에 이름 하나, 한 장에 SHINSAL_NAMES_PER_SECTION 개까지.
+ */
+export const WELL_KNOWN_SHINSAL: Array<[string, string]> = [
+  ['도화', '사람을 끄는 매력'], ['역마', '이동과 변화가 많은 기운'], ['천을귀인', '어려울 때 도움이 닿는 기운'],
+  ['화개', '혼자 깊이 몰입하는 기운'], ['홍염', '감정을 드러내는 매력'],
+]
+export const SHINSAL_NAMES_PER_SECTION = 3
 const TERM_GLOSSARY: Array<[string, string]> = [
   ['일간', '태어난 날의 기준 기운'], ['일지', '태어난 날의 생활 바탕'],
   ['원국', '태어난 때의 기본 구조'], ['명식', '생년월일시를 전통 기호로 정리한 표'],
@@ -19,9 +30,11 @@ const TERM_GLOSSARY: Array<[string, string]> = [
   ['관성', '역할과 책임을 살피는 관계'], ['재성', '자원과 현실 활동을 살피는 관계'],
   ['인성', '배움과 받아들임을 살피는 관계'], ['식상', '표현과 결과물을 살피는 관계'],
   ['비겁', '동료와 자기 기준을 살피는 관계'],
-  ['도화', '매력과 주목을 살피는 전통 상징'], ['지장간', '땅의 기호 안에 담긴 기운'],
+  ['지장간', '땅의 기호 안에 담긴 기운'],
   ['조후', '계절의 차고 더움과 습도를 살피는 관점'],
   ['신강', '나를 돕는 기운이 상대적으로 강한 구조'], ['신약', '나를 돕는 기운이 상대적으로 약한 구조'],
+  // 많이 알려진 신살은 처음 나올 때 짧은 뜻을 붙인다(AI가 빠뜨려도).
+  ...WELL_KNOWN_SHINSAL,
 ]
 
 /** Each independently opened chapter explains the first technical term it uses. */

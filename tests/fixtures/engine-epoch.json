@@ -5,6 +5,11 @@
       "cacheEpoch": "2026-10-15-engine",
       "engineHash": "5c3fb8eb126ab71c",
       "change": "용신 억부 우선·신살·운과 원국의 합충형·출생 시각 규칙(서머타임·동경 127.5도·23:30부터 다음 날)"
+    },
+    {
+      "cacheEpoch": "2026-10-15-engine-2",
+      "engineHash": "49e7c476d599007d",
+      "change": "해마다 들어오는 신살(대운·세운 × 원국)"
     }
   ]
 }

@@ -141,6 +141,48 @@ export function calculateShinsal(chart: ChartPillar[], hourKnown: boolean): Shin
 }
 
 /**
+ * 운(대운·세운) 글자 하나가 원국과 만드는 신살(2026-10-15). 원국 신살과 같은 표·같은 기준을 쓴다:
+ * 12신살은 연지·일지 기준, 귀인·학당·문창·홍염·양인은 일간 기준, 귀문·원진은 일지와 짝, 천덕·월덕은 월지 기준, 공망은 일주 기준.
+ * AI 재료가 길어지지 않게 한 줄로 묶는다. 예: '신살 도화(일지)·반안(연지)·천을귀인'.
+ */
+export function luckShinsalLine(luckPillar: string, chart: Array<[PillarKey, Pick<Pillar, 'stem' | 'branch'>]>): string | null {
+  const stem = luckPillar[0] as HeavenlyStem
+  const branch = luckPillar[1] as EarthlyBranch
+  const byKey = Object.fromEntries(chart) as Partial<Record<PillarKey, Pick<Pillar, 'stem' | 'branch'>>>
+  const day = byKey.day
+  const month = byKey.month
+  if (!day || !month) return null
+  const names: string[] = []
+  for (const baseKey of ['year', 'day'] as const) {
+    const base = byKey[baseKey]
+    if (base) names.push(`${twelveShinsalName(base.branch, branch)[0]}(${PILLAR_LABEL[baseKey]}지)`)
+  }
+  const dm = day.stem
+  if (NOBLE[dm].includes(branch)) names.push('천을귀인')
+  if (ACADEMY[dm] === branch) names.push('학당귀인')
+  if (LITERARY[dm] === branch) names.push('문창귀인')
+  if (RED_FLAME[dm] === branch) names.push('홍염')
+  if (RED_FLAME_VARIANT[dm] === branch) names.push('홍염(이설)')
+  if (YANG_BLADE[dm] === branch) names.push('양인')
+  if (YIN_BLADE_VARIANT[dm] === branch) names.push('양인(이설)')
+  if (pairMatch(GHOST_GATE, day.branch, branch)) names.push('귀문관')
+  if (pairMatch(WONJIN, day.branch, branch)) names.push('원진')
+  const heavenly = HEAVENLY_VIRTUE[month.branch]
+  if (heavenly === stem || heavenly === branch) names.push('천덕귀인')
+  if (MONTHLY_VIRTUE[month.branch] === stem) names.push('월덕귀인')
+  if (kongmangBranches(day.stem, day.branch).includes(branch)) names.push('공망')
+  return names.length ? `신살 ${names.join('·')}` : null
+}
+
+/** 운 신살 줄('신살 도화(연살)(일지)·천을귀인')에서 이름만 뽑는다. 검수에서 허용 목록으로 쓴다. */
+export function namesFromLuckShinsalLines(lines: string[]): string[] {
+  return lines
+    .filter((line) => line.startsWith('신살 '))
+    .flatMap((line) => line.slice('신살 '.length).split('·'))
+    .map((name) => name.replace(/\((연지|일지|이설)\)$/, ''))
+}
+
+/**
  * 글에 쓰인 신살 이름 가운데 계산 목록에 없는 것(2026-10-15 검수 규칙). 일상어와 겹치는 이름은
  * '살'을 붙인 꼴만 잡는다(망신→망신살, 장성→장성살 등). 계산값이 없으면(시간 미상 보류 등) 모든 신살 이름이 대상이다.
  */
@@ -154,10 +196,45 @@ const SHINSAL_MENTIONS: Array<[RegExp, string | null]> = [
   [/백호살|백호대살/, null], [/고신살/, null], [/과숙살/, null], [/급각살/, null],
 ]
 
+/** 글에 이름이 나온 신살(계산 대상 이름 기준, 괄호 표시는 뗀다). 고객 글의 이름 사용 규칙 검사에 쓴다. */
+export function mentionedShinsalNames(text: string): string[] {
+  return SHINSAL_MENTIONS
+    .filter(([pattern, name]) => name !== null && pattern.test(text))
+    .map(([, name]) => name!.replace(/\(.*\)$/, ''))
+}
+
 /** computed: 계산된 신살 이름 목록(ShinsalResult 또는 이름 배열). 없으면 모든 신살 이름이 지어낸 것이다. */
 export function inventedShinsalNames(text: string, computed?: ShinsalResult | string[]): string[] {
   const names = new Set(Array.isArray(computed) ? computed : computed?.items.map((item) => item.name) ?? [])
   return SHINSAL_MENTIONS
     .filter(([pattern, name]) => pattern.test(text) && (name === null || !names.has(name)))
     .map(([pattern]) => text.match(pattern)![0])
+}
+
+/** 대운·세운 이야기를 하는 문장인지(연도·나이·운 낱말). */
+const LUCK_SENTENCE = /\d{4}년|\d{1,2}세|\d{2}대|대운|세운|올해|내년|그해|그 해|해에는|무렵/
+
+/**
+ * 원국 신살은 어느 문장에서나, 운에만 들어오는 신살은 그 해·그 대운을 말하는 문장에서만 허용한다(2026-10-15).
+ * 성격 장에서 "역마가 있어요"라고 쓰면 원국에 없는 역마를 지어낸 것이 되기 때문이다.
+ */
+export function inventedShinsalNamesWithLuck(text: string, chartNames: string[], luckNames: string[]): string[] {
+  const everywhere = new Set(chartNames)
+  const inLuck = [...everywhere, ...luckNames]
+  const found = new Set<string>()
+  for (const sentence of text.split(/(?<=[.!?。！？;\n])\s*/)) {
+    const allowed = LUCK_SENTENCE.test(sentence) ? inLuck : [...everywhere]
+    for (const name of inventedShinsalNames(sentence, allowed)) found.add(name)
+  }
+  return [...found]
+}
+
+/** 없는 신살을 쓴 문장만 뺀다(문단 줄바꿈은 그대로). 마지막 채택 단계의 선택 기능용. */
+export function stripInventedShinsalSentences(text: string, chartNames: string[], luckNames: string[]): string {
+  return text
+    .split(/(?<=[.!?。！？;\n])/)
+    .filter((sentence) => inventedShinsalNamesWithLuck(sentence, chartNames, luckNames).length === 0)
+    .join('')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }

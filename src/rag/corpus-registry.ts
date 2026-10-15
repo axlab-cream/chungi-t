@@ -20,6 +20,8 @@ export interface CorpusPack {
   role: string
   version: string
   retrievalBoost?: number
+  /** 이 팩을 근거로 쓰면 안 되는 서비스(서비스 금지 규칙과 부딪히는 경우). 예: 신살 해석은 연인 신호 서비스에 쓰지 않는다. */
+  excludedServiceKeys?: string[]
 }
 
 interface CorpusRegistry {
@@ -136,6 +138,7 @@ export function getCorpusSnapshot(): CorpusSnapshot {
       version: pack.version,
       contentHash: pack.contentHash,
       retrievalBoost: pack.retrievalBoost ?? 0,
+      ...(pack.excludedServiceKeys?.length ? { excludedServiceKeys: pack.excludedServiceKeys } : {}),
     })),
   })).slice(0, 28)
 

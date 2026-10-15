@@ -21,7 +21,8 @@
     "model": "gpt-5.6-luna",
     "ragTopK": 7,
     "sectionMaxTokens": 9000,
-    "maxTokens": 24000
+    "maxTokens": 24000,
+    "inventedShinsalFallback": "keep"
   },
   "unknownBirthTime": {
     "sixCharServices": ["saju_master"]

@@ -11,6 +11,10 @@ const ROLE_COPY: Record<string, { label: string, description: string }> = {
     label: '명리 기본 근거',
     description: '모든 서비스가 사주 원리와 용어를 해석할 때 공통으로 참고합니다.',
   },
+  shinsal_reference: {
+    label: '신살 해석 근거',
+    description: '계산된 신살(도화·역마·귀인 등)의 뜻과 적용 조건, 단정하면 안 되는 것을 모든 서비스가 공통으로 참고합니다.',
+  },
   longform_depth: {
     label: '장문 해석 보강',
     description: '리포트 설명이 얕아지지 않도록 배경 원리와 해석 깊이를 보강합니다.',

@@ -1,0 +1,301 @@
+{
+  "schemaVersion": "1.0.0",
+  "corpusId": "shinsal-interpretation",
+  "corpusVersion": "1.0.0",
+  "status": "candidate",
+  "statusNote": "사람 전문가 대신 독립 AI 검증자(작성 과정을 보지 않음)가 고전 원문(삼명통회 위키문헌 卷二·卷三)·현대 자료·계산 코드와 25블록을 대조했다(2026-10-15). 길흉 반대·뜻 혼동 0건, 지적 7건(육해 돌봄 근거 없음, 공망 단정, 망신·원진 한자, 화개 비유, 학당·괴강·귀문관 학파 차이)를 반영했다. 학파 차이는 사용자 결정으로 본문에 \"다른 방법도 있다\"를 쓰지 않고 analysis/shinsal-research.html 의 다수설 선택을 그대로 쓴다. 사람 감수는 아직 없으므로 candidate 로 둔다.",
+  "sourcePath": "data/tone-v2/corpus/shinsal-interpretation.json",
+  "sourceSha256": "b7a5b3ba08173085dca5772c1e0aacc5b6ab96492f3aa3b9cf7ea61cb6da1d19",
+  "reviewedAgainst": [
+    "analysis/shinsal-research.html",
+    "src/saju/shinsal.ts",
+    "src/love/reading-content.ts(연인 신호 금지 규칙)"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "tests/unit/shinsal-corpus.test.ts 자동 검사 + 독립 AI 사실 대조(삼명통회 卷二·卷三, 나무위키 사주팔자/신살, analysis/shinsal-research.html, src/saju/shinsal.ts) + Codex 읽기 전용 코드 리뷰(logs/review/2026-10-15-luck-shinsal-corpus.md)",
+  "serviceExclusions": {
+    "couple_signal": "도화·홍염을 외도나 성격 판정으로 쓰지 않는다는 서비스 규칙과 부딪혀 검색에서 뺀다(registry excludedServiceKeys)."
+  },
+  "blocks": [
+    {
+      "id": "shinsal-000",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-001",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-002",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-003",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-004",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-005",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-006",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-007",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-008",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-009",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-010",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-011",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-012",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-013",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-014",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-015",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-016",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-017",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-018",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-019",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-020",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-021",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-022",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-023",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    },
+    {
+      "id": "shinsal-024",
+      "status": "auto_pass",
+      "checks": {
+        "allFields": true,
+        "hypotheticalExamplesLabeled": true,
+        "noCertaintyClause": true,
+        "computedNameOnly": true,
+        "independentFactCheck": true
+      }
+    }
+  ],
+  "unverified": [
+    "재살=수옥살 별칭의 고전 원문 출처",
+    "귀문관의 고전 출처",
+    "홍염 구결 원문"
+  ]
+}

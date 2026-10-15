@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { analyzeSaju, sixCharAnalysis, buildSajuFeatureJson } from '../../src/saju/analyzer.js'
 import { calculateShinsal, inventedShinsalNames, kongmangBranches, SHINSAL_HOUR_UNKNOWN_NOTE } from '../../src/saju/shinsal.js'
 import { reviewGeneratedSajuReportSection, buildTemplateSajuReport } from '../../src/report/report-generator.js'
+import { isBlockingIssue } from '../../src/report/tone-v2-review.js'
 import { buildPillar, HEAVENLY_STEMS, EARTHLY_BRANCHES } from '../../src/saju/calculator.js'
 import { STEM_ELEMENT, BRANCH_ELEMENT } from '../../src/saju/analyzer-helpers.js'
 import type { BirthInput, EarthlyBranch, HeavenlyStem, Pillar, ShinsalInfo } from '../../src/types/index.js'
@@ -108,5 +109,7 @@ describe('신살 계산: 13개 기준', () => {
     const section = buildTemplateSajuReport(analysis, PDF_BIRTH, context).sections.find((x) => x.id === 'profile')!
     const review = reviewGeneratedSajuReportSection({ analysis, birth: PDF_BIRTH, context, section, hook: '장점이 살아나는 조건', interpretation: '역마살이 있어 이동이 많아요.' })
     assert.ok(review.issues.some((issue) => issue.includes('계산된 신살 목록에 없는 신살(역마)')))
+    // 마지막 단계에서 어떻게 할지는 스위치(report.inventedShinsalFallback)가 정한다. 검수 지적 자체는 막는 지적이 아니다.
+    assert.ok(review.issues.filter((issue) => issue.includes('계산된 신살 목록에 없는 신살')).every((issue) => !isBlockingIssue(issue)))
   })
 })

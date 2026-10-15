@@ -415,7 +415,7 @@ export interface SajuFeatureJson {
     currentYear: number
     yearPillar: string
     currentDaewoon: string
-    /** withChart: 그 운의 글자가 원국과 만드는 합·충·형·파·해(예: '충 午↔일지 子'). 시간을 모르면 시주는 빼고 본다. */
+    /** withChart: 그 운의 글자가 원국과 만드는 합·충·형·파·해(예: '충 午↔일지 子')와 신살 한 줄(예: '신살 도화(일지)·천을귀인'). 시간을 모르면 시주는 빼고 본다. */
     daewoonList?: Array<{ age: string; pillar: string; ageStart?: number; startYear?: number; withChart?: string[] }>
     yearlyFlow?: Array<{ year: number; pillar: string; age: number; withChart?: string[] }>
     direction?: FortuneCycle['direction']
@@ -532,6 +532,7 @@ export interface CorpusPackSnapshot {
   role: string
   version: string
   retrievalBoost?: number
+  excludedServiceKeys?: string[]
   contentHash: string
 }
 
