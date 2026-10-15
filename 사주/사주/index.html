@@ -4975,7 +4975,10 @@
       /** 로그인 직전: 새로 체크한 동의를 이 탭에 둔다. 이미 동의한 브라우저(한 줄 표시)면 다시 남기지 않는다. */
       function saveLoginConsent() {
         if (!loginConsent || loginConsent.alreadyAgreed || !window.UMSHConsent) return;
-        window.UMSHConsent.savePending(loginConsent.values());
+        const values = loginConsent.values();
+        // 결과 시트에서 동의하고 넘어온 경우 "동의한 곳"을 시트(guest-sheet)로 남긴다(어드민 동의 이력).
+        if (window.UMSHConsent.readPending?.()?.source === "guest-sheet") values.source = "guest-sheet";
+        window.UMSHConsent.savePending(values);
       }
 
       /**
