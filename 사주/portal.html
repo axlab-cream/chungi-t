@@ -89,7 +89,7 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" />
-    <link rel="stylesheet" href="/css/portal.css?v=20261016-today" />
+    <link rel="stylesheet" href="/css/portal.css?v=20261016-today-art" />
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
@@ -206,55 +206,7 @@
           <nav class="poster-dots" id="posterDots" aria-label="대표 상품 배너 위치"></nav>
 
           <a class="today-ticket service-card is-live" href="/today/free" data-category="흐름" aria-label="오늘의 운 보기">
-            <!-- 2026-10-16 오늘의 운 띠: 금빛 원 안의 초승달과 붉은 꽃(그림 파일 없이 SVG로 그림) -->
-            <span class="today-art" aria-hidden="true">
-              <svg viewBox="0 0 104 104" focusable="false">
-                <defs>
-                  <radialGradient id="todayGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0" stop-color="#f3d58c" stop-opacity=".45" />
-                    <stop offset=".55" stop-color="#d8ba72" stop-opacity=".12" />
-                    <stop offset="1" stop-color="#d8ba72" stop-opacity="0" />
-                  </radialGradient>
-                  <linearGradient id="todayGold" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#fbe7b0" />
-                    <stop offset=".5" stop-color="#d8ba72" />
-                    <stop offset="1" stop-color="#9c7a3a" />
-                  </linearGradient>
-                  <mask id="todayMoon">
-                    <circle cx="52" cy="52" r="12" fill="#fff" />
-                    <circle cx="57.5" cy="47" r="10.5" fill="#000" />
-                  </mask>
-                  <filter id="todaySoft"><feGaussianBlur stdDeviation="1.1" /></filter>
-                  <g id="todayBlossom">
-                    <ellipse cx="0" cy="-5.2" rx="3.6" ry="5.2" />
-                    <ellipse cx="0" cy="-5.2" rx="3.6" ry="5.2" transform="rotate(72)" />
-                    <ellipse cx="0" cy="-5.2" rx="3.6" ry="5.2" transform="rotate(144)" />
-                    <ellipse cx="0" cy="-5.2" rx="3.6" ry="5.2" transform="rotate(216)" />
-                    <ellipse cx="0" cy="-5.2" rx="3.6" ry="5.2" transform="rotate(288)" />
-                  </g>
-                </defs>
-                <g class="today-blossoms" filter="url(#todaySoft)">
-                  <use href="#todayBlossom" transform="translate(16 16) scale(1.25)" fill="#a8232c" />
-                  <use href="#todayBlossom" transform="translate(4 36) scale(.9) rotate(20)" fill="#7d1820" />
-                  <use href="#todayBlossom" transform="translate(14 90) scale(1.35) rotate(12)" fill="#b02a31" />
-                  <use href="#todayBlossom" transform="translate(36 100) scale(.95) rotate(40)" fill="#861b23" />
-                  <use href="#todayBlossom" transform="translate(88 14) scale(.7) rotate(30)" fill="#6e151c" />
-                </g>
-                <g fill="#f0c766" opacity=".9">
-                  <circle cx="16" cy="16" r="1.5" /><circle cx="14" cy="90" r="1.6" /><circle cx="36" cy="100" r="1.2" />
-                </g>
-                <circle cx="52" cy="52" r="34" fill="url(#todayGlow)" />
-                <circle cx="52" cy="52" r="27" fill="none" stroke="url(#todayGold)" stroke-width="1.8" />
-                <circle cx="52" cy="52" r="22.5" fill="none" stroke="#d8ba72" stroke-opacity=".45" stroke-width=".7" />
-                <g stroke="#d8ba72" stroke-width="1" stroke-linecap="round" opacity=".75">
-                  <path d="M52 21v3M52 80v3M21 52h3M80 52h3M30.1 30.1l2.1 2.1M71.8 71.8l2.1 2.1M30.1 73.9l2.1-2.1M71.8 32.2l2.1-2.1" />
-                </g>
-                <circle cx="52" cy="52" r="12" fill="url(#todayGold)" mask="url(#todayMoon)" />
-                <g fill="#fbe7b0">
-                  <circle cx="63" cy="58" r="1.1" /><circle cx="59" cy="40" r=".8" /><circle cx="42" cy="64" r=".7" />
-                </g>
-              </svg>
-            </span>
+            <img class="today-bg" src="/assets/today-ticket-bg-v1.webp" alt="" width="1170" height="393" decoding="async" aria-hidden="true" />
             <div>
               <span>무료</span>
               <strong>오늘의 운</strong>
