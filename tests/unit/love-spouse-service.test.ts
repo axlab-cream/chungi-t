@@ -23,6 +23,7 @@ const userBirth: BirthInput = {
 test('love spouse service builds a 21-section marriage partner report', () => {
   const input = parseLoveSpouseRequest({
     relationshipStatus: '싱글이에요',
+    loveTarget: '여자',
     marriagePriority: '생활과 책임감',
     meetingRoute: '소개와 지인 모임',
     concern: '좋은 사람을 만나도 결혼으로 이어질지 모르겠어요.',
@@ -53,6 +54,7 @@ test('love spouse preserves legacy star lookup without prescribing gendered part
   const femaleBirth: BirthInput = { ...userBirth, gender: 'female' }
   const input = parseLoveSpouseRequest({
     relationshipStatus: '결혼을 고민 중이에요',
+    loveTarget: '남자',
     marriagePriority: '대화와 갈등 회복',
     meetingRoute: '일과 프로젝트',
   })

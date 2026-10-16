@@ -1,4 +1,5 @@
 import type { SajuReportContext } from '../types/index.js'
+import { asGender } from './partner-gender.js'
 
 /**
  * 응답으로 내보낼 상대 정보. 계산 결과만 남기고 생년월일시 원본을 뺀다.
@@ -11,6 +12,9 @@ import type { SajuReportContext } from '../types/index.js'
 export function publicPartnerContext(partner: SajuReportContext['partner']): SajuReportContext['partner'] {
   if (!partner || !('birth' in partner)) return partner
   const next = { ...partner }
+  // 성별은 비식별 값이다. 생년월일을 지우더라도 상대 성별은 남겨 풀이가 상대를 짐작하지 않게 한다.
+  const gender = asGender(next.birth?.gender)
+  if (gender && !next.gender) next.gender = gender
   delete next.birth
   return next
 }

@@ -328,6 +328,8 @@ export interface SajuReportContext {
     mode?: 'none' | 'known'
     name?: string
     relationship?: string
+    /** 상대 성별. 생년월일은 문맥에 싣지 않지만 성별은 비식별 값이라 풀이에 필요한 만큼만 남긴다. */
+    gender?: 'male' | 'female'
     birth?: BirthInput
     birthTimeKnown?: boolean
     pillars?: {

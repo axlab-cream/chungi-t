@@ -5611,7 +5611,7 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     // 궁합 문맥에는 본인 명식 값도 저장되므로, 문맥을 만들기 전에 본인도 6글자로 맞춘다(저장 명식은 원본 그대로).
     const selfForContext = analysisForNewReport(analysis, 'marry_match', selectedBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildMarryMatchReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return

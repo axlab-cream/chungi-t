@@ -15,6 +15,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { partnerBirthTimeReading, withholdsBirthTime } from '../saju/unknown-time-reading.js'
+import { genderField } from '../report/partner-gender.js'
 
 export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 
@@ -176,10 +177,16 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
     day,
     hour: birthTimeKnown && Number.isFinite(hourRaw) ? hourRaw : 12,
     minute: Number.isFinite(Number(source.minute)) ? Number(source.minute) : 0,
-    gender: source.gender === 'female' ? 'female' : 'male',
+    gender: requirePartnerGender(source.gender),
     calendar: source.calendar === 'lunar' ? 'lunar' : 'solar',
     ...parseBirthLocation(source),
   }
+}
+
+// 상대 성별은 짐작하지 않는다. 비어 있거나 어긋난 값을 "남자"로 두면 상대 사주와 풀이가 조용히 틀어진다.
+function requirePartnerGender(value: unknown): 'male' | 'female' {
+  if (value !== 'male' && value !== 'female') throw new InputError('상대 성별을 선택해 주세요.')
+  return value
 }
 
 export function parseLoveSignalRequest(body: Record<string, unknown>): LoveSignalRequest {
@@ -237,6 +244,7 @@ export function buildLoveSignalContext(
     partner: {
       relationship: input.relationshipStage,
       name: input.partnerName,
+      ...genderField(input.partnerBirth),
       // 상대의 생년월일시 원본은 문맥에 싣지 않는다. 이 문맥은 리포트 payload 로 저장되고
       // 응답으로도 나가는데, 상대는 이 서비스의 사용자가 아니어서 동의·삭제 창구가 없다.
       // 본문 생성에 필요한 것은 아래 계산 결과뿐이고 원본은 `input.partnerBirth` 에 있다.

@@ -25,6 +25,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { partnerBirthTimeReading, withholdsBirthTime } from '../saju/unknown-time-reading.js'
+import { genderField, relationOrientation } from '../report/partner-gender.js'
 
 export const MARRY_MATCH_SERVICE_KEY = 'marry_match'
 
@@ -274,6 +275,7 @@ export function buildMarryMatchContext(
   input: MarryMatchRequest,
   partnerAnalysis: SajuAnalysis,
   userAnalysis?: SajuAnalysis,
+  selfGender?: 'male' | 'female',
 ): SajuReportContext {
   const p = partnerAnalysis.fourPillars
   return {
@@ -281,7 +283,8 @@ export function buildMarryMatchContext(
     name,
     target: '결혼궁합',
     relationship: input.relationshipStage || '결혼 고려',
-    orientation: '이성 관계 중심',
+    // 두 사람 성별로 정한다(같으면 동성, 다르면 이성, 모르면 성별을 짐작하지 않음). 천명사주와 같은 규칙.
+    orientation: relationOrientation(selfGender, input.partnerBirth.gender),
     concern: [
       input.partnerName ? `상대: ${input.partnerName}` : '',
       input.marriagePlan ? `계획: ${input.marriagePlan}` : '',
@@ -291,6 +294,7 @@ export function buildMarryMatchContext(
       mode: 'known',
       name: input.partnerName,
       relationship: input.relationshipStage || '결혼 고려 상대',
+      ...genderField(input.partnerBirth),
       // 상대의 생년월일시 원본은 문맥에 싣지 않는다. 이 문맥은 리포트 payload 로 저장되고
       // 응답으로도 나가는데, 상대는 이 서비스의 사용자가 아니어서 동의·삭제 창구가 없다.
       // 본문 생성에 필요한 것은 아래 계산 결과뿐이고 원본은 `input.partnerBirth` 에 있다.
