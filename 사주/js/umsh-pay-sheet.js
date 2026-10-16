@@ -250,7 +250,8 @@
     if (global.UMSHAnalytics && global.UMSHAnalytics.beginCheckout) global.UMSHAnalytics.beginCheckout(product);
     trackFunnel('checkout', product.key);
 
-    // 이미 결제한 풀이면 결제 대신 풀이로 안내한다(결제 완료 뒤 뒤로 가기 등).
+    // 이미 결제한 풀이면 알려만 준다. 2026-10-16 대표 결정: 같은 풀이도 다시 결제할 수 있다.
+    var paidNote = '';
     if (opts.reportId) {
       try {
         var paidParams = new URLSearchParams({ productKey: product.key, reportId: opts.reportId });
@@ -258,9 +259,7 @@
         var paid = paidResponse.ok ? await paidResponse.json() : null;
         if (state !== current) return null;
         if (paid && paid.paid) {
-          body().innerHTML = '<p class="umsh-ps-status" data-ps-status>이미 결제한 풀이입니다. 다시 결제하지 않아도 됩니다.</p>'
-            + '<a class="umsh-ps-done" href="' + escapeText(paidReadingUrl(product, opts.reportId, paid.orderId)) + '">풀이 보기</a>';
-          return state;
+          paidNote = '<p class="umsh-ps-guest" data-ps-paid>이 풀이는 이미 결제했어요. 결제하면 한 번 더 결제됩니다. <a href="' + escapeText(paidReadingUrl(product, opts.reportId, paid.orderId)) + '">풀이 보기</a></p>';
         }
       } catch (_e) { /* 확인 실패면 서버가 주문 때 한 번 더 막는다 */ }
     }
@@ -291,7 +290,7 @@
       return '<option value="' + escapeText(item.id) + '">' + escapeText(item.title + ' · ' + suffix) + '</option>';
     }).join('');
 
-    body().innerHTML = (saved ? '<p class="umsh-ps-badge">지금 결제하면 ' + won(saved) + ' 할인</p>' : '')
+    body().innerHTML = paidNote + (saved ? '<p class="umsh-ps-badge">지금 결제하면 ' + won(saved) + ' 할인</p>' : '')
       + '<div class="umsh-ps-product"><div><strong>' + escapeText(product.title) + '</strong><small>' + escapeText(product.summary || product.eyebrow || '') + '</small></div>'
       + '<div class="umsh-ps-price">' + (saved ? '<s>' + won(originAmount) + '</s><em>' + escapeText(opts.discountLabel || '') + '</em>' : '') + '<b>' + won(amount) + '</b></div></div>'
       + '<ul class="umsh-ps-lines">'

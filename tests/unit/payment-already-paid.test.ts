@@ -106,11 +106,11 @@ describe('이미 결제한 풀이는 다시 결제하지 않는다', () => {
     assert.deepEqual(unexpected, [], `허용하지 않은 외부 요청: ${unexpected.join(', ')}`)
   })
 
-  it('결제 완료된 풀이로 주문을 만들면 409 ALREADY_PAID 와 기존 주문번호를 돌려준다', async () => {
+  // 2026-10-16 대표 결정: 같은 풀이도 다시 결제할 수 있다(이전에는 409 ALREADY_PAID 로 막았다).
+  it('결제 완료된 풀이도 다시 주문을 만들 수 있다', async () => {
     const result = await orderRequest('job_choice', 'report-paid')
-    assert.equal(result.status, 409)
-    assert.equal(result.payload.code, 'ALREADY_PAID')
-    assert.equal(result.payload.orderId, 'UMSHALREADYPAID1')
+    assert.equal(result.status, 200)
+    assert.notEqual(result.payload.code, 'ALREADY_PAID')
   })
 
   it('결제 화면은 열릴 때 이미 결제한 풀이인지 알 수 있다', async () => {

@@ -385,20 +385,18 @@
    * 이미 결제한 풀이면 결제창 대신 풀이로 안내한다(2026-10). 결제 완료 화면에서 브라우저 뒤로
    * 가기를 누르면 이 화면이 다시 열려서, 같은 풀이를 한 번 더 결제할 수 있었다.
    */
+  // 2026-10-16 대표 결정: 같은 풀이도 다시 결제할 수 있다. 이미 결제했다는 것만 알리고 결제 버튼은 그대로 둔다.
   function showAlreadyPaid(orderId) {
-    // 쿠폰·연락처·약관 칸이 남아 있으면 아직 결제해야 하는 것처럼 보인다. 안내와 버튼만 남긴다.
-    form.classList.add('is-already-paid');
-    button.hidden = true;
-    if (freeCouponButton) freeCouponButton.hidden = true;
-    status?.classList.add('is-info');
-    setStatus('이미 결제한 풀이입니다. 다시 결제하지 않아도 됩니다.');
     if (form.querySelector('[data-already-paid]')) return;
+    const note = document.createElement('p');
+    note.className = 'payment-status is-info';
+    note.setAttribute('data-already-paid', '');
+    note.append('이 풀이는 이미 결제했어요. 결제하면 한 번 더 결제됩니다. ');
     const link = document.createElement('a');
-    link.className = 'payment-submit';
-    link.setAttribute('data-already-paid', '');
     link.href = paidReadingUrl(orderId);
     link.textContent = '풀이 보기';
-    status?.insertAdjacentElement('afterend', link);
+    note.append(link);
+    form.prepend(note);
   }
 
   async function checkAlreadyPaid() {
@@ -442,7 +440,8 @@
     }
     await initAuth();
     if (!session) return;
-    if (await checkAlreadyPaid()) return;
+    // 이미 결제한 풀이여도 알리기만 하고 결제 칸은 그대로 채운다(2026-10-16, 다시 결제 가능).
+    await checkAlreadyPaid();
     form.buyerEmail.value = session.user?.email || '';
     if (isGuest) applyGuestForm();
     else await loadCoupons();
