@@ -141,12 +141,11 @@ describe('결제 진입 화면 연결', () => {
     assert.match(gate, /sessionStorage\.setItem\(AUTH_PURCHASE_KEY, "1"\)/)
     assert.match(gate, /showAuthGate\(/)
     assert.match(gate, /persistAuthFormState\(\)/, '입력값을 보관해야 로그인 뒤 다시 입력하지 않는다')
-    // 2026-10-16: 저장 시트에서 로그인하고 돌아오면 풀이의 운명 거래하기가 보이는 곳으로(결제 시트는 누를 때).
-    // 이미 회원이 가입 전 티저에서 누른 경우만 다시 분석 뒤 바로 결제 시트. 연애운(올해)은 예전대로.
+    // 2026-10-16 대표 결정: 저장 시트에서 로그인하고 돌아오면 풀이의 운명 거래하기 위치로 데려가고 결제 시트를 바로 올린다.
+    // 연애운(올해)은 예전대로.
     const after = source.slice(source.indexOf('if (purchase && usesTradeSheets()) {'), source.indexOf('go(purchase ? "purchase" : "result")'))
-    assert.match(after, /go\("result"\);/)
-    assert.match(after, /if \(fromLogin\) \{[\s\S]*?scrollToTradeCta\(\);[\s\S]*?\} else \{[\s\S]*?openTradePaySheet\(\);/)
-    assert.doesNotMatch(after.slice(0, after.indexOf('} else {')), /openTradePaySheet/, '로그인하고 돌아오자마자 결제 시트를 띄우지 않는다')
+    assert.match(after, /go\("result"\);[\s\S]*?scrollToTradeCta\(\);[\s\S]*?openTradePaySheet\(\)/)
+    assert.match(after, /removeItem\(TRADE_LOGIN_KEY\)/)
     assert.match(source, /go\(purchase \? "purchase" : "result"\)/)
     assert.match(gate, /if \(usesTradeSheets\(\) && window\.UMSHGuestSaveSheet\?\.open\) \{[\s\S]*?openTradeLoginSheet\(\);\s*return;/, '비회원은 풀화면 로그인 대신 동의+로그인 바텀시트')
     const checkout = fn('startCheckout', 'const config = await loadPaymentConfig()')

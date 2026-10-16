@@ -5478,17 +5478,11 @@
             // 2026-10-15: 결제로 이어지는 경우 풀이 화면을 깔고 그 위에 결제 시트를 올린다(결제 안내 화면을 거치지 않는다).
             if (purchase && usesTradeSheets()) {
               go("result");
-              const fromLogin = Boolean(sessionStorage.getItem(TRADE_LOGIN_KEY));
               sessionStorage.removeItem(TRADE_LOGIN_KEY);
-              if (fromLogin) {
-                // 저장 시트에서 로그인하고 돌아온 경우: 운명 거래하기가 보이는 곳으로 데려가고, 결제는 버튼을 누를 때 연다.
-                scrollToTradeCta();
-                showNudge("로그인했어요. 운명 거래하기를 누르면 결제로 이어져요.");
-              } else {
-                // 이미 로그인한 회원이 가입 전 티저에서 운명 거래하기를 누른 경우: 다시 분석한 뒤 바로 결제 시트.
-                scrollToTradeCta();
-                openTradePaySheet();
-              }
+              // 2026-10-16 대표 결정: 저장 시트에서 로그인하고 돌아오면(또는 회원이 가입 전 티저에서 운명 거래하기를 누르면)
+              // 다시 분석한 풀이의 운명 거래하기 위치로 데려가고 결제 시트를 바로 올린다.
+              scrollToTradeCta();
+              setTimeout(() => openTradePaySheet(), 400);
               return;
             }
             go(purchase ? "purchase" : "result");
