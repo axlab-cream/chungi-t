@@ -2095,7 +2095,6 @@ function orderUnlocks(order: PaymentOrder, owner: ReportOwner, productKey: strin
   return order.reportId === reportId
 }
 
-/** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
 /** 결제 승인 반영 + 비회원이면 비회원 관리 장부에 결제 표시(2026-10-16). 표시 실패가 결제를 막지 않는다. */
 async function projectApprovedPaymentForGuest(...args: Parameters<typeof projectApprovedPayment>): ReturnType<typeof projectApprovedPayment> {
   const paid = await projectApprovedPayment(...args)
@@ -2103,6 +2102,7 @@ async function projectApprovedPaymentForGuest(...args: Parameters<typeof project
   return paid
 }
 
+/** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
 async function findUnlockingOrder(
   owner: ReportOwner,
   productKey: string,
