@@ -89,7 +89,7 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" />
-    <link rel="stylesheet" href="/css/portal.css?v=20261016-appbar16" />
+    <link rel="stylesheet" href="/css/portal.css?v=20261016-today-art" />
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
@@ -205,13 +205,16 @@
 
           <nav class="poster-dots" id="posterDots" aria-label="대표 상품 배너 위치"></nav>
 
-          <a class="today-ticket service-card is-live" href="/today/free" data-category="흐름" aria-label="오늘 네게 들어오는 운 보기">
+          <a class="today-ticket service-card is-live" href="/today/free" data-category="흐름" aria-label="오늘의 운 보기">
+            <img class="today-bg" src="/assets/today-ticket-bg-v1.webp" alt="" width="1170" height="393" decoding="async" aria-hidden="true" />
             <div>
               <span>무료</span>
-              <strong>오늘 네게 들어오는 운</strong>
+              <strong>오늘의 운</strong>
               <p>일진 · 일운 · 오늘 피해야 할 선택</p>
             </div>
-            <span class="today-cta">보기</span>
+            <span class="today-cta" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13M13 6.5 18.5 12 13 17.5" /></svg>
+            </span>
           </a>
 
           <section class="section-block weekly-free" aria-labelledby="weekly-free-title">
@@ -466,6 +469,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261016-overlay"></script>
+    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261016-today"></script>
   </body>
 </html>

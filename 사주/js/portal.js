@@ -43,7 +43,7 @@
     try { seenToday = localStorage.getItem(TODAY_SEEN_KEY) === dateKey; } catch (_) { seenToday = false; }
     todayTicket.dataset.todayState = seenToday ? 'seen' : 'fresh';
     const eyebrow = todayTicket.querySelector(':scope > div > span');
-    if (eyebrow) eyebrow.textContent = `무료 · ${now.getMonth() + 1}월 ${now.getDate()}일${seenToday ? ' · 오늘 확인함' : ''}`;
+    if (eyebrow) eyebrow.textContent = `${now.getMonth() + 1}월 ${now.getDate()}일${seenToday ? ' · 오늘 확인함' : ''}`;
     todayTicket.addEventListener('click', () => {
       try { localStorage.setItem(TODAY_SEEN_KEY, dateKey); } catch (_) { /* private mode */ }
     });

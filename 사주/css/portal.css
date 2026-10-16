@@ -2120,3 +2120,92 @@ a:focus-visible {
 .consultation-promo .consultation-promo-copy strong {
   font-family: var(--font-ui);
 }
+
+/* ── 오늘의 운 띠 (2026-10-16 사용자 제공 그림) ──
+   배경 그림(천문기·초승달·붉은 꽃, 글자 없음)을 띠 전체에 깔고, 그림 비율(2163:727)을 그대로 지켜
+   위아래가 잘리지 않게 한다. 왼쪽 천문기 위로는 글자를 얹지 않고 34% 지점부터 날짜·제목·설명을 둔다. */
+.today-ticket {
+  justify-content: flex-start;
+  gap: 10px;
+  aspect-ratio: 2163 / 727;
+  min-height: 104px;
+  padding: 12px 14px 12px 34%;
+  border-color: rgba(216, 186, 114, 0.32);
+  background: #0a0807;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 236, 190, 0.1);
+}
+
+.today-ticket .today-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
+}
+
+.today-ticket > div,
+.today-ticket .today-cta {
+  position: relative;
+  z-index: 1;
+}
+
+.today-ticket > div {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.today-ticket > div > span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.today-ticket strong {
+  margin-top: 3px;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.today-ticket p {
+  margin-top: 5px;
+  color: rgba(236, 226, 205, 0.78);
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.today-ticket .today-cta {
+  width: 42px;
+  height: 42px;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid rgba(216, 186, 114, 0.7);
+  border-radius: 50%;
+  background: rgba(8, 7, 6, 0.6);
+  color: var(--gold-400);
+}
+
+.today-ticket .today-cta svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.today-ticket:hover .today-cta,
+.today-ticket:focus-visible .today-cta,
+.today-ticket.is-pointed .today-cta {
+  background: var(--gold-gradient);
+  color: #070706;
+}
