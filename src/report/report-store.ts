@@ -191,10 +191,12 @@ export function createReportLineageId(
   birth: BirthInput,
   context: SajuReportContext,
   ownerId?: string,
+  /** 기본은 현재 세대. 저장된 레코드의 계보를 역산할 때는 그 레코드가 만들어진 세대를 넣는다. */
+  cacheEpoch = corpusCacheSalt(),
 ): string {
   const seed = stableJson({
     birth: birthKey(birth),
-    cacheEpoch: corpusCacheSalt(),
+    cacheEpoch,
     context,
     lineage: '1',
     ownerId: ownerId ?? '',
@@ -1029,9 +1031,13 @@ export async function saveReportRecord(record: ReportRecord, insertOnly = true):
   return cloneRecord(stored)
 }
 
-/** 저장된 레코드의 계보 키. 도입 이전 레코드는 기록이 없으므로 그때만 역산한다. */
+/**
+ * 저장된 레코드의 계보 키. 도입 이전 레코드는 기록이 없으므로 그때만 역산한다.
+ * 역산은 **그 레코드가 만들어진 세대**로 한다(세대 기록이 없으면 기준 세대 ""). 현재 세대로 역산하면
+ * 9/14 이전 레코드가 세대를 올릴 때마다 "현재 세대"로 보여 옛 해석이 계속 승계됐다(2026-10-16 수정, 업데이트가 기준).
+ */
 export function reportLineageId(record: ReportRecord): string {
-  return record.lineageId ?? createReportLineageId(record.birth, record.context, record.owner?.id)
+  return record.lineageId ?? createReportLineageId(record.birth, record.context, record.owner?.id, record.cacheEpoch ?? '')
 }
 
 /** 같은 사주인지 가르는 열쇠. 생년월일시·성별·역법만 보고 고민 문구나 코퍼스 세대는 보지 않는다. */
