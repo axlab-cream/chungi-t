@@ -780,6 +780,53 @@ export async function updatePaymentOrder(orderId: string, patch: Partial<Omit<Pa
   return mutatePaymentOrder(orderId, () => patch)
 }
 
+/**
+ * 2026-10-16 비회원 결제(docs/auth/guest-member-plan.md 8절). 주문 주인(owner_id)은 위 일반 수정 경로에서 바꿀 수 없다(U21).
+ * 이 함수만 예외로 주인을 옮긴다. 부르는 곳은 정해져 있다:
+ * - 로그인할 때 같은 기기의 비회원 기록 이어받기(비회원 토큰 + 회원 토큰을 함께 가진 경우)
+ * - 비회원 주문 불러오기(주문번호 + 결제 휴대폰 번호가 맞고 지금 주인이 비회원인 경우)
+ * - 운영자 수동 이전(어드민, members:write + 사유 + 감사 기록)
+ * 금액·상품·상태·결제 증거는 건드리지 않는다. orderIds 를 주면 그 주문만, 없으면 fromOwnerId 의 주문 전부.
+ */
+export async function transferPaymentOrdersOwner(fromOwnerId: string, to: { id: string; email?: string }, orderIds?: string[]): Promise<number> {
+  if (!fromOwnerId || !to.id || fromOwnerId === to.id) return 0
+  if (orderIds && !orderIds.length) return 0
+  assertDurableStorage('결제 주문', checkPaymentStorageReadiness())
+  const only = orderIds ? new Set(orderIds) : null
+
+  if (storageMode() === 'memory') {
+    let moved = 0
+    for (const order of memoryOrders.values()) {
+      if (order.ownerId !== fromOwnerId || (only && !only.has(order.orderId))) continue
+      memoryOrders.set(order.orderId, { ...order, ownerId: to.id, ownerEmail: to.email ?? order.ownerEmail, updatedAt: nowIso(), revision: (order.revision ?? 0) + 1 })
+      moved += 1
+    }
+    return moved
+  }
+
+  if (storageMode() === 'supabase') {
+    const url = new URL(supabaseRestUrl)
+    url.searchParams.set('owner_id', `eq.${fromOwnerId}`)
+    if (only) url.searchParams.set('order_id', `in.(${[...only].map((id) => `"${id.replace(/"/g, '')}"`).join(',')})`)
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: { ...supabaseHeaders(), 'content-type': 'application/json', prefer: 'return=representation' },
+      body: JSON.stringify({ owner_id: to.id, owner_email: to.email ?? null, updated_at: nowIso() }),
+    })
+    if (!response.ok) throw new Error('결제 주문 주인을 옮기지 못했습니다.')
+    return (await response.json() as unknown[]).length
+  }
+
+  if (!pool) throw new Error('결제 주문 저장소가 설정되지 않았습니다.')
+  await ensureDb()
+  const result = await pool.query(
+    `UPDATE cheongi_payment_orders SET owner_id = $2, owner_email = COALESCE($3, owner_email), revision = revision + 1, updated_at = NOW()
+     WHERE owner_id = $1 AND ($4::text[] IS NULL OR order_id = ANY($4))`,
+    [fromOwnerId, to.id, to.email ?? null, only ? [...only] : null],
+  )
+  return result.rowCount ?? 0
+}
+
 export function getPaymentStorageMode(): PaymentStorageMode {
   return storageMode()
 }

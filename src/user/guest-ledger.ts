@@ -4,6 +4,7 @@ import { configuredEnv } from '../env/load.js'
 import type { ReportOwner } from '../report/report-store.js'
 import { deleteOwnAccount } from './account-deletion.js'
 import { updateNotificationPrefs } from './hub-store.js'
+import { listPaymentOrders } from '../payment/order-store.js'
 import type { UserBirthProfile } from './profile-store.js'
 
 /**
@@ -47,6 +48,14 @@ function table(name: string): URL {
 
 async function call(url: URL, init: RequestInit = {}): Promise<Response> {
   const response = await fetch(url, { ...init, headers: headers(init.headers as Record<string, string> | undefined) })
+  // 2026-10-16 결제 표시(paid_at)는 마이그레이션 20261016120000 뒤에 생긴다. 그 전에는 그 열을 빼고 한 번 더 묻는다.
+  if (response.status === 400 && url.search.includes('paid_at')) {
+    const retry = new URL(url)
+    for (const key of [...retry.searchParams.keys()]) if (key === 'paid_at') retry.searchParams.delete(key)
+    const select = retry.searchParams.get('select')
+    if (select) retry.searchParams.set('select', select.split(',').filter((column) => column !== 'paid_at').join(','))
+    return call(retry, init)
+  }
   if (response.status === 404) throw new LedgerError('LEDGER_NOT_READY', 503)
   if (!response.ok) throw new LedgerError('LEDGER_STORE_FAILED', 503)
   return response
@@ -218,23 +227,31 @@ export async function recordGuestVisit(params: { guest: ReportOwner; deviceId: u
     return service && !list.includes(service) ? [...list, service].slice(-30) : list
   }
 
-  const own = await findPerson({ guest_user_ids: `cs.{${guest.id}}` })
+  // 2026-10-16 비회원 계정이 기기에 오래 남아(1시간 정책 폐지) 한 기기를 여러 사람이 번갈아 쓰면 같은 계정으로 들어온다.
+  // 그래서 "이 계정 + 이 사주" 줄을 먼저 찾는다. 사주가 다르면 다른 사람이니 아래에서 그 사주 줄을 찾거나 새로 만든다.
+  const own = key
+    ? await findPerson({ guest_user_ids: `cs.{${guest.id}}`, saju_key: `eq.${key}` })
+    : await findPerson({ guest_user_ids: `cs.{${guest.id}}` })
   if (own) {
-    const values: Row = { services: withService(own.services), last_seen_at: seen }
-    // 서브 콘텐츠만 보다가 사주를 넣은 경우: 같은 방문이니 이 줄에 사주를 채운다. 같은 기기에 그 사주 줄이 이미 있으면 그대로 둔다.
-    if (key && own.saju_key === '') {
-      const other = await findPerson({ device_id: `eq.${deviceId}`, saju_key: `eq.${key}` })
-      if (!other) Object.assign(values, { saju_key: key, ...profileColumns(profile) })
-    }
-    await patchPerson(String(own.id), values)
+    await patchPerson(String(own.id), { services: withService(own.services), last_seen_at: seen })
     return
+  }
+  if (key) {
+    // 서브 콘텐츠만 보다가 사주를 넣은 경우: 같은 방문이니 사주가 빈 이 계정 줄에 사주를 채운다. 같은 기기에 그 사주 줄이 이미 있으면 그쪽으로 간다.
+    const blank = await findPerson({ guest_user_ids: `cs.{${guest.id}}`, saju_key: 'eq.' })
+    const other = blank ? await findPerson({ device_id: `eq.${deviceId}`, saju_key: `eq.${key}` }) : undefined
+    if (blank && !other) {
+      await patchPerson(String(blank.id), { services: withService(blank.services), last_seen_at: seen, saju_key: key, ...profileColumns(profile) })
+      return
+    }
   }
 
   const same = await findPerson({ device_id: `eq.${deviceId}`, saju_key: `eq.${key}` })
   if (same) {
     const ids = Array.isArray(same.guest_user_ids) ? same.guest_user_ids as string[] : []
+    // 원래 사람이 같은 기기로 돌아오면 같은 계정일 수 있다(계정을 다시 붙이지 않고 방문 수만 늘린다).
     await patchPerson(String(same.id), {
-      guest_user_ids: [...ids, guest.id],
+      guest_user_ids: ids.includes(guest.id) ? ids : [...ids, guest.id],
       visits: (num(same.visits) ?? ids.length) + 1,
       services: withService(same.services),
       last_seen_at: seen,
@@ -262,11 +279,13 @@ export async function recordGuestVisit(params: { guest: ReportOwner; deviceId: u
 }
 
 /** SNS 로그인으로 비회원 기록을 이어받으면 그 비회원 줄에 회원 계정을 적는다. 이미 다른 회원으로 옮겼으면 덮지 않는다. */
-export async function markGuestConverted(guestId: string, memberId: string, now = new Date()): Promise<void> {
+export async function markGuestConverted(guestId: string, memberId: string, now = new Date(), onlySajuKey?: string): Promise<void> {
   if (!UUID.test(guestId) || !UUID.test(memberId)) return
   const url = table('umsh_guest_people')
   url.searchParams.set('guest_user_ids', `cs.{${guestId}}`)
   url.searchParams.set('converted_to', 'is.null')
+  // 2026-10-16 한 기기를 여러 사람이 쓰면 같은 방문 계정이 여러 줄에 걸린다. 옮긴 사람(사주) 줄만 전환으로 표시한다.
+  if (onlySajuKey) url.searchParams.set('saju_key', `eq.${onlySajuKey}`)
   await call(url, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json', prefer: 'return=minimal' },
@@ -274,9 +293,18 @@ export async function markGuestConverted(guestId: string, memberId: string, now 
   })
 }
 
+/** 비회원이 산 주문이 결제 완료되면 그 비회원 줄에 표시한다(처음 한 번). 30일 정리에서 빠지고 "결제함" 필터에 보인다. */
+export async function markGuestPaid(guestId: string, now = new Date()): Promise<void> {
+  if (!UUID.test(guestId)) return
+  const url = table('umsh_guest_people')
+  url.searchParams.set('guest_user_ids', `cs.{${guestId}}`)
+  url.searchParams.set('paid_at', 'is.null')
+  await call(url, { method: 'PATCH', headers: { 'content-type': 'application/json', prefer: 'return=minimal' }, body: JSON.stringify({ paid_at: now.toISOString() }) })
+}
+
 /* ───────────── 어드민: 비회원 관리 ───────────── */
 
-export type GuestFilter = 'all' | 'open' | 'converted' | 'stale'
+export type GuestFilter = 'all' | 'open' | 'converted' | 'paid' | 'stale'
 
 export interface AdminGuestPerson {
   id: string
@@ -293,6 +321,8 @@ export interface AdminGuestPerson {
   convertedTo: string | null
   convertedAt: string | null
   anonymizedAt: string | null
+  /** 2026-10-16 이 비회원(기기 + 사주)이 결제한 적이 있으면 처음 결제한 시각. */
+  paidAt: string | null
   /** 마지막 방문에서 30일이 지났고 아직 정리하지 않았다. */
   stale: boolean
 }
@@ -304,7 +334,9 @@ function staleBefore(now: Date): string {
 function filterParams(filter: GuestFilter, now: Date): Array<[string, string]> {
   if (filter === 'open') return [['converted_to', 'is.null']]
   if (filter === 'converted') return [['converted_to', 'not.is.null']]
-  if (filter === 'stale') return [['last_seen_at', `lt.${staleBefore(now)}`], ['anonymized_at', 'is.null']]
+  if (filter === 'paid') return [['paid_at', 'not.is.null']]
+  // 결제한 비회원은 거래 기록 보관 기간(5년) 동안 정리하지 않는다.
+  if (filter === 'stale') return [['last_seen_at', `lt.${staleBefore(now)}`], ['anonymized_at', 'is.null'], ['paid_at', 'is.null']]
   return []
 }
 
@@ -326,7 +358,8 @@ function personFromRow(row: Row, now: Date): AdminGuestPerson {
     convertedTo: str(row.converted_to),
     convertedAt: str(row.converted_at),
     anonymizedAt,
-    stale: !anonymizedAt && Boolean(lastSeenAt) && lastSeenAt < staleBefore(now),
+    paidAt: str(row.paid_at),
+    stale: !anonymizedAt && !str(row.paid_at) && Boolean(lastSeenAt) && lastSeenAt < staleBefore(now),
   }
 }
 
@@ -335,7 +368,7 @@ export type GuestSort = keyof typeof GUEST_SORTS
 
 export async function listGuestPeople(query: { filter?: GuestFilter; q?: string; sort?: GuestSort; limit?: number; offset?: number } = {}, now = new Date()): Promise<{ guests: AdminGuestPerson[]; total: number }> {
   const url = table('umsh_guest_people')
-  url.searchParams.set('select', 'id,name,birth_year,gender,saju_key,services,visits,first_seen_at,last_seen_at,consented_at,marketing_consented,converted_to,converted_at,anonymized_at')
+  url.searchParams.set('select', 'id,name,birth_year,gender,saju_key,services,visits,first_seen_at,last_seen_at,consented_at,marketing_consented,converted_to,converted_at,anonymized_at,paid_at')
   url.searchParams.set('order', GUEST_SORTS[query.sort ?? 'recent'] ?? GUEST_SORTS.recent)
   for (const [column, value] of filterParams(query.filter ?? 'all', now)) url.searchParams.append(column, value)
   const name = (query.q ?? '').replace(/[(),.*%\\:"']/g, '').trim().slice(0, 40)
@@ -354,7 +387,7 @@ export async function listGuestPeople(query: { filter?: GuestFilter; q?: string;
 export async function listGuestPeopleForMember(memberId: string, now = new Date()): Promise<AdminGuestPerson[]> {
   if (!UUID.test(memberId)) return []
   const url = table('umsh_guest_people')
-  url.searchParams.set('select', 'id,name,birth_year,gender,saju_key,services,visits,first_seen_at,last_seen_at,consented_at,marketing_consented,converted_to,converted_at,anonymized_at')
+  url.searchParams.set('select', 'id,name,birth_year,gender,saju_key,services,visits,first_seen_at,last_seen_at,consented_at,marketing_consented,converted_to,converted_at,anonymized_at,paid_at')
   url.searchParams.set('converted_to', 'eq.' + memberId)
   url.searchParams.set('order', 'first_seen_at.asc')
   url.searchParams.set('limit', '20')
@@ -374,8 +407,8 @@ async function countWhere(params: Array<[string, string]>): Promise<number> {
 
 /** 비회원 관리 필터 버튼 숫자. 전체 = 회원으로 옮기지 않은 + 옮긴. */
 export async function countGuestPeople(now = new Date()): Promise<Record<GuestFilter, number>> {
-  const [all, open, converted, stale] = await Promise.all((['all', 'open', 'converted', 'stale'] as const).map((filter) => countWhere(filterParams(filter, now))))
-  return { all, open, converted, stale }
+  const [all, open, converted, paid, stale] = await Promise.all((['all', 'open', 'converted', 'paid', 'stale'] as const).map((filter) => countWhere(filterParams(filter, now))))
+  return { all, open, converted, paid, stale }
 }
 
 /** 대시보드: 기간 안에 처음 온 비회원(사람). */
@@ -399,20 +432,31 @@ export function countStaleGuests(now = new Date()): Promise<number> {
  * - 방문마다 생긴 익명 계정: 프로필·리포트·익명 로그인 계정까지 지운다(탈퇴와 같은 경로). 회원으로 옮긴 리포트는 이미 회원 것이라 남는다.
  * ids 를 주면 그중 정리 대상만, 없으면 대상 전부(한 번에 최대 200명).
  */
-export async function anonymizeStaleGuests(ids: string[] | null, now = new Date(), deleteAccount: (userId: string) => Promise<unknown> = deleteOwnAccount): Promise<{ people: number; accounts: number; failedAccounts: number }> {
+export async function anonymizeStaleGuests(
+  ids: string[] | null,
+  now = new Date(),
+  deleteAccount: (userId: string) => Promise<unknown> = deleteOwnAccount,
+  hasOrders: (userId: string) => Promise<boolean> = async (userId) => (await listPaymentOrders(userId, 1)).length > 0,
+): Promise<{ people: number; accounts: number; failedAccounts: number; keptPaid: number }> {
   const url = table('umsh_guest_people')
   url.searchParams.set('select', 'id,guest_user_ids')
   for (const [column, value] of filterParams('stale', now)) url.searchParams.append(column, value)
   if (ids) {
     const valid = ids.filter((id) => UUID.test(id))
-    if (!valid.length) return { people: 0, accounts: 0, failedAccounts: 0 }
+    if (!valid.length) return { people: 0, accounts: 0, failedAccounts: 0, keptPaid: 0 }
     url.searchParams.set('id', `in.(${valid.slice(0, 200).join(',')})`)
   }
   url.searchParams.set('limit', '200')
   const targets = await rows(url)
   let accounts = 0
   let failedAccounts = 0
+  let keptPaid = 0
   for (const row of targets) {
+    // 2026-10-16 결제 표시(paid_at)가 아직 없던 때의 줄도 있으니, 지우기 직전에 주문이 있는지 한 번 더 본다. 있으면 결제한 비회원으로 표시하고 건너뛴다.
+    const ids = Array.isArray(row.guest_user_ids) ? row.guest_user_ids as string[] : []
+    let paid = false
+    for (const guestId of ids) { if (await hasOrders(guestId).catch(() => true)) { paid = true; break } }
+    if (paid) { keptPaid += 1; await patchPerson(String(row.id), { paid_at: now.toISOString() }).catch(() => undefined); continue }
     const failed: string[] = []
     for (const guestId of Array.isArray(row.guest_user_ids) ? row.guest_user_ids as string[] : []) {
       try { await deleteAccount(guestId); accounts += 1 } catch { failed.push(guestId); failedAccounts += 1 }
@@ -425,5 +469,22 @@ export async function anonymizeStaleGuests(ids: string[] | null, now = new Date(
       anonymized_at: failed.length ? null : now.toISOString(),
     })
   }
-  return { people: targets.length, accounts, failedAccounts }
+  return { people: targets.length - keptPaid, accounts, failedAccounts, keptPaid }
+}
+
+/** 운영자 수동 합치기(2026-10-16): 비회원 한 줄과 그 줄에 묶인 방문(익명 계정)들. */
+export async function getGuestPerson(id: string): Promise<{ id: string; guestUserIds: string[]; name: string | null; convertedTo: string | null } | null> {
+  if (!UUID.test(id)) return null
+  const url = table('umsh_guest_people')
+  url.searchParams.set('select', 'id,guest_user_ids,name,converted_to')
+  url.searchParams.set('id', `eq.${id}`)
+  url.searchParams.set('limit', '1')
+  const row = (await rows(url))[0]
+  if (!row) return null
+  return {
+    id: String(row.id),
+    guestUserIds: Array.isArray(row.guest_user_ids) ? row.guest_user_ids.filter((item): item is string => typeof item === 'string') : [],
+    name: str(row.name),
+    convertedTo: str(row.converted_to),
+  }
 }

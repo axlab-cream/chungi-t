@@ -907,14 +907,17 @@ export async function deleteReportRecord(reportId: string, owner: ReportOwner): 
  * 행의 주인(user_id)과 본문에 든 주인(payload.owner)을 함께 바꾼다 — 소유권 검사는 둘 다 본다.
  * 계획: docs/auth/guest-member-plan.md §6 (3단계). 옮긴 건수를 돌려준다.
  */
-export async function transferReportOwnership(fromOwnerId: string, to: ReportOwner): Promise<number> {
+export async function transferReportOwnership(fromOwnerId: string, to: ReportOwner, reportIds?: string[]): Promise<number> {
   if (!fromOwnerId || !to?.id || fromOwnerId === to.id) return 0
+  // 2026-10-16 운영자 주문 이전: 그 주문의 리포트만 옮길 때 reportIds 를 준다. 없으면 fromOwnerId 의 리포트 전부.
+  if (reportIds && !reportIds.length) return 0
+  const only = reportIds ? new Set(reportIds) : null
   const owner = { id: to.id, ...(to.email ? { email: to.email } : {}), ...(to.provider ? { provider: to.provider } : {}) }
 
   if (localFiles || storageMode() === 'memory') {
     const records = localFiles ? await localFiles.list() : Array.from(memoryReports.values())
     let moved = 0
-    for (const record of records.filter((item) => item.owner?.id === fromOwnerId)) {
+    for (const record of records.filter((item) => item.owner?.id === fromOwnerId && (!only || only.has(item.reportId)))) {
       const next = cloneRecord(record)
       next.owner = { ...owner }
       next.revision = (record.revision ?? 0) + 1
@@ -928,6 +931,7 @@ export async function transferReportOwnership(fromOwnerId: string, to: ReportOwn
   if (storageMode() === 'supabase') {
     const url = new URL(supabaseRestUrl)
     url.searchParams.set('user_id', `eq.${fromOwnerId}`)
+    if (only) url.searchParams.set('report_id', `in.(${[...only].map((id) => `"${id.replace(/"/g, '')}"`).join(',')})`)
     url.searchParams.set('select', 'report_id,payload')
     url.searchParams.set('limit', '200')
     const response = await fetch(url, { headers: supabaseHeaders() })
@@ -955,9 +959,9 @@ export async function transferReportOwnership(fromOwnerId: string, to: ReportOwn
     `
       UPDATE cheongi_reports
       SET user_id = $2, user_email = $3, auth_provider = $4, payload = jsonb_set(payload, '{owner}', $5::jsonb), updated_at = NOW()
-      WHERE user_id = $1
+      WHERE user_id = $1 AND ($6::text[] IS NULL OR report_id = ANY($6))
     `,
-    [fromOwnerId, to.id, to.email ?? null, to.provider ?? null, JSON.stringify(owner)],
+    [fromOwnerId, to.id, to.email ?? null, to.provider ?? null, JSON.stringify(owner), only ? [...only] : null],
   )
   return result.rowCount ?? 0
 }

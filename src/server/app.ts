@@ -70,7 +70,8 @@ import { applyAdminReportUnlock, forgetAdminAccountCache, isAdminOwner } from '.
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { CONSENT_VERSION, LedgerError, listGuestPeopleForMember, anonymizeStaleGuests, countGuestPeople, countGuestPeopleConverted, countGuestPeopleCreated, countStaleGuests, currentConsentTimes, hasCurrentConsent, listConsents, listGuestPeople, markGuestConverted, parseConsentInput, recordConsent, recordGuestVisit, type GuestFilter, type GuestSort } from '../user/guest-ledger.js'
+import { AttemptLimiter, isSamePerson, maskedName, pickRecordsFor, sameTel } from '../user/guest-merge.js'
+import { CONSENT_VERSION, LedgerError, markGuestPaid, getGuestPerson, sajuKey, listGuestPeopleForMember, anonymizeStaleGuests, countGuestPeople, countGuestPeopleConverted, countGuestPeopleCreated, countStaleGuests, currentConsentTimes, hasCurrentConsent, listConsents, listGuestPeople, markGuestConverted, parseConsentInput, recordConsent, recordGuestVisit, type GuestFilter, type GuestSort } from '../user/guest-ledger.js'
 import { type MemberContact, countLiveMembers, countMemberKinds, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
@@ -169,6 +170,7 @@ import {
   type PaymentStorageMode,
   listAllPaymentOrders,
   listPaymentOrders,
+  transferPaymentOrdersOwner,
   PAYMENT_ORDER_STATUSES,
   checkPaymentStorageReadiness,
   savePaymentOrder,
@@ -2094,6 +2096,13 @@ function orderUnlocks(order: PaymentOrder, owner: ReportOwner, productKey: strin
 }
 
 /** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
+/** 결제 승인 반영 + 비회원이면 비회원 관리 장부에 결제 표시(2026-10-16). 표시 실패가 결제를 막지 않는다. */
+async function projectApprovedPaymentForGuest(...args: Parameters<typeof projectApprovedPayment>): ReturnType<typeof projectApprovedPayment> {
+  const paid = await projectApprovedPayment(...args)
+  if (paid?.ownerId) await markGuestPaid(paid.ownerId).catch(() => undefined)
+  return paid
+}
+
 async function findUnlockingOrder(
   owner: ReportOwner,
   productKey: string,
@@ -3279,9 +3288,123 @@ app.get('/api/admin/v1/payments/revenue', async (req, res) => {
 /**
  * 2026-10-15 회원 › 비회원 관리. 비회원 한 사람(같은 기기 + 같은 사주) = 한 줄. 필터: 전체·전환 안 함·회원 전환·30일 지남.
  */
+/**
+ * 2026-10-16 운영자 수동 합치기·이전(고객센터 처리용). 자동 합치기가 틀렸거나(다른 기기·폰 교체·번호 변경)
+ * SNS 계정을 두 개 만든 손님을 바로잡는다. 모두 members:write + 사유 + 확인 + 멱등 키 + 감사 기록.
+ * - 비회원 → 회원: 비회원 한 줄의 방문(익명 계정)마다 주문·풀이를 회원에게 옮기고, 회원에게 사주가 없으면 복사, 장부는 "회원 전환".
+ * - 주문 하나 → 회원: 그 주문과 그 주문의 풀이만 옮긴다.
+ * - 회원 → 회원: 한 계정의 주문·풀이를 다른 계정으로 옮긴다. 계정(로그인 수단) 자체는 합치지 않는다.
+ */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+async function adminTransferTarget(memberId: string): Promise<ReportOwner | null> {
+  if (!UUID_RE.test(memberId)) return null
+  const member = await getAdminMemberDetail(memberId).catch(() => null)
+  if (!member || member.accountType === 'guest') return null
+  return { id: memberId, email: member.email ?? undefined, provider: member.signupProvider ?? undefined }
+}
+
+async function copyProfileIfMissing(fromUserId: string, to: ReportOwner): Promise<boolean> {
+  const [target, source] = await Promise.all([getAdminMemberDetail(to.id).catch(() => null), getAdminMemberDetail(fromUserId).catch(() => null)])
+  if (target?.name && target.birth) return false
+  if (!source?.name || !source.birth) return false
+  await updateAdminMemberProfile({ userId: to.id, name: source.name, birth: source.birth, birthTimeKnown: source.birthTimeKnown !== false })
+  return true
+}
+
+function adminTransferInput(req: Request, res: Response): { reason: string; key: string } | null {
+  const body = asObject(req.body)
+  const reason = trimmedString(body.reason).slice(0, 200)
+  const key = adminCommandKey(req)
+  if (body.confirm !== true || reason.length < 2 || key.length < 8) {
+    res.status(422).json({ code: 'INVALID_TRANSFER', error: '옮길 대상, 사유, 확인 여부를 다시 확인해 주세요.' }); return null
+  }
+  return { reason, key }
+}
+
+app.post('/api/admin/v1/guests/:id/merge', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const input = adminTransferInput(req, res); if (!input) return
+  try {
+    const person = await getGuestPerson(trimmedString(req.params.id))
+    if (!person) { res.status(404).json({ code: 'GUEST_NOT_FOUND', error: '비회원을 찾지 못했습니다.' }); return }
+    const target = await adminTransferTarget(trimmedString(req.body?.memberId))
+    if (!target) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '옮겨 받을 회원을 찾지 못했습니다.' }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.guest.merge', idempotencyKey: input.key,
+      body: { guestPersonId: person.id, memberId: target.id, reason: input.reason },
+      target: { type: 'guest_people', id: person.id },
+    }, async () => {
+      let reports = 0, orders = 0, profileCopied = false
+      for (const guestId of person.guestUserIds) {
+        reports += await transferReportOwnership(guestId, target)
+        orders += await transferPaymentOrdersOwner(guestId, { id: target.id, email: target.email })
+        if (!profileCopied) profileCopied = await copyProfileIfMissing(guestId, target).catch(() => false)
+        await markGuestConverted(guestId, target.id).catch(() => undefined)
+      }
+      return { reports, orders, profileCopied, visits: person.guestUserIds.length }
+    })
+    res.status(command.replayed ? 200 : 202).json({ result: command.result, replayed: command.replayed })
+  } catch (err) {
+    console.error('[guests/merge]', err instanceof Error ? err.message : err)
+    res.status(503).json({ code: 'GUEST_MERGE_FAILED', error: '비회원을 회원에게 합치지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/payments/:orderId/transfer', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const input = adminTransferInput(req, res); if (!input) return
+  try {
+    const order = await getPaymentOrder(trimmedString(req.params.orderId))
+    if (!order) { res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' }); return }
+    const target = await adminTransferTarget(trimmedString(req.body?.memberId))
+    if (!target) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '옮겨 받을 회원을 찾지 못했습니다.' }); return }
+    if (order.ownerId === target.id) { res.json({ result: { orders: 0, reports: 0, already: true }, replayed: false }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'payment.order.transfer', idempotencyKey: input.key,
+      body: { orderId: order.orderId, fromOwnerId: order.ownerId, memberId: target.id, reason: input.reason },
+      target: { type: 'payment_order', id: order.orderId },
+    }, async () => {
+      const orders = await transferPaymentOrdersOwner(order.ownerId, { id: target.id, email: target.email }, [order.orderId])
+      const reports = order.reportId ? await transferReportOwnership(order.ownerId, target, [order.reportId]) : 0
+      await markGuestConverted(order.ownerId, target.id).catch(() => undefined)
+      return { orders, reports }
+    })
+    res.status(command.replayed ? 200 : 202).json({ result: command.result, replayed: command.replayed })
+  } catch (err) {
+    console.error('[payments/transfer]', err instanceof Error ? err.message : err)
+    res.status(503).json({ code: 'ORDER_TRANSFER_FAILED', error: '주문을 옮기지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/members/:id/transfer', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const input = adminTransferInput(req, res); if (!input) return
+  try {
+    const fromId = trimmedString(req.params.id)
+    if (!UUID_RE.test(fromId)) { res.status(422).json({ code: 'INVALID_MEMBER_ID', error: '회원 번호를 확인해 주세요.' }); return }
+    const target = await adminTransferTarget(trimmedString(req.body?.memberId))
+    if (!target || target.id === fromId) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '옮겨 받을 다른 회원을 찾지 못했습니다.' }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.records.transfer', idempotencyKey: input.key,
+      body: { fromMemberId: fromId, memberId: target.id, reason: input.reason },
+      target: { type: 'member_profile', id: fromId },
+    }, async () => {
+      const reports = await transferReportOwnership(fromId, target)
+      const orders = await transferPaymentOrdersOwner(fromId, { id: target.id, email: target.email })
+      const profileCopied = await copyProfileIfMissing(fromId, target).catch(() => false)
+      return { reports, orders, profileCopied }
+    })
+    res.status(command.replayed ? 200 : 202).json({ result: command.result, replayed: command.replayed })
+  } catch (err) {
+    console.error('[members/transfer]', err instanceof Error ? err.message : err)
+    res.status(503).json({ code: 'MEMBER_TRANSFER_FAILED', error: '주문·풀이를 옮기지 못했습니다.' })
+  }
+})
+
 app.get('/api/admin/v1/guests', async (req, res) => {
   if (!await requireStaff(req, res, 'members:read')) return
-  const filter: GuestFilter = req.query?.filter === 'open' || req.query?.filter === 'converted' || req.query?.filter === 'stale' ? req.query.filter : 'all'
+  const filter: GuestFilter = req.query?.filter === 'open' || req.query?.filter === 'converted' || req.query?.filter === 'paid' || req.query?.filter === 'stale' ? req.query.filter : 'all'
   const sort: GuestSort = req.query?.sort === 'first' || req.query?.sort === 'visits' || req.query?.sort === 'name' ? req.query.sort : 'recent'
   try {
     const [{ guests, total }, counts] = await Promise.all([
@@ -4106,7 +4229,8 @@ app.get('/api/payment/purchase-status', async (req, res) => {
 
 app.post('/api/payment/orders', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    // 2026-10-16 메인 콘텐츠는 비회원도 결제한다(docs/auth/guest-member-plan.md 8절). 상담 질문권·쿠폰은 회원만.
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const config = paymentConfigPayload()
     if (!config.checkoutEnabled) {
@@ -4126,6 +4250,13 @@ app.post('/api/payment/orders', async (req, res) => {
     if (!await isServiceSaleAvailable(product.key)) {
       res.status(409).json({ code: 'SERVICE_SALE_PAUSED', error: '현재 판매가 중단된 서비스입니다.' })
       return
+    }
+    if (owner.isAnonymous) {
+      if (product.key === 'cheonmyeong_consultation') { res.status(401).json({ code: 'MEMBER_REQUIRED', error: '천명상담은 SNS 로그인 후 이용해 주세요.' }); return }
+      if (trimmedString(req.body?.couponId)) { res.status(401).json({ code: 'MEMBER_REQUIRED', error: '쿠폰은 SNS 로그인 후 사용할 수 있어요.' }); return }
+      // 비회원은 결제 시트에서 약관에 동의한다. 동의 기록이 없으면 주문을 만들지 않는다(기록 저장소가 아직 없으면 막지 않는다).
+      const consented = await hasCurrentConsent(owner.id).catch(() => true)
+      if (!consented) { res.status(409).json({ code: 'CONSENT_REQUIRED', error: '결제 전에 약관에 동의해 주세요.' }); return }
     }
     if (product.key === 'cheonmyeong_consultation') {
       if (!process.env.GEMINI_API_KEY?.trim()) { res.status(503).json({ code: 'CONSULTATION_SETUP_REQUIRED', error: '상담 연결을 준비 중이므로 질문권 구매를 잠시 중단했습니다.' }); return }
@@ -4261,7 +4392,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(404).json({ error: '테스트 결제 모드가 아닙니다.' })
       return
     }
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const orderId = trimmedString(req.body?.orderId)
     const order = await getPaymentOrder(orderId)
@@ -4277,7 +4408,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(409).json({ error: '테스트 승인을 진행할 수 없는 주문 상태입니다.' })
       return
     }
-    const paid = await projectApprovedPayment(order, {
+    const paid = await projectApprovedPaymentForGuest(order, {
       provider: 'test', sourceRef: `TEST-${order.orderId}`, tid: `TEST-${order.orderId}`,
       payMethod: 'TEST', approvalCode: 'TEST-0000', message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
     })
@@ -4305,7 +4436,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
  */
 app.post('/api/payment/google/verify', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     if (!isGooglePlayConfigured()) {
       res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
@@ -4400,7 +4531,7 @@ async function settleGooglePlayPurchase(
     await acknowledgeGooglePlayPurchase({ productId, purchaseToken })
   }
 
-  const paid = await projectApprovedPayment(order, {
+  const paid = await projectApprovedPaymentForGuest(order, {
     provider: 'google_play', sourceRef: purchaseToken, tid: purchaseToken, payMethod: 'GOOGLE_PLAY',
     approvalCode: purchase.orderId, message: '구글플레이 인앱 결제로 확인되었습니다.',
   })
@@ -4424,7 +4555,7 @@ async function settleGooglePlayPurchase(
  */
 app.post('/api/payment/google/recover', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     if (!isGooglePlayConfigured()) {
       res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
@@ -4492,7 +4623,7 @@ app.post('/api/payment/google/recover', async (req, res) => {
  */
 app.get('/api/payment/google/product/:productKey', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const product = getPaymentProduct(req.params.productKey)
     if (!product) {
@@ -4589,7 +4720,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     if (!approvalSaved) throw new Error('승인 거래 증거를 주문에 저장하지 못했습니다.')
     // PG 승인 뒤에는 append-only 금융 증거를 먼저 남긴다. 주문 상태 투영이 실패해도
     // event가 남아 T19 대사에서 회수할 수 있고, catch가 과금 주문을 failed로 내리지 않는다.
-    const paid = await projectApprovedPayment(order, {
+    const paid = await projectApprovedPaymentForGuest(order, {
       provider: 'inicis', sourceRef, tid: approval.tid, payMethod: approval.payMethod,
       approvalCode: approval.approvalCode, message: approval.resultMessage,
     }, undefined, () => { approvalEvidenceRecorded = true })
@@ -4615,7 +4746,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
 
 app.get('/api/payment/orders/:orderId', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
     if (!order || order.ownerId !== owner.id) {
@@ -4630,7 +4761,7 @@ app.get('/api/payment/orders/:orderId', async (req, res) => {
 
 app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
     if (!order || order.ownerId !== owner.id) {
@@ -4675,6 +4806,66 @@ app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireSupabaseUse
  * 비회원이 만든 리포트를 회원 계정으로 옮기고, 회원에게 사주 정보가 없으면 비회원 사주 정보를 복사한다.
  * 두 토큰을 모두 가진 사람만 옮길 수 있다. dryRun 이면 옮길 건수만 알려 준다.
  */
+/**
+ * 2026-10-16 비회원 주문 조회·불러오기. 주문번호 + 결제 때 넣은 휴대폰 번호가 맞고 지금 주인이 비회원이면,
+ * 그 비회원의 주문·풀이를 지금 요청한 사람(이 기기의 비회원 또는 로그인한 회원)에게 옮긴다.
+ * 다른 기기·폰 교체·브라우저 기록 삭제 뒤 산 풀이를 다시 여는 길이다. 회원 주문이면 그 계정으로 로그인하라고 안내한다.
+ * 마구 넣어 보는 시도는 IP·주문번호마다 10분에 몇 번으로 제한한다.
+ */
+const orderLookupByIp = new AttemptLimiter(10, 10 * 60 * 1000)
+const orderLookupByOrder = new AttemptLimiter(5, 10 * 60 * 1000)
+
+app.post('/api/guest/orders/import', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const requester = await requireSupabaseUser(req, res)
+    if (!requester) return
+    const orderId = trimmedString(req.body?.orderId).slice(0, 80)
+    const tel = trimmedString(req.body?.tel).slice(0, 30)
+    if (!orderId || !tel) { res.status(400).json({ code: 'ORDER_LOOKUP_INVALID', error: '주문번호와 휴대폰 번호를 입력해 주세요.' }); return }
+    if (!orderLookupByIp.allow(req.ip || 'unknown') || !orderLookupByOrder.allow(orderId)) {
+      res.status(429).json({ code: 'ORDER_LOOKUP_LIMITED', error: '잠시 후 다시 시도해 주세요.' }); return
+    }
+    const order = await getPaymentOrder(orderId)
+    // 주문이 없을 때와 번호가 틀릴 때를 같은 답으로 돌려준다(어느 쪽이 틀렸는지 알려 주지 않는다).
+    if (!order || !sameTel(order.buyerTel, tel) || (order.status !== 'paid' && order.status !== 'viewed')) {
+      res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문번호와 휴대폰 번호를 다시 확인해 주세요.' }); return
+    }
+    const product = getPaymentProduct(order.productKey)
+    const answer = { orderId: order.orderId, productKey: order.productKey, reportId: order.reportId ?? null, readingPath: product ? readingPathForProduct(product.key) || null : null }
+    if (order.ownerId === requester.id) { res.json({ ...answer, moved: false, already: true }); return }
+    // 지금 주인이 비회원인지 확인한다. 확인하지 못하면(조회 실패) 옮기지 않는다 — 회원 주문을 번호만으로 가져가지 못하게.
+    // 주인 계정이 이미 없으면(정리된 비회원) null 이고, 그때는 옮긴다.
+    let currentOwner: Awaited<ReturnType<typeof getAdminMemberDetail>>
+    try { currentOwner = await getAdminMemberDetail(order.ownerId) } catch { res.status(503).json({ code: 'ORDER_LOOKUP_UNAVAILABLE', error: '지금은 주문을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.' }); return }
+    if (currentOwner && currentOwner.accountType !== 'guest') {
+      res.status(409).json({ code: 'ORDER_OWNED_BY_MEMBER', error: '이 주문은 회원 계정에 저장돼 있어요. 결제한 계정으로 로그인해 주세요.' }); return
+    }
+    const fromOwnerId = order.ownerId
+    // 그 비회원 계정에 다른 사람(같은 기기를 쓴 가족 등) 기록이 섞여 있을 수 있다. 이 주문의 풀이 대상과 같은 사람 기록만 옮긴다.
+    const oldReports = await listReportRecords({ id: fromOwnerId }, 200).catch(() => [] as ReportRecord[])
+    const target = oldReports.find((record) => record.reportId === order.reportId)
+    const person = target && target.context?.name ? { name: target.context.name, birth: target.birth } : null
+    const oldOrders = await listPaymentOrders(fromOwnerId, 100).catch(() => [] as PaymentOrder[])
+    const picked = person
+      ? pickRecordsFor(person, oldReports.map((record) => ({ reportId: record.reportId, subject: { name: record.context?.name ?? null, birth: record.birth } })), oldOrders)
+      : { reportIds: order.reportId ? [order.reportId] : [], orderIds: [order.orderId] }
+    const orderIds = picked.orderIds ? [...new Set([...picked.orderIds, order.orderId])] : [order.orderId]
+    const reports = await transferReportOwnership(fromOwnerId, requester, picked.reportIds)
+    const orders = await transferPaymentOrdersOwner(fromOwnerId, { id: requester.id, email: requester.email }, orderIds)
+    if (!requester.isAnonymous) {
+      await markGuestConverted(fromOwnerId, requester.id).catch(() => undefined)
+      const [memberProfile, oldProfile] = await Promise.all([getUserBirthProfile(requester).catch(() => null), getAdminMemberDetail(fromOwnerId).catch(() => null)])
+      if (!memberProfile && oldProfile?.name && oldProfile.birth) {
+        await updateAdminMemberProfile({ userId: requester.id, name: oldProfile.name, birth: oldProfile.birth, birthTimeKnown: oldProfile.birthTimeKnown !== false }).catch(() => undefined)
+      }
+    }
+    res.json({ ...answer, moved: true, reports, orders })
+  } catch (err) {
+    respondRequestFailure(res, err, '비회원 주문 불러오기 실패')
+  }
+})
+
 app.post('/api/auth/claim-guest', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   try {
@@ -4685,21 +4876,40 @@ app.post('/api/auth/claim-guest', async (req, res) => {
     const guest = await verifySupabaseToken(guestToken).catch(() => undefined)
     if (!guest?.isAnonymous) { res.status(400).json({ code: 'NOT_GUEST', error: '비회원 기록을 확인하지 못했습니다.' }); return }
     if (guest.id === member.id) { res.json({ reports: 0, profile: 'same' }); return }
-    const [guestReports, guestProfile, memberProfile] = await Promise.all([
-      listReportRecords(guest, 50).catch(() => []),
+    const [guestReports, guestProfile, memberProfile, guestOrders] = await Promise.all([
+      listReportRecords(guest, 200).catch(() => [] as ReportRecord[]),
       getUserBirthProfile(guest).catch(() => null),
       getUserBirthProfile(member).catch(() => null),
+      listPaymentOrders(guest.id, 100).catch(() => [] as PaymentOrder[]),
     ])
     const profilePlan = !guestProfile ? 'none' : memberProfile ? 'kept' : 'copied'
-    if (req.body?.dryRun === true) { res.json({ reports: guestReports.length, profile: profilePlan }); return }
-    const reports = await transferReportOwnership(guest.id, member)
+    // 2026-10-16 비회원은 기기에 오래 남고(1시간 정책 폐지), 한 기기를 여러 사람이 번갈아 쓰면 기록이 한 비회원 계정에 섞인다.
+    // 그래서 "누구의 기록을 옮길지"를 사주로 고른다(src/user/guest-merge.ts):
+    // - 회원 계정에 사주가 있으면 그 사람과 사주가 같은 기록만 옮긴다. 하나도 없으면 옮기지 않는다(공용 기기 보호).
+    // - 처음 가입이면 이 기기에서 마지막으로 사주를 넣은 사람(비회원 프로필)의 기록을 옮기고, 결제가 있으면 한 번 묻는다.
+    const person = memberProfile ?? guestProfile ?? null
+    const picked = pickRecordsFor(
+      person,
+      guestReports.map((record) => ({ reportId: record.reportId, subject: { name: record.context?.name ?? null, birth: record.birth } })),
+      guestOrders,
+    )
+    const decision = memberProfile
+      ? (picked.reports || picked.orders || (guestProfile && isSamePerson(guestProfile, memberProfile)) ? 'merge' : 'skip-different')
+      : (picked.paidOrders > 0 ? 'confirm-paid' : 'merge')
+    const plan = { reports: picked.reports, orders: picked.orders, paidOrders: picked.paidOrders, remaining: picked.remaining, profile: profilePlan, decision, nameHint: decision === 'confirm-paid' ? maskedName(guestProfile?.name) : '' }
+    if (req.body?.dryRun === true) { res.json(plan); return }
+    if (decision === 'skip-different') { res.json({ ...plan, skipped: 'different-saju' }); return }
+    if (decision === 'confirm-paid' && req.body?.confirmPaid !== true) { res.status(409).json({ code: 'CONFIRM_PAID_REQUIRED', error: '이 기기에서 산 풀이를 불러올지 확인해 주세요.', ...plan }); return }
+    const reports = await transferReportOwnership(guest.id, member, picked.reportIds)
+    const orders = await transferPaymentOrdersOwner(guest.id, { id: member.id, email: member.email }, picked.orderIds)
+    const sameAsGuest = Boolean(guestProfile && (!memberProfile || isSamePerson(guestProfile, memberProfile)))
     if (guestProfile && !memberProfile) {
       await saveUserBirthProfile({ ...guestProfile, userId: member.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, member)
     }
-    if (guestProfile) await markGuestProfileClaimed(guest, member.id).catch((err) => console.error('[claim-guest] 전환 표시 실패', err instanceof Error ? err.message : err))
-    // 2026-10-15 비회원 관리 장부에도 회원 계정을 적는다(표가 아직 없으면 건너뛴다).
-    await markGuestConverted(guest.id, member.id).catch((err) => console.error('[claim-guest] 장부 전환 표시 실패', err instanceof Error ? err.message : err))
-    res.json({ reports, profile: profilePlan })
+    if (sameAsGuest) await markGuestProfileClaimed(guest, member.id).catch((err) => console.error('[claim-guest] 전환 표시 실패', err instanceof Error ? err.message : err))
+    // 비회원 관리 장부: 옮긴 사람(사주)의 줄만 "회원 전환". 같은 기기의 다른 사람 줄은 그대로 둔다.
+    await markGuestConverted(guest.id, member.id, new Date(), person ? sajuKey(person) : undefined).catch((err) => console.error('[claim-guest] 장부 전환 표시 실패', err instanceof Error ? err.message : err))
+    res.json({ ...plan, reports, orders })
   } catch (err) {
     respondRequestFailure(res, err, '비회원 기록 이어받기 실패')
   }
