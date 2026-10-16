@@ -24,7 +24,15 @@ test('list renders only when the server marks it visible, and escapes customer t
   assert.match(html, /&lt;img/)
   // 별점은 보이지 않는다(2026-10-15 결정).
   assert.doesNotMatch(html, /★|별점/)
-  assert.equal((ui.listMarkup({ visible: true, total: 5, items: [1, 2, 3, 4, 5].map(item) }).match(/umsh-rv-item/g) || []).length, 3)
+  // 처음 5개만 보이고, 더 있으면 '후기 더 보기'가 붙는다. 한 번 누르면 5개 더.
+  const ten = { visible: true, total: 10, items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(item) }
+  const first = ui.listMarkup(ten)
+  assert.equal((first.match(/umsh-rv-item/g) || []).length, 5)
+  assert.match(first, /후기 더 보기/)
+  const second = ui.listMarkup(ten, 10)
+  assert.equal((second.match(/umsh-rv-item/g) || []).length, 10)
+  assert.doesNotMatch(second, /후기 더 보기/)
+  assert.doesNotMatch(ui.listMarkup({ visible: true, total: 5, items: [1, 2, 3, 4, 5].map(item) }), /후기 더 보기/)
 })
 
 test('천명사주 teaser mounts the list below the price card; no review writer is shipped (2026-10-15 decision)', () => {
