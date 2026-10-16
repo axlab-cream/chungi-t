@@ -9,6 +9,7 @@ import runtimeConfig from '../../data/runtime-config.json' with { type: 'json' }
 import { normalizeUserCopy } from './copy-guide.js'
 import { publicReportContext } from './public-context.js'
 import { assertReportOwner, createOrGetReportRecord, findReportRecord, mutateReportRecord, type ReportOwner, type ReportRecord, type ReportStatus } from './report-store.js'
+import { crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
 
 const SECTION_ID = 'chat-reply'
 const LEASE_MS = 6 * 60_000
@@ -162,6 +163,8 @@ async function resolveRecord(params: SavedChatParams): Promise<ReportRecord> {
       ? [{ role: 'system' as const, content: '출생 시간을 모른다고 입력했습니다. 시주(태어난 시간 두 글자)는 쓰지 말고, 제공된 연·월·일 6글자 계산값을 확정 근거로 쓰세요. 대운 시작 나이도 계산된 값 그대로 "○세부터"처럼 단정해서 말하세요.' }]
       : baseContext.birthTimeKnown === false ? [{ role: 'system' as const, content: '출생 시간을 모른다고 입력했습니다. 분석기의 임시 시각으로 계산한 시주 및 시각 의존 결론은 사용하지 말고, 확인 가능한 범위와 정보 한계를 설명하세요.' }] : []),
     ...(parent ? [{ role: 'system' as const, content: parentEvidence(parent, message) }] : []),
+    // 마음 위기 신호(입구에서 중립 문장으로 바뀜): 운세로 해석하지 않고 마음을 먼저 살피며 109를 안내한다.
+    ...(hasCrisisMarker([message, history, baseContext]) ? [{ role: 'system' as const, content: crisisAiInstruction(true) }] : []),
     ...prepared.messages.slice(-1),
   ]
   const metadata: SavedChatContext = {
