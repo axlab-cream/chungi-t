@@ -218,6 +218,8 @@
       items: [
         { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
         { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
+        // 2026-10-16 로그인 없이 결제한 풀이를 다시 여는 곳(주문번호 + 휴대폰 번호).
+        { label: '비회원 주문 조회', meta: '로그인 없이 결제한 풀이 다시 열기', href: '/orders/lookup/', status: '조회' },
         { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/support', status: '문의' },
       ],
     },

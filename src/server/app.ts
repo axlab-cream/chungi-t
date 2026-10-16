@@ -316,6 +316,7 @@ const PAYMENT_RESULT_PAGE = join(SAJU_ROOT, 'payment', 'result.html')
 const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
 const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
 const PAYMENT_ORDERS_PAGE = join(SAJU_ROOT, 'orders.html')
+const ORDER_LOOKUP_PAGE = join(SAJU_ROOT, 'order-lookup.html')
 const LEAVE_PAGE = join(SAJU_ROOT, 'leave.html')
 const MY_PAGE = join(SAJU_ROOT, 'my.html')
 const SEARCH_PAGE = join(SAJU_ROOT, 'search.html')
@@ -476,6 +477,10 @@ app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) =
 })
 app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
   res.sendFile(PAYMENT_ORDERS_PAGE)
+})
+// 2026-10-16 비회원 주문 조회·불러오기(주문번호 + 휴대폰 번호). 로그인 없이 연다.
+app.get(['/orders/lookup', '/orders/lookup/', '/order-lookup', '/order-lookup.html'], (_req, res) => {
+  res.sendFile(ORDER_LOOKUP_PAGE)
 })
 app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
   res.sendFile(LEAVE_PAGE)

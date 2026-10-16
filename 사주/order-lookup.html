@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>비회원 주문 조회 · 운명상회</title>
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="stylesheet" href="/css/payment.css?v=20261016-guest" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-chrome.js?v=20260922c"></script>
+    <link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" />
+    <link rel="stylesheet" href="/css/umsh-font.css?v=20261015" />
+  </head>
+  <body>
+    <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
+      <header class="appbar topbar"></header>
+      <section class="payment-shell" aria-labelledby="lookup-title">
+        <p class="payment-eyebrow">비회원 주문</p>
+        <h1 id="lookup-title">비회원 주문 조회</h1>
+        <p class="payment-intro" data-lookup-intro>로그인하지 않고 결제한 풀이를 다시 엽니다. 결제 완료 화면이나 이니시스 결제 메일에 있는 주문번호와, 결제할 때 넣은 휴대폰 번호를 입력해 주세요.</p>
+        <form class="payment-form" data-lookup-form>
+          <label class="payment-label">주문번호<input type="text" name="orderId" autocomplete="off" placeholder="예: UMSH-..." required /></label>
+          <label class="payment-label">휴대폰 번호<input type="tel" name="tel" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" required /></label>
+          <button class="payment-submit" type="submit" data-lookup-submit>풀이 열기</button>
+          <p class="payment-status" data-lookup-status role="status" aria-live="polite"></p>
+        </form>
+        <p class="payment-notice">조회하면 그 주문과 풀이가 지금 이 기기로 옮겨집니다. 로그인한 상태라면 내 계정으로 불러와 보관함에 저장됩니다.<br />주문번호나 휴대폰 번호가 바뀌어 찾을 수 없으면 <a href="/support">고객센터</a>로 문의해 주세요.</p>
+      </section>
+    </main>
+    <script src="/js/order-lookup.js?v=20261016a"></script>
+  </body>
+</html>
