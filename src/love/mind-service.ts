@@ -14,6 +14,7 @@ import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
+import { loveTargetOrientation } from '../report/partner-gender.js'
 
 export const LOVE_MIND_SERVICE_KEY = 'love_mind'
 
@@ -189,13 +190,14 @@ export function buildLoveMindContext(
   name: string | undefined,
   input: LoveMindRequest,
   partnerAnalysis?: SajuAnalysis,
+  selfGender?: 'male' | 'female',
 ): SajuReportContext {
   return {
     serviceKey: LOVE_MIND_SERVICE_KEY,
     name,
     target: '상대방 마음',
     relationship: input.relationshipStage,
-    orientation: '궁합 + 관계 흐름',
+    orientation: loveTargetOrientation(selfGender, input.partnerBirth?.gender, '궁합 + 관계 흐름'),
     concern: [
       `연락 흐름: ${input.contactPattern}`,
       `최근 신호: ${input.recentSignal}`,

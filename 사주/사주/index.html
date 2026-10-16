@@ -4123,6 +4123,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-love-target.js?v=20261016a"></script>
     <script src="/js/umsh-consent.js?v=20261016a"></script>
     <script src="/js/umsh-guest-save-sheet.js?v=20261016b"></script>
     <script src="/js/umsh-pay-sheet.js?v=20261016a"></script>
@@ -7718,7 +7719,8 @@
 
       // 천명사주 생활 정보(필수). 8월에 뺀 관계·일 화면을 한 문항씩 되살리고, 관계 기준은
       // "이성/동성" 대신 연애 상대 성별로 묻는다. 서버·AI·참고서는 기존 orientation 칸을 그대로 쓴다.
-      const LOVE_TARGET_OPTIONS = ["남자", "여자", "둘 다·상관없음"];
+      // 연애 상대 기준(선택지·관계 기준 문장)은 서버와 같은 /js/umsh-love-target.js 를 쓴다.
+      const LOVE_TARGET_OPTIONS = window.UMSHLoveTarget.LOVE_TARGETS;
       const LIFE_RELATIONSHIP_OPTIONS = ["솔로예요", "마음에 둔 사람이 있어요", "썸이에요", "연애 중이에요", "이별 직후예요", "결혼했어요"];
       const LIFE_WORK_OPTIONS = ["학생이에요", "일을 찾고 있어요", "직장 다녀요", "사업해요", "프리랜서예요", "쉬고 있어요"];
 
@@ -7731,18 +7733,11 @@
 
       // 이 화면에서 고른 값만 답으로 본다. 예전 "이성 관계 중심" 같은 값에는 상대 성별이 없어 다시 묻는다.
       function loveTargetFromOrientation(orientation) {
-        const value = orientation || "";
-        const match = /연애 상대 (남자|여자)/.exec(value);
-        if (match) return match[1];
-        return value.includes("연애 상대 성별 무관") ? LOVE_TARGET_OPTIONS[2] : "";
+        return window.UMSHLoveTarget.loveTargetFromOrientation(orientation);
       }
 
       function orientationFromLoveTarget() {
-        const target = state.loveTarget;
-        if (target === "남자" || target === "여자") {
-          return `${target === state.gender ? "동성" : "이성"} 관계 중심 · 연애 상대 ${target}`;
-        }
-        return "관계 패턴 중심 · 연애 상대 성별 무관";
+        return window.UMSHLoveTarget.orientationFromLoveTarget(state.gender, state.loveTarget);
       }
 
       function renderLifeQuestion({ title, description, key, options, next }) {

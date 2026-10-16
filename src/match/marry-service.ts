@@ -25,6 +25,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { partnerBirthTimeReading, withholdsBirthTime } from '../saju/unknown-time-reading.js'
+import { loveTargetOrientation } from '../report/partner-gender.js'
 
 export const MARRY_MATCH_SERVICE_KEY = 'marry_match'
 
@@ -274,6 +275,7 @@ export function buildMarryMatchContext(
   input: MarryMatchRequest,
   partnerAnalysis: SajuAnalysis,
   userAnalysis?: SajuAnalysis,
+  selfGender?: 'male' | 'female',
 ): SajuReportContext {
   const p = partnerAnalysis.fourPillars
   return {
@@ -281,7 +283,8 @@ export function buildMarryMatchContext(
     name,
     target: '결혼궁합',
     relationship: input.relationshipStage || '결혼 고려',
-    orientation: '이성 관계 중심',
+    // 두 사람 성별로 정한다(같으면 동성, 다르면 이성, 모르면 성별을 짐작하지 않음). 천명사주와 같은 규칙.
+    orientation: loveTargetOrientation(selfGender, input.partnerBirth.gender),
     concern: [
       input.partnerName ? `상대: ${input.partnerName}` : '',
       input.marriagePlan ? `계획: ${input.marriagePlan}` : '',

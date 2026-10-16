@@ -5302,7 +5302,7 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     // 궁합 문맥에는 본인 명식 값도 저장되므로, 문맥을 만들기 전에 본인도 6글자로 맞춘다(저장 명식은 원본 그대로).
     const selfForContext = analysisForNewReport(analysis, 'match_couple', selectedBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildCoupleMatchContext(selectedName, input, partnerAnalysis, selfForContext), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildCoupleMatchContext(selectedName, input, partnerAnalysis, selfForContext, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCoupleMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildCoupleMatchReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
@@ -5617,7 +5617,7 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     // 궁합 문맥에는 본인 명식 값도 저장되므로, 문맥을 만들기 전에 본인도 6글자로 맞춘다(저장 명식은 원본 그대로).
     const selfForContext = analysisForNewReport(analysis, 'marry_match', selectedBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildMarryMatchReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
@@ -5653,7 +5653,7 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = input.partnerBirth ? analysisForNewReport(analyzeSaju(input.partnerBirth), 'love_mind', input.partnerBirthTimeKnown) : undefined
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveMindContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveMindContext(profile.name, input, partnerAnalysis, profile.birth.gender), birthTimeKnown: profile.birthTimeKnown })
     const analysis = analyzeSaju(profile.birth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveMindReport(analysisForReading(analysis, context), profile.birth, context, input, partnerAnalysis, reportId)
@@ -5702,7 +5702,7 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = analysisForNewReport(analyzeSaju(input.partnerBirth), 'couple_signal', input.partnerBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveSignalContext(selectedName, input, partnerAnalysis), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveSignalContext(selectedName, input, partnerAnalysis, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const analysis = analyzeSaju(selectedBirth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSignalReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildLoveSignalReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
@@ -5792,7 +5792,7 @@ app.post('/api/love/again/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = input.partnerBirth ? analysisForNewReport(analyzeSaju(input.partnerBirth), 'love_again', input.partnerBirthTimeKnown) : undefined
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveAgainContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveAgainContext(profile.name, input, partnerAnalysis, profile.birth.gender), birthTimeKnown: profile.birthTimeKnown })
     const analysis = analyzeSaju(profile.birth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveAgainReport(analysisForReading(analysis, context), profile.birth, context, input, partnerAnalysis, reportId)
