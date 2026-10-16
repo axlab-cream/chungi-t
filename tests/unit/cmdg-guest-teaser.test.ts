@@ -141,10 +141,14 @@ describe('결제 진입 화면 연결', () => {
     assert.match(gate, /sessionStorage\.setItem\(AUTH_PURCHASE_KEY, "1"\)/)
     assert.match(gate, /showAuthGate\(/)
     assert.match(gate, /persistAuthFormState\(\)/, '입력값을 보관해야 로그인 뒤 다시 입력하지 않는다')
-    // 2026-10-15: 로그인 뒤에는 풀이 화면을 깔고 결제 시트를 올린다(결제 안내 화면 대신). 연애운(올해)은 예전대로.
-    assert.match(source, /if \(purchase && usesTradeSheets\(\)\) \{\s*go\("result"\);\s*openTradePaySheet\(\);/)
+    // 2026-10-16: 저장 시트에서 로그인하고 돌아오면 풀이의 운명 거래하기가 보이는 곳으로(결제 시트는 누를 때).
+    // 이미 회원이 가입 전 티저에서 누른 경우만 다시 분석 뒤 바로 결제 시트. 연애운(올해)은 예전대로.
+    const after = source.slice(source.indexOf('if (purchase && usesTradeSheets()) {'), source.indexOf('go(purchase ? "purchase" : "result")'))
+    assert.match(after, /go\("result"\);/)
+    assert.match(after, /if \(fromLogin\) \{[\s\S]*?scrollToTradeCta\(\);[\s\S]*?\} else \{[\s\S]*?openTradePaySheet\(\);/)
+    assert.doesNotMatch(after.slice(0, after.indexOf('} else {')), /openTradePaySheet/, '로그인하고 돌아오자마자 결제 시트를 띄우지 않는다')
     assert.match(source, /go\(purchase \? "purchase" : "result"\)/)
-    assert.match(gate, /if \(usesTradeSheets\(\) && window\.UMSHGuestSaveSheet\?\.open\) \{ openTradeLoginSheet\(\); return; \}/, '비회원은 풀화면 로그인 대신 동의+로그인 바텀시트')
+    assert.match(gate, /if \(usesTradeSheets\(\) && window\.UMSHGuestSaveSheet\?\.open\) \{[\s\S]*?openTradeLoginSheet\(\);\s*return;/, '비회원은 풀화면 로그인 대신 동의+로그인 바텀시트')
     const checkout = fn('startCheckout', 'const config = await loadPaymentConfig()')
     assert.match(checkout, /openPurchaseOrAuth\(\)/, '결제 주소로 직접 들어와도 비회원은 결제를 시작하지 못한다')
   })
@@ -152,5 +156,36 @@ describe('결제 진입 화면 연결', () => {
   it('가입 화면을 닫으면 결과(티저)로 돌아간다', () => {
     // 결과가 없으면 입력으로 돌아간다. 천명사주는 세 문항이 비어 있으면 그 문항부터(concernOrLifeScene).
     assert.match(source, /backToResult \? "result" : concernOrLifeScene\(\)/)
+  })
+})
+
+// 2026-10-16 대표 결정: 평생운 티저(비회원)는 맨 아래 운명 거래하기가 보이면 "로그인하고 내 운명부를 저장하세요." 시트가 올라오고,
+// 떠 있는 운명 거래하기 버튼을 시트 위로 밀어 올린다. 로그인 도중 뒤로 가기·취소하면 같은 풀이 맨 아래로 돌아오고 결제 대기 표시를 지운다.
+describe('천명사주 운명 거래하기 저장 시트 (2026-10-16)', () => {
+  const source = readFileSync(new URL('../../사주/사주/index.html', import.meta.url), 'utf8')
+  const block = source.slice(source.indexOf('const TRADE_LOGIN_KEY'), source.indexOf('const TRADE_ORIGIN_AMOUNT'))
+
+  it('문구는 저장 안내이고, 결제로 이어진다는 말은 없다', () => {
+    assert.match(block, /title: "로그인하고 내 운명부를 저장하세요\."/)
+    assert.match(block, /sub: "지금 보신 풀이를 안전하게 보관하고, 언제든 다시 확인해 보세요\."/)
+    assert.doesNotMatch(block, /바로 결제로 이어져요/)
+  })
+
+  it('맨 아래(운명 거래하기)에 닿으면 비회원에게만 한 번 올라오고, 버튼을 시트 위로 밀어 올린다', () => {
+    assert.match(block, /stage\.scrollTop < max - 40/)
+    assert.match(block, /if \(session\?\.access_token\) return;\s*openTradeLoginSheet\(\);/)
+    assert.match(block, /onOpen: \(sheet\) => liftTradeCta\(sheet\)/)
+    assert.match(block, /onClose: \(\) => \{ tradeSheetOpen = false; liftTradeCta\(null\); \}/)
+    const guest = source.slice(source.indexOf('function beginGuestTeaser()'), source.indexOf('async function registerGuestVisit'))
+    assert.match(guest, /armTradeLoginSheet\(\)/)
+    assert.doesNotMatch(source, /offerGuestSave/, '같은 화면에 "저장할까요?" 카드를 따로 두지 않는다')
+  })
+
+  it('로그인하러 간 표시를 남기고, 로그인 없이 돌아오면(뒤로 가기·취소) 지우고 맨 아래로 데려간다', () => {
+    assert.match(block, /sessionStorage\.setItem\(TRADE_LOGIN_KEY, String\(Date\.now\(\)\)\)/)
+    const consume = block.slice(block.indexOf('function consumeTradeLoginReturn()'))
+    for (const key of ['TRADE_LOGIN_KEY', 'AUTH_PURCHASE_KEY', 'AUTH_PENDING_KEY']) assert.ok(consume.includes(`removeItem(${key})`), key)
+    assert.match(source, /if \(!initialReportId && isAuthReturn && sessionStorage\.getItem\(TRADE_LOGIN_KEY\)\) \{\s*beginAnalysisAfterAuth\(\);/, '카카오 화면에서 취소하고 돌아와도 질문 화면에 멈추지 않는다')
+    assert.match(source, /window\.addEventListener\("pageshow", \(event\) => \{\s*if \(!event\.persisted \|\| !sessionStorage\.getItem\(TRADE_LOGIN_KEY\)\) return;/)
   })
 })
