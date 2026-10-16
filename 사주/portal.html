@@ -89,7 +89,7 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="preload" as="image" href="/assets/umsh-cmdg-card-bg.webp" />
     <link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" />
-    <link rel="stylesheet" href="/css/portal.css?v=20261016-glass" />
+    <link rel="stylesheet" href="/css/portal.css?v=20261016-appbar16" />
     <link rel="stylesheet" href="/css/umsh-signup-benefit-popup.css?v=20260922-default" />
     <script src="/js/umsh-track.js?v=20260929-love-speed" defer data-umsh-track-js></script>
     <script src="/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup" defer></script>
@@ -110,33 +110,37 @@
     </script>
     <div class="stage">
       <main class="phone" aria-label="운명상회 메인">
-        <header class="appbar">
-          <a class="app-brand" href="/" aria-label="운명상회 홈">
-            <img src="/assets/umsh-brand-logo-480.webp" alt="운명상회" width="480" height="180" />
-          </a>
-          <div class="appbar-actions">
-            <a class="appbar-icon" href="/search" aria-label="검색">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 20 20" /></svg>
-            </a>
-            <!-- 로그인하면 portal.js가 이 링크를 내 정보 아이콘(/my)으로 바꾼다. -->
-            <a class="appbar-login" href="/signup?entry=signup&amp;returnTo=%2F#login" data-appbar-account>로그인</a>
-          </div>
-        </header>
-
-        <nav class="category-rail" aria-label="상품 분류">
-          <button class="chip is-active" type="button" data-filter="all">전체</button>
-          <button class="chip" type="button" data-filter="종합">종합</button>
-          <button class="chip" type="button" data-filter="재물">재물</button>
-          <button class="chip" type="button" data-filter="연애">연애</button>
-          <button class="chip" type="button" data-filter="궁합">궁합</button>
-          <button class="chip" type="button" data-filter="직업">직업</button>
-          <button class="chip" type="button" data-filter="흐름">흐름</button>
-          <!-- 고객 화면 보류: 집 풍수
-          <button class="chip" type="button" data-filter="풍수">풍수</button>
-          -->
-        </nav>
 
         <div class="phone-scroll">
+          <!-- 로고 줄 + 분류 줄. 스크롤 칸 맨 위에 붙어 떠 있고 내용이 그 밑으로 지나간다(반투명 유리, 2026-10-16). -->
+          <div class="portal-top">
+            <header class="appbar">
+              <a class="app-brand" href="/" aria-label="운명상회 홈">
+                <img src="/assets/umsh-brand-logo-480.webp" alt="운명상회" width="480" height="180" />
+              </a>
+              <div class="appbar-actions">
+                <a class="appbar-icon" href="/search" aria-label="검색">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 20 20" /></svg>
+                </a>
+                <!-- 로그인하면 portal.js가 이 링크를 내 정보 아이콘(/my)으로 바꾼다. -->
+                <a class="appbar-login" href="/signup?entry=signup&amp;returnTo=%2F#login" data-appbar-account>로그인</a>
+              </div>
+            </header>
+
+            <nav class="category-rail" aria-label="상품 분류">
+              <button class="chip is-active" type="button" data-filter="all">전체</button>
+              <button class="chip" type="button" data-filter="종합">종합</button>
+              <button class="chip" type="button" data-filter="재물">재물</button>
+              <button class="chip" type="button" data-filter="연애">연애</button>
+              <button class="chip" type="button" data-filter="궁합">궁합</button>
+              <button class="chip" type="button" data-filter="직업">직업</button>
+              <button class="chip" type="button" data-filter="흐름">흐름</button>
+              <!-- 고객 화면 보류: 집 풍수
+              <button class="chip" type="button" data-filter="풍수">풍수</button>
+              -->
+            </nav>
+          </div>
+
           <section class="poster-rail" id="services" aria-label="대표 상품">
             <a class="poster service-card is-cmdg" href="/cmdg/" data-category="종합" data-glyph="命">
               <video
@@ -462,6 +466,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite">이 서비스는 다음 단계에서 연결됩니다.</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261015-swipe"></script>
+    <script src="/js/umsh-push.js?v=20261002-push" defer data-umsh-push-js></script><script src="/js/portal.js?v=20261016-overlay"></script>
   </body>
 </html>

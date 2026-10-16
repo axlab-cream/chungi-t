@@ -43,12 +43,18 @@ test('공용 상단바가 홈과 같은 크기를 쓴다(PC·520px·360px)', () 
   const portal = readFileSync(join(CSS, 'portal.css'), 'utf8')
   // 2026-10-12: 위 14 / 아래 9 는 로고가 가운데서 어긋나 보였다. 위아래를 12 로 맞췄다.
   // 값 자체보다 '홈과 공용 상단바가 같은 값을 쓴다'가 이 검사의 뜻이다.
-  for (const value of ['padding: 12px 20px', 'padding: 7px 14px 6px', 'width: 106px', 'width: 90px', 'width: 80px']) {
+  // 2026-10-16: 두 파일에 따로 적던 숫자를 공용 값(umsh-tokens.css)으로 옮겼다. 두 파일이 같은 값을 부르고,
+  // 공용 값이 PC·520px·360px 크기를 담는지 본다.
+  for (const value of ['padding: var(--umsh-appbar-pad)', 'width: var(--umsh-appbar-logo-w)', 'height: var(--umsh-appbar-logo-h)']) {
     assert.ok(portal.includes(value), `홈에 ${value} 없음`)
     assert.ok(shell.includes(value), `공용 상단바에 ${value} 없음`)
   }
-  assert.match(shell, /@media \(max-width:\s*520px\)/)
-  assert.match(shell, /@media \(max-width:\s*360px\)/)
+  const tokens = readFileSync(join(CSS, 'umsh-tokens.css'), 'utf8')
+  for (const value of ['--umsh-appbar-pad-top: 12px', '--umsh-appbar-gutter: 20px', '--umsh-appbar-logo-w: 106px', '--umsh-appbar-pad-top: 7px', '--umsh-appbar-pad-bottom: 6px', '--umsh-appbar-gutter: 14px', '--umsh-appbar-logo-w: 90px', '--umsh-appbar-logo-w: 80px']) {
+    assert.ok(tokens.includes(value), `공용 값에 ${value} 없음`)
+  }
+  assert.match(tokens, /@media \(max-width:\s*520px\)/)
+  assert.match(tokens, /@media \(max-width:\s*360px\)/)
 })
 
 test('고객 HTML 레이아웃은 100vw 대신 퍼센트 폭을 쓴다', () => {
