@@ -144,6 +144,8 @@
     setTimeout(function () { sheet.remove(); backdrop.remove(); }, 280);
     state.sheet = null;
     document.removeEventListener('keydown', state.onKey);
+    // 2026-10-16 시트를 연 화면이 닫힘을 알아야 할 때(천명사주: 밀어 올린 운명 거래하기 버튼을 내린다).
+    if (typeof state.opts.onClose === 'function') { try { state.opts.onClose(reason); } catch (_e) { /* 화면 쪽 오류가 닫기를 막지 않는다 */ } }
     if (reason !== 'login') {
       track('dismiss', state.opts);
       // 2026-10-15 결제로 가는 시트(운명 거래하기)는 닫아도 저장 안내 줄을 남기지 않는다. 같은 버튼을 다시 누르면 된다.
@@ -288,7 +290,11 @@
     mountConsent(state);
     paintProviders(state);
     recordVisit(opts);
-    requestAnimationFrame(function () { requestAnimationFrame(function () { sheet.classList.add('is-open'); backdrop.classList.add('is-open'); }); });
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      sheet.classList.add('is-open');
+      backdrop.classList.add('is-open');
+      if (typeof opts.onOpen === 'function') { try { opts.onOpen(sheet); } catch (_e) { /* 화면 쪽 오류가 시트를 막지 않는다 */ } }
+    }); });
     track('view', opts);
     return state;
   }
