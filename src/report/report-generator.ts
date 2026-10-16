@@ -19,6 +19,7 @@ import { InterpretationQualityError, reviewInterpretation, type InterpretationRe
 import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy, SHINSAL_NAMES_PER_SECTION, WELL_KNOWN_SHINSAL } from './copy-guide.js'
+import { crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
 import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReadableCopy, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import type { HighlightTopic } from './longform-blocks.js'
 import {
@@ -76,9 +77,14 @@ const SAFETY_ADDENDUM = [
   'couple_signal·love_again에서는 관찰/가설/확인을 분리하고, 확정 외도를 단정하지 않습니다.',
 ].join('\n')
 
-function reportVoiceSystemPrompt(context: SajuReportContext): string {
+/**
+ * crisis: 고객 자유 글에 마음 위기 신호가 있었던 문맥(입구에서 중립 문장으로 바뀜, src/safety/crisis-signal.ts).
+ * 'hotline' 이면 글 첫머리에 109 안내까지 한 번 넣게 한다(요약·첫 항목). 'calm' 은 운세로 해석하지 않는 지시만.
+ */
+function reportVoiceSystemPrompt(context: SajuReportContext, crisis: 'hotline' | 'calm' | false = false): string {
   const key = normalizeServiceKey(context.serviceKey)
-  return `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}`
+  const base = `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}`
+  return crisis ? `${base}\n\n${crisisAiInstruction(crisis === 'hotline')}` : base
 }
 /*
  * 2026-09-18 결정: 모든 생성은 gpt-5.6-luna 하나로 간다. gpt-5.5 는 호출당 약 $0.19(입력 22.8K·출력 2.4K)
@@ -2323,6 +2329,8 @@ export function sectionPrompt(
 ): LlmMessage[] {
   // 종합사주의 한 고민에 대한 판정을 서로 다른 삶의 영역에 강제하지 않는다.
   if (normalizeServiceKey(rawContext.serviceKey) === 'saju_master') verdict = undefined
+  // 장별로 고민 문구를 덜어 내기 전에 본다. 위기 신호가 있었으면 모든 항목에 적용하고, 109 안내는 첫 항목에만.
+  const crisis = hasCrisisMarker(rawContext) ? (section.order === 1 ? 'hotline' as const : 'calm' as const) : false
   rawContext = cmdgSectionContext(rawContext, section.id)
   // 이 프롬프트는 외부 모델 제공자로 나간다. 상대의 생년월일시 원본은 어느 필드로도
   // 넘기지 않는다 — `featureJson` 이 문맥을 `userContext` 로 통째로 싣기 때문에
@@ -2341,7 +2349,7 @@ export function sectionPrompt(
     analysisForReading(analysis, context), ragTopK + 1, ragContext, corpusSnapshot, context.birthTimeKnown,
   ), section.ragTopics, ragTopK)
   return [
-    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
+    { role: 'system', content: reportVoiceSystemPrompt(context, crisis) + '\n현재 항목 하나만 작성합니다. 반드시 JSON 객체만 출력하세요.' },
     { role: 'user', content: JSON.stringify({
       instruction: [
         toneWritingInstruction(context.serviceKey),
@@ -2384,7 +2392,7 @@ export function verdictPrompt(
 ): LlmMessage[] {
   const context = publicReportContext(rawContext)
   return [
-    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n이 리포트의 고정 결론만 JSON 객체로 출력하세요.' },
+    { role: 'system', content: reportVoiceSystemPrompt(context, hasCrisisMarker(rawContext) && 'calm') + '\n이 리포트의 고정 결론만 JSON 객체로 출력하세요.' },
     { role: 'user', content: JSON.stringify({
       instruction: [
         toneWritingInstruction(context.serviceKey),
@@ -2434,7 +2442,7 @@ export function summaryPrompt(
 ): LlmMessage[] {
   const context = publicReportContext(rawContext)
   return [
-    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n이 리포트의 전체 요약만 JSON 객체로 출력하세요.' },
+    { role: 'system', content: reportVoiceSystemPrompt(context, hasCrisisMarker(rawContext) && 'hotline') + '\n이 리포트의 전체 요약만 JSON 객체로 출력하세요.' },
     { role: 'user', content: JSON.stringify({
       instruction: [
         toneWritingInstruction(context.serviceKey),
@@ -2576,7 +2584,7 @@ export function highlightPrompt(
   if (normalizeServiceKey(rawContext.serviceKey) === 'saju_master') verdict = undefined
   const context = publicReportContext(rawContext)
   return [
-    { role: 'system', content: reportVoiceSystemPrompt(context) + '\n이 하이라이트 항목만 JSON 객체로 출력하세요.' },
+    { role: 'system', content: reportVoiceSystemPrompt(context, hasCrisisMarker(rawContext) && 'calm') + '\n이 하이라이트 항목만 JSON 객체로 출력하세요.' },
     { role: 'user', content: JSON.stringify({
       instruction: [
         toneWritingInstruction(context.serviceKey),

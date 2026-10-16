@@ -205,6 +205,7 @@ import {
   marryMatchTeaserSection,
   parseMarryMatchRequest,
 } from '../match/marry-service.js'
+import { crisisGuard } from '../safety/crisis-signal.js'
 import {
   buildWorkJobContext,
   buildWorkJobReport,
@@ -362,12 +363,15 @@ app.use(['/api/consultation/context', '/api/consultation/chat'], (_req, res, nex
   if (!process.env.GEMINI_API_KEY?.trim()) { res.status(503).json({ code: 'CONSULTATION_SETUP_REQUIRED', error: '천명상담 연결을 준비하고 있어요. 준비가 끝나면 상담을 시작할 수 있습니다.' }); return }
   next()
 })
-app.use('/api/consultation', express.json({ limit: '4mb' }), consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
+app.use('/api/consultation', express.json({ limit: '4mb' }), crisisGuard, consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
 // 카카오톡 채널 챗봇 "상주 천명" 스킬 서버. 비밀 헤더(KAKAO_SKILL_SECRET)로만 받는다. src/kakao/skill.ts
 // 천명사주 무료 계산값은 사이트 무료 화면과 같은 함수(buildUiAnalysisPayload)로 만든다. 따로 만들면 값이 어긋난다.
-app.post('/api/kakao/skill', express.json({ limit: '256kb' }), kakaoSkillHandler({ uiAnalysis: buildUiAnalysisPayload }))
+app.post('/api/kakao/skill', express.json({ limit: '256kb' }), crisisGuard, kakaoSkillHandler({ uiAnalysis: buildUiAnalysisPayload }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+// 공통 절대 선 2번(마음 위기): 모든 API 본문(JSON·폼)의 위기 문장을 입구에서 중립 문장으로 바꾼다(src/safety/crisis-signal.ts).
+// 위에서 먼저 받는 상담·카카오 라우터는 각자 crisisGuard 를 붙였다. 자유 글을 GET 쿼리로 받는 API 는 없다.
+app.use('/api', crisisGuard)
 // 푸시 발송(src/push/google-auth.ts)은 이 헤더의 OIDC 토큰으로 구글 인증을 받는다. 모듈 시점에는
 // 토큰이 없어서 요청마다 받아 둔다. Vercel 밖(로컬)에는 헤더가 없고 발송도 하지 않는다.
 app.use((req, _res, next) => { rememberVercelOidcToken(req.header('x-vercel-oidc-token')); next() })

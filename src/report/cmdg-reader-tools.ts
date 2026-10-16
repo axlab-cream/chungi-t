@@ -9,6 +9,7 @@ import { publicReportContext } from './public-context.js'
 import { mutateReportRecord, type ReportRecord, type ReportOwner } from './report-store.js'
 import type { LlmMessage, SajuReportSection } from '../types/index.js'
 import type { UserLifeContext } from '../user/profile-store.js'
+import { crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
 
 export const READER_ANSWER_MODEL = 'gpt-5.6-luna'
 export const READER_SECTION_LIMIT = 2
@@ -97,7 +98,10 @@ export async function answerReaderQuestion(record: ReportRecord, owner: ReportOw
   if (cached) return cached
   const job = await claim(record, owner, state => Boolean(state.replies?.some(item => item.id === id)), section.id)
   try {
-    const raw = await chatWithOpenAI(buildReaderQuestionPrompt(record, section, input, life), { model: READER_ANSWER_MODEL, maxTokens: 4000 })
+    const prompt = buildReaderQuestionPrompt(record, section, input, life)
+    // 마음 위기 신호(입구에서 중립 문장으로 바뀜)가 질문·현실 기준·리포트 문맥에 있으면 안전 지시를 맨 앞에 둔다.
+    const messages = hasCrisisMarker([input, life, record.context]) ? [{ role: 'system' as const, content: crisisAiInstruction(true) }, ...prompt] : prompt
+    const raw = await chatWithOpenAI(messages, { model: READER_ANSWER_MODEL, maxTokens: 4000 })
     const reply: ReaderReply = { id, sectionId: section.id, input, answer: parseReaderAnswer(raw), model: READER_ANSWER_MODEL, createdAt: new Date().toISOString() }
     await finish(record, owner, job, state => { state.replies = [...(state.replies ?? []).filter(item => item.id !== id), reply] })
     return reply

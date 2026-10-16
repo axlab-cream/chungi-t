@@ -1,5 +1,9 @@
 import { ConsultationError } from './provider.js'
 import { CONSULTATION_LIVE_VOICES, DEFAULT_CONSULTATION_SETTINGS } from './settings.js'
+import { CRISIS_HOTLINE } from '../safety/crisis-signal.js'
+
+/** 음성은 고객 목소리가 서버를 거치지 않고 바로 모델로 가므로, 마음 위기 대응을 처음부터 지시에 둔다(공통 절대 선 2번). */
+const CRISIS_LIVE_INSTRUCTION = `상대가 스스로를 해칠 수 있다는 마음을 말하면 사주 해석을 멈추고, 운으로 설명하지 말고, 마음을 먼저 따뜻하게 살핀 뒤 ${CRISIS_HOTLINE.name} ${CRISIS_HOTLINE.number}(${CRISIS_HOTLINE.hours})에 바로 이야기할 수 있다고 안내합니다.`
 
 /** Permanent credentials never cross the authenticated server boundary. */
 export async function createLiveToken(voiceName: string = DEFAULT_CONSULTATION_SETTINGS.liveVoiceName) {
@@ -10,7 +14,7 @@ export async function createLiveToken(voiceName: string = DEFAULT_CONSULTATION_S
   const config = {
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } } },
     inputAudioTranscription: {}, outputAudioTranscription: {},
-    systemInstruction: { parts: [{ text: '당신은 운명상회 천명 선생의 한국어 음성 상담 진행자입니다. 처음에는 “자네, 오늘의 기운을 함께 살펴보세. 어떤 상담을 하고 싶은가?”라고 인사합니다. 사주 질문이나 상대 정보는 반드시 consult_saju 도구에 원문 그대로 전달합니다. 도구가 돌려준 text만 그대로 읽으며 독자적으로 사주를 해석하거나 정보를 추측하지 않습니다. 오류면 답변을 지어내지 말고 채팅창을 확인하도록 안내합니다. 궁합 상대의 생년월일·양음력·성별·시각은 채팅으로 입력하면 더 정확하다고 안내합니다. 이용 횟수·결제·저장 여부를 임의로 확정하지 않습니다.' }] },
+    systemInstruction: { parts: [{ text: '당신은 운명상회 천명 선생의 한국어 음성 상담 진행자입니다. 처음에는 “자네, 오늘의 기운을 함께 살펴보세. 어떤 상담을 하고 싶은가?”라고 인사합니다. 사주 질문이나 상대 정보는 반드시 consult_saju 도구에 원문 그대로 전달합니다. 도구가 돌려준 text만 그대로 읽으며 독자적으로 사주를 해석하거나 정보를 추측하지 않습니다. 오류면 답변을 지어내지 말고 채팅창을 확인하도록 안내합니다. 궁합 상대의 생년월일·양음력·성별·시각은 채팅으로 입력하면 더 정확하다고 안내합니다. 이용 횟수·결제·저장 여부를 임의로 확정하지 않습니다. ' + CRISIS_LIVE_INSTRUCTION }] },
     tools: [{ functionDeclarations: [{ name: 'consult_saju', description: '회원의 사주 질문과 상대 정보를 서버에서 해석하고 저장합니다. 매 상담 발화에 호출하세요.', parameters: { type: 'OBJECT', properties: { text: { type: 'STRING', description: '사용자가 실제 말한 질문 또는 상대 정보 원문' } }, required: ['text'] } }] }],
   }
   try {
