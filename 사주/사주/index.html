@@ -361,8 +361,9 @@
         --cmdg-price-accent: var(--gold);
         --cmdg-price-muted: rgb(255 248 239 / 0.62);
         --cmdg-price-strike: #e0523f;
-        --cmdg-price-badge-bg: #c8402f;
-        --cmdg-price-badge-text: #fff;
+        /* 할인율: 상자 없이 빨간 글씨("54% 할인") */
+        --cmdg-price-discount: #ff5440;
+        --cmdg-price-discount-size: 20px;
         --cmdg-price-glow: 0 0 28px rgb(242 191 107 / 0.45);
         --cmdg-price-now-size: 52px;
         --cmdg-price-eyebrow-line: 120px;
@@ -3614,11 +3615,8 @@
       }
 
       .package-price-now em {
-        padding: 4px 9px;
-        border-radius: 8px;
-        background: var(--cmdg-price-badge-bg);
-        color: var(--cmdg-price-badge-text);
-        font-size: 18px;
+        color: var(--cmdg-price-discount);
+        font-size: var(--cmdg-price-discount-size);
         font-style: normal;
         font-weight: 800;
       }
@@ -8974,7 +8972,7 @@
               <p class="package-price-label">${escapeHtml(product.title || "천명사주")}</p>
               <p class="package-price-original"><span>정가</span><s>${won(list)}원</s></p>
             </div>
-            <p class="package-price-now"><em>${rate}%</em><strong>${won(now)}<small>원</small></strong></p>
+            <p class="package-price-now"><em>${rate}% 할인</em><strong>${won(now)}<small>원</small></strong></p>
           `;
           slot.hidden = false;
         });
