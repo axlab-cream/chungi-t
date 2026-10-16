@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <script src="/js/umsh-analytics.js?v=ga-20261001-signup-funnel"></script>
-<script src="/js/umsh-chrome.js?v=20261016-appbar16" defer></script>
+<script src="/js/umsh-chrome.js?v=20261016-appbar17" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -136,6 +136,10 @@
         right: 0;
         bottom: 0;
         z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--cmdg-entry-caption-gap);
         padding: 30px var(--cmdg-cta-gutter) var(--cmdg-cta-bottom-gap);
         background: linear-gradient(
           to top,
@@ -144,6 +148,24 @@
           rgba(8, 3, 2, 0.38) 84%,
           transparent 100%
         );
+      }
+      /* 버튼 위 한 줄 안내. 영상 위에 떠 있는 반투명 알약이라 뒤 그림이 흐릿하게 비친다. */
+      .cmdg-entry-caption {
+        margin: 0;
+        padding: var(--cmdg-entry-caption-pad);
+        border: 1px solid var(--cmdg-entry-caption-border);
+        border-radius: var(--cmdg-entry-caption-radius);
+        background: var(--cmdg-entry-caption-bg);
+        -webkit-backdrop-filter: var(--cmdg-entry-caption-filter);
+        backdrop-filter: var(--cmdg-entry-caption-filter);
+        color: var(--cmdg-entry-caption-color);
+        font-family: var(--font-meta);
+        font-size: var(--cmdg-entry-caption-size);
+        font-weight: 400;
+        line-height: var(--cmdg-entry-caption-line);
+        letter-spacing: var(--cmdg-entry-caption-tracking);
+        text-align: center;
+        white-space: nowrap;
       }
       /*
        * 진입 CTA — master 와 같은 액자 판.
@@ -324,6 +346,30 @@
            두 버튼의 폭·바닥 거리가 늘 같다(2026-10-16). */
         --cmdg-cta-gutter: 16px;
         --cmdg-cta-bottom-gap: 10px;
+        /* 첫 화면 버튼 위 한 줄 안내(반투명 알약, 2026-10-16). */
+        --cmdg-entry-caption-gap: 10px;
+        --cmdg-entry-caption-pad: 9px 16px;
+        --cmdg-entry-caption-bg: rgb(0 0 0 / 0.3);
+        --cmdg-entry-caption-border: rgb(255 255 255 / 0.1);
+        --cmdg-entry-caption-filter: blur(7.55px);
+        --cmdg-entry-caption-radius: 22.5px;
+        --cmdg-entry-caption-size: 12px;
+        --cmdg-entry-caption-line: 18px;
+        --cmdg-entry-caption-tracking: -0.06px;
+        --cmdg-entry-caption-color: #fff;
+        /* 맛보기 복채 카드 금액(2026-10-16): 정가 줄 긋기·할인율·크게 빛나는 판매가. 금액 자체는 결제 카탈로그에서 온다. */
+        --cmdg-price-accent: var(--gold);
+        --cmdg-price-muted: rgb(255 248 239 / 0.62);
+        --cmdg-price-strike: #e0523f;
+        --cmdg-price-badge-bg: #c8402f;
+        --cmdg-price-badge-text: #fff;
+        --cmdg-price-glow: 0 0 28px rgb(242 191 107 / 0.45);
+        --cmdg-price-now-size: 52px;
+        --cmdg-price-eyebrow-line: 120px;
+        /* "복채" 줄 위(목록과 사이)·아래(금액과 사이) 간격 */
+        --cmdg-price-eyebrow-top: 34px;
+        --cmdg-price-eyebrow-bottom: 22px;
+        --cmdg-price-label-size: 19px;
       }
 
       * {
@@ -3509,6 +3555,89 @@
         box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
       }
 
+      .package-price {
+        margin-top: var(--cmdg-price-eyebrow-top);
+      }
+
+      .package-card .package-price-eyebrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 0 0 var(--cmdg-price-eyebrow-bottom);
+        color: var(--cmdg-price-accent);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.3em;
+      }
+
+      .package-card .package-price-eyebrow span {
+        flex: 0 1 var(--cmdg-price-eyebrow-line);
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--cmdg-price-accent), transparent);
+      }
+
+      .package-price-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .package-price-label {
+        margin: 0;
+        color: var(--cmdg-price-accent);
+        font-size: var(--cmdg-price-label-size);
+        font-weight: 800;
+      }
+
+      .package-price-original {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin: 0;
+        color: var(--cmdg-price-muted);
+        font-size: 14px;
+      }
+
+      .package-price-original s {
+        text-decoration-color: var(--cmdg-price-strike);
+        text-decoration-thickness: 2px;
+      }
+
+      .package-price-now {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        margin: 6px 0 0;
+      }
+
+      .package-price-now em {
+        padding: 4px 9px;
+        border-radius: 8px;
+        background: var(--cmdg-price-badge-bg);
+        color: var(--cmdg-price-badge-text);
+        font-size: 18px;
+        font-style: normal;
+        font-weight: 800;
+      }
+
+      .package-price-now strong {
+        color: var(--cmdg-price-accent);
+        font-size: var(--cmdg-price-now-size);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        text-shadow: var(--cmdg-price-glow);
+      }
+
+      .package-price-now small {
+        margin-left: 2px;
+        font-size: 0.42em;
+        font-weight: 800;
+      }
+
       .package-card h3 {
         margin: 0 0 14px;
         color: #fff4df;
@@ -4085,7 +4214,7 @@
         }
       }
     </style>
-  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261016a"></script><script src="/js/umsh-reviews.js?v=20261016a"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261016-price2"></script><script src="/js/umsh-reviews.js?v=20261016a"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -7622,6 +7751,7 @@
               <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="cmdg-entry-action">
+              <p class="cmdg-entry-caption">차라리 몰랐으면 했을 것까지, 전부 보여주지</p>
               <button class="primary-cta" type="button" data-action="enter"><span class="cta-label">운명록 확인하기</span></button>
             </div>
           </article>
@@ -8824,12 +8954,39 @@
         window.UMSHReviews.mountList(slot, { product: "cmdg" });
       }
 
+      /**
+       * 맛보기 복채 카드 금액(2026-10-16 결정: 이 카드에만 정가·할인·판매가를 보인다).
+       * 금액은 결제 카탈로그(cmdg: amount 판매가, listAmount 정가)에서 오고 할인율은 둘로 계산한다.
+       */
+      function mountCmdgPackagePrice() {
+        const slot = stage.querySelector("[data-package-price]");
+        if (!slot) return;
+        loadPaymentConfig().then(() => {
+          const product = catalogProduct(PLAN_PRODUCT_KEYS.single);
+          const now = Number(product?.amount);
+          const list = Number(product?.listAmount);
+          if (!now || !list || list <= now) return;
+          const won = (value) => value.toLocaleString("ko-KR");
+          const rate = Math.round((1 - now / list) * 100);
+          slot.innerHTML = `
+            <p class="package-price-eyebrow"><span aria-hidden="true"></span>복채<span aria-hidden="true"></span></p>
+            <div class="package-price-head">
+              <p class="package-price-label">${escapeHtml(product.title || "천명사주")}</p>
+              <p class="package-price-original"><span>정가</span><s>${won(list)}원</s></p>
+            </div>
+            <p class="package-price-now"><em>${rate}%</em><strong>${won(now)}<small>원</small></strong></p>
+          `;
+          slot.hidden = false;
+        });
+      }
+
       function renderResult() {
         // 시간을 몰라도 천명사주는 티저로 간다(티저가 시주·오행·대운 없이 읽는다). 연애운이거나 티저가 없을 때만 안내 화면이다.
         if ((state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) && (isLoveThisYearService() || !window.UmshMasterTeaser)) { renderUnknownTimeResult(); return; }
         if (!isLoveThisYearService() && window.UmshMasterTeaser) {
           stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
           if (window.UMSHReviews) mountCmdgReviewList();
+          mountCmdgPackagePrice();
           // 티저는 화면을 통째로 다시 그린다. 그 뒤에 걸어야 플로팅 전환이 산다.
           setupFloatingCta(".sticky-story-cta");
           return;

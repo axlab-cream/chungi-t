@@ -25,6 +25,8 @@ export interface PaymentProduct {
   title: string
   eyebrow: string
   amount: number
+  /** 화면에 줄 그어 보여줄 정가(원). 천명사주 맛보기 복채 카드에서만 쓴다(2026-10-16 결정). 결제 금액은 amount 다. */
+  listAmount?: number
   returnPath: string
   summary: string
 }
@@ -43,6 +45,7 @@ const products: Record<PaymentProductKey, PaymentProduct> = {
     title: '천명사주',
     eyebrow: 'SIGNATURE · 종합사주',
     amount: 29000,
+    listAmount: 63000,
     returnPath: '/cmdg/',
     summary: '기질, 돈, 일, 관계, 큰 흐름을 한 번에 봅니다.',
   },
