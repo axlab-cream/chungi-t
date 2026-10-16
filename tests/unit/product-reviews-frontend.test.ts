@@ -7,7 +7,7 @@ const source = readFileSync('사주/js/umsh-reviews.js', 'utf8')
 function load() {
   const ctx: Record<string, unknown> = {}
   vm.createContext(ctx); vm.runInContext(source, ctx)
-  return (ctx as { UMSHReviews: { listMarkup(data: unknown, shown?: number): string; writerMarkup(state: unknown): string } }).UMSHReviews
+  return (ctx as { UMSHReviews: { listMarkup(data: unknown, shown?: number): string; mountWriter?: unknown } }).UMSHReviews
 }
 const item = (i: number) => ({ id: String(i), name: '박**', ilju: '을해일주', product: '천명사주', date: '2026.10.15', body: `소비 습관까지 딱 맞춰서 놀랐어요 ${i}`, verified: true })
 
@@ -27,26 +27,12 @@ test('list renders only when the server marks it visible, and escapes customer t
   assert.equal((ui.listMarkup({ visible: true, total: 5, items: [1, 2, 3, 4, 5].map(item) }).match(/umsh-rv-item/g) || []).length, 3)
 })
 
-test('writer shows for eligible buyers only, mentions the reward only when offered', () => {
-  const ui = load()
-  assert.equal(ui.writerMarkup({ eligible: false }), '')
-  const form = ui.writerMarkup({ eligible: true, reviewed: false, preview: { name: '박**', ilju: '을해일주' }, rewardOffered: false, draft: '' })
-  assert.match(form, /이번 풀이, 어땠어\?/)
-  assert.match(form, /‘박\*\* · 을해일주’로 보여/)
-  assert.match(form, /disabled/)
-  assert.doesNotMatch(form, /할인권/)
-  assert.match(ui.writerMarkup({ eligible: true, rewardOffered: true, draft: '' }), /남겨주면 할인권 하나 줄게/)
-  const done = ui.writerMarkup({ eligible: true, done: true, review: { name: '박**', ilju: '을해일주', body: '정말 잘 맞았어요 고마워요 진짜로' }, reward: { title: '연애운 15% 할인권', expiresAt: '2026-10-30T14:59:00.000Z' } })
-  assert.match(done, /장부에 남겼어/)
-  assert.match(done, /연애운 15% 할인권 \(2026\.10\.30까지\)/)
-})
-
-test('천명사주 teaser mounts the list below the price card and the paid reader mounts the writer', () => {
+test('천명사주 teaser mounts the list below the price card; no review writer is shipped (2026-10-15 decision)', () => {
   const page = readFileSync('사주/사주/index.html', 'utf8')
   assert.match(page, /<script src="\/js\/umsh-reviews\.js\?v=\d+\w*"><\/script>/)
   assert.match(page, /if \(window\.UMSHReviews\) mountCmdgReviewList\(\);/)
   assert.match(page, /\[data-sample-section="package"\]/)
   const reader = readFileSync('사주/js/umsh-report-access.js', 'utf8')
-  assert.match(reader, /mountCmdgReviewWriter\(payload, epoch\);/)
-  assert.match(reader, /\/js\/umsh-reviews\.js\?v=/)
+  assert.doesNotMatch(reader, /umsh-reviews|mountCmdgReviewWriter/)
+  assert.equal(load().mountWriter, undefined)
 })
