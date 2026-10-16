@@ -5,7 +5,7 @@ import { knowledgeBlockToRagChunk, narrowChunkToChart } from '../../src/rag/know
 import { buildCorpusIndex, formatRagForPrompt, retrieveRagChunks } from '../../src/rag/retriever.js'
 import { reviewToneCopy } from '../../src/report/tone-v2-review.js'
 import { analyzeSaju, sixCharAnalysis } from '../../src/saju/analyzer.js'
-import type { BirthInput, RagChartCondition, RagKnowledgeBlock, SajuReportContext } from '../../src/types/index.js'
+import type { BirthInput, RagChartCondition, RagKnowledgeBlock, SajuAnalysis, SajuReportContext } from '../../src/types/index.js'
 
 /**
  * 참고서 갈래표(2026-10-16): 블록을 "조건 → 뜻" 갈래로 나누고, 그 사람 계산값과 맞지 않는 갈래·블록은
@@ -133,11 +133,12 @@ describe('갈래표 참고서(옛 형식 103조각을 다시 쓴 것)', () => {
       season: ['spring', 'summer', 'autumn', 'winter'],
       temperature: ['cold', 'cool', 'balanced', 'warm', 'hot'],
       interaction: ['천간합', '천간충', '육합', '충', '형', '자형', '파', '해', '반합', '삼합', '방합'],
+      dayBranchInteraction: ['육합', '충', '형', '자형', '파', '해', '반합', '삼합', '방합'],
     }
     const elements = ['wood', 'fire', 'earth', 'metal', 'water']
     const tenGods = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인', '비겁', '식상', '재성', '관성', '인성']
     for (const key of ['dayMasterElement', 'dominantElement', 'weakElement', 'elementMany', 'elementMissing', 'usefulGod']) allowed[key] = elements
-    for (const key of ['tenGodPresent', 'tenGodAbsent', 'tenGodMany', 'gyeokgukTenGod']) allowed[key] = tenGods
+    for (const key of ['tenGodPresent', 'tenGodAbsent', 'tenGodMany', 'tenGodTop', 'gyeokgukTenGod']) allowed[key] = tenGods
     const check = (id: string, condition: RagChartCondition) => {
       for (const [key, value] of Object.entries(condition)) {
         assert.ok(RAG_CONDITION_KEYS.includes(key as keyof RagChartCondition), `${id}: 모르는 키 ${key}`)
@@ -180,5 +181,80 @@ describe('갈래표 참고서(옛 형식 103조각을 다시 쓴 것)', () => {
         assert.ok(Object.keys(branch.when).every((key) => key === 'birthTimeKnown'), `${chunk.id} ${branch.label}`)
       }
     }
+  })
+})
+
+describe('공통 조각 갈래표(2026-10-16 4단계 ②)', () => {
+  const COMMON = ['q95-009', 'q95-010', 'q95-011', 'q95-012', 'q95-013', 'ps-003', 'ps-004', 'ps-005']
+  const PEOPLE: BirthInput[] = [
+    WEAK,
+    { year: 1992, month: 11, day: 3, hour: 8, minute: 30, gender: 'male', calendar: 'solar' },
+    { year: 1979, month: 2, day: 20, hour: 15, minute: 0, gender: 'female', calendar: 'solar' },
+  ]
+
+  it('모든 사람에게 같은 정답(약속 이행·돈과 책임·직업 목록)을 주던 문구가 없다', () => {
+    const corpus = buildCorpusIndex()
+    for (const id of COMMON) {
+      const block = corpus.find((chunk) => chunk.id === id)?.knowledge
+      assert.ok(block?.branches && block.branches.length >= 2, id)
+      const text = JSON.stringify(block)
+      assert.doesNotMatch(text, /약속 이행|돈과 책임을 다루는|답장보다 약속|기획, 분석, 교육, 연구, 콘텐츠/, id)
+    }
+    for (const id of ['q95-006', 'q95-015', 'ps-007']) assert.ok(!corpus.some((chunk) => chunk.id === id), `${id} 개발 메모`)
+  })
+
+  it('사람마다 가장 크게 기운 기운의 갈래만 받는다(동점이면 함께, 일지 작용은 일지에 걸린 것만)', () => {
+    const corpus = buildCorpusIndex()
+    const labels = (birth: BirthInput, id: string) => narrowChunkToChart(corpus.find((item) => item.id === id)!, chartFacts(analyzeSaju(birth)), true)?.knowledge?.branches?.map((branch) => branch.label) ?? []
+    const [a, b, c] = PEOPLE
+    // A 庚: 관성·재성 동점(가장 많음), 일지 寅 반합 / B 癸: 관성(흙 3), 일지 형·파 / C 戊: 비겁(흙 5), 일지 육합·반합
+    assert.deepEqual(chartFacts(analyzeSaju(a)).topTenGodGroups, new Set(['재성', '관성']))
+    assert.deepEqual(labels(a, 'q95-011'), ['관성 가장 많음', '재성 가장 많음'])
+    assert.deepEqual(labels(b, 'q95-012'), ['관성 가장 많음'])
+    assert.deepEqual(labels(c, 'q95-013'), ['비겁 가장 많음'])
+    assert.deepEqual(labels(a, 'ps-004'), ['일지 합 있음'])
+    assert.deepEqual(labels(b, 'ps-004'), ['기본'], '일지에 합·충이 없으면 기본 갈래')
+    assert.deepEqual(labels(c, 'ps-004'), ['일지 합 있음'])
+    for (const birth of PEOPLE) {
+      for (const id of COMMON) {
+        const got = labels(birth, id)
+        assert.ok(got.length > 0, `${id} 빠짐`)
+        assert.ok(!(got.includes('기본') && got.length > 1), `${id}: 기본 갈래가 다른 갈래와 함께 감`)
+        assert.ok(got.filter((label) => label.endsWith('가장 많음')).length <= 2, `${id}: ${got.join(' | ')}`)
+      }
+    }
+  })
+
+  it('tenGodTop: 가장 많은 묶음만(십신 하나를 넣어도 그 묶음), 최대가 2개 미만이면 아무 묶음도 아니다', () => {
+    const facts = chartFacts(analyzeSaju(WEAK))
+    assert.equal(matchesChartCondition({ tenGodTop: ['관성'] }, facts, true), true)
+    assert.equal(matchesChartCondition({ tenGodTop: ['정관'] }, facts, true), true)
+    assert.equal(matchesChartCondition({ tenGodTop: ['식상'] }, facts, true), false)
+    // 십신이 한 자리씩 흩어진 원국: 어느 묶음도 2개가 안 되므로 "가장 많음"이 없다.
+    const scattered = {
+      ...analyzeSaju(WEAK),
+      manseryeok: {
+        ...analyzeSaju(WEAK).manseryeok!,
+        tenGodPlacements: [{ pillar: 'year', stem: '甲', tenGod: '편재' }, { pillar: 'month', stem: '壬', tenGod: '식신' }],
+        hiddenStems: [{ pillar: 'day', branch: '子', stems: [{ stem: '癸', element: 'water', weight: 1, tenGod: '정인' }] }],
+      },
+    } as unknown as SajuAnalysis
+    const flat = chartFacts(scattered)
+    // 편재·식신·정인 한 자리씩 → 재성 1·식상 1·인성 1.
+    assert.deepEqual([...flat.topTenGodGroups], [])
+    assert.equal(matchesChartCondition({ tenGodTop: ['재성'] }, flat, true), false)
+    // 같은 묶음이 두 자리면(식신·상관) 그 묶음이 가장 많음이 된다.
+    const paired = chartFacts({ ...scattered, manseryeok: { ...scattered.manseryeok!, hiddenStems: [{ pillar: 'day', branch: '子', stems: [{ stem: '癸', element: 'water', weight: 1, tenGod: '상관' }] }] } } as SajuAnalysis)
+    assert.deepEqual([...paired.topTenGodGroups], ['식상'])
+  })
+
+  it('dayBranchInteraction: 일지가 낀 지지 작용만 보고, 천간합·다른 자리 충은 보지 않는다', () => {
+    const facts = chartFacts(analyzeSaju(WEAK))
+    // 丁卯 丙午 庚寅 乙酉: 충(卯酉)은 년·시 자리, 일지 寅은 午와 반합, 일간 庚은 시간 乙과 천간합.
+    assert.equal(matchesChartCondition({ interaction: ['충'] }, facts, true), true)
+    assert.equal(matchesChartCondition({ dayBranchInteraction: ['충'] }, facts, true), false, '일지 아닌 충')
+    assert.equal(matchesChartCondition({ interaction: ['천간합'] }, facts, true), true)
+    assert.equal(matchesChartCondition({ dayBranchInteraction: ['천간합'] }, facts, true), false)
+    assert.equal(matchesChartCondition({ dayBranchInteraction: ['반합'] }, facts, true), true)
   })
 })
