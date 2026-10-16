@@ -65,7 +65,8 @@ describe('천명사주 참고서 검색 범위', () => {
     for (const section of sections) {
       const query = `${section.category} ${section.classification}`
       const ids = (ctx: typeof full | typeof emptyKey) => retrieveRagChunks(query, analysis, 7, cmdgRagContext(cmdgSectionContext(ctx, section.id), section.id), undefined, true).map((chunk) => chunk.id)
-      assert.deepEqual(ids(emptyKey), ids(full), section.id)
+      // 같은 7칸인지 본다. 점수가 거의 같은 칸끼리는 서비스 키 단어 하나로 순서가 바뀔 수 있다(2026-10-16 갈래표).
+      assert.deepEqual(ids(emptyKey).sort(), ids(full).sort(), section.id)
     }
   })
 
