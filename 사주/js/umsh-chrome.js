@@ -12,8 +12,8 @@
    * The public API (`UMSHChrome.mount` / `autoMount`) and the `[data-back]` hook are
    * unchanged, so no page markup had to move.
    */
-  var SHELL_CSS = '/css/service-shell.css?v=20261016-appbar16';
-  var SHELL_JS = '/js/service-shell.js?v=20261016-appbar16';
+  var SHELL_CSS = '/css/service-shell.css?v=20261016-appbar17';
+  var SHELL_JS = '/js/service-shell.js?v=20261016-appbar17';
   var SIGNUP_BENEFIT_POPUP_CSS = '/css/umsh-signup-benefit-popup.css?v=20260922-love-fortune';
   var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup';
   var FLAG_JS = '/js/ai-report-flag.js';
@@ -234,7 +234,9 @@
   function mount(options) {
     options = options || {};
     ensureMobileViewport();
-    var stage = document.getElementById('umsh-verified-layout') || document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
+    // root 는 선택자 문자열이나 요소. 요소로 받으면 그 상자 안의 상단을 공용 상단으로 바꾼다(2026-10-16, 무료 테스트처럼 main 밖에 상단이 있는 화면).
+    var rootElement = options.root && typeof options.root === 'object' ? options.root : null;
+    var stage = document.getElementById('umsh-verified-layout') || rootElement || document.querySelector(options.root || 'main.stage, .stage, main') || document.body;
     var legacy = stage.querySelector('header.appbar, header.umsh-chrome-appbar');
     if (legacy && legacy.closest('.umsh-service-shell')) legacy = null;
     var inferred = readFromLegacyAppbar(legacy);
@@ -266,9 +268,12 @@
     loadYmdFields();
     // 동적으로 삽입한 스크립트는 defer 순서를 보장하지 않으므로, CTA가 생기기 전에
     // 공용 수집기를 먼저 요청한다.
-    loadTracker();
-    loadPush();
-    loadSignupBenefitPopup();
+    // 상단만 공용으로 쓰고 부가 기능(수집기·알림·가입 혜택 창)은 페이지가 따로 정하는 화면은 addons:false 로 끈다.
+    if (options.addons !== false) {
+      loadTracker();
+      loadPush();
+      loadSignupBenefitPopup();
+    }
     // 2026-09-15 요청으로 '해석 신고' 플로팅 버튼을 전 화면에서 내렸다.
     // 스크립트(ai-report-flag.js)와 서버 경로는 그대로 두고 호출만 끈다 —
     // 다시 켤 때 이 한 줄만 되살리면 된다.
@@ -288,7 +293,11 @@
       price: host.getAttribute('data-price') || host.dataset.price,
       category: host.getAttribute('data-category') || host.dataset.category,
       active: host.getAttribute('data-active') || host.dataset.active || '',
-      root: 'main.stage, .stage, main',
+      // data-umsh-chrome-root: 이 상자 자체를 기준으로(상단이 main 밖에 있는 화면).
+      root: host.hasAttribute('data-umsh-chrome-root') ? host : 'main.stage, .stage, main',
+      // data-umsh-bottom-nav="off": 하단 탭 없이, data-umsh-addons="off": 부가 기능 없이.
+      bottomNav: host.getAttribute('data-umsh-bottom-nav') === 'off' ? false : undefined,
+      addons: host.getAttribute('data-umsh-addons') === 'off' ? false : undefined,
     });
   }
 
