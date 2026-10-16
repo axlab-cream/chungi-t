@@ -205,7 +205,7 @@ import {
   marryMatchTeaserSection,
   parseMarryMatchRequest,
 } from '../match/marry-service.js'
-import { crisisGuard } from '../safety/crisis-signal.js'
+import { careNotice, crisisGuard } from '../safety/crisis-signal.js'
 import {
   buildWorkJobContext,
   buildWorkJobReport,
@@ -372,6 +372,8 @@ app.use(express.urlencoded({ extended: false }))
 // 공통 절대 선 2번(마음 위기): 모든 API 본문(JSON·폼)의 위기 문장을 입구에서 중립 문장으로 바꾼다(src/safety/crisis-signal.ts).
 // 위에서 먼저 받는 상담·카카오 라우터는 각자 crisisGuard 를 붙였다. 자유 글을 GET 쿼리로 받는 API 는 없다.
 app.use('/api', crisisGuard)
+// 위기 표시가 붙은 응답을 받은 화면이 띄울 안내 문구(규칙 파일 한 곳: data/safety/crisis-signals.json).
+app.get('/api/safety/care-notice', (_req, res) => { res.json(careNotice()) })
 // 푸시 발송(src/push/google-auth.ts)은 이 헤더의 OIDC 토큰으로 구글 인증을 받는다. 모듈 시점에는
 // 토큰이 없어서 요청마다 받아 둔다. Vercel 밖(로컬)에는 헤더가 없고 발송도 하지 않는다.
 app.use((req, _res, next) => { rememberVercelOidcToken(req.header('x-vercel-oidc-token')); next() })

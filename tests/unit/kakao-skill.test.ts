@@ -241,3 +241,21 @@ describe('kakao free saju (same as umsh.kr free screens)', () => {
     assert.match(texts(cancel.body), /명부는 여기까지/)
   })
 })
+
+describe('kakao 마음 위기 안내(공통 절대 선 2번)', () => {
+  it('입구에서 바뀐 위기 문장이 오면 맨 앞 말풍선에 109 안내, AI 지시에 안전 우선', async () => {
+    const { CRISIS_REPLACEMENT } = await import('../../src/safety/crisis-signal.js')
+    const { send, calls } = setup(async () => '많이 지쳤구나.')
+    const res = await send(CRISIS_REPLACEMENT)
+    const outputs = (res.body as SkillResponse).template?.outputs ?? []
+    assert.match(JSON.stringify(outputs[0]), /109/)
+    assert.ok(outputs.length <= 3)
+    assert.match(calls.at(-1)?.system ?? '', /\[안전 우선\]/)
+  })
+
+  it('평범한 말에는 안내를 붙이지 않는다', async () => {
+    const { send } = setup()
+    const res = await send('안녕 천명')
+    assert.doesNotMatch(texts(res.body), /109/)
+  })
+})

@@ -18,6 +18,19 @@
   var SIGNUP_BENEFIT_POPUP_JS = '/js/umsh-signup-benefit-popup.js?v=20261001-admin-popup';
   var FLAG_JS = '/js/ai-report-flag.js';
   var TRACK_JS = '/js/umsh-track.js?v=20261013-quit-input';
+  var CARE_NOTICE_JS = '/js/umsh-care-notice.js?v=20261016-crisis';
+
+  /**
+   * 마음 위기 안내(공통 절대 선 2번). fetch 를 일찍 감싸야 첫 요청부터 표시를 볼 수 있으므로
+   * mount 를 기다리지 않고 이 파일이 실리는 즉시 올린다. 모든 화면에 공용 크롬이 실리니 여기 한 곳이면 된다.
+   */
+  function loadCareNotice() {
+    if (document.querySelector('script[data-umsh-care-notice]')) return;
+    var script = document.createElement('script');
+    script.src = CARE_NOTICE_JS;
+    script.setAttribute('data-umsh-care-notice', '');
+    (document.head || document.documentElement).appendChild(script);
+  }
 
   /**
    * 퍼널 수집기. 공용 크롬이 모든 화면에 실리므로 여기서 한 번만 올린다 — 화면마다
@@ -291,5 +304,6 @@
   } else {
     autoMount();
   }
+  loadCareNotice();
   loadYmdFields();
 })(window);
