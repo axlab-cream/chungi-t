@@ -478,6 +478,10 @@
     .admin-confirm-text { margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-line; }
     .admin-confirm-warn { margin: 12px 0 0; padding: 8px 10px; border-radius: 6px; background: #fdeceb; color: var(--admin-state-error); font-size: 13px; font-weight: 700; }
     .admin-prompt label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+    .admin-prompt[data-transfer] { display: grid; gap: 14px; }
+    .admin-transfer-results { display: grid; gap: 6px; }
+    .admin-transfer-results button { width: 100%; padding: 10px 12px; border: 1px solid var(--admin-line, #e3e3e8); border-radius: 8px; background: #fff; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+    .admin-transfer-results button[aria-pressed='true'] { border-color: var(--admin-action-primary, #2f5bea); background: #eef3ff; font-weight: 700; }
     .admin-button[data-tone='danger']:not([disabled]) { background: var(--admin-action-danger); border-color: var(--admin-action-danger); color: #fff; }
     .admin-toasts { position: fixed; right: 20px; bottom: 20px; z-index: 1000; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 40px)); }
     .admin-toast { padding: 11px 14px; border-radius: 8px; background: #1b1b1f; color: #fff; font-size: 13px; line-height: 1.5; box-shadow: 0 10px 30px rgba(0, 0, 0, .2); border-left: 3px solid var(--admin-state-ok); transition: opacity .25s, transform .25s; }
@@ -1745,7 +1749,7 @@
        * 서버는 SNS 회원만 받는 쪽으로 허용하고, 사유와 함께 감사 기록(admin command)을 남긴다.
        */
       function openRecordTransferDialog(options) {
-        var form = document.createElement('div'); form.className = 'admin-prompt';
+        var form = document.createElement('div'); form.className = 'admin-prompt'; form.setAttribute('data-transfer', '');
         var lead = document.createElement('p'); lead.className = 'admin-confirm-text'; lead.textContent = options.lead;
         var findLabel = document.createElement('label'); findLabel.textContent = '받을 회원(이름 또는 회원 번호)';
         var findRow = document.createElement('div'); findRow.style.display = 'flex'; findRow.style.gap = '8px';
@@ -1773,7 +1777,7 @@
             results.replaceChildren();
             if (!members.length) { results.appendChild(memberEmpty('맞는 회원이 없습니다.')); return; }
             members.forEach(function (member) {
-              var button = document.createElement('button'); button.type = 'button'; button.className = 'admin-mini-row'; button.dataset.id = member.id; button.style.width = '100%'; button.style.textAlign = 'left';
+              var button = document.createElement('button'); button.type = 'button'; button.dataset.id = member.id; button.setAttribute('aria-pressed', 'false');
               button.textContent = (member.name || '이름 미등록') + ' · ' + (member.email || '이메일 없음') + ' · ' + String(member.id).slice(0, 8);
               button.addEventListener('click', function () { pick(member); });
               results.appendChild(button);
