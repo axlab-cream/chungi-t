@@ -91,6 +91,9 @@ a:focus-visible {
   width: min(430px, 100%);
   height: 100dvh;
   min-height: 0;
+  /* 설치한 앱(크롬 '설치')에서는 화면이 상태바·시스템 버튼 줄 밑까지 깔릴 수 있다.
+     viewport-fit=cover 와 함께 그 높이만큼 비워 둬야 위아래 메뉴가 가려지지 않는다. */
+  padding-top: env(safe-area-inset-top, 0px);
   overflow: hidden;
   border: 0;
   border-radius: 0;
@@ -1711,7 +1714,8 @@ a:focus-visible {
 .bottom-nav {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  height: 74px;
+  height: calc(74px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   border-top: 1px solid var(--line-soft);
   background: rgba(8, 8, 7, 0.96);
 }
