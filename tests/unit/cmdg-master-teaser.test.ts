@@ -32,3 +32,15 @@ test('no price before the PG window; catalog amount and existing checkout action
 test('every imported artwork URL exists; no embedded binary or desktop path ships',()=>{
  const css=readFileSync('사주/css/cmdg-master-teaser.css','utf8');const urls=[...css.matchAll(/url\("(\/assets\/[^\"]+)"\)/g)];assert.ok(urls.length>=18);for(const [,url] of urls)assert.ok(existsSync(join('사주',url)),url);assert.doesNotMatch(css,/base64|C:\\Users/)
 })
+test('2026-10-16 free preview: server sentence combos replace personal paragraphs, name fills the love opener, no concern text',()=>{
+ const freePreview={now:['너, 겉으론 단단해 보이는데 속은 쉽게 베이잖아.'],luck:['네 팔자, 펼치자마자 쇳소리가 난다. 거기서부턴 거래야.'],money:['너는 돈 들어오는 문이 넓은 사람이야. 공짜로 들을 얘기가 아니야.'],love:['{이름}, 넌 사랑할 때 참 조심스럽더라.','더 궁금하지 않아?']}
+ const html=render({...state,analysis:{...state.analysis,freePreview}})
+ assert.match(html,/<p>너, 겉으론 단단해 보이는데/);assert.match(html,/쇳소리가 난다/);assert.match(html,/<p>테스트, 넌 사랑할 때/)
+ assert.doesNotMatch(html,/나무 기운이 5개|전통적으로 재성|56~65세|\{이름\}/)
+ // 개인 문단(story-copy)에는 고민이 없다. 상품 구성 목록의 고민 줄은 따로 정한다.
+ assert.doesNotMatch([...html.matchAll(/<div class="story-copy">([\s\S]*?)<\/div>/g)].map(m=>m[1]).join(''),/일을 바꿀까/)
+ const nameless=render({...state,name:'',analysis:{...state.analysis,freePreview}});assert.match(nameless,/<p>넌 사랑할 때/);assert.doesNotMatch(nameless,/\{이름\}/)
+ const escaped=render({...state,name:'<b>x</b>',analysis:{...state.analysis,freePreview}});assert.match(escaped,/&lt;b&gt;x&lt;\/b&gt;, 넌/)
+ // 미리보기가 없으면 예전 문단을 쓰되, 고민 문장은 넣지 않는다.
+ assert.doesNotMatch(render(state),/지금 적어 준 고민은/)
+})
