@@ -138,26 +138,26 @@ export function buildFreePreview(analysis: SajuAnalysis, seed: string, birthTime
   const moneyChoices = endings.filter((text) => firstWord(text) !== firstWord(endings[luckEnd]))
   const moneyEnding = moneyChoices[index(moneyChoices.length, yearSlot('end2'))]
 
+  // 박스 안 문단 나누기(2026-10-16): 지금 너는 = 겉과 속 / 습관+마음 / 요즘.
   const now = [
-    bank.now.outer[facts.dayMaster][facts.strength],
-    `${pick(bank.now.habit[facts.topGroup], 'habit')} ${pick(bank.now.want[facts.weakGroup], 'want')}`,
-    pick(bank.now.lately[facts.luckGroup], yearSlot('lately')),
+    [bank.now.outer[facts.dayMaster][facts.strength]],
+    [pick(bank.now.habit[facts.topGroup], 'habit'), pick(bank.now.want[facts.weakGroup], 'want')],
+    [pick(bank.now.lately[facts.luckGroup], yearSlot('lately'))],
   ]
 
+  // 대운 = 팔자 그림+시점 / 강점+그림 / 질문+끝맺음.
   const luck = [
-    pick(bank.luck.open[facts.element], 'open'),
-    facts.luckStage ? bank.luck.phase[facts.luckStage][facts.luckGroup] : bank.luck.phaseYear[facts.yearGroup],
-    pick(bank.luck.strength[facts.element], 'strength'),
-    pick(bank.luck.picture[facts.luckGroup], 'picture'),
-    pick(bank.luck.ask, yearSlot('luck-ask')),
-    endings[luckEnd],
+    [pick(bank.luck.open[facts.element], 'open'), facts.luckStage ? bank.luck.phase[facts.luckStage][facts.luckGroup] : bank.luck.phaseYear[facts.yearGroup]],
+    [pick(bank.luck.strength[facts.element], 'strength'), pick(bank.luck.picture[facts.luckGroup], 'picture')],
+    [pick(bank.luck.ask, yearSlot('luck-ask')), endings[luckEnd]],
   ]
 
   const bowl = pick(bank.money.bowl[facts.moneyBowl], 'bowl')
   const tease = index(bank.money.tease.length, 'tease')
+  // 재물 = 돈 그릇(+새는 데) / 질문+끝맺음.
   const money = facts.moneyBowl === 'none'
-    ? [bowl, pick(bank.money.ask.none, 'money-ask'), moneyEnding]
-    : [bowl, bank.money.tease[tease], bank.money.ask.has[tease], moneyEnding]
+    ? [[bowl], [pick(bank.money.ask.none, 'money-ask'), moneyEnding]]
+    : [[bowl, bank.money.tease[tease]], [bank.money.ask.has[tease], moneyEnding]]
 
   // 어긋난 행동(act)과 마지막 질문(ask)은 같은 변형 번호를 쓴다(짝).
   const act = index(bank.love.act[facts.topGroup].length, 'act')
@@ -169,7 +169,7 @@ export function buildFreePreview(analysis: SajuAnalysis, seed: string, birthTime
   ]
 
   const paragraph = (lines: string[]) => lines.join(' ')
-  return { version: bank.version, speaker, now: [paragraph(now)], luck: [paragraph(luck)], money: [paragraph(money)], love: love.map(paragraph) }
+  return { version: bank.version, speaker, now: now.map(paragraph), luck: luck.map(paragraph), money: money.map(paragraph), love: love.map(paragraph) }
 }
 
 /** 켠 서비스(runtime-config freePreview.services)만 무료 미리보기 문단을 만든다. 화자도 같은 설정에서 고른다. */

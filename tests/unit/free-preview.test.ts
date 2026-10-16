@@ -60,7 +60,8 @@ test('견본 세 사람: 계산값으로 고른 칸이 확정 견본과 같다',
     ['戊', 'strong', '비겁', '재성', '식상', 'early', 'none', 'fire'],
   ])
   const a = buildFreePreview(analyzeSaju(A), birthSeed(A, true), true, 'female')!
-  assert.match(a.now[0], /^너, 겉으론 칼같이 단단해 보이는데 속은 생각보다 쉽게 베이잖아\./)
+  assert.equal(a.now[0], '너, 겉으론 칼같이 단단해 보이는데 속은 생각보다 쉽게 베이잖아.')
+  assert.deepEqual([a.now.length, a.luck.length, a.money.length, a.love.length], [3, 3, 2, 4])
   assert.match(a.luck[0], /올해부터 완전히 다른 판으로 넘어갔거든\./)
   assert.match(a.money[0], /^너는 돈 들어오는 문이 넓은 사람이야\./)
   assert.equal(a.love.length, 4)
@@ -79,8 +80,8 @@ test('같은 사람은 늘 같은 문장, 다른 사람은 다른 조합. 끝맺
     const birth = birthOf(1950 + (i * 7) % 56, 1 + (i * 5) % 12, 1 + (i * 11) % 28, (i * 3) % 24, (i * 13) % 60, i % 2 ? 'male' : 'female')
     const preview = buildFreePreview(analyzeSaju(birth), birthSeed(birth, true), true, i % 2 ? 'female' : 'base')
     assert.ok(preview, JSON.stringify(birth))
-    const luckEnd = bank.endings.find((line: string) => preview.luck[0].endsWith(line))
-    const moneyEnd = bank.endings.find((line: string) => preview.money[0].endsWith(line))
+    const luckEnd = bank.endings.find((line: string) => preview.luck.at(-1)!.endsWith(line))
+    const moneyEnd = bank.endings.find((line: string) => preview.money.at(-1)!.endsWith(line))
     assert.ok(luckEnd && moneyEnd)
     assert.notEqual(luckEnd.split(' ')[0], moneyEnd.split(' ')[0], '끝맺음 첫 낱말이 겹침')
     assert.equal([...preview.now, ...preview.luck, ...preview.money, ...preview.love.slice(1)].some((p) => p.includes('{이름}')), false)
