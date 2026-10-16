@@ -76,7 +76,7 @@ export const SERVICE_VOICE_CONTRACTS: Record<KnownServiceKey, ServiceVoiceContra
     reportJob: '원국·오행·십성·대운·세운을 삶의 선택 기준으로 연결한다.',
     requiredScenes: ['반복되는 선택', '일과 관계의 균형', '운이 바뀌는 시기'],
     decisionCriteria: ['강하게 쓰는 기운', '보완할 기운', '지금 반복을 끊을 기준'],
-    holdConditions: ['수명·질병·합격·수익 확정', '출생시간 미상일 때 시주·시주 십성 단정', '성격 낙인'],
+    holdConditions: ['수명·질병 확정', '수익·금액 보장과 사건 날짜 확정', '출생시간 미상일 때 시주·시주 십성 단정', '성격을 깎아내리는 낙인'],
     forbiddenCustomerCopy: ['자네 운명은 이미 정해졌네', '반드시 실패한다', '이 사주는 틀렸다'],
   },
   love_this_year: {

@@ -10,33 +10,49 @@ import { analyzeSaju } from '../../src/saju/analyzer.js'
 import type { BirthInput, CorpusSnapshot, SajuReportContext } from '../../src/types/index.js'
 
 const root = process.cwd()
-const oldPath = 'tone-v2/corpus/saju-master-service.json'
-const newPath = 'tone-v2/corpus/releases/saju-master-service-2.1.0.json'
-const oldMarker = '천명사주는 원국의 구조와 대운의 방향을 함께 놓고 반복되는 선택의 조건을 살피는 긴 해석이다'
-const newMarker = '계산된 원국과 대운은 삶의 결과를 확정하는 사실이 아니라 반복되는 선택 조건을 검토하는 상징적 질문이다'
+// 2026-10-16 4단계 ①: 단정 규칙 3층에 맞춘 2.2.0 이 활성, 2.1.0(approved)은 되돌리기용, 2.0.0 은 2.1.0 배포 기록용.
+const v200Path = 'tone-v2/corpus/saju-master-service.json'
+const oldPath = 'tone-v2/corpus/releases/saju-master-service-2.1.0.json'
+const newPath = 'tone-v2/corpus/releases/saju-master-service-2.2.0.json'
+const oldMarker = '계산된 원국과 대운은 삶의 결과를 확정하는 사실이 아니라 반복되는 선택 조건을 검토하는 상징적 질문이다'
+const newMarker = '확정하지 않는 것은 공통 절대 선에 있는 것뿐이다'
 const birth: BirthInput = { year: 1985, month: 3, day: 20, hour: 9, gender: 'male', calendar: 'solar' }
 const context: SajuReportContext = { serviceKey: 'saju_master', concern: '일과 돈, 관계에서 반복되는 선택 기준을 확인하고 싶습니다.' }
 const hashFile = (path: string) => createHash('sha256').update(readFileSync(join(root, 'data', path), 'utf8')).digest('hex')
 
 function oldSnapshot(): CorpusSnapshot {
   const current = getCorpusSnapshot()
-  return { ...current, registryVersion: 'tone-v2.2.0.5', fingerprint: 'test-old-saju-master-snapshot', activePacks: current.activePacks.map((pack) => pack.id === 'saju-master-service' ? { ...pack, path: oldPath, version: '2.0.0', contentHash: hashFile(oldPath).slice(0, 16) } : pack) }
+  return { ...current, registryVersion: 'tone-v2.2.0.5', fingerprint: 'test-old-saju-master-snapshot', activePacks: current.activePacks.map((pack) => pack.id === 'saju-master-service' ? { ...pack, path: oldPath, version: '2.1.0', contentHash: hashFile(oldPath).slice(0, 16) } : pack) }
 }
 
 describe('[TASK P05] saju_master corpus/RAG release candidate', () => {
-  it('activates reviewed 2.1.0 and retains 2.0.0 for rollback', () => {
+  it('activates 2.2.0 and retains approved 2.1.0 for rollback', () => {
     const pack = getCorpusSnapshot().activePacks.find((item) => item.id === 'saju-master-service')
-    assert.equal(pack?.version, '2.1.0'); assert.equal(pack?.path, newPath)
+    assert.equal(pack?.version, '2.2.0'); assert.equal(pack?.path, newPath)
     assert.doesNotThrow(() => readFileSync(join(root, 'data', oldPath), 'utf8'))
     assert.equal(pack?.contentHash, hashFile(newPath).slice(0, 16))
   })
 
-  it('records an explicit semantic-review pass without sample output', () => {
+  it('keeps the approved 2.1.0 review bound to the unchanged rollback file', () => {
     const review = JSON.parse(readFileSync(join(root, 'tone-v2/corpus-review/saju-master-2.1.0.json'), 'utf8'))
-    assert.equal(review.status, 'approved'); assert.equal(review.sourcePath, `data/${newPath}`)
-    assert.equal(review.sourceSha256, hashFile(newPath)); assert.equal(review.sampleOutputsIngested, false)
+    assert.equal(review.status, 'approved'); assert.equal(review.sourcePath, `data/${oldPath}`)
+    assert.equal(review.sourceSha256, hashFile(oldPath)); assert.equal(review.sampleOutputsIngested, false)
     assert.deepEqual(review.blocks.map((item: any) => item.id), ['master-001'])
     assert.ok(review.blocks.every((block: any) => block.status === 'pass' && Object.values(block.checks).every(Boolean)))
+  })
+
+  it('records the 2.2.0 review as a candidate (no human review yet) bound to the active file', () => {
+    const review = JSON.parse(readFileSync(join(root, 'tone-v2/corpus-review/saju-master-2.2.0.json'), 'utf8'))
+    assert.equal(review.status, 'candidate'); assert.equal(review.sourcePath, `data/${newPath}`)
+    assert.equal(review.sourceSha256, hashFile(newPath)); assert.equal(review.sampleOutputsIngested, false)
+    assert.deepEqual(review.blocks.map((item: any) => item.id), ['master-001'])
+  })
+
+  it('2.2.0 lets readings assert traits and flow, and keeps only the absolute lines as limits', () => {
+    const block = JSON.parse(readFileSync(join(root, 'data', newPath), 'utf8')).knowledgeBlocks[0]
+    assert.match(block.interpretation, /딱 잘라 말한다/)
+    assert.doesNotMatch(block.interpretation, /성격, 직업 성패, 재산, 관계, 건강과 미래 사건을 예측하지 않는다/)
+    assert.match(block.forbidden_generalization, /질병·수명/); assert.match(block.forbidden_generalization, /속마음이나 비행/)
   })
 
   it('enforces calculated, symbolic, hypothetical and professional boundaries', () => {
@@ -92,8 +108,8 @@ describe('[TASK P05] saju_master corpus/RAG release candidate', () => {
     assert.equal(manifest.generationEvidence.containsProviderProse, false)
     assert.equal(manifest.gates.providerOutputEvaluation, 'pass_37_of_37')
     assert.equal('generationEvidenceReason' in manifest, false)
-    assert.deepEqual(manifest.corpus.candidate, { path: `data/${newPath}`, version: '2.1.0', sha256: hashFile(newPath) })
-    assert.deepEqual(manifest.corpus.previous, { path: `data/${oldPath}`, version: '2.0.0', sha256: hashFile(oldPath) })
+    assert.deepEqual(manifest.corpus.candidate, { path: `data/${oldPath}`, version: '2.1.0', sha256: hashFile(oldPath) })
+    assert.deepEqual(manifest.corpus.previous, { path: `data/${v200Path}`, version: '2.0.0', sha256: hashFile(v200Path) })
     assert.equal(manifest.attachment.newReportsOnly, true); assert.equal(manifest.attachment.storedSnapshotRequired, true); assert.equal(manifest.attachment.customerRecordMutation, false)
     assert.equal(manifest.rollback.strategy, 'registry_only'); assert.equal(manifest.rollback.customerRecordRewrite, false)
     assert.equal(manifest.verificationEvidence, 'tone-v2/evaluations/P05-saju-master-corpus-rag-release-candidate-20260913.json')

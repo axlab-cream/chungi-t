@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0.0",
+  "serviceKey": "saju_master",
+  "corpusVersion": "2.2.0",
+  "status": "candidate",
+  "statusNote": "단정 규칙 3층(2026-10-16 공통 절대 선 10개 확정, 천명사주 PDF 수준 단정)에 맞춰 2.1.0의 \"성격·직업·재산·관계·미래를 예측하지 않는다\"를 바꿨다. 사람 감수 전이라 candidate. 2.1.0(approved)은 되돌리기용으로 남긴다.",
+  "sourcePath": "data/tone-v2/corpus/releases/saju-master-service-2.2.0.json",
+  "sourceSha256": "15509025b81d6b5f3965747e46e7f4b58b6af85aa124c768510a68e3151fa4fe",
+  "previous": "tone-v2/corpus-review/saju-master-2.1.0.json",
+  "reviewedAgainst": [
+    "analysis/stage4-plan.html",
+    "src/prompt/absolute-lines.ts"
+  ],
+  "sampleOutputsIngested": false,
+  "reviewMethod": "tests/unit/saju-master-corpus-release.test.ts 자동 검사 + Codex 읽기 전용 리뷰",
+  "blocks": [
+    {
+      "id": "master-001",
+      "status": "auto_pass",
+      "checks": {
+        "inputBoundary": true,
+        "calculatedValueBoundary": true,
+        "absoluteLineBoundary": true,
+        "hypotheticalExampleBoundary": true,
+        "professionalDomainBoundary": true,
+        "otherPersonMindBoundary": true,
+        "numericProvenance": true
+      }
+    }
+  ]
+}

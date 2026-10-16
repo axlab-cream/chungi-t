@@ -21,6 +21,7 @@ import { LOVE_TARGET_RULE, needsPartnerGenderRule } from './partner-gender.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy, SHINSAL_NAMES_PER_SECTION, WELL_KNOWN_SHINSAL } from './copy-guide.js'
 import { crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
+import { absoluteLinesPrompt } from '../prompt/absolute-lines.js'
 import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReadableCopy, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import type { HighlightTopic } from './longform-blocks.js'
 import {
@@ -86,7 +87,9 @@ function reportVoiceSystemPrompt(context: SajuReportContext, crisis: 'hotline' |
   const key = normalizeServiceKey(context.serviceKey)
   // 상대가 등장하는 서비스에는 천명사주와 같은 성별 규칙을 붙인다(상대가 없는 서비스의 프롬프트는 그대로).
   const genderRule = needsPartnerGenderRule(context) ? `\n\n${LOVE_TARGET_RULE}` : ''
-  const base = `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}${genderRule}`
+  // 단정 규칙 3층(공통 절대 선 + 단정 수준)은 켠 서비스(천명사주부터)에만 붙는다(src/prompt/absolute-lines.ts).
+  const lines = absoluteLinesPrompt(key)
+  const base = `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}${genderRule}${lines ? `\n\n${lines}` : ''}`
   return crisis ? `${base}\n\n${crisisAiInstruction(crisis === 'hotline')}` : base
 }
 /*
