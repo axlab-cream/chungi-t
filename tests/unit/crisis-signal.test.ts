@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Request, Response } from 'express'
-import { CRISIS_REPLACEMENT, crisisGuard, hasCrisisMarker, hasCrisisSignal, redactCrisisPayload, redactCrisisText } from '../../src/safety/crisis-signal.js'
+import { CARE_HEADER, careNotice, CRISIS_REPLACEMENT, crisisGuard, hasCrisisMarker, hasCrisisSignal, redactCrisisPayload, redactCrisisText } from '../../src/safety/crisis-signal.js'
 import { buildTemplateSajuReport, sectionPrompt, summaryPrompt, verdictPrompt } from '../../src/report/report-generator.js'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import type { BirthInput, SajuReportContext } from '../../src/types/index.js'
@@ -44,7 +44,8 @@ describe('마음 위기 신호', () => {
   it('서버 입구: 일반 API 는 바꾸고, 사람이 읽는 1:1 문의는 원문을 둔다', () => {
     const run = (url: string) => {
       const req = { originalUrl: url, method: 'POST', body: { concern: '죽고 싶어요' } } as unknown as Request
-      const res = { locals: {} } as unknown as Response
+      const headers: Record<string, string> = {}
+      const res = { locals: {}, headersSent: false, setHeader(name: string, value: string) { headers[name] = value }, getHeader(name: string) { return headers[name] }, json() { return this } } as unknown as Response
       let called = false
       crisisGuard(req, res, () => { called = true })
       return { body: req.body as { concern: string }, flagged: (res.locals as { crisisSignal?: boolean }).crisisSignal === true, called }
@@ -59,6 +60,30 @@ describe('마음 위기 신호', () => {
       assert.equal(inquiry.body.concern, '죽고 싶어요')
       assert.ok(!inquiry.flagged && inquiry.called)
     } finally { console.warn = warn }
+  })
+
+  it('화면 안내 표시: 위기 문장을 받은 요청, 또는 바꿔 둔 문장이 든 응답(다시 연 리포트)에 표시를 붙인다', () => {
+    const fake = (body: unknown) => {
+      const headers: Record<string, string> = {}
+      const res = { locals: {}, headersSent: false, setHeader(name: string, value: string) { headers[name] = value }, getHeader(name: string) { return headers[name] }, json(_body: unknown) { return this } }
+      const req = { originalUrl: '/api/report/abc', method: 'GET', body } as unknown as Request
+      crisisGuard(req, res as unknown as Response, () => {})
+      return { res, headers }
+    }
+    const warn = console.warn
+    console.warn = () => {}
+    try {
+      assert.equal(fake({ concern: '죽고 싶어요' }).headers[CARE_HEADER], 'crisis')
+      const reopened = fake(undefined)
+      reopened.res.json({ report: { context: { concern: CRISIS_REPLACEMENT } } })
+      assert.equal(reopened.headers[CARE_HEADER], 'crisis')
+      const plain = fake(undefined)
+      plain.res.json({ report: { context: { concern: '이직 고민' } } })
+      assert.equal(plain.headers[CARE_HEADER], undefined)
+    } finally { console.warn = warn }
+    const notice = careNotice()
+    assert.equal(notice.tel, '109')
+    assert.match(notice.body, /109/)
   })
 
   it('리포트 AI: 위기 문맥이면 모든 항목에 운세 해석 금지, 109 안내는 첫 항목·요약에만', () => {

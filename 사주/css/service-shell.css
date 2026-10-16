@@ -1,7 +1,8 @@
 ﻿@import url("/css/umsh-tokens.css?v=20261016-glass");
 .umsh-service-shell,
 .umsh-service-bottom,
-.umsh-service-toast {
+.umsh-service-toast,
+.umsh-care-notice {
   --shell-width: var(--umsh-page-width, 430px);
   --shell-black-1000: #050504;
   --shell-black-950: #080807;
@@ -797,6 +798,64 @@ body.umsh-has-chrome .umsh-service-bottom .bottom-nav button {
 .umsh-service-toast.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* 마음 위기 안내(공통 절대 선 2번): 위기 표시가 붙은 응답을 받으면 화면 맨 위에 둔다. 사주/js/umsh-care-notice.js */
+.umsh-care-notice {
+  position: fixed;
+  top: calc(var(--umsh-chrome-appbar-h, 0px) + 10px);
+  left: 50%;
+  z-index: 120;
+  width: min(calc(var(--shell-width) - 24px), calc(100% - 24px));
+  padding: 16px 16px 14px;
+  border: 1px solid var(--shell-gold-500);
+  border-radius: 16px;
+  background: var(--shell-black-900);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.45);
+  color: var(--shell-cream-100);
+  font-family: var(--shell-font-ui);
+  transform: translateX(-50%);
+}
+
+.umsh-care-notice__title {
+  margin: 0 28px 6px 0;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.umsh-care-notice__body {
+  margin: 0 0 12px;
+  color: var(--shell-cream-100);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.umsh-care-notice__call {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--shell-gold-400);
+  color: var(--shell-black-1000);
+  font-size: 14px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.umsh-care-notice__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--shell-muted);
+  font-size: 18px;
+  cursor: pointer;
 }
 
 /* 본문 뒤로 가기(service-shell.js mountInlineBack). 이 화면에서는 헤더의 뒤로 버튼을 숨긴다. */
