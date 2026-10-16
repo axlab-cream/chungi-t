@@ -2120,3 +2120,91 @@ a:focus-visible {
 .consultation-promo .consultation-promo-copy strong {
   font-family: var(--font-ui);
 }
+
+/* ── 오늘의 운 띠 (2026-10-16 시안 반영) ──
+   왼쪽: 금빛 원 안의 초승달과 붉은 꽃(SVG), 가운데: 날짜·제목·설명, 오른쪽: 화살표 원 버튼.
+   어두운 바탕에 왼쪽만 붉게 번지게 해서 그림과 글자가 이어져 보이게 한다. */
+.today-ticket {
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 96px;
+  padding: 12px 14px 12px 0;
+  border-color: rgba(216, 186, 114, 0.32);
+  background:
+    radial-gradient(70% 130% at 0% 50%, rgba(150, 26, 34, 0.42), transparent 72%),
+    radial-gradient(40% 90% at 14% 50%, rgba(216, 186, 114, 0.12), transparent 70%),
+    linear-gradient(90deg, #170d0d 0%, #0e0c0b 46%, #0a0a09 100%);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 236, 190, 0.1);
+}
+
+.today-ticket .today-art {
+  display: block;
+  flex: 0 0 96px;
+  width: 96px;
+  height: 96px;
+  margin: -12px -4px -12px -6px;
+  letter-spacing: 0;
+}
+
+.today-ticket .today-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.today-ticket > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.today-ticket > div > span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.today-ticket strong {
+  margin-top: 3px;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.today-ticket p {
+  margin-top: 5px;
+  color: rgba(236, 226, 205, 0.72);
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.today-ticket .today-cta {
+  width: 42px;
+  height: 42px;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid rgba(216, 186, 114, 0.7);
+  border-radius: 50%;
+  background: rgba(8, 7, 6, 0.6);
+  color: var(--gold-400);
+}
+
+.today-ticket .today-cta svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.today-ticket:hover .today-cta,
+.today-ticket:focus-visible .today-cta,
+.today-ticket.is-pointed .today-cta {
+  background: var(--gold-gradient);
+  color: #070706;
+}
