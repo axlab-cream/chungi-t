@@ -238,7 +238,7 @@
             <div class="field"><label for="partnerName">상대 이름 <span class="hint">선택</span></label><input id="partnerName" name="partnerName" autocomplete="off" placeholder="이름을 알고 있다면 입력해 주세요" /></div>
             <div class="field"><label for="partnerBirth">상대 생년월일 <span class="hint">선택 · 입력하면 궁합을 더 세밀하게 봅니다</span></label><input id="partnerBirth" name="partnerBirth" inputmode="numeric" maxlength="8" placeholder="YYYYMMDD" /><div class="error" data-error-for="partnerBirth"></div></div>
             <div class="field-row">
-              <div class="field"><label for="partnerGender">상대 성별</label><select id="partnerGender" name="partnerGender"><option value="female">여자</option><option value="male">남자</option></select></div>
+              <div class="field"><label for="partnerGender">상대 성별</label><select id="partnerGender" name="partnerGender"><option value="">선택</option><option value="female">여자</option><option value="male">남자</option></select><div class="error" data-error-for="partnerGender"></div></div>
               <div class="field"><label for="partnerCalendar">상대 달력</label><select id="partnerCalendar" name="partnerCalendar"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
             </div>
             <div class="field"><label for="concern">지금 제일 걸리는 점 <span class="hint">선택</span></label><textarea id="concern" name="concern" maxlength="160" placeholder="예: 연락은 오는데 마음이 있는지 모르겠어요."></textarea></div>
@@ -351,7 +351,11 @@
         const value = form.partnerBirth.value.trim();
         const error = $('[data-error-for="partnerBirth"]');
         const message = value && !validBirthText(value) ? '상대 생년월일은 존재하는 날짜의 숫자 8자리 YYYYMMDD로 입력해 주세요.' : '';
-        form.partnerBirth.classList.toggle('is-error', Boolean(message)); error.textContent = message; return !message;
+        form.partnerBirth.classList.toggle('is-error', Boolean(message)); error.textContent = message;
+        // 상대 생년월일을 넣었다면 성별은 직접 골라야 한다. 미리 "여자"로 두면 상대 사주와 풀이가 조용히 틀어진다.
+        const genderMessage = value && !form.partnerGender.value ? '상대 성별을 선택해 주세요.' : '';
+        form.partnerGender.classList.toggle('is-error', Boolean(genderMessage)); $('[data-error-for="partnerGender"]').textContent = genderMessage;
+        return !message && !genderMessage;
       }
       async function saveProfile(event) {
         event.preventDefault(); const form = event.currentTarget; if (!validateProfile(form)) return; await initAuth().catch(() => undefined); if (!state.session) { openCommonLogin(); return; } const birthText = form.birth.value.trim(); setLoading(true);

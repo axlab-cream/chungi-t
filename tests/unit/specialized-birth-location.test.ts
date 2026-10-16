@@ -80,7 +80,7 @@ const again=parseLoveAgainRequest({...request,partnerBirth:birth})
 const mind=parseLoveMindRequest({...request,partnerBirth:birth})
 const signal=parseLoveSignalRequest({...request,selfBirth:undefined,partnerBirth:birth})
 const thisyear=parseLoveThisYearRequest({...request,selfBirth:undefined})
-const spouse=parseLoveSpouseRequest({relationshipStatus:'single',marriagePriority:'성격',meetingRoute:'소개'})
+const spouse=parseLoveSpouseRequest({relationshipStatus:'single',loveTarget:'여자',marriagePriority:'성격',meetingRoute:'소개'})
 const money=parseMoneySaveRequest({moneyHabit:'planned',incomePattern:'stable',leakPoint:'shopping',relationSpending:'none',savingGoal:'save'})
 const wedding=parseWeddingRequest({candidateDate1:'2027-06-15',partnerBirth:'1992-06-15',partnerTime:'9:30'})
 const creators: Array<[string,(b:BirthInput)=>string]> = [

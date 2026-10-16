@@ -20,6 +20,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { partnerBirthTimeReading, UNKNOWN_HOUR_CELL, withholdsBirthTime } from '../saju/unknown-time-reading.js'
+import { loveTargetOrientation } from '../report/partner-gender.js'
 
 export const COUPLE_MATCH_SERVICE_KEY = 'match_couple'
 
@@ -344,6 +345,7 @@ export function buildCoupleMatchContext(
   input: CoupleMatchRequest,
   partnerAnalysis: SajuAnalysis,
   userAnalysis?: SajuAnalysis,
+  selfGender?: 'male' | 'female',
 ): SajuReportContext {
   const p = partnerAnalysis.fourPillars
   return {
@@ -351,7 +353,7 @@ export function buildCoupleMatchContext(
     name,
     target: '커플궁합',
     relationship: input.relationshipStage || '연애 관계',
-    orientation: '관계 중심',
+    orientation: loveTargetOrientation(selfGender, input.partnerBirth?.gender, '관계 중심'),
     concern: [
       input.partnerName ? `상대: ${input.partnerName}` : '',
       input.conflictPattern ? `반복 갈등: ${input.conflictPattern}` : '',

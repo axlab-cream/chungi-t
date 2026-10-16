@@ -15,6 +15,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { partnerBirthTimeReading, withholdsBirthTime } from '../saju/unknown-time-reading.js'
+import { loveTargetOrientation } from '../report/partner-gender.js'
 
 export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 
@@ -176,10 +177,16 @@ function parsePartnerBirth(body: Record<string, unknown>): BirthInput {
     day,
     hour: birthTimeKnown && Number.isFinite(hourRaw) ? hourRaw : 12,
     minute: Number.isFinite(Number(source.minute)) ? Number(source.minute) : 0,
-    gender: source.gender === 'female' ? 'female' : 'male',
+    gender: requirePartnerGender(source.gender),
     calendar: source.calendar === 'lunar' ? 'lunar' : 'solar',
     ...parseBirthLocation(source),
   }
+}
+
+// 상대 성별은 짐작하지 않는다. 비어 있거나 어긋난 값을 "남자"로 두면 상대 사주와 풀이가 조용히 틀어진다.
+function requirePartnerGender(value: unknown): 'male' | 'female' {
+  if (value !== 'male' && value !== 'female') throw new InputError('상대 성별을 선택해 주세요.')
+  return value
 }
 
 export function parseLoveSignalRequest(body: Record<string, unknown>): LoveSignalRequest {
@@ -222,12 +229,14 @@ export function buildLoveSignalContext(
   name: string | undefined,
   input: LoveSignalRequest,
   partnerAnalysis: SajuAnalysis,
+  selfGender?: 'male' | 'female',
 ): SajuReportContext {
   const p = partnerAnalysis.fourPillars
   return {
     serviceKey: LOVE_SIGNAL_SERVICE_KEY,
     name,
     target: '관계 신호',
+    orientation: loveTargetOrientation(selfGender, input.partnerBirth?.gender) || undefined,
     concern: [
       `현재 관계: ${input.relationshipStage}`,
       `신경 쓰이는 신호: ${input.signalFocus}`,

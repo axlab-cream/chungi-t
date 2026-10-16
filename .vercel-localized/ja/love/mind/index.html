@@ -237,7 +237,7 @@
             <div class="field"><label for="partnerName">相手の名前 <span class="hint">選択</span></label><input id="partnerName" name="partnerName" autocomplete="off" placeholder="名前が分かっていれば入力してください" /></div>
             <div class="field"><label for="partnerBirth">相手の生年月日 <span class="hint">任意 · 入れると相性をさらに細かく見られる</span></label><input id="partnerBirth" name="partnerBirth" inputmode="numeric" maxlength="8" placeholder="YYYYMMDD" /><div class="error" data-error-for="partnerBirth"></div></div>
             <div class="field-row">
-              <div class="field"><label for="partnerGender">相手の性別</label><select id="partnerGender" name="partnerGender"><option value="female">女性</option><option value="male">男性</option></select></div>
+              <div class="field"><label for="partnerGender">相手の性別</label><select id="partnerGender" name="partnerGender"><option value="">選択</option><option value="female">女性</option><option value="male">男性</option></select><div class="error" data-error-for="partnerGender"></div></div>
               <div class="field"><label for="partnerCalendar">相手の暦</label><select id="partnerCalendar" name="partnerCalendar"><option value="solar">陽暦</option><option value="lunar">陰暦</option></select></div>
             </div>
             <div class="field"><label for="concern">今一番気になる点 <span class="hint">選択</span></label><textarea id="concern" name="concern" maxlength="160" placeholder="例: 連絡は来るが、気持ちがあるか分からない。"></textarea></div>
@@ -349,7 +349,10 @@
         const value = form.partnerBirth.value.trim();
         const error = $('[data-error-for="partnerBirth"]');
         const message = value && !validBirthText(value) ? '相手の生年月日は実在する日付を8桁の数字、YYYYMMDDで入力してください。' : '';
-        form.partnerBirth.classList.toggle('is-error', Boolean(message)); error.textContent = message; return !message;
+        form.partnerBirth.classList.toggle('is-error', Boolean(message)); error.textContent = message;
+        const genderMessage = value && !form.partnerGender.value ? '相手の性別を選択してください。' : '';
+        form.partnerGender.classList.toggle('is-error', Boolean(genderMessage)); $('[data-error-for="partnerGender"]').textContent = genderMessage;
+        return !message && !genderMessage;
       }
       async function saveProfile(event) {
         event.preventDefault(); const form = event.currentTarget; if (!validateProfile(form)) return; await initAuth().catch(() => undefined); if (!state.session) { openCommonLogin(); return; } const birthText = form.birth.value.trim(); setLoading(true);

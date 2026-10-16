@@ -12,12 +12,16 @@ import type {
 } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
+import { LOVE_TARGETS, type LoveTarget } from '../report/partner-gender.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 
 export const LOVE_SPOUSE_SERVICE_KEY = 'love_spouse'
 
+
 export interface LoveSpouseRequest {
   relationshipStatus: string
+  /** 연애 상대 성별. 천명사주의 "연애 상대는요?" 와 같은 보기. 풀이가 짐작하지 않게 직접 받는다. */
+  loveTarget: LoveTarget
   marriagePriority: string
   meetingRoute: string
   concern?: string
@@ -79,11 +83,15 @@ export function parseLoveSpouseRequest(body: Record<string, unknown>): LoveSpous
   const relationshipStatus = trimmed(body.relationshipStatus, 60)
   const marriagePriority = trimmed(body.marriagePriority, 80)
   const meetingRoute = trimmed(body.meetingRoute, 80)
+  const loveTargetRaw = trimmed(body.loveTarget, 20)
+  const loveTarget = LOVE_TARGETS.find((option) => option === loveTargetRaw)
   if (!relationshipStatus) throw new InputError('현재 관계 상태를 선택해 주세요.')
   if (!marriagePriority) throw new InputError('결혼에서 중요한 기준을 선택해 주세요.')
   if (!meetingRoute) throw new InputError('인연을 만나는 경로를 선택해 주세요.')
+  if (!loveTarget) throw new InputError('연애 상대를 선택해 주세요.')
   return {
     relationshipStatus,
+    loveTarget,
     marriagePriority,
     meetingRoute,
     concern: trimmed(body.concern, 160),
@@ -98,6 +106,7 @@ export function buildLoveSpouseContext(name: string | undefined, input: LoveSpou
     relationship: input.relationshipStatus,
     orientation: '배우자궁과 생활 조건 · 자미두수 명반 미제공',
     concern: [
+      `연애 상대 ${input.loveTarget}`,
       `결혼에서 중요한 기준: ${input.marriagePriority}`,
       `인연을 만나는 경로: ${input.meetingRoute}`,
       input.concern,

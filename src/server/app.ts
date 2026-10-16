@@ -6,7 +6,8 @@ import soloNaraSpec from '../../data/solo-nara-spec.json' with { type: 'json' }
 import { InputError, respondRequestFailure } from './input-error.js'
 import { storedResultRoute } from '../i18n/stored-result-route.js'
 import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
-import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet } from '../coupons/store.js'
+import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet, grantCoupon } from '../coupons/store.js'
+import { productReviewRouter } from '../reviews/router.js'
 import { CouponError } from '../coupons/contracts.js'
 import { getConsultationCouponUsage } from '../consultation/backend.js'
 import { consultationRouter, isConsultationRecord, getConsultationAccess, reserveConsultationCheckout } from '../consultation/backend.js'
@@ -4094,6 +4095,46 @@ app.use('/api/coupons', couponRouter({
 }))
 
 /**
+ * 후기 보상 쿠폰 설정. `REVIEW_REWARD_CAMPAIGNS='{"cmdg":"<쿠폰 캠페인 id>"}'`.
+ * 관리자에서 회원 지급 전용 캠페인을 만든 뒤 그 id 를 넣는다. 없으면 보상 안내도 띄우지 않는다.
+ */
+function reviewRewardCampaigns(): Record<string, string> {
+  try {
+    const parsed = JSON.parse(process.env.REVIEW_REWARD_CAMPAIGNS || '{}') as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    return Object.fromEntries(Object.entries(parsed as Record<string, unknown>).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(entry[1])))
+  } catch { return {} }
+}
+// 다녀간 손님들의 말(후기), 2026-10-15. 결제한 풀이 1건당 1번, 공개 목록은 성만(박**)과 일주만 보인다.
+app.use('/api/reviews', productReviewRouter({
+  authenticate: requireMemberUser,
+  resolveEligibility: async (owner, productKey, reportId) => {
+    try {
+      const record = await findReportRecord(reportId, owner)
+      if (!record || isConsultationRecord(record) || productKeyForContext(record.context) !== productKey) return null
+      const order = await findUnlockingOrder(owner, productKey, record.reportId, record.lineageId ?? '')
+      if (!order) return null
+      let ilju: string | null = null
+      try {
+        const day = currentAnalysisForRecord(record).fourPillars.day
+        ilju = `${STEM_KO[day.stem]}${BRANCH_KO[day.branch]}`
+      } catch { ilju = null }
+      return { orderId: order.orderId, reportId: record.reportId, name: record.context?.name || '', ilju }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REPORT_ACCESS_DENIED') return null
+      throw error
+    }
+  },
+  rewardOffered: (productKey) => Boolean(reviewRewardCampaigns()[productKey]),
+  grantReward: async (owner, productKey, reviewId) => {
+    const campaignId = reviewRewardCampaigns()[productKey]
+    if (!campaignId) return null
+    const wallet = await grantCoupon(campaignId, owner.id, 'system:product-reviews', `review-${reviewId}`)
+    return { walletId: wallet.id, title: wallet.title, expiresAt: wallet.expiresAt }
+  },
+}))
+
+/**
  * 결제 화면이 열릴 때 이미 결제한 풀이인지 묻는다(2026-10). 결제 완료 화면에서 뒤로 가면
  * 결제 화면이 다시 열리는데, 그때 결제창 대신 풀이로 안내하려고 쓴다. 판정은 열람과 같은 규칙이다.
  */
@@ -5337,7 +5378,7 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     // 궁합 문맥에는 본인 명식 값도 저장되므로, 문맥을 만들기 전에 본인도 6글자로 맞춘다(저장 명식은 원본 그대로).
     const selfForContext = analysisForNewReport(analysis, 'match_couple', selectedBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildCoupleMatchContext(selectedName, input, partnerAnalysis, selfForContext), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildCoupleMatchContext(selectedName, input, partnerAnalysis, selfForContext, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCoupleMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildCoupleMatchReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
@@ -5652,7 +5693,7 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     // 궁합 문맥에는 본인 명식 값도 저장되므로, 문맥을 만들기 전에 본인도 6글자로 맞춘다(저장 명식은 원본 그대로).
     const selfForContext = analysisForNewReport(analysis, 'marry_match', selectedBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildMarryMatchReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
@@ -5688,7 +5729,7 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = input.partnerBirth ? analysisForNewReport(analyzeSaju(input.partnerBirth), 'love_mind', input.partnerBirthTimeKnown) : undefined
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveMindContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveMindContext(profile.name, input, partnerAnalysis, profile.birth.gender), birthTimeKnown: profile.birthTimeKnown })
     const analysis = analyzeSaju(profile.birth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveMindReport(analysisForReading(analysis, context), profile.birth, context, input, partnerAnalysis, reportId)
@@ -5737,7 +5778,7 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = analysisForNewReport(analyzeSaju(input.partnerBirth), 'couple_signal', input.partnerBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveSignalContext(selectedName, input, partnerAnalysis), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveSignalContext(selectedName, input, partnerAnalysis, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const analysis = analyzeSaju(selectedBirth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSignalReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildLoveSignalReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
@@ -5827,7 +5868,7 @@ app.post('/api/love/again/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = input.partnerBirth ? analysisForNewReport(analyzeSaju(input.partnerBirth), 'love_again', input.partnerBirthTimeKnown) : undefined
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveAgainContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveAgainContext(profile.name, input, partnerAnalysis, profile.birth.gender), birthTimeKnown: profile.birthTimeKnown })
     const analysis = analyzeSaju(profile.birth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveAgainReport(analysisForReading(analysis, context), profile.birth, context, input, partnerAnalysis, reportId)
