@@ -155,10 +155,12 @@ export function buildFreePreview(analysis: SajuAnalysis, seed: string, birthTime
 
   const bowl = pick(bank.money.bowl[facts.moneyBowl], 'bowl')
   const tease = index(bank.money.tease.length, 'tease')
-  // 재물 = 돈 그릇(+새는 데) / 질문 / 끝맺음.
+  // 재물 = 돈 그릇+버는 방식 / 지나간 돈 장면(+새는 데) / 질문 / 끝맺음. 어디서 새는지·얼마인지는 말하지 않는다.
+  const earn = pick(bank.money.earn[facts.topGroup], 'earn')
+  const scene = pick(bank.money.scene[facts.moneyBowl === 'none' ? 'none' : facts.moneyBowl.startsWith('many') ? 'many' : 'some'], 'money-scene')
   const money = facts.moneyBowl === 'none'
-    ? [[bowl], [pick(bank.money.ask.none, 'money-ask')], [moneyEnding]]
-    : [[bowl, bank.money.tease[tease]], [bank.money.ask.has[tease]], [moneyEnding]]
+    ? [[bowl, earn], [scene], [pick(bank.money.ask.none, 'money-ask')], [moneyEnding]]
+    : [[bowl, earn], [scene, bank.money.tease[tease]], [bank.money.ask.has[tease]], [moneyEnding]]
 
   // 어긋난 행동(act)과 마지막 질문(ask)은 같은 변형 번호를 쓴다(짝).
   const act = index(bank.love.act[facts.topGroup].length, 'act')

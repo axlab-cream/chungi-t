@@ -35,6 +35,8 @@ test('문장 묶음: 칸마다 모든 값의 문장이 있고, 짝 칸은 변형
   for (const element of ELEMENTS) for (const slot of [bank.luck.open, bank.luck.strength, bank.love.start]) assert.ok(slot[element]?.length >= 2, element)
   assert.equal(bank.money.tease.length, bank.money.ask.has.length, 'tease/ask 짝')
   for (const bowl of ['many_shown', 'many_hidden', 'some_shown', 'some_hidden', 'none']) assert.ok(bank.money.bowl[bowl]?.length >= 2)
+  for (const group of GROUPS) assert.ok(bank.money.earn[group]?.length >= 2, `money.earn.${group}`)
+  for (const kind of ['many', 'some', 'none']) assert.ok(bank.money.scene[kind]?.length >= 2, `money.scene.${kind}`)
 })
 
 test('문장 묶음: 사주 용어·한자·숫자·줄표·따옴표·보류 말투가 없고 문장은 90자 이하다', () => {
@@ -61,7 +63,7 @@ test('견본 세 사람: 계산값으로 고른 칸이 확정 견본과 같다',
   ])
   const a = buildFreePreview(analyzeSaju(A), birthSeed(A, true), true, 'female')!
   assert.equal(a.now[0], '너, 겉으론 칼같이 단단해 보이는데 속은 생각보다 쉽게 베이잖아.')
-  assert.deepEqual([a.now.length, a.luck.length, a.money.length, a.love.length], [3, 4, 3, 4])
+  assert.deepEqual([a.now.length, a.luck.length, a.money.length, a.love.length], [3, 4, 4, 4])
   assert.match(a.luck[0], /올해부터 운의 방향이 완전히 바뀌었거든\./)
   assert.match(a.money[0], /^너는 돈 들어오는 문이 넓은 사람이야\./)
   assert.equal(a.love.length, 4)
