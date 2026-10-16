@@ -12,7 +12,7 @@
   var SEEN_PREFIX = 'umsh:guest-save-sheet:';
   /** 로그인 화면(/signup#login)이 이어서 시작할 SNS. 이 탭에만 둔다. */
   var LOGIN_PROVIDER_KEY = 'umsh_login_provider_v1';
-  var CONSENT_SRC = '/js/umsh-consent.js?v=20261015b';
+  var CONSENT_SRC = '/js/umsh-consent.js?v=20261016a';
   var MARKS = {
     kakao: '<svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path fill="#000" d="M9 1.5C4.58 1.5 1 4.32 1 7.8c0 2.24 1.49 4.2 3.73 5.32-.16.6-.6 2.2-.69 2.54-.11.42.15.42.32.3.13-.09 2.1-1.43 2.95-2.01.55.08 1.11.12 1.69.12 4.42 0 8-2.82 8-6.3S13.42 1.5 9 1.5Z"/></svg>',
     naver: '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path fill="#fff" d="M13.56 10.7 6.17 0H0v20h6.44V9.3L13.83 20H20V0h-6.44v10.7Z"/></svg>',
@@ -29,7 +29,8 @@
     'font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;word-break:keep-all;line-height:1.45}',
     '.umsh-gs.is-open{transform:translate(-50%,0)}',
     '.umsh-gs *{box-sizing:border-box}',
-    '.umsh-gs-handle{display:block;width:36px;height:4px;margin:0 auto 12px;border-radius:2px;background:rgba(246,234,214,.28)}',
+    '.umsh-gs-handle{display:block;position:relative;height:22px;margin:-10px -20px 2px;touch-action:none;cursor:grab}.umsh-gs-handle::before{content:"";position:absolute;left:50%;top:10px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:rgba(246,234,214,.28)}',
+    '.umsh-gs-title[data-drag-handle]{touch-action:none}',
     '.umsh-gs-close{position:absolute;top:8px;right:10px;width:36px;height:36px;border:0;background:transparent;color:rgba(246,234,214,.6);font-size:20px;line-height:1;cursor:pointer}',
     '.umsh-gs-title{margin:0 28px 4px 0;font-size:16px;font-weight:700;color:#f6ead6}',
     '.umsh-gs-sub{margin:0 0 10px;font-size:13px;color:rgba(246,234,214,.66)}',
@@ -73,15 +74,54 @@
     return '<button type="button" class="umsh-gs-btn ' + provider + (wide ? ' umsh-gs-wide' : '') + '" data-provider="' + provider + '">' + MARKS[provider] + '<span>' + label + '</span></button>';
   }
 
+/**
+   * 2026-10-16 손잡이를 아래로 끌어 닫기. 손잡이·제목줄([data-drag-handle])을 잡고 내리면 시트가 손가락을 따라 내려가고,
+   * 시트 높이의 1/4(최대 120px) 넘게 내리거나 빠르게 튕기면 닫는다. 덜 내리면 제자리로 돌아간다.
+   * 본문은 스크롤해야 하므로 잡는 곳은 위쪽 줄로 한정한다(그 줄에만 touch-action:none).
+   */
+  function enableDragClose(sheet, onClose) {
+    var startY = 0, dy = 0, pointerId = null, lastY = 0, lastAt = 0, speed = 0;
+    sheet.addEventListener('pointerdown', function (event) {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (!event.target.closest('[data-drag-handle]') || event.target.closest('button,a,input,label')) return;
+      pointerId = event.pointerId; startY = lastY = event.clientY; lastAt = Date.now(); dy = 0; speed = 0;
+      try { sheet.setPointerCapture(pointerId); } catch (_e) { /* 오래된 브라우저 */ }
+    });
+    sheet.addEventListener('pointermove', function (event) {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      var now = Date.now();
+      // 손을 떼기 직전 움직임의 속도(px/ms). 빠르게 튕기면 조금만 내려도 닫는다.
+      if (now > lastAt) speed = (event.clientY - lastY) / (now - lastAt);
+      lastY = event.clientY; lastAt = now;
+      dy = Math.max(0, event.clientY - startY);
+      sheet.style.transition = 'none';
+      sheet.style.transform = 'translate(-50%,' + dy + 'px)';
+    });
+    function end(event) {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      pointerId = null;
+      var fast = dy > 30 && speed > 0.5 && Date.now() - lastAt < 120;
+      sheet.style.transition = '';
+      if (dy > Math.min(120, sheet.offsetHeight * 0.25) || fast) {
+        sheet.style.transform = 'translate(-50%,105%)';
+        onClose();
+      } else {
+        sheet.style.transform = '';
+      }
+    }
+    sheet.addEventListener('pointerup', end);
+    sheet.addEventListener('pointercancel', end);
+  }
+
   function escapeText(value) {
     return String(value).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; });
   }
 
   function sheetBody(opts) {
     var providers = (opts.providers || ['kakao', 'naver', 'google']).filter(function (p) { return MARKS[p]; });
-    var head = '<span class="umsh-gs-handle" aria-hidden="true"></span>'
+    var head = '<span class="umsh-gs-handle" data-drag-handle aria-hidden="true"></span>'
       + '<button type="button" class="umsh-gs-close" data-action="close" aria-label="닫기">×</button>'
-      + '<p class="umsh-gs-title" id="umsh-gs-title">' + escapeText(opts.title || 'SNS로 로그인하면 이 결과가 저장돼요') + '</p>'
+      + '<p class="umsh-gs-title" id="umsh-gs-title" data-drag-handle>' + escapeText(opts.title || 'SNS로 로그인하면 이 결과가 저장돼요') + '</p>'
       + '<p class="umsh-gs-sub">' + escapeText(opts.sub || '로그인하지 않으면 1시간 뒤 사라져요.') + '</p>'
       + '<div class="umsh-gs-consent" data-consent-host></div>';
     if (opts.variant === 'b') {
@@ -237,6 +277,7 @@
       if (target.getAttribute('data-action') === 'close') { close(state, 'close'); return; }
       onProvider(state, target.getAttribute('data-provider'));
     });
+    enableDragClose(sheet, function () { close(state, 'drag'); });
     mountConsent(state);
     paintProviders(state);
     recordVisit(opts);

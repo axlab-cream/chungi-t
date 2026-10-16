@@ -22,7 +22,8 @@
     'font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;word-break:keep-all;line-height:1.45}',
     '.umsh-ps.is-open{transform:translate(-50%,0)}',
     '.umsh-ps *{box-sizing:border-box}',
-    '.umsh-ps-handle{display:block;width:36px;height:4px;margin:0 auto 12px;border-radius:2px;background:rgba(246,234,214,.28)}',
+    '.umsh-ps-handle{display:block;position:relative;height:22px;margin:-10px -20px 2px;touch-action:none;cursor:grab}.umsh-ps-handle::before{content:"";position:absolute;left:50%;top:10px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:rgba(246,234,214,.28)}',
+    '.umsh-ps-title{touch-action:none}',
     '.umsh-ps-close{position:absolute;top:8px;right:10px;width:36px;height:36px;border:0;background:transparent;color:rgba(246,234,214,.6);font-size:20px;line-height:1;cursor:pointer}',
     '.umsh-ps-title{margin:0 28px 12px 0;font-size:17px;font-weight:700}',
     '.umsh-ps-badge{display:inline-block;margin:0 0 12px;padding:5px 10px;border-radius:999px;background:rgba(232,92,92,.14);color:#ffb3a8;font-size:13px;font-weight:600}',
@@ -55,6 +56,45 @@
     style.id = 'umsh-ps-style';
     style.textContent = CSS;
     document.head.appendChild(style);
+  }
+
+/**
+   * 2026-10-16 손잡이를 아래로 끌어 닫기. 손잡이·제목줄([data-drag-handle])을 잡고 내리면 시트가 손가락을 따라 내려가고,
+   * 시트 높이의 1/4(최대 120px) 넘게 내리거나 빠르게 튕기면 닫는다. 덜 내리면 제자리로 돌아간다.
+   * 본문은 스크롤해야 하므로 잡는 곳은 위쪽 줄로 한정한다(그 줄에만 touch-action:none).
+   */
+  function enableDragClose(sheet, onClose) {
+    var startY = 0, dy = 0, pointerId = null, lastY = 0, lastAt = 0, speed = 0;
+    sheet.addEventListener('pointerdown', function (event) {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (!event.target.closest('[data-drag-handle]') || event.target.closest('button,a,input,label')) return;
+      pointerId = event.pointerId; startY = lastY = event.clientY; lastAt = Date.now(); dy = 0; speed = 0;
+      try { sheet.setPointerCapture(pointerId); } catch (_e) { /* 오래된 브라우저 */ }
+    });
+    sheet.addEventListener('pointermove', function (event) {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      var now = Date.now();
+      // 손을 떼기 직전 움직임의 속도(px/ms). 빠르게 튕기면 조금만 내려도 닫는다.
+      if (now > lastAt) speed = (event.clientY - lastY) / (now - lastAt);
+      lastY = event.clientY; lastAt = now;
+      dy = Math.max(0, event.clientY - startY);
+      sheet.style.transition = 'none';
+      sheet.style.transform = 'translate(-50%,' + dy + 'px)';
+    });
+    function end(event) {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      pointerId = null;
+      var fast = dy > 30 && speed > 0.5 && Date.now() - lastAt < 120;
+      sheet.style.transition = '';
+      if (dy > Math.min(120, sheet.offsetHeight * 0.25) || fast) {
+        sheet.style.transform = 'translate(-50%,105%)';
+        onClose();
+      } else {
+        sheet.style.transform = '';
+      }
+    }
+    sheet.addEventListener('pointerup', end);
+    sheet.addEventListener('pointercancel', end);
   }
 
   function escapeText(value) {
@@ -151,9 +191,9 @@
     sheet.setAttribute('role', 'dialog');
     sheet.setAttribute('aria-modal', 'true');
     sheet.setAttribute('aria-labelledby', 'umsh-ps-title');
-    sheet.innerHTML = '<span class="umsh-ps-handle" aria-hidden="true"></span>'
+    sheet.innerHTML = '<span class="umsh-ps-handle" data-drag-handle aria-hidden="true"></span>'
       + '<button type="button" class="umsh-ps-close" data-ps-close aria-label="닫기">×</button>'
-      + '<p class="umsh-ps-title" id="umsh-ps-title">결제 안내</p>'
+      + '<p class="umsh-ps-title" id="umsh-ps-title" data-drag-handle>결제 안내</p>'
       + '<div data-ps-body><p class="umsh-ps-status">결제 정보를 확인하는 중입니다.</p></div>';
     var form = document.createElement('form');
     form.id = 'SendPayForm';
@@ -176,6 +216,7 @@
     document.addEventListener('keydown', state.onKey);
     global.addEventListener('message', state.onMessage);
     backdrop.addEventListener('click', close);
+    enableDragClose(sheet, close);
     sheet.querySelector('[data-ps-close]').addEventListener('click', close);
     requestAnimationFrame(function () { requestAnimationFrame(function () { sheet.classList.add('is-open'); backdrop.classList.add('is-open'); }); });
 

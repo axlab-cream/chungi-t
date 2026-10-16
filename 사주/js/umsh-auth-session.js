@@ -330,7 +330,7 @@
     if (global.UMSHGuestSaveSheet || !global.document) return Promise.resolve(global.UMSHGuestSaveSheet);
     return new Promise(function (resolve) {
       var script = global.document.createElement('script');
-      script.src = '/js/umsh-guest-save-sheet.js?v=20261015b';
+      script.src = '/js/umsh-guest-save-sheet.js?v=20261016a';
       script.onload = function () { resolve(global.UMSHGuestSaveSheet); };
       script.onerror = function () { resolve(null); };
       global.document.head.appendChild(script);
@@ -455,7 +455,7 @@
     if (global.UMSHConsent || !global.document) return Promise.resolve(global.UMSHConsent || null);
     return new Promise(function (resolve) {
       var script = global.document.createElement('script');
-      script.src = '/js/umsh-consent.js?v=20261015b';
+      script.src = '/js/umsh-consent.js?v=20261016a';
       script.onload = function () { resolve(global.UMSHConsent || null); };
       script.onerror = function () { resolve(null); };
       global.document.head.appendChild(script);
