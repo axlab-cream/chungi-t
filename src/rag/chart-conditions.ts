@@ -22,6 +22,10 @@ const TEN_GOD_GROUPS: Record<string, TenGod[]> = {
 export const ELEMENT_MANY_COUNT = 3
 /** 십신이 겉 천간·지지 본기 자리에 이 수 이상이면 "많음"으로 본다. */
 export const TEN_GOD_MANY_COUNT = 3
+/** "가장 크게 기우는 기운"은 이 수 이상일 때만 정한다(한 자리씩 고르게 흩어진 원국은 기우는 기운이 없다). */
+export const TEN_GOD_TOP_MIN_COUNT = 2
+/** 일지(배우자 자리)에 걸린 작용으로 보는 지지 작용 유형. 천간합·천간충은 일간 쪽이라 뺀다. */
+const BRANCH_INTERACTIONS = new Set(['육합', '충', '형', '자형', '파', '해', '반합', '삼합', '방합'])
 
 export interface ChartFacts {
   dayMaster: SajuAnalysis['dayMaster']
@@ -39,6 +43,10 @@ export interface ChartFacts {
   temperature?: string
   gyeokgukTenGod?: TenGod
   interactionTypes: Set<string>
+  /** 일지가 낀 지지 작용 유형 */
+  dayBranchInteractionTypes: Set<string>
+  /** 십신 묶음(비겁·식상·재성·관성·인성) 중 개수가 가장 많은 묶음. 동점이면 모두, 최대가 TEN_GOD_TOP_MIN_COUNT 미만이면 비어 있음 */
+  topTenGodGroups: Set<string>
   hasFlowBridge: boolean
 }
 
@@ -53,6 +61,8 @@ export function chartFacts(saju: SajuAnalysis): ChartFacts {
     .filter((tenGod): tenGod is TenGod => Boolean(tenGod))
   const mainTenGodCount = new Map<TenGod, number>()
   for (const tenGod of [...surface, ...main]) mainTenGodCount.set(tenGod, (mainTenGodCount.get(tenGod) ?? 0) + 1)
+  const groupCounts = Object.entries(TEN_GOD_GROUPS).map(([group, members]) => [group, members.reduce((total, tenGod) => total + (mainTenGodCount.get(tenGod) ?? 0), 0)] as const)
+  const topCount = Math.max(...groupCounts.map(([, count]) => count))
   return {
     dayMaster: saju.dayMaster,
     dayMasterElement: saju.dayMasterElement,
@@ -67,12 +77,21 @@ export function chartFacts(saju: SajuAnalysis): ChartFacts {
     temperature: meta?.climate.temperature,
     gyeokgukTenGod: meta?.gyeokguk.tenGod,
     interactionTypes: new Set(meta?.interactions.map((item) => item.type) ?? []),
+    dayBranchInteractionTypes: new Set(meta?.interactions
+      .filter((item) => BRANCH_INTERACTIONS.has(item.type) && item.pillars.includes('일주'))
+      .map((item) => item.type) ?? []),
+    topTenGodGroups: new Set(topCount >= TEN_GOD_TOP_MIN_COUNT ? groupCounts.filter(([, count]) => count === topCount).map(([group]) => group) : []),
     hasFlowBridge: (meta?.flowBridges.length ?? 0) > 0,
   }
 }
 
 function tenGodsOf(name: RagTenGodName): TenGod[] {
   return TEN_GOD_GROUPS[name] ?? [name as TenGod]
+}
+
+/** 십신 하나를 넣어도 그 묶음으로 본다. */
+function groupOf(name: RagTenGodName): string {
+  return Object.entries(TEN_GOD_GROUPS).find(([group, members]) => group === name || members.includes(name as TenGod))?.[0] ?? name
 }
 
 function groupCount(facts: ChartFacts, name: RagTenGodName): number {
@@ -85,8 +104,8 @@ function some<T>(values: T[] | undefined, test: (value: T) => boolean): boolean 
 
 const CHART_KEYS: Array<keyof RagChartCondition> = [
   'dayMaster', 'dayMasterElement', 'dayMasterStrength', 'dominantElement', 'weakElement',
-  'elementMany', 'elementMissing', 'tenGodPresent', 'tenGodAbsent', 'tenGodMany', 'usefulGod',
-  'season', 'temperature', 'gyeokgukTenGod', 'interaction', 'flowBridge',
+  'elementMany', 'elementMissing', 'tenGodPresent', 'tenGodAbsent', 'tenGodMany', 'tenGodTop', 'usefulGod',
+  'season', 'temperature', 'gyeokgukTenGod', 'interaction', 'dayBranchInteraction', 'flowBridge',
 ]
 
 export const RAG_CONDITION_KEYS: Array<keyof RagChartCondition> = [...CHART_KEYS, 'birthTimeKnown']
@@ -119,10 +138,12 @@ export function matchesChartCondition(
     && some(condition.tenGodPresent, (value) => tenGodsOf(value).some((tenGod) => facts.presentTenGods.has(tenGod)))
     && some(condition.tenGodAbsent, (value) => tenGodsOf(value).every((tenGod) => !facts.presentTenGods.has(tenGod)))
     && some(condition.tenGodMany, (value) => groupCount(facts, value) >= TEN_GOD_MANY_COUNT)
+    && some(condition.tenGodTop, (value) => facts.topTenGodGroups.has(groupOf(value)))
     && some(condition.usefulGod, (value) => facts.usefulGod === value)
     && some(condition.season, (value) => facts.season === value)
     && some(condition.temperature, (value) => facts.temperature === value)
     && some(condition.gyeokgukTenGod, (value) => Boolean(facts.gyeokgukTenGod && tenGodsOf(value).includes(facts.gyeokgukTenGod)))
     && some(condition.interaction, (value) => facts.interactionTypes.has(value))
+    && some(condition.dayBranchInteraction, (value) => facts.dayBranchInteractionTypes.has(value))
     && (condition.flowBridge === undefined || condition.flowBridge === facts.hasFlowBridge)
 }

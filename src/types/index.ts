@@ -663,12 +663,16 @@ export interface RagChartCondition {
   tenGodAbsent?: RagTenGodName[]
   /** 겉 천간 + 지지 본기 자리에 3개 이상 */
   tenGodMany?: RagTenGodName[]
+  /** 십신 묶음 중 가장 많은 묶음(동점이면 모두, 2개 이상일 때만). "가장 크게 기우는 기운" */
+  tenGodTop?: RagTenGodName[]
   usefulGod?: Element[]
   season?: Array<ClimateBalanceInfo['season']>
   temperature?: Array<ClimateBalanceInfo['temperature']>
   gyeokgukTenGod?: RagTenGodName[]
   /** 원국에 이 작용(합·충 등)이 있음 */
   interaction?: Array<SajuInteraction['type']>
+  /** 일지(배우자 자리)가 낀 지지 작용이 있음 */
+  dayBranchInteraction?: Array<SajuInteraction['type']>
   /** 부딪히는 두 오행을 잇는 통관 기운이 계산됨 */
   flowBridge?: boolean
   birthTimeKnown?: boolean

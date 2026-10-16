@@ -50,7 +50,8 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
 
     it('95점 항목별 해석 번들이 모두 인덱스에 포함', () => {
       const corpus = buildCorpusIndex()
-      const bundleIds = Array.from({ length: 16 }, (_, index) => `q95-${String(index + 1).padStart(3, '0')}`)
+      // q95-006(검색어 넣는 법)·q95-015(장문 생성 구조)는 개발 메모라 2026-10-16 4단계 ②에서 뺐다.
+      const bundleIds = Array.from({ length: 16 }, (_, index) => `q95-${String(index + 1).padStart(3, '0')}`).filter((id) => id !== 'q95-006' && id !== 'q95-015')
 
       for (const id of bundleIds) {
         assert.ok(corpus.some((chunk) => chunk.id === id), `${id} missing`)
@@ -70,7 +71,8 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
 
     it('유료 리포트 장면성 보강 pack도 인덱스에 포함', () => {
       const corpus = buildCorpusIndex()
-      for (const id of ['ps-001', 'ps-002', 'ps-003', 'ps-004', 'ps-005', 'ps-006', 'ps-007', 'ps-008']) {
+      // ps-007(섹션 중복 방지 생성 규칙)은 개발 메모라 2026-10-16 뺐다.
+      for (const id of ['ps-001', 'ps-002', 'ps-003', 'ps-004', 'ps-005', 'ps-006', 'ps-008']) {
         assert.ok(corpus.some((chunk) => chunk.id === id), `${id} missing`)
       }
       assert.ok(corpus.some((chunk) => chunk.domain === 'paid_report_scene_corpus'))
@@ -205,7 +207,7 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(chunks.some((chunk) => chunk.id === 'ic-004' || chunk.id === 'ic-009'))
     })
 
-    it('감사표 15개 항목 질문 → 95점 번들 청크 검색', () => {
+    it('감사표 항목 질문 → 95점 번들 청크 검색', () => {
       const saju = analyzeSaju(sampleBirth)
       const cases = [
         ['일간 강약 기질을 자세히 봐줘', 'q95-001'],
@@ -213,7 +215,6 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
         ['십신 관계성을 위치별로 설명해줘', 'q95-003'],
         ['용신 희신 기신과 조후 통관을 봐줘', 'q95-004'],
         ['성격 기질 리포트를 길게 써줘', 'q95-005'],
-        ['현재 고민과 선택지를 사주에 연결해줘', 'q95-006'],
         ['대운 세운 흐름을 봐줘', 'q95-007'],
         ['인생 전환 시기와 변곡점', 'q95-008'],
         ['재물운 돈구멍 정재 편재를 봐줘', 'q95-009'],
@@ -222,7 +223,6 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
         ['인연 운명의 상대 좋은 사람 기준', 'q95-012'],
         ['관계 반복 패턴과 거리감을 봐줘', 'q95-013'],
         ['시기와 장소 인연 장소 전환 장소', 'q95-014'],
-        ['5만 자 장문 리포트 목차와 섹션', 'q95-015'],
         ['주의해야 할 것 위험한 것 미래 걱정을 미리 알아내는 것', 'q95-016'],
       ] as const
 
