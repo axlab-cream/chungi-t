@@ -4111,7 +4111,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-consent.js?v=20261016a"></script>
-    <script src="/js/umsh-guest-save-sheet.js?v=20261016a"></script>
+    <script src="/js/umsh-guest-save-sheet.js?v=20261016b"></script>
     <script src="/js/umsh-pay-sheet.js?v=20261016a"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/js/payment-bridge.js"></script>
@@ -4824,7 +4824,8 @@
               entry: "today",
               resultKey: "today:" + new Date().toISOString().slice(0, 10),
               anchor: ".today-result-card .actions",
-              onLogin: () => { persistAuthFormState(); setTodayEntryPending(); showAuthGate("로그인하면 오늘의 운이 저장돼요."); },
+              // 2026-10-16: 저장하기 → 동의+로그인 시트에서 고른 SNS 로그인을 바로 시작한다(풀화면 로그인을 거치지 않는다).
+              onLogin: (provider) => { persistAuthFormState(); setTodayEntryPending(); signInWithProvider(provider); },
             });
           }
         } catch (err) {
@@ -5262,9 +5263,9 @@
             entry: "cmdg",
             resultKey: "cmdg:teaser",
             anchor: ".cmdg-master-teaser .package-card",
-            onLogin: () => {
+            onLogin: (provider) => {
               persistAuthFormState();
-              showAuthGate("로그인하면 이 결과가 저장돼요.");
+              signInWithProvider(provider);
             },
           });
         });

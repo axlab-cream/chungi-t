@@ -330,7 +330,7 @@
     if (global.UMSHGuestSaveSheet || !global.document) return Promise.resolve(global.UMSHGuestSaveSheet);
     return new Promise(function (resolve) {
       var script = global.document.createElement('script');
-      script.src = '/js/umsh-guest-save-sheet.js?v=20261016a';
+      script.src = '/js/umsh-guest-save-sheet.js?v=20261016b';
       script.onload = function () { resolve(global.UMSHGuestSaveSheet); };
       script.onerror = function () { resolve(null); };
       global.document.head.appendChild(script);
@@ -365,13 +365,16 @@
         if (!count && !hasProfile) { dropGuestSession(); return { moved: 0 }; }
         var agree = true;
         var onPayment = /^\/payment(\/|$)/.test(String(global.location && global.location.pathname || ''));
-        if (!(options && options.silent) && !onPayment) {
+        // 2026-10-16: 결과 화면의 [저장하기]·[운명 거래하기]로 로그인한 경우(30분 안)는 이미 저장하겠다고 한 것이라 묻지 않는다.
+        var intentAt = Number(safeGet(global.sessionStorage, 'umsh_claim_intent_v1')) || 0;
+        var saveIntent = intentAt > 0 && Date.now() - intentAt < 30 * 60 * 1000;
+        if (!(options && options.silent) && !onPayment && !saveIntent) {
           var sheet = await loadSheet();
           agree = sheet && sheet.confirmClaim ? await sheet.confirmClaim({ reports: count, profile: hasProfile }) : true;
         }
         if (!agree) { dropGuestSession(); return { declined: true }; }
         var done = await post({ guestToken: guestToken });
-        if (done.ok) dropGuestSession();
+        if (done.ok) { dropGuestSession(); safeRemove(global.sessionStorage, 'umsh_claim_intent_v1'); }
         try {
           if (global.UMSHTrack && typeof global.UMSHTrack.push === 'function') global.UMSHTrack.push('cta_click', { target: done.ok ? 'signup:guest_claimed' : 'signup:guest_claim_failed' });
         } catch (_error) { /* 측정은 흐름을 막지 않는다 */ }

@@ -334,3 +334,37 @@ test('결제 시트: 동의 체크 없이 안내 한 줄, 휴대폰은 처음 �
   assert.match(paySheet, /fetch\('\/api\/payment\/orders'/)
   assert.match(paySheet, /trackFunnel\('pay_open'/)
 })
+
+// 2026-10-16 대표 결정(모든 서비스): 무료 결과에서 시트를 저절로 띄우지 않는다. 결과 안의 [저장하기]를 누를 때만 동의+로그인 시트.
+test('무료 결과: 시트를 저절로 열지 않고, 결과 안에 "이 결과를 저장할까요?" 안내를 넣는다', () => {
+  const when = sheetSource.slice(sheetSource.indexOf('function openWhenSeen('), sheetSource.indexOf('function confirmClaim('))
+  assert.doesNotMatch(when, /\bopen\(/, '결과를 보는 중에 시트가 올라오면 안 된다')
+  assert.doesNotMatch(when, /addEventListener\('scroll'/, '스크롤 위치로 띄우지 않는다')
+  assert.match(when, /showInline\(/)
+  const inline = sheetSource.slice(sheetSource.indexOf('function showInline('), sheetSource.indexOf('function open('))
+  assert.match(inline, /이 결과를 저장할까요\?/)
+  assert.match(inline, />저장하기</)
+  assert.match(inline, /open\(Object\.assign\(\{\}, opts, \{ force: true \}\)\)/, '누를 때만 시트')
+})
+
+test('천명사주 저장하기: 풀화면 로그인 대신 고른 SNS 로그인을 바로 시작한다', () => {
+  const cmdg = readFileSync(join(ROOT, '사주/사주/index.html'), 'utf8')
+  assert.doesNotMatch(cmdg, /showAuthGate\("로그인하면 (이 결과가|오늘의 운이) 저장돼요\."\)/)
+  assert.match(cmdg, /onLogin: \(provider\) => \{ persistAuthFormState\(\); setTodayEntryPending\(\); signInWithProvider\(provider\); \}/)
+})
+
+test('저장하기·운명 거래하기로 로그인하고 돌아오면 "저장할까요?"를 다시 묻지 않고 옮긴다', async () => {
+  const posts: any[] = []
+  const fetchImpl = async (url: string, init?: any) => {
+    const body = init?.body ? JSON.parse(init.body) : {}
+    posts.push({ url, body })
+    return { ok: true, status: 200, json: async () => (body.dryRun ? { reports: 1, profile: 'copied' } : { reports: 1, profile: 'copied' }) }
+  }
+  const session = memoryStorage({ [TOKEN]: guestValue, umsh_claim_intent_v1: String(Date.now()) })
+  const { auth } = loadAuth(memoryStorage({ [TOKEN]: memberValue }), session, fetchImpl)
+  const result = await auth.claimGuestNow()
+  assert.equal(result.reports, 1)
+  assert.deepEqual(posts.map((p) => [p.url, Boolean(p.body.dryRun)]), [['/api/auth/claim-guest', true], ['/api/auth/claim-guest', false]])
+  assert.equal(session.getItem('umsh_claim_intent_v1'), null, '한 번 쓰고 지운다')
+  assert.match(sheetSource, /setItem\('umsh_claim_intent_v1'/)
+})

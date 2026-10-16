@@ -46,8 +46,10 @@
     '.umsh-gs-alt{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;font-size:13px;color:rgba(246,234,214,.66)}',
     '.umsh-gs-alt a{color:#f6ead6;text-decoration:underline;text-underline-offset:3px}',
     '.umsh-gs-later{display:block;margin:8px auto 0;padding:6px 12px;border:0;background:transparent;color:rgba(246,234,214,.6);font:inherit;font-size:13px;cursor:pointer}',
-    '.umsh-gs-inline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 8px;padding:14px 16px;border:1px solid rgba(214,178,110,.32);border-radius:12px;background:#15100d;color:#f6ead6;font-size:14px;word-break:keep-all}',
-    '.umsh-gs-inline button{flex:none;min-height:40px;padding:0 14px;border:0;border-radius:9px;background:#fee500;color:rgba(0,0,0,.85);font:inherit;font-weight:700;font-size:13px;cursor:pointer}',
+    '.umsh-gs-inline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 8px;padding:16px;border:1px solid rgba(214,178,110,.42);border-radius:14px;text-align:left;background:#15100d;color:#f6ead6;font-size:14px;word-break:keep-all}',
+    '.umsh-gs-inline button{flex:none;min-height:42px;padding:0 16px;border:0;border-radius:10px;background:#d6b26e;color:#15100d;font:inherit;font-weight:700;font-size:14px;cursor:pointer}',
+    '.umsh-gs-inline strong{display:block;font-size:15px;color:#f6ead6}',
+    '.umsh-gs-inline small{display:block;margin-top:3px;font-size:12.5px;line-height:1.45;color:rgba(246,234,214,.66)}',
     '@media (prefers-reduced-motion:reduce){.umsh-gs,.umsh-gs-backdrop{transition:none}}',
   ].join('');
 
@@ -163,6 +165,8 @@
     track('login_' + provider, opts);
     // 로그인 화면이 방금 누른 SNS 로 바로 이어 가게 남긴다. 화면마다 onLogin 주소를 고치지 않아도 된다.
     try { global.sessionStorage.setItem(LOGIN_PROVIDER_KEY, JSON.stringify({ provider: provider, at: Date.now() })); } catch (_e) { /* 저장 불가면 로그인 화면에서 다시 고른다 */ }
+    // 2026-10-16: 저장하려고(또는 결제하려고) 로그인한 것이니, 돌아와서 결과를 옮길 때 "저장할까요?"를 다시 묻지 않는다.
+    try { global.sessionStorage.setItem('umsh_claim_intent_v1', String(Date.now())); } catch (_e) { /* 못 남기면 한 번 더 묻는다 */ }
     if (typeof opts.onLogin === 'function') { opts.onLogin(provider); return; }
     var entry = opts.entry || 'guest-save';
     var returnTo = opts.returnTo || (location.pathname + location.search);
@@ -243,11 +247,14 @@
   function showInline(opts) {
     var host = typeof opts.inlineHost === 'string' ? document.querySelector(opts.inlineHost) : opts.inlineHost;
     if (!host || host.querySelector('.umsh-gs-inline')) return;
+    injectStyle();
     var box = document.createElement('div');
     box.className = 'umsh-gs-inline';
-    box.innerHTML = '<span>로그인하면 이 결과가 저장돼요</span><button type="button">로그인하고 저장</button>';
-    box.querySelector('button').addEventListener('click', function () { open(Object.assign({}, opts, { force: true })); });
-    host.appendChild(box);
+    box.setAttribute('data-result-key', String(opts.resultKey || opts.entry || location.pathname));
+    box.innerHTML = '<div><strong>이 결과를 저장할까요?</strong><small>약관에 동의하고 SNS로 로그인하면 내 보관함에 저장돼요.</small></div><button type="button">저장하기</button>';
+    box.querySelector('button').addEventListener('click', function () { track('inline_click', opts); open(Object.assign({}, opts, { force: true })); });
+    if (opts.after && opts.after.parentNode === host) opts.after.insertAdjacentElement('afterend', box);
+    else host.appendChild(box);
   }
 
   function open(opts) {
@@ -287,46 +294,38 @@
   }
 
   /**
-   * 무료 결과를 "본 뒤"에 연다: opts.anchor(요소나 선택자)가 화면에 들어오거나, 결과를 60% 넘게 내렸을 때.
-   * 결과가 뜨기 전에 가리면 로그인 벽과 다를 게 없다. 앵커가 늦게 그려져도 기다린다.
+   * 2026-10-16 대표 결정(모든 서비스): 무료 결과에서 시트를 저절로 띄우지 않는다. 결과를 보다가 갑자기 가리면 안 된다.
+   * 결과가 그려지면 결과 안에 "이 결과를 저장할까요?" 안내를 넣고, [저장하기]를 누를 때만 약관 동의 + SNS 로그인 시트를 연다.
+   * 앵커(잠긴 목차·가격 카드 등)가 있으면 그 바로 뒤에, 4초 안에 앵커가 안 보이면 본문 끝에 둔다.
+   * 화면을 다시 그려 안내가 지워지면(천명사주처럼 화면 전체를 갈아 끼우는 곳) 1분 동안은 다시 넣는다.
    */
   function openWhenSeen(opts) {
     opts = opts || {};
-    // 결과가 그려진 시점에 방문을 남긴다. 시트를 보기 전에 떠나도 무료 결과를 본 비회원으로 센다.
+    // 결과가 그려진 시점에 방문을 남긴다. 저장하지 않고 떠나도 무료 결과를 본 비회원으로 센다.
     recordVisit(opts);
     loadConsent();
-    var fired = false;
-    var observer = null, mutation = null;
-    function fire(anchor) {
-      if (fired) return;
-      fired = true;
-      global.removeEventListener('scroll', onScroll);
-      if (observer) observer.disconnect();
-      if (mutation) mutation.disconnect();
-      open(Object.assign({}, opts, { inlineHost: opts.inlineHost || (anchor && anchor.parentNode) || document.querySelector('main') || document.body }));
-    }
+    injectStyle();
+    var key = String(opts.resultKey || opts.entry || location.pathname);
+    var mutation = null;
     function findAnchor() {
       return typeof opts.anchor === 'string' ? document.querySelector(opts.anchor) : opts.anchor || null;
     }
-    function onScroll() {
-      var max = document.documentElement.scrollHeight - global.innerHeight;
-      if (max > 0 && global.scrollY / max >= 0.6) fire(findAnchor());
+    function present() {
+      return Array.prototype.some.call(document.querySelectorAll('.umsh-gs-inline'), function (node) { return node.getAttribute('data-result-key') === key && node.isConnected; });
     }
-    global.addEventListener('scroll', onScroll, { passive: true });
-    if (typeof global.IntersectionObserver !== 'function') return;
-    observer = new global.IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { if (entry.isIntersecting) fire(entry.target); });
-    });
-    function watch() {
-      var anchor = findAnchor();
-      if (!anchor) return false;
-      observer.observe(anchor);
-      return true;
+    function place(anchor, fallback) {
+      if (present()) return;
+      if (!anchor && !fallback) return;
+      var host = anchor ? anchor.parentNode : (document.querySelector('main') || document.body);
+      if (host) showInline(Object.assign({}, opts, { inlineHost: host, after: anchor || null }));
     }
-    if (!watch() && typeof global.MutationObserver === 'function') {
-      mutation = new global.MutationObserver(function () { if (watch()) mutation.disconnect(); });
+    place(findAnchor(), false);
+    if (typeof global.MutationObserver === 'function') {
+      mutation = new global.MutationObserver(function () { place(findAnchor(), false); });
       mutation.observe(document.body, { childList: true, subtree: true });
+      setTimeout(function () { if (mutation) mutation.disconnect(); }, 60000);
     }
+    setTimeout(function () { place(findAnchor(), true); }, 4000);
   }
 
   /**
