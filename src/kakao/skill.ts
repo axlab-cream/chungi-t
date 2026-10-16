@@ -8,6 +8,7 @@ import { buildTodayFortune } from '../saju/today-fortune.js'
 import type { BirthInput, ElementCount, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import { describeBirth, parseKakaoBirth } from './birth-parse.js'
 import { KakaoStoreError, restKakaoChatStore, type KakaoBirthDraft, type KakaoChatState, type KakaoChatStore, type KakaoTurn } from './chat-store.js'
+import { crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
 
 /**
  * 카카오톡 채널 챗봇 "상주 천명" 스킬 서버.
@@ -307,7 +308,9 @@ async function processTurn(turn: Turn, store: KakaoChatStore, reply: KakaoReply,
     state.flow = null
   }
 
-  return answer(turn, state, store, reply, PERSONA, turn.utterance, (content, used) => (
+  // 마음 위기 신호(입구에서 중립 문장으로 바뀜)가 있으면 운세 대신 마음을 먼저 살피고 109를 안내한다.
+  const persona = hasCrisisMarker([turn.utterance, state.history]) ? [PERSONA, crisisAiInstruction(true)].join('\n') : PERSONA
+  return answer(turn, state, store, reply, persona, turn.utterance, (content, used) => (
     used >= KAKAO_FREE_DAILY ? [text(content), upsellCard('운명상회 들어가기', '/')] : [text(content)]
   ))
 }

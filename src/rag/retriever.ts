@@ -8,7 +8,8 @@ import { normalizeServiceKey } from '../prompt/service-system.js'
 import { readsSixChars } from '../saju/unknown-time-reading.js'
 import { isCustomerPausedProduct } from '../server/service-directory.js'
 import { retrieveVectorRagChunks } from './embedder.js'
-import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk } from './knowledge-block.js'
+import { chunkSearchText, corpusFileToChunks, knowledgeBlockToRagChunk, narrowChunkToChart } from './knowledge-block.js'
+import { chartFacts } from './chart-conditions.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_ROOT = join(__dirname, '../../data')
@@ -167,6 +168,8 @@ function buildElementChunks(snapshot?: CorpusSnapshot): RagChunk[] {
     advice: '일간 설명은 한 번만 쓰고 곧바로 생활 언어로 번역',
     confidence: 'medium',
     forbidden_generalization: '일간만 보고 성격, 직업, 관계 결말을 확정하지 않음',
+    // 경금 일간에게 계수·갑목 조언이 섞이던 것을 막는다(2026-10-16 갈래표).
+    applies_when: { dayMaster: [stem as SajuAnalysis['dayMaster']] },
   }, 'saju_elements'))
 
   return [...profileChunks, ...dayMasterChunks]
@@ -695,7 +698,16 @@ export function retrieveRagChunks(
     const { mode, name, relationship, birthTimeKnown: partnerTimeKnown } = context.partner
     context = { ...context, partner: { mode, name, relationship, birthTimeKnown: partnerTimeKnown } }
   }
+  // 6글자 모드 서비스가 시주를 뺀 계산(sixCharAnalysis)을 넘기면 임시 시각 값이 없으니 그 값으로 개인화한다.
+  // 서비스가 명시되고 6글자 모드일 때만 명식을 열어 본다 — 보류 모드에서는 임시 명식을 아예 읽지 않는다.
+  const personalizes = !unknownTime
+    || (context !== undefined && readsSixChars(context) && saju.manseryeok?.hourPillarExcluded === true)
+  // 갈래표 블록은 이 사람 계산값과 맞는 갈래만 남기고, 맞는 것이 없으면 후보에서 뺀다(2026-10-16).
+  // 명식을 읽지 않는 경우에는 명식 조건이 붙은 갈래·블록을 모두 뺀다.
+  const facts = personalizes ? chartFacts(saju) : null
   const corpus = buildCorpusIndex(corpusSnapshot)
+    .map((chunk) => narrowChunkToChart(chunk, facts, !unknownTime))
+    .filter((chunk): chunk is RagChunk => Boolean(chunk))
   const contextQuery = contextText(context)
   const queryText = [message, contextQuery].filter(Boolean).join(' ')
   const intent = detectIntent(queryText, corpusSnapshot)
@@ -705,10 +717,6 @@ export function retrieveRagChunks(
     ...intentKeywords.flatMap(tokenize),
     ...contextTokens(context),
   ])
-  // 6글자 모드 서비스가 시주를 뺀 계산(sixCharAnalysis)을 넘기면 임시 시각 값이 없으니 그 값으로 개인화한다.
-  // 서비스가 명시되고 6글자 모드일 때만 명식을 열어 본다 — 보류 모드에서는 임시 명식을 아예 읽지 않는다.
-  const personalizes = !unknownTime
-    || (context !== undefined && readsSixChars(context) && saju.manseryeok?.hourPillarExcluded === true)
   const personalTokens = personalizes ? sajuTokens(saju) : []
   const gbrTokens = personalizes ? graphBoostTokens(queryTokens, saju, context) : []
   const queryRaw = normalizeText([...queryTokens, queryText].join(' '))

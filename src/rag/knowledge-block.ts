@@ -1,4 +1,5 @@
 import type { RagChunk, RagKnowledgeBlock } from '../types/index.js'
+import { type ChartFacts, matchesChartCondition } from './chart-conditions.js'
 
 interface LegacyChunk {
   id: string
@@ -30,7 +31,16 @@ function blockSearchText(block: RagKnowledgeBlock): string {
     block.advice,
     block.confidence,
     block.forbidden_generalization,
+    ...(block.branches ?? []).flatMap((branch) => [branch.label, branch.meaning, branch.caution ?? '']),
   ].filter(Boolean).join(' ')
+}
+
+function formatBranches(block: RagKnowledgeBlock): string[] {
+  if (!block.branches?.length) return []
+  return [
+    'branches(이 명식 계산값과 맞는 갈래만 남김):',
+    ...block.branches.map((branch) => `- [${branch.label}] ${branch.meaning}${branch.caution ? ` / 주의: ${branch.caution}` : ''}`),
+  ]
 }
 
 export function formatKnowledgeBlock(block: RagKnowledgeBlock): string {
@@ -42,6 +52,7 @@ export function formatKnowledgeBlock(block: RagKnowledgeBlock): string {
     `concept: ${block.concept}`,
     `condition: ${block.condition}`,
     `interpretation: ${block.interpretation}`,
+    ...formatBranches(block),
     'real_world_pattern:',
     patterns,
     `risk: ${block.risk}`,
@@ -99,6 +110,24 @@ export function legacyChunkToRagChunk(
   }
 }
 
+/**
+ * 명식 조건이 붙은 블록을 그 사람 계산값으로 좁힌다. 블록 조건이 맞지 않거나, 갈래가 있는데 하나도 맞지 않으면 뺀다.
+ * 조건이 없는 블록(지금까지의 모든 팩)은 그대로 둔다.
+ */
+export function narrowChunkToChart(chunk: RagChunk, facts: ChartFacts | null, birthTimeKnown: boolean): RagChunk | undefined {
+  const block = chunk.knowledge
+  if (!block || (!block.applies_when && !block.branches)) return chunk
+  if (!matchesChartCondition(block.applies_when, facts, birthTimeKnown)) return undefined
+  if (!block.branches) return chunk
+  const matched = block.branches.filter((branch) => matchesChartCondition(branch.when, facts, birthTimeKnown))
+  const specific = matched.filter((branch) => !branch.fallback)
+  // 기본 갈래(fallback)는 다른 갈래가 하나도 맞지 않을 때만 쓴다.
+  const branches = specific.length > 0 ? specific : matched
+  if (branches.length === 0) return undefined
+  if (branches.length === block.branches.length) return chunk
+  return knowledgeBlockToRagChunk({ ...block, branches }, chunk.domain)
+}
+
 export function corpusFileToChunks(data: CorpusFile): RagChunk[] {
   const knowledgeChunks = (data.knowledgeBlocks ?? []).map((block) => knowledgeBlockToRagChunk(block, data.domain))
   const legacyChunks = (data.chunks ?? []).map((chunk) => legacyChunkToRagChunk(chunk, data.domain))
@@ -112,7 +141,7 @@ export function corpusFileToChunks(data: CorpusFile): RagChunk[] {
 export function chunkMeaning(chunk: RagChunk): string {
   const block = chunk.knowledge
   if (block) {
-    return [block.interpretation, block.advice, block.opportunity].filter(Boolean).join(' ')
+    return [block.interpretation, ...(block.branches ?? []).map((branch) => branch.meaning), block.advice, block.opportunity].filter(Boolean).join(' ')
   }
   return chunk.content ?? ''
 }
