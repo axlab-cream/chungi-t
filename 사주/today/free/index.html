@@ -154,7 +154,7 @@
 
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-guest-save-sheet.js?v=20261016b"></script>
-    <script src="/js/umsh-chrome.js?v=20260922c"></script>
+    <script src="/js/umsh-chrome.js?v=20261016-appbar16"></script>
     <script src="/js/service-step-url.js"></script>
     <script src="/js/service-public-detail.js"></script>
     <script>
@@ -206,7 +206,7 @@
           }
           if (!response.ok) throw new Error(payload.error || '오늘운을 불러오지 못했습니다.');
           if (window.UMSHAuthSession?.isGuestSession?.(result.session)) {
-            window.UMSHGuestSaveSheet?.openWhenSeen({ entry: 'today', resultKey: 'today:' + new Date().toISOString().slice(0, 10), returnTo: '/today/free?start=1', anchor: '.umsh-daily-reading > :last-child' });
+            window.UMSHAuthSession?.recordGuestVisit?.('today') /* 2026-10-16 메인 콘텐츠: 저장 권유 없음, 비회원 방문만 센다 */;
           }
         } catch(error) {
           let status=document.querySelector('[data-today-status]');

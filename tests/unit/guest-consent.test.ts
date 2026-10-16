@@ -347,10 +347,18 @@ test('무료 결과: 시트를 저절로 열지 않고, 결과 안에 "이 결�
   assert.match(inline, /open\(Object\.assign\(\{\}, opts, \{ force: true \}\)\)/, '누를 때만 시트')
 })
 
-test('천명사주 저장하기: 풀화면 로그인 대신 고른 SNS 로그인을 바로 시작한다', () => {
+// 2026-10-16 대표 결정 변경: 메인 콘텐츠(천명사주·오늘 운세·단계형·옛 단일 서비스)는 무료 결과에서 로그인·저장을 권하지 않는다.
+test('메인 콘텐츠는 저장 카드를 걸지 않고 비회원 방문만 센다(서브 콘텐츠 /play 만 저장 권유)', () => {
   const cmdg = readFileSync(join(ROOT, '사주/사주/index.html'), 'utf8')
-  assert.doesNotMatch(cmdg, /showAuthGate\("로그인하면 (이 결과가|오늘의 운이) 저장돼요\."\)/)
-  assert.match(cmdg, /onLogin: \(provider\) => \{ persistAuthFormState\(\); setTodayEntryPending\(\); signInWithProvider\(provider\); \}/)
+  assert.doesNotMatch(cmdg, /UMSHGuestSaveSheet\?\.openWhenSeen/)
+  for (const page of ['사주/love/again/index.html', '사주/love/mind/index.html', '사주/love/spouse/index.html', '사주/work/job/index.html', '사주/today/free/index.html']) {
+    const html = readFileSync(join(ROOT, page), 'utf8')
+    assert.doesNotMatch(html, /openWhenSeen/, page)
+    assert.match(html, /recordGuestVisit/, page)
+  }
+  const gate = readFileSync(join(ROOT, '사주/js/umsh-funnel-auth-gate.js'), 'utf8')
+  assert.doesNotMatch(gate, /openWhenSeen/)
+  for (const play of ['사주/play/solo-nara/app.js', '사주/play/love-speed/app.js']) assert.match(readFileSync(join(ROOT, play), 'utf8'), /openWhenSeen/, play)
 })
 
 test('저장하기·운명 거래하기로 로그인하고 돌아오면 "저장할까요?"를 다시 묻지 않고 옮긴다', async () => {

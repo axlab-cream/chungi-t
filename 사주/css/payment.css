@@ -103,3 +103,9 @@ a.payment-submit { display: flex; align-items: center; justify-content: center; 
   .payment-shell h1 { font-size: clamp(26px, 8vw, 32px); }
   .payment-summary strong { font-size: 22px; }
 }
+
+/* 2026-10-16 비회원 결제 후 보관 안내(payment-result.js showGuestKeep) */
+.payment-keep { display: grid; gap: 8px; margin-top: 18px; padding: 16px; border: 1px solid var(--payment-line); border-radius: 10px; }
+.payment-keep p { margin: 0; font-size: 13px; line-height: 1.6; }
+.payment-keep p a { color: var(--payment-cream); text-decoration: underline; text-underline-offset: 3px; }
+.payment-keep[hidden], .payment-actions a[hidden] { display: none; }

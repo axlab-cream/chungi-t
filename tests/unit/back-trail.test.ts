@@ -127,8 +127,12 @@ describe('상단 뒤로 가기 버튼 연결', () => {
     assert.doesNotMatch(source, /data-shell-back[^]*?navigate\('\/'\);\s*\}, true\)/)
     assert.match(source, /backTrail\.target\(window\.location\)/)
   })
-  it('공용 크롬이 새 셸 스크립트 버전을 싣는다(캐시 갱신)', () => {
+  it('공용 크롬이 셸 스크립트·스타일을 같은 버전으로 싣는다(캐시 갱신)', () => {
+    // 2026-10-16: 버전은 날짜마다 바뀌므로 특정 값을 못박지 않고, 스크립트와 스타일이 같은 버전인지 본다.
     const chrome = readFileSync(new URL('../../사주/js/umsh-chrome.js', import.meta.url), 'utf8')
-    assert.match(chrome, /service-shell\.js\?v=20261015-bottom-nav/)
+    const js = /service-shell\.js\?v=([\w-]+)/.exec(chrome)?.[1]
+    const css = /service-shell\.css\?v=([\w-]+)/.exec(chrome)?.[1]
+    assert.ok(js && css, '셸 스크립트·스타일 버전이 있다')
+    assert.equal(js, css)
   })
 })

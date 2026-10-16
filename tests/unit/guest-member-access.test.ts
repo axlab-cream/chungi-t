@@ -65,10 +65,11 @@ test('SNS 회원으로 저장하면 비회원 표시가 없다', async () => {
   assert.equal(profileRows.get('member-profile-0001')?.profile_payload?.account_type, undefined)
 })
 
-test('비회원은 결제·쿠폰·상담 채팅·계정 기능에서 MEMBER_REQUIRED 를 받는다', async () => {
+// 2026-10-16: 메인 콘텐츠는 비회원도 결제한다. 쿠폰·상담 질문권·주문 내역·계정 기능은 회원만.
+test('비회원은 쿠폰·상담 채팅·계정 기능에서 MEMBER_REQUIRED 를 받는다', async () => {
   const guest = 'guest-blocked-0001'
   const blocked: Array<[string, string, unknown?]> = [
-    ['POST', '/api/payment/orders', { productKey: 'cmdg' }],
+    ['POST', '/api/payment/orders', { productKey: 'cmdg', couponId: 'coupon-1' }],
     ['GET', '/api/user/orders'],
     ['GET', '/api/coupons'],
     ['GET', '/api/user/inquiries'],
@@ -82,6 +83,12 @@ test('비회원은 결제·쿠폰·상담 채팅·계정 기능에서 MEMBER_REQ
     assert.equal(result.status, 401, `${method} ${path}`)
     assert.equal(result.data.code, 'MEMBER_REQUIRED', `${method} ${path}`)
   }
+})
+
+test('비회원도 쿠폰 없이 메인 콘텐츠 결제 주문은 만들 수 있다(로그인 요구 없음)', async () => {
+  const result = await call('POST', '/api/payment/orders', 'guest-pay-0001', { productKey: 'cmdg' })
+  assert.notEqual(result.data.code, 'MEMBER_REQUIRED')
+  assert.notEqual(result.status, 401)
 })
 
 test('SNS 회원은 같은 회원 전용 경로에서 MEMBER_REQUIRED 를 받지 않는다', async () => {

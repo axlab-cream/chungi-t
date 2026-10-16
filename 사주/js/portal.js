@@ -43,7 +43,7 @@
     try { seenToday = localStorage.getItem(TODAY_SEEN_KEY) === dateKey; } catch (_) { seenToday = false; }
     todayTicket.dataset.todayState = seenToday ? 'seen' : 'fresh';
     const eyebrow = todayTicket.querySelector(':scope > div > span');
-    if (eyebrow) eyebrow.textContent = `무료 · ${now.getMonth() + 1}월 ${now.getDate()}일${seenToday ? ' · 오늘 확인함' : ''}`;
+    if (eyebrow) eyebrow.textContent = `${now.getMonth() + 1}월 ${now.getDate()}일${seenToday ? ' · 오늘 확인함' : ''}`;
     todayTicket.addEventListener('click', () => {
       try { localStorage.setItem(TODAY_SEEN_KEY, dateKey); } catch (_) { /* private mode */ }
     });
@@ -152,6 +152,8 @@
         { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
         { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
         { label: '내 풀이 목록', meta: '저장한 종합사주와 상담 기록', href: '/vault', status: '보기' },
+        // 2026-10-16 로그인 없이 결제한 풀이를 다시 여는 곳(주문번호 + 휴대폰 번호).
+        { label: '비회원 주문 조회', meta: '로그인 없이 결제한 풀이 다시 열기', href: '/orders/lookup/', status: '조회' },
         { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/cmdg/#support', status: '문의' },
       ],
     },
@@ -193,7 +195,9 @@
     if (!scroller || !target) return;
     const scrollerRect = scroller.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    const nextTop = scroller.scrollTop + targetRect.top - scrollerRect.top - offset;
+    // 상단(로고·분류 줄)이 스크롤 칸 안에 떠 있어, 그 높이만큼 더 내려 대상이 상단에 가리지 않게 한다.
+    const pinnedTop = scroller.querySelector('.portal-top')?.offsetHeight ?? 0;
+    const nextTop = scroller.scrollTop + targetRect.top - scrollerRect.top - offset - pinnedTop;
 
     scroller.scrollTo({
       top: Math.max(0, nextTop),

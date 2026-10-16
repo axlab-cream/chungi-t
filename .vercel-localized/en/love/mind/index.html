@@ -237,7 +237,7 @@
             <div class="field"><label for="partnerName">Other person&#39;s name <span class="hint">Choice</span></label><input id="partnerName" name="partnerName" autocomplete="off" placeholder="If you know the name, please enter it" /></div>
             <div class="field"><label for="partnerBirth">The other person&#39;s birth date <span class="hint">Optional · Enter it for a more detailed compatibility reading</span></label><input id="partnerBirth" name="partnerBirth" inputmode="numeric" maxlength="8" placeholder="YYYYMMDD" /><div class="error" data-error-for="partnerBirth"></div></div>
             <div class="field-row">
-              <div class="field"><label for="partnerGender">Partner&#39;s gender</label><select id="partnerGender" name="partnerGender"><option value="female">Woman</option><option value="male">Male</option></select></div>
+              <div class="field"><label for="partnerGender">Partner&#39;s gender</label><select id="partnerGender" name="partnerGender"><option value="">Select</option><option value="female">Woman</option><option value="male">Male</option></select><div class="error" data-error-for="partnerGender"></div></div>
               <div class="field"><label for="partnerCalendar">Partner’s calendar</label><select id="partnerCalendar" name="partnerCalendar"><option value="solar">Solar calendar</option><option value="lunar">Lunar calendar</option></select></div>
             </div>
             <div class="field"><label for="concern">Biggest concern right now <span class="hint">Choice</span></label><textarea id="concern" name="concern" maxlength="160" placeholder="Example: They contact me, but I don&#39;t know if they care."></textarea></div>
@@ -349,7 +349,10 @@
         const value = form.partnerBirth.value.trim();
         const error = $('[data-error-for="partnerBirth"]');
         const message = value && !validBirthText(value) ? 'Enter your partner’s birth date as 8 digits, YYYYMMDD, representing a valid date.' : '';
-        form.partnerBirth.classList.toggle('is-error', Boolean(message)); error.textContent = message; return !message;
+        form.partnerBirth.classList.toggle('is-error', Boolean(message)); error.textContent = message;
+        const genderMessage = value && !form.partnerGender.value ? 'Select your partner’s gender.' : '';
+        form.partnerGender.classList.toggle('is-error', Boolean(genderMessage)); $('[data-error-for="partnerGender"]').textContent = genderMessage;
+        return !message && !genderMessage;
       }
       async function saveProfile(event) {
         event.preventDefault(); const form = event.currentTarget; if (!validateProfile(form)) return; await initAuth().catch(() => undefined); if (!state.session) { openCommonLogin(); return; } const birthText = form.birth.value.trim(); setLoading(true);

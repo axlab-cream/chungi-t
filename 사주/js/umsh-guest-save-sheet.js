@@ -349,11 +349,13 @@
       sheet.setAttribute('role', 'dialog');
       sheet.setAttribute('aria-labelledby', 'umsh-gs-claim-title');
       var what = plan.reports ? '비회원으로 본 결과 ' + plan.reports + '개' + (plan.profile ? '와 입력한 사주 정보' : '') : '비회원으로 입력한 사주 정보';
+      // 2026-10-16 처음 가입한 회원 + 이 기기에 결제 기록: 공용 기기에서 남이 산 풀이를 가져가지 않게 이름(가린 것)을 보여 주고 묻는다.
+      var paid = Boolean(plan.paidName);
       sheet.innerHTML = '<span class="umsh-gs-handle" aria-hidden="true"></span>'
-        + '<p class="umsh-gs-title" id="umsh-gs-claim-title">방금 본 결과를 내 계정에 저장할까요?</p>'
-        + '<p class="umsh-gs-sub">' + what + '를 로그인한 계정으로 옮겨요. 내가 본 게 아니면 저장하지 마세요.</p>'
-        + '<div class="umsh-gs-row" style="--umsh-gs-cols:1"><button type="button" class="umsh-gs-btn save" data-answer="yes">내 계정에 저장</button></div>'
-        + '<button type="button" class="umsh-gs-later" data-answer="no">저장하지 않기</button>';
+        + '<p class="umsh-gs-title" id="umsh-gs-claim-title">' + (paid ? '이 기기에 ' + escapeText(plan.paidName) + '님 이름으로 산 풀이가 있어요' : '방금 본 결과를 내 계정에 저장할까요?') + '</p>'
+        + '<p class="umsh-gs-sub">' + (paid ? '본인이면 내 계정으로 불러올게요. 본인이 아니면 불러오지 마세요.' : what + '를 로그인한 계정으로 옮겨요. 내가 본 게 아니면 저장하지 마세요.') + '</p>'
+        + '<div class="umsh-gs-row" style="--umsh-gs-cols:1"><button type="button" class="umsh-gs-btn save" data-answer="yes">' + (paid ? '내 계정으로 불러오기' : '내 계정에 저장') + '</button></div>'
+        + '<button type="button" class="umsh-gs-later" data-answer="no">' + (paid ? '불러오지 않기' : '저장하지 않기') + '</button>';
       document.body.appendChild(backdrop);
       document.body.appendChild(sheet);
       requestAnimationFrame(function () { requestAnimationFrame(function () { sheet.classList.add('is-open'); backdrop.classList.add('is-open'); }); });
