@@ -16,7 +16,7 @@ const partnerBirth: BirthInput = { year: 1994, month: 9, day: 12, hour: 12, minu
 const analysis = analyzeSaju(birth)
 const partnerAnalysis = analyzeSaju(partnerBirth)
 const base = {
-  relationship_status: 'dating', partner_star_basis: 'wealth_star', relationshipStatus: '연애 중',
+  relationship_status: 'dating', partner_star_basis: 'wealth_star', relationshipStatus: '연애 중', loveTarget: '여자',
   relationshipStage: '연애 중', partnerName: '합성 상대', partnerBirthText: '19940912',
   partnerBirth, partnerBirthTimeKnown: true, conflictPattern: '일정 조율', marriagePlan: '아직 정하지 않았어요',
   signalFocus: '연락 방식', contactPattern: '서로 편한 때 연락해요', recentSignal: '약속을 함께 정해요',

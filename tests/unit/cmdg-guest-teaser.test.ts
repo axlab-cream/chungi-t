@@ -128,8 +128,10 @@ describe('결제 진입 화면 연결', () => {
 
   it('비회원 분석은 계정 프로필을 저장하지 않고 guestTeaser 로 요청한다', () => {
     const analyzeBirth = fn('analyzeBirth', 'function sourceImg')
-    assert.match(analyzeBirth, /if \(!guest\) await saveCurrentUserProfile\(\)/)
+    assert.match(analyzeBirth, /if \(!guest && !options\.token\) await saveCurrentUserProfile\(\)/)
     assert.match(analyzeBirth, /guest \? \{ guestTeaser: true \} : \{\}/)
+    // 티저 요청에는 인증을 싣지 않는다(비회원 토큰이 있어도 미리보기로만).
+    assert.match(analyzeBirth, /const headers = guest\s*\? \{ "Content-Type": "application\/json" \}/)
   })
 
   it('운명 거래하기·결제하기는 비회원이면 가입·로그인 화면을 띄우고, 로그인하면 결제로 이어 준다', () => {
@@ -171,14 +173,16 @@ describe('천명사주 운명 거래하기 저장 시트 (2026-10-16)', () => {
     assert.doesNotMatch(block, /바로 결제로 이어져요/)
   })
 
-  it('맨 아래(운명 거래하기)에 닿으면 비회원에게만 한 번 올라오고, 버튼을 시트 위로 밀어 올린다', () => {
-    assert.match(block, /stage\.scrollTop < max - 40/)
-    assert.match(block, /if \(session\?\.access_token\) return;\s*openTradeLoginSheet\(\);/)
-    assert.match(block, /onOpen: \(sheet\) => liftTradeCta\(sheet\)/)
-    assert.match(block, /onClose: \(\) => \{ tradeSheetOpen = false; liftTradeCta\(null\); \}/)
+  // 2026-10-16 대표 결정 변경: 메인 콘텐츠는 로그인을 권하지 않고 비회원도 결제한다. 맨 아래 저장 시트는 저절로 뜨지 않는다.
+  it('비회원 평생운 티저: 맨 아래 저장 시트를 걸지 않고, 운명 거래하기 → 비회원 결제 시트', () => {
     const guest = source.slice(source.indexOf('function beginGuestTeaser()'), source.indexOf('async function registerGuestVisit'))
-    assert.match(guest, /armTradeLoginSheet\(\)/)
-    assert.doesNotMatch(source, /offerGuestSave/, '같은 화면에 "저장할까요?" 카드를 따로 두지 않는다')
+    assert.doesNotMatch(guest, /armTradeLoginSheet\(\)/)
+    assert.doesNotMatch(source, /offerGuestSave/)
+    const gate = source.slice(source.indexOf('async function openPurchaseOrAuth()'), source.indexOf('function usesTradeSheets()'))
+    assert.match(gate, /const guestSession = await todayGuestSession\(\);\s*if \(guestSession\?\.access_token\) \{ await openGuestTradePaySheet\(guestSession\); return; \}/)
+    const pay = source.slice(source.indexOf('async function openGuestTradePaySheet('), source.indexOf('const TRADE_ORIGIN_AMOUNT'))
+    assert.match(pay, /await registerGuestVisit\(\);\s*await analyzeBirth\(\{ token: guestSession\.access_token \}\)/, '티저는 저장하지 않으니 결제 전에 비회원 계정으로 진짜 풀이를 만든다')
+    assert.match(pay, /window\.UMSHPaySheet\.open\(\{[\s\S]*session: guestSession/)
   })
 
   it('로그인하러 간 표시를 남기고, 로그인 없이 돌아오면(뒤로 가기·취소) 지우고 맨 아래로 데려간다', () => {

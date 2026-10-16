@@ -218,6 +218,8 @@
       items: [
         { label: '로그인 / 회원가입', meta: '카카오, 네이버, 구글로 계속하기', href: '/signup?entry=my', status: '로그인' },
         { label: '내 사주 프로필', meta: '오늘운과 질문에 쓰는 기본 정보', href: '/signup?entry=my', status: '관리' },
+        // 2026-10-16 로그인 없이 결제한 풀이를 다시 여는 곳(주문번호 + 휴대폰 번호).
+        { label: '비회원 주문 조회', meta: '로그인 없이 결제한 풀이 다시 열기', href: '/orders/lookup/', status: '조회' },
         { label: '고객센터', meta: '문의와 환불·취소 정책 확인', href: '/support', status: '문의' },
       ],
     },
@@ -314,15 +316,18 @@
     return `
       <div class="umsh-service-shell" aria-label="운명상회 공통 상단">
         <header class="appbar topbar umsh-chrome-appbar">
-          <a class="app-brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
-            <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
-          </a>
-          <div class="app-actions topbar-actions">
+          <!-- 2026-10-16: 뒤로 버튼은 로고 앞에 아이콘만(동그라미 없이). 메뉴 버튼과 크기는 원래 그대로. -->
+          <div class="topbar-lead">
             <button class="app-back umsh-chrome-back icon-button" type="button" data-back data-shell-back aria-label="뒤로 가기">
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
+            <a class="app-brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
+              <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
+            </a>
+          </div>
+          <div class="app-actions topbar-actions">
             <button class="topbar-vault-button" type="button" data-shell-bottom-menu="vault" aria-controls="serviceBottomMenuPanel" aria-expanded="false" aria-label="보관함 열기">
               <span aria-hidden="true">☰</span>
             </button>

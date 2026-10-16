@@ -6,7 +6,8 @@ import soloNaraSpec from '../../data/solo-nara-spec.json' with { type: 'json' }
 import { InputError, respondRequestFailure } from './input-error.js'
 import { storedResultRoute } from '../i18n/stored-result-route.js'
 import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
-import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet } from '../coupons/store.js'
+import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet, grantCoupon } from '../coupons/store.js'
+import { productReviewRouter } from '../reviews/router.js'
 import { CouponError } from '../coupons/contracts.js'
 import { getConsultationCouponUsage } from '../consultation/backend.js'
 import { consultationRouter, isConsultationRecord, getConsultationAccess, reserveConsultationCheckout } from '../consultation/backend.js'
@@ -14,7 +15,8 @@ import { authenticateConsultation } from '../consultation/auth.js'
 import { synthesizeConsultation } from '../consultation/voice.js'
 import { DEFAULT_CONSULTATION_SETTINGS, getConsultationSettings } from '../consultation/settings.js'
 import { getConsultationContentSnapshot } from '../admin/content-store.js'
-import { kakaoSkillHandler } from '../kakao/skill.js'
+import { kakaoSkillHandler, siteBirthInput } from '../kakao/skill.js'
+import { kakaoLinkHandler, restKakaoLinkStore, type KakaoVaultSaver } from '../kakao/member-link.js'
 import '../env/load.js'
 import { localizedPages } from './localized-pages.js'
 import type { ServerResponse } from 'node:http'
@@ -70,7 +72,8 @@ import { applyAdminReportUnlock, forgetAdminAccountCache, isAdminOwner } from '.
 import { staffMembership, staffMembershipConfigured, type StaffMembership } from '../auth/staff.js'
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
-import { CONSENT_VERSION, LedgerError, listGuestPeopleForMember, anonymizeStaleGuests, countGuestPeople, countGuestPeopleConverted, countGuestPeopleCreated, countStaleGuests, currentConsentTimes, hasCurrentConsent, listConsents, listGuestPeople, markGuestConverted, parseConsentInput, recordConsent, recordGuestVisit, type GuestFilter, type GuestSort } from '../user/guest-ledger.js'
+import { AttemptLimiter, isSamePerson, maskedName, pickRecordsFor, sameTel } from '../user/guest-merge.js'
+import { CONSENT_VERSION, LedgerError, markGuestPaid, getGuestPerson, getGuestPersonDetail, sajuKey, listGuestPeopleForMember, anonymizeStaleGuests, countGuestPeople, countGuestPeopleConverted, countGuestPeopleCreated, countStaleGuests, currentConsentTimes, hasCurrentConsent, listConsents, listGuestPeople, markGuestConverted, parseConsentInput, recordConsent, recordGuestVisit, type GuestFilter, type GuestSort } from '../user/guest-ledger.js'
 import { type MemberContact, countLiveMembers, countMemberKinds, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
@@ -169,6 +172,7 @@ import {
   type PaymentStorageMode,
   listAllPaymentOrders,
   listPaymentOrders,
+  transferPaymentOrdersOwner,
   PAYMENT_ORDER_STATUSES,
   checkPaymentStorageReadiness,
   savePaymentOrder,
@@ -205,7 +209,7 @@ import {
   marryMatchTeaserSection,
   parseMarryMatchRequest,
 } from '../match/marry-service.js'
-import { crisisGuard } from '../safety/crisis-signal.js'
+import { careNotice, crisisGuard } from '../safety/crisis-signal.js'
 import {
   buildWorkJobContext,
   buildWorkJobReport,
@@ -314,7 +318,9 @@ const PAYMENT_RESULT_PAGE = join(SAJU_ROOT, 'payment', 'result.html')
 const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
 const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
 const PAYMENT_ORDERS_PAGE = join(SAJU_ROOT, 'orders.html')
+const ORDER_LOOKUP_PAGE = join(SAJU_ROOT, 'order-lookup.html')
 const LEAVE_PAGE = join(SAJU_ROOT, 'leave.html')
+const KAKAO_LINK_PAGE = join(SAJU_ROOT, 'kakao-link.html')
 const MY_PAGE = join(SAJU_ROOT, 'my.html')
 const SEARCH_PAGE = join(SAJU_ROOT, 'search.html')
 const VAULT_PAGE = join(SAJU_ROOT, 'vault.html')
@@ -366,12 +372,17 @@ app.use(['/api/consultation/context', '/api/consultation/chat'], (_req, res, nex
 app.use('/api/consultation', express.json({ limit: '4mb' }), crisisGuard, consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
 // 카카오톡 채널 챗봇 "상주 천명" 스킬 서버. 비밀 헤더(KAKAO_SKILL_SECRET)로만 받는다. src/kakao/skill.ts
 // 천명사주 무료 계산값은 사이트 무료 화면과 같은 함수(buildUiAnalysisPayload)로 만든다. 따로 만들면 값이 어긋난다.
-app.post('/api/kakao/skill', express.json({ limit: '256kb' }), crisisGuard, kakaoSkillHandler({ uiAnalysis: buildUiAnalysisPayload }))
+// 회원 연결(2026-10-16): 이어진 손님의 천명사주·오늘의 운은 사이트와 같은 저장 경로로 회원 보관함에 남긴다. src/kakao/member-link.ts
+const kakaoLinks = restKakaoLinkStore(() => SUPABASE_KAKAO_PROVIDER)
+app.post('/api/kakao/skill', express.json({ limit: '256kb' }), crisisGuard, kakaoSkillHandler({ uiAnalysis: buildUiAnalysisPayload, links: kakaoLinks, vault: saveKakaoResultToVault }))
+app.post('/api/kakao/link', express.json({ limit: '4kb' }), kakaoLinkHandler({ links: kakaoLinks, vault: saveKakaoResultToVault, member: requireMemberUser }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 // 공통 절대 선 2번(마음 위기): 모든 API 본문(JSON·폼)의 위기 문장을 입구에서 중립 문장으로 바꾼다(src/safety/crisis-signal.ts).
 // 위에서 먼저 받는 상담·카카오 라우터는 각자 crisisGuard 를 붙였다. 자유 글을 GET 쿼리로 받는 API 는 없다.
 app.use('/api', crisisGuard)
+// 위기 표시가 붙은 응답을 받은 화면이 띄울 안내 문구(규칙 파일 한 곳: data/safety/crisis-signals.json).
+app.get('/api/safety/care-notice', (_req, res) => { res.json(careNotice()) })
 // 푸시 발송(src/push/google-auth.ts)은 이 헤더의 OIDC 토큰으로 구글 인증을 받는다. 모듈 시점에는
 // 토큰이 없어서 요청마다 받아 둔다. Vercel 밖(로컬)에는 헤더가 없고 발송도 하지 않는다.
 app.use((req, _res, next) => { rememberVercelOidcToken(req.header('x-vercel-oidc-token')); next() })
@@ -475,8 +486,16 @@ app.get(['/payment/test', '/payment/test/', '/payment/test.html'], (_req, res) =
 app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
   res.sendFile(PAYMENT_ORDERS_PAGE)
 })
+// 2026-10-16 비회원 주문 조회·불러오기(주문번호 + 휴대폰 번호). 로그인 없이 연다.
+app.get(['/orders/lookup', '/orders/lookup/', '/order-lookup', '/order-lookup.html'], (_req, res) => {
+  res.sendFile(ORDER_LOOKUP_PAGE)
+})
 app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
   res.sendFile(LEAVE_PAGE)
+})
+app.get(['/kakao/link', '/kakao/link/'], (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.sendFile(KAKAO_LINK_PAGE)
 })
 app.get(['/my', '/my/', '/my.html'], (_req, res) => {
   res.sendFile(MY_PAGE)
@@ -2093,6 +2112,13 @@ function orderUnlocks(order: PaymentOrder, owner: ReportOwner, productKey: strin
   return order.reportId === reportId
 }
 
+/** 결제 승인 반영 + 비회원이면 비회원 관리 장부에 결제 표시(2026-10-16). 표시 실패가 결제를 막지 않는다. */
+async function projectApprovedPaymentForGuest(...args: Parameters<typeof projectApprovedPayment>): ReturnType<typeof projectApprovedPayment> {
+  const paid = await projectApprovedPayment(...args)
+  if (paid?.ownerId) await markGuestPaid(paid.ownerId).catch(() => undefined)
+  return paid
+}
+
 /** Finds a settled order for this reading so a paid reader can reopen it on any later visit. */
 async function findUnlockingOrder(
   owner: ReportOwner,
@@ -3279,9 +3305,134 @@ app.get('/api/admin/v1/payments/revenue', async (req, res) => {
 /**
  * 2026-10-15 회원 › 비회원 관리. 비회원 한 사람(같은 기기 + 같은 사주) = 한 줄. 필터: 전체·전환 안 함·회원 전환·30일 지남.
  */
+/**
+ * 2026-10-16 운영자 수동 합치기·이전(고객센터 처리용). 자동 합치기가 틀렸거나(다른 기기·폰 교체·번호 변경)
+ * SNS 계정을 두 개 만든 손님을 바로잡는다. 모두 members:write + 사유 + 확인 + 멱등 키 + 감사 기록.
+ * - 비회원 → 회원: 비회원 한 줄의 방문(익명 계정)마다 주문·풀이를 회원에게 옮기고, 회원에게 사주가 없으면 복사, 장부는 "회원 전환".
+ * - 주문 하나 → 회원: 그 주문과 그 주문의 풀이만 옮긴다.
+ * - 회원 → 회원: 한 계정의 주문·풀이를 다른 계정으로 옮긴다. 계정(로그인 수단) 자체는 합치지 않는다.
+ */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+async function adminTransferTarget(memberId: string): Promise<ReportOwner | null> {
+  if (!UUID_RE.test(memberId)) return null
+  const member = await getAdminMemberDetail(memberId).catch(() => null)
+  if (!member || member.accountType === 'guest') return null
+  return { id: memberId, email: member.email ?? undefined, provider: member.signupProvider ?? undefined }
+}
+
+async function copyProfileIfMissing(fromUserId: string, to: ReportOwner): Promise<boolean> {
+  const [target, source] = await Promise.all([getAdminMemberDetail(to.id).catch(() => null), getAdminMemberDetail(fromUserId).catch(() => null)])
+  if (target?.name && target.birth) return false
+  if (!source?.name || !source.birth) return false
+  await updateAdminMemberProfile({ userId: to.id, name: source.name, birth: source.birth, birthTimeKnown: source.birthTimeKnown !== false })
+  return true
+}
+
+function adminTransferInput(req: Request, res: Response): { reason: string; key: string } | null {
+  const body = asObject(req.body)
+  const reason = trimmedString(body.reason).slice(0, 200)
+  const key = adminCommandKey(req)
+  if (body.confirm !== true || reason.length < 2 || key.length < 8) {
+    res.status(422).json({ code: 'INVALID_TRANSFER', error: '옮길 대상, 사유, 확인 여부를 다시 확인해 주세요.' }); return null
+  }
+  return { reason, key }
+}
+
+app.get('/api/admin/v1/guests/:id', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  try {
+    const guest = await getGuestPersonDetail(trimmedString(req.params.id))
+    if (!guest) { res.status(404).json({ code: 'GUEST_NOT_FOUND', error: '비회원을 찾지 못했습니다.' }); return }
+    res.json({ guest, asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'GUEST_LOOKUP_FAILED', error: '비회원 정보를 불러오지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/guests/:id/merge', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const input = adminTransferInput(req, res); if (!input) return
+  try {
+    const person = await getGuestPerson(trimmedString(req.params.id))
+    if (!person) { res.status(404).json({ code: 'GUEST_NOT_FOUND', error: '비회원을 찾지 못했습니다.' }); return }
+    const target = await adminTransferTarget(trimmedString(req.body?.memberId))
+    if (!target) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '옮겨 받을 회원을 찾지 못했습니다.' }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.guest.merge', idempotencyKey: input.key,
+      body: { guestPersonId: person.id, memberId: target.id, reason: input.reason },
+      target: { type: 'guest_people', id: person.id },
+    }, async () => {
+      let reports = 0, orders = 0, profileCopied = false
+      for (const guestId of person.guestUserIds) {
+        reports += await transferReportOwnership(guestId, target)
+        orders += await transferPaymentOrdersOwner(guestId, { id: target.id, email: target.email })
+        if (!profileCopied) profileCopied = await copyProfileIfMissing(guestId, target).catch(() => false)
+        await markGuestConverted(guestId, target.id).catch(() => undefined)
+      }
+      return { reports, orders, profileCopied, visits: person.guestUserIds.length }
+    })
+    res.status(command.replayed ? 200 : 202).json({ result: command.result, replayed: command.replayed })
+  } catch (err) {
+    console.error('[guests/merge]', err instanceof Error ? err.message : err)
+    res.status(503).json({ code: 'GUEST_MERGE_FAILED', error: '비회원을 회원에게 합치지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/payments/:orderId/transfer', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const input = adminTransferInput(req, res); if (!input) return
+  try {
+    const order = await getPaymentOrder(trimmedString(req.params.orderId))
+    if (!order) { res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문을 찾지 못했습니다.' }); return }
+    const target = await adminTransferTarget(trimmedString(req.body?.memberId))
+    if (!target) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '옮겨 받을 회원을 찾지 못했습니다.' }); return }
+    if (order.ownerId === target.id) { res.json({ result: { orders: 0, reports: 0, already: true }, replayed: false }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'payment.order.transfer', idempotencyKey: input.key,
+      body: { orderId: order.orderId, fromOwnerId: order.ownerId, memberId: target.id, reason: input.reason },
+      target: { type: 'payment_order', id: order.orderId },
+    }, async () => {
+      const orders = await transferPaymentOrdersOwner(order.ownerId, { id: target.id, email: target.email }, [order.orderId])
+      const reports = order.reportId ? await transferReportOwnership(order.ownerId, target, [order.reportId]) : 0
+      await markGuestConverted(order.ownerId, target.id).catch(() => undefined)
+      return { orders, reports }
+    })
+    res.status(command.replayed ? 200 : 202).json({ result: command.result, replayed: command.replayed })
+  } catch (err) {
+    console.error('[payments/transfer]', err instanceof Error ? err.message : err)
+    res.status(503).json({ code: 'ORDER_TRANSFER_FAILED', error: '주문을 옮기지 못했습니다.' })
+  }
+})
+
+app.post('/api/admin/v1/members/:id/transfer', async (req, res) => {
+  const membership = await requireStaff(req, res, 'members:write'); if (!membership) return
+  const input = adminTransferInput(req, res); if (!input) return
+  try {
+    const fromId = trimmedString(req.params.id)
+    if (!UUID_RE.test(fromId)) { res.status(422).json({ code: 'INVALID_MEMBER_ID', error: '회원 번호를 확인해 주세요.' }); return }
+    const target = await adminTransferTarget(trimmedString(req.body?.memberId))
+    if (!target || target.id === fromId) { res.status(404).json({ code: 'MEMBER_NOT_FOUND', error: '옮겨 받을 다른 회원을 찾지 못했습니다.' }); return }
+    const command = await executeAdminCommand(postgrestAdminCommandStore(), {
+      actorEmail: membership.email, action: 'member.records.transfer', idempotencyKey: input.key,
+      body: { fromMemberId: fromId, memberId: target.id, reason: input.reason },
+      target: { type: 'member_profile', id: fromId },
+    }, async () => {
+      const reports = await transferReportOwnership(fromId, target)
+      const orders = await transferPaymentOrdersOwner(fromId, { id: target.id, email: target.email })
+      const profileCopied = await copyProfileIfMissing(fromId, target).catch(() => false)
+      return { reports, orders, profileCopied }
+    })
+    res.status(command.replayed ? 200 : 202).json({ result: command.result, replayed: command.replayed })
+  } catch (err) {
+    console.error('[members/transfer]', err instanceof Error ? err.message : err)
+    res.status(503).json({ code: 'MEMBER_TRANSFER_FAILED', error: '주문·풀이를 옮기지 못했습니다.' })
+  }
+})
+
 app.get('/api/admin/v1/guests', async (req, res) => {
   if (!await requireStaff(req, res, 'members:read')) return
-  const filter: GuestFilter = req.query?.filter === 'open' || req.query?.filter === 'converted' || req.query?.filter === 'stale' ? req.query.filter : 'all'
+  const filter: GuestFilter = req.query?.filter === 'open' || req.query?.filter === 'converted' || req.query?.filter === 'paid' || req.query?.filter === 'stale' ? req.query.filter : 'all'
   const sort: GuestSort = req.query?.sort === 'first' || req.query?.sort === 'visits' || req.query?.sort === 'name' ? req.query.sort : 'recent'
   try {
     const [{ guests, total }, counts] = await Promise.all([
@@ -4083,6 +4234,46 @@ app.use('/api/coupons', couponRouter({
 }))
 
 /**
+ * 후기 보상 쿠폰 설정. `REVIEW_REWARD_CAMPAIGNS='{"cmdg":"<쿠폰 캠페인 id>"}'`.
+ * 관리자에서 회원 지급 전용 캠페인을 만든 뒤 그 id 를 넣는다. 없으면 보상 안내도 띄우지 않는다.
+ */
+function reviewRewardCampaigns(): Record<string, string> {
+  try {
+    const parsed = JSON.parse(process.env.REVIEW_REWARD_CAMPAIGNS || '{}') as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    return Object.fromEntries(Object.entries(parsed as Record<string, unknown>).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(entry[1])))
+  } catch { return {} }
+}
+// 다녀간 손님들의 말(후기), 2026-10-15. 결제한 풀이 1건당 1번, 공개 목록은 성만(박**)과 일주만 보인다.
+app.use('/api/reviews', productReviewRouter({
+  authenticate: requireMemberUser,
+  resolveEligibility: async (owner, productKey, reportId) => {
+    try {
+      const record = await findReportRecord(reportId, owner)
+      if (!record || isConsultationRecord(record) || productKeyForContext(record.context) !== productKey) return null
+      const order = await findUnlockingOrder(owner, productKey, record.reportId, record.lineageId ?? '')
+      if (!order) return null
+      let ilju: string | null = null
+      try {
+        const day = currentAnalysisForRecord(record).fourPillars.day
+        ilju = `${STEM_KO[day.stem]}${BRANCH_KO[day.branch]}`
+      } catch { ilju = null }
+      return { orderId: order.orderId, reportId: record.reportId, name: record.context?.name || '', ilju }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REPORT_ACCESS_DENIED') return null
+      throw error
+    }
+  },
+  rewardOffered: (productKey) => Boolean(reviewRewardCampaigns()[productKey]),
+  grantReward: async (owner, productKey, reviewId) => {
+    const campaignId = reviewRewardCampaigns()[productKey]
+    if (!campaignId) return null
+    const wallet = await grantCoupon(campaignId, owner.id, 'system:product-reviews', `review-${reviewId}`)
+    return { walletId: wallet.id, title: wallet.title, expiresAt: wallet.expiresAt }
+  },
+}))
+
+/**
  * 결제 화면이 열릴 때 이미 결제한 풀이인지 묻는다(2026-10). 결제 완료 화면에서 뒤로 가면
  * 결제 화면이 다시 열리는데, 그때 결제창 대신 풀이로 안내하려고 쓴다. 판정은 열람과 같은 규칙이다.
  */
@@ -4106,7 +4297,8 @@ app.get('/api/payment/purchase-status', async (req, res) => {
 
 app.post('/api/payment/orders', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    // 2026-10-16 메인 콘텐츠는 비회원도 결제한다(docs/auth/guest-member-plan.md 8절). 상담 질문권·쿠폰은 회원만.
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const config = paymentConfigPayload()
     if (!config.checkoutEnabled) {
@@ -4126,6 +4318,13 @@ app.post('/api/payment/orders', async (req, res) => {
     if (!await isServiceSaleAvailable(product.key)) {
       res.status(409).json({ code: 'SERVICE_SALE_PAUSED', error: '현재 판매가 중단된 서비스입니다.' })
       return
+    }
+    if (owner.isAnonymous) {
+      if (product.key === 'cheonmyeong_consultation') { res.status(401).json({ code: 'MEMBER_REQUIRED', error: '천명상담은 SNS 로그인 후 이용해 주세요.' }); return }
+      if (trimmedString(req.body?.couponId)) { res.status(401).json({ code: 'MEMBER_REQUIRED', error: '쿠폰은 SNS 로그인 후 사용할 수 있어요.' }); return }
+      // 비회원은 결제 시트에서 약관에 동의한다. 동의 기록이 없으면 주문을 만들지 않는다(기록 저장소가 아직 없으면 막지 않는다).
+      const consented = await hasCurrentConsent(owner.id).catch(() => true)
+      if (!consented) { res.status(409).json({ code: 'CONSENT_REQUIRED', error: '결제 전에 약관에 동의해 주세요.' }); return }
     }
     if (product.key === 'cheonmyeong_consultation') {
       if (!process.env.GEMINI_API_KEY?.trim()) { res.status(503).json({ code: 'CONSULTATION_SETUP_REQUIRED', error: '상담 연결을 준비 중이므로 질문권 구매를 잠시 중단했습니다.' }); return }
@@ -4261,7 +4460,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(404).json({ error: '테스트 결제 모드가 아닙니다.' })
       return
     }
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const orderId = trimmedString(req.body?.orderId)
     const order = await getPaymentOrder(orderId)
@@ -4277,7 +4476,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
       res.status(409).json({ error: '테스트 승인을 진행할 수 없는 주문 상태입니다.' })
       return
     }
-    const paid = await projectApprovedPayment(order, {
+    const paid = await projectApprovedPaymentForGuest(order, {
       provider: 'test', sourceRef: `TEST-${order.orderId}`, tid: `TEST-${order.orderId}`,
       payMethod: 'TEST', approvalCode: 'TEST-0000', message: '개발 환경 테스트 승인입니다. 실제 결제가 발생하지 않았습니다.',
     })
@@ -4305,7 +4504,7 @@ app.post('/api/payment/test/approve', async (req, res) => {
  */
 app.post('/api/payment/google/verify', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     if (!isGooglePlayConfigured()) {
       res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
@@ -4400,7 +4599,7 @@ async function settleGooglePlayPurchase(
     await acknowledgeGooglePlayPurchase({ productId, purchaseToken })
   }
 
-  const paid = await projectApprovedPayment(order, {
+  const paid = await projectApprovedPaymentForGuest(order, {
     provider: 'google_play', sourceRef: purchaseToken, tid: purchaseToken, payMethod: 'GOOGLE_PLAY',
     approvalCode: purchase.orderId, message: '구글플레이 인앱 결제로 확인되었습니다.',
   })
@@ -4424,7 +4623,7 @@ async function settleGooglePlayPurchase(
  */
 app.post('/api/payment/google/recover', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     if (!isGooglePlayConfigured()) {
       res.status(503).json({ code: 'PAYMENT_NOT_CONFIGURED', error: PAYMENT_UNAVAILABLE_NOTICE })
@@ -4492,7 +4691,7 @@ app.post('/api/payment/google/recover', async (req, res) => {
  */
 app.get('/api/payment/google/product/:productKey', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const product = getPaymentProduct(req.params.productKey)
     if (!product) {
@@ -4589,7 +4788,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
     if (!approvalSaved) throw new Error('승인 거래 증거를 주문에 저장하지 못했습니다.')
     // PG 승인 뒤에는 append-only 금융 증거를 먼저 남긴다. 주문 상태 투영이 실패해도
     // event가 남아 T19 대사에서 회수할 수 있고, catch가 과금 주문을 failed로 내리지 않는다.
-    const paid = await projectApprovedPayment(order, {
+    const paid = await projectApprovedPaymentForGuest(order, {
       provider: 'inicis', sourceRef, tid: approval.tid, payMethod: approval.payMethod,
       approvalCode: approval.approvalCode, message: approval.resultMessage,
     }, undefined, () => { approvalEvidenceRecorded = true })
@@ -4615,7 +4814,7 @@ app.post('/api/payment/inicis/return', async (req, res) => {
 
 app.get('/api/payment/orders/:orderId', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
     if (!order || order.ownerId !== owner.id) {
@@ -4630,7 +4829,7 @@ app.get('/api/payment/orders/:orderId', async (req, res) => {
 
 app.post('/api/payment/orders/:orderId/viewed', async (req, res) => {
   try {
-    const owner = await requireMemberUser(req, res)
+    const owner = await requireSupabaseUser(req, res)
     if (!owner) return
     const order = await getPaymentOrder(String(req.params.orderId ?? '').trim())
     if (!order || order.ownerId !== owner.id) {
@@ -4675,6 +4874,66 @@ app.use('/api/play/solo-nara', soloNaraRouter({ authenticate: requireSupabaseUse
  * 비회원이 만든 리포트를 회원 계정으로 옮기고, 회원에게 사주 정보가 없으면 비회원 사주 정보를 복사한다.
  * 두 토큰을 모두 가진 사람만 옮길 수 있다. dryRun 이면 옮길 건수만 알려 준다.
  */
+/**
+ * 2026-10-16 비회원 주문 조회·불러오기. 주문번호 + 결제 때 넣은 휴대폰 번호가 맞고 지금 주인이 비회원이면,
+ * 그 비회원의 주문·풀이를 지금 요청한 사람(이 기기의 비회원 또는 로그인한 회원)에게 옮긴다.
+ * 다른 기기·폰 교체·브라우저 기록 삭제 뒤 산 풀이를 다시 여는 길이다. 회원 주문이면 그 계정으로 로그인하라고 안내한다.
+ * 마구 넣어 보는 시도는 IP·주문번호마다 10분에 몇 번으로 제한한다.
+ */
+const orderLookupByIp = new AttemptLimiter(10, 10 * 60 * 1000)
+const orderLookupByOrder = new AttemptLimiter(5, 10 * 60 * 1000)
+
+app.post('/api/guest/orders/import', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  try {
+    const requester = await requireSupabaseUser(req, res)
+    if (!requester) return
+    const orderId = trimmedString(req.body?.orderId).slice(0, 80)
+    const tel = trimmedString(req.body?.tel).slice(0, 30)
+    if (!orderId || !tel) { res.status(400).json({ code: 'ORDER_LOOKUP_INVALID', error: '주문번호와 휴대폰 번호를 입력해 주세요.' }); return }
+    if (!orderLookupByIp.allow(req.ip || 'unknown') || !orderLookupByOrder.allow(orderId)) {
+      res.status(429).json({ code: 'ORDER_LOOKUP_LIMITED', error: '잠시 후 다시 시도해 주세요.' }); return
+    }
+    const order = await getPaymentOrder(orderId)
+    // 주문이 없을 때와 번호가 틀릴 때를 같은 답으로 돌려준다(어느 쪽이 틀렸는지 알려 주지 않는다).
+    if (!order || !sameTel(order.buyerTel, tel) || (order.status !== 'paid' && order.status !== 'viewed')) {
+      res.status(404).json({ code: 'ORDER_NOT_FOUND', error: '주문번호와 휴대폰 번호를 다시 확인해 주세요.' }); return
+    }
+    const product = getPaymentProduct(order.productKey)
+    const answer = { orderId: order.orderId, productKey: order.productKey, reportId: order.reportId ?? null, readingPath: product ? readingPathForProduct(product.key) || null : null }
+    if (order.ownerId === requester.id) { res.json({ ...answer, moved: false, already: true }); return }
+    // 지금 주인이 비회원인지 확인한다. 확인하지 못하면(조회 실패) 옮기지 않는다 — 회원 주문을 번호만으로 가져가지 못하게.
+    // 주인 계정이 이미 없으면(정리된 비회원) null 이고, 그때는 옮긴다.
+    let currentOwner: Awaited<ReturnType<typeof getAdminMemberDetail>>
+    try { currentOwner = await getAdminMemberDetail(order.ownerId) } catch { res.status(503).json({ code: 'ORDER_LOOKUP_UNAVAILABLE', error: '지금은 주문을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.' }); return }
+    if (currentOwner && currentOwner.accountType !== 'guest') {
+      res.status(409).json({ code: 'ORDER_OWNED_BY_MEMBER', error: '이 주문은 회원 계정에 저장돼 있어요. 결제한 계정으로 로그인해 주세요.' }); return
+    }
+    const fromOwnerId = order.ownerId
+    // 그 비회원 계정에 다른 사람(같은 기기를 쓴 가족 등) 기록이 섞여 있을 수 있다. 이 주문의 풀이 대상과 같은 사람 기록만 옮긴다.
+    const oldReports = await listReportRecords({ id: fromOwnerId }, 200).catch(() => [] as ReportRecord[])
+    const target = oldReports.find((record) => record.reportId === order.reportId)
+    const person = target && target.context?.name ? { name: target.context.name, birth: target.birth } : null
+    const oldOrders = await listPaymentOrders(fromOwnerId, 100).catch(() => [] as PaymentOrder[])
+    const picked = person
+      ? pickRecordsFor(person, oldReports.map((record) => ({ reportId: record.reportId, subject: { name: record.context?.name ?? null, birth: record.birth } })), oldOrders)
+      : { reportIds: order.reportId ? [order.reportId] : [], orderIds: [order.orderId] }
+    const orderIds = picked.orderIds ? [...new Set([...picked.orderIds, order.orderId])] : [order.orderId]
+    const reports = await transferReportOwnership(fromOwnerId, requester, picked.reportIds)
+    const orders = await transferPaymentOrdersOwner(fromOwnerId, { id: requester.id, email: requester.email }, orderIds)
+    if (!requester.isAnonymous) {
+      await markGuestConverted(fromOwnerId, requester.id).catch(() => undefined)
+      const [memberProfile, oldProfile] = await Promise.all([getUserBirthProfile(requester).catch(() => null), getAdminMemberDetail(fromOwnerId).catch(() => null)])
+      if (!memberProfile && oldProfile?.name && oldProfile.birth) {
+        await updateAdminMemberProfile({ userId: requester.id, name: oldProfile.name, birth: oldProfile.birth, birthTimeKnown: oldProfile.birthTimeKnown !== false }).catch(() => undefined)
+      }
+    }
+    res.json({ ...answer, moved: true, reports, orders })
+  } catch (err) {
+    respondRequestFailure(res, err, '비회원 주문 불러오기 실패')
+  }
+})
+
 app.post('/api/auth/claim-guest', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   try {
@@ -4685,21 +4944,40 @@ app.post('/api/auth/claim-guest', async (req, res) => {
     const guest = await verifySupabaseToken(guestToken).catch(() => undefined)
     if (!guest?.isAnonymous) { res.status(400).json({ code: 'NOT_GUEST', error: '비회원 기록을 확인하지 못했습니다.' }); return }
     if (guest.id === member.id) { res.json({ reports: 0, profile: 'same' }); return }
-    const [guestReports, guestProfile, memberProfile] = await Promise.all([
-      listReportRecords(guest, 50).catch(() => []),
+    const [guestReports, guestProfile, memberProfile, guestOrders] = await Promise.all([
+      listReportRecords(guest, 200).catch(() => [] as ReportRecord[]),
       getUserBirthProfile(guest).catch(() => null),
       getUserBirthProfile(member).catch(() => null),
+      listPaymentOrders(guest.id, 100).catch(() => [] as PaymentOrder[]),
     ])
     const profilePlan = !guestProfile ? 'none' : memberProfile ? 'kept' : 'copied'
-    if (req.body?.dryRun === true) { res.json({ reports: guestReports.length, profile: profilePlan }); return }
-    const reports = await transferReportOwnership(guest.id, member)
+    // 2026-10-16 비회원은 기기에 오래 남고(1시간 정책 폐지), 한 기기를 여러 사람이 번갈아 쓰면 기록이 한 비회원 계정에 섞인다.
+    // 그래서 "누구의 기록을 옮길지"를 사주로 고른다(src/user/guest-merge.ts):
+    // - 회원 계정에 사주가 있으면 그 사람과 사주가 같은 기록만 옮긴다. 하나도 없으면 옮기지 않는다(공용 기기 보호).
+    // - 처음 가입이면 이 기기에서 마지막으로 사주를 넣은 사람(비회원 프로필)의 기록을 옮기고, 결제가 있으면 한 번 묻는다.
+    const person = memberProfile ?? guestProfile ?? null
+    const picked = pickRecordsFor(
+      person,
+      guestReports.map((record) => ({ reportId: record.reportId, subject: { name: record.context?.name ?? null, birth: record.birth } })),
+      guestOrders,
+    )
+    const decision = memberProfile
+      ? (picked.reports || picked.orders || (guestProfile && isSamePerson(guestProfile, memberProfile)) ? 'merge' : 'skip-different')
+      : (picked.paidOrders > 0 ? 'confirm-paid' : 'merge')
+    const plan = { reports: picked.reports, orders: picked.orders, paidOrders: picked.paidOrders, remaining: picked.remaining, profile: profilePlan, decision, nameHint: decision === 'confirm-paid' ? maskedName(guestProfile?.name) : '' }
+    if (req.body?.dryRun === true) { res.json(plan); return }
+    if (decision === 'skip-different') { res.json({ ...plan, skipped: 'different-saju' }); return }
+    if (decision === 'confirm-paid' && req.body?.confirmPaid !== true) { res.status(409).json({ code: 'CONFIRM_PAID_REQUIRED', error: '이 기기에서 산 풀이를 불러올지 확인해 주세요.', ...plan }); return }
+    const reports = await transferReportOwnership(guest.id, member, picked.reportIds)
+    const orders = await transferPaymentOrdersOwner(guest.id, { id: member.id, email: member.email }, picked.orderIds)
+    const sameAsGuest = Boolean(guestProfile && (!memberProfile || isSamePerson(guestProfile, memberProfile)))
     if (guestProfile && !memberProfile) {
       await saveUserBirthProfile({ ...guestProfile, userId: member.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, member)
     }
-    if (guestProfile) await markGuestProfileClaimed(guest, member.id).catch((err) => console.error('[claim-guest] 전환 표시 실패', err instanceof Error ? err.message : err))
-    // 2026-10-15 비회원 관리 장부에도 회원 계정을 적는다(표가 아직 없으면 건너뛴다).
-    await markGuestConverted(guest.id, member.id).catch((err) => console.error('[claim-guest] 장부 전환 표시 실패', err instanceof Error ? err.message : err))
-    res.json({ reports, profile: profilePlan })
+    if (sameAsGuest) await markGuestProfileClaimed(guest, member.id).catch((err) => console.error('[claim-guest] 전환 표시 실패', err instanceof Error ? err.message : err))
+    // 비회원 관리 장부: 옮긴 사람(사주)의 줄만 "회원 전환". 같은 기기의 다른 사람 줄은 그대로 둔다.
+    await markGuestConverted(guest.id, member.id, new Date(), person ? sajuKey(person) : undefined).catch((err) => console.error('[claim-guest] 장부 전환 표시 실패', err instanceof Error ? err.message : err))
+    res.json({ ...plan, reports, orders })
   } catch (err) {
     respondRequestFailure(res, err, '비회원 기록 이어받기 실패')
   }
@@ -4877,6 +5155,32 @@ app.get('/api/user/reports', async (req, res) => {
     respondRequestFailure(res, err, '풀이 보관함 조회 실패')
   }
 })
+
+/**
+ * 카카오 챗봇에서 본 결과를 회원 보관함에 남긴다. 사이트 저장 경로를 그대로 쓴다.
+ * - 천명사주: /api/saju/analyze 미리보기와 같은 createOrGetReportRecord(같은 ID·계보 규칙).
+ * - 오늘의 운: /api/today/fortune 과 같은 savedDailyFortune. 카톡에서 본 날짜로 남긴다.
+ * 생일은 카톡에서 입력한 값을 쓰고, 회원 기본 사주 프로필(getUserBirthProfile)은 이름만 읽고 덮어쓰지 않는다.
+ */
+async function saveKakaoResultToVault(...[userId, result]: Parameters<KakaoVaultSaver>): Promise<void> {
+  const owner: ReportOwner = { id: userId }
+  const birth = siteBirthInput(result.birth)
+  const name = (await getUserBirthProfile(owner).catch(() => null))?.name || '손님'
+  if (result.kind === 'today') {
+    const at = new Date(result.at).toISOString()
+    const profile: UserBirthProfile = { userId, name, birth, birthTimeKnown: result.birth.timeKnown, context: {}, createdAt: at, updatedAt: at }
+    await savedDailyFortune(profile, owner, new Date(result.at), await todayFortuneOptions(userId))
+    return
+  }
+  const enriched = await enrichHomeTerrainContext(enrichReportContext({ name, birthTimeKnown: result.birth.timeKnown }))
+  const analysis = analyzeSaju(birth)
+  const readingContext = markBirthTimeReading(enriched)
+  await createOrGetReportRecord({
+    reportId: createReportId(birth, enriched, undefined, owner.id), birth, context: readingContext,
+    analysis, templateReport: buildTemplateSajuReport(analysis, birth, readingContext), owner,
+    lineageId: createReportLineageId(birth, enriched, owner.id),
+  })
+}
 
 /** Purchase X changes only the explanation lens. A payment lookup failure keeps the free reading available. */
 async function todayFortuneOptions(ownerId: string): Promise<{ purchaseDepth: boolean }> {
@@ -5300,7 +5604,7 @@ app.post('/api/match/couple/analyze', async (req, res) => {
     // 궁합 문맥에는 본인 명식 값도 저장되므로, 문맥을 만들기 전에 본인도 6글자로 맞춘다(저장 명식은 원본 그대로).
     const selfForContext = analysisForNewReport(analysis, 'match_couple', selectedBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildCoupleMatchContext(selectedName, input, partnerAnalysis, selfForContext), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildCoupleMatchContext(selectedName, input, partnerAnalysis, selfForContext, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createCoupleMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildCoupleMatchReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
@@ -5615,7 +5919,7 @@ app.post('/api/match/marry/analyze', async (req, res) => {
     // 궁합 문맥에는 본인 명식 값도 저장되므로, 문맥을 만들기 전에 본인도 6글자로 맞춘다(저장 명식은 원본 그대로).
     const selfForContext = analysisForNewReport(analysis, 'marry_match', selectedBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildMarryMatchContext(selectedName, input, partnerAnalysis, selfForContext, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createMarryMatchReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildMarryMatchReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
     if (await sendSpecializedPreview(req, res, { reportId, lineageId, birth: selectedBirth, context, templateReport, analysis, owner })) return
@@ -5651,7 +5955,7 @@ app.post('/api/love/mind/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = input.partnerBirth ? analysisForNewReport(analyzeSaju(input.partnerBirth), 'love_mind', input.partnerBirthTimeKnown) : undefined
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveMindContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveMindContext(profile.name, input, partnerAnalysis, profile.birth.gender), birthTimeKnown: profile.birthTimeKnown })
     const analysis = analyzeSaju(profile.birth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveMindReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveMindReport(analysisForReading(analysis, context), profile.birth, context, input, partnerAnalysis, reportId)
@@ -5700,7 +6004,7 @@ app.post('/api/love/signal/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = analysisForNewReport(analyzeSaju(input.partnerBirth), 'couple_signal', input.partnerBirthTimeKnown)
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveSignalContext(selectedName, input, partnerAnalysis), birthTimeKnown: selectedBirthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveSignalContext(selectedName, input, partnerAnalysis, selectedBirth.gender), birthTimeKnown: selectedBirthTimeKnown })
     const analysis = analyzeSaju(selectedBirth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveSignalReportId(owner?.id, selectedBirth, input), selectedBirthTimeKnown))
     const templateReport = buildLoveSignalReport(analysisForReading(analysis, context), partnerAnalysis, selectedBirth, context, input, reportId)
@@ -5790,7 +6094,7 @@ app.post('/api/love/again/analyze', async (req, res) => {
     // 상대 시간을 모르면 6글자 모드 서비스에서는 상대 명식도 시주를 뺀 계산으로 만든다.
     const partnerAnalysis = input.partnerBirth ? analysisForNewReport(analyzeSaju(input.partnerBirth), 'love_again', input.partnerBirthTimeKnown) : undefined
     // 6글자 모드 서비스면 새 리포트에 표시를 붙인다(천명사주와 같은 방식, 예전 리포트는 그대로).
-    const context = markBirthTimeReading({ ...buildLoveAgainContext(profile.name, input, partnerAnalysis), birthTimeKnown: profile.birthTimeKnown })
+    const context = markBirthTimeReading({ ...buildLoveAgainContext(profile.name, input, partnerAnalysis, profile.birth.gender), birthTimeKnown: profile.birthTimeKnown })
     const analysis = analyzeSaju(profile.birth)
     const { reportId, lineageId } = epochScopedIds(withReportBirthCertainty(createLoveAgainReportId(owner.id, profile.birth, input), profile.birthTimeKnown))
     const templateReport = buildLoveAgainReport(analysisForReading(analysis, context), profile.birth, context, input, partnerAnalysis, reportId)

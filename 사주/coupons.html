@@ -15,7 +15,7 @@
     <link rel="manifest" href="/manifest.json?v=20260917-icon" />
     <link rel="stylesheet" href="/css/payment.css?v=20260901-myhub" />
     <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
-    <link rel="stylesheet" href="/css/myhub.css?v=20261012-coupons" />
+    <link rel="stylesheet" href="/css/myhub.css?v=20261016-overflow" />
     <!-- 화면 스타일(display:flex 등)이 hidden 을 덮지 않게 한다. 다른 마이페이지 화면과 같은 규칙. -->
     <style>[hidden] { display: none !important; }</style>
     <link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" />
@@ -26,7 +26,7 @@
     <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
       <header class="appbar topbar"></header>
       <section class="payment-shell myhub" id="coupons-app" aria-labelledby="page-title">
-        <p class="payment-eyebrow">MY</p>
+        <p class="payment-eyebrow">내 정보</p>
         <h1 id="page-title">내 쿠폰</h1>
         <p class="payment-intro">받은 쿠폰을 등록하고, 궁금했던 운의 흐름을 살펴보세요.</p>
 
@@ -61,7 +61,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
-    <script src="/js/umsh-chrome.js?v=20260922c"></script>
+    <script src="/js/umsh-chrome.js?v=20261016-appbar16"></script>
     <script src="/js/coupons.js?v=20261012-my" defer></script>
   </body>
 </html>

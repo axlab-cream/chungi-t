@@ -34,17 +34,21 @@ function load(local = memoryStorage(), session = memoryStorage(), now = () => Da
 const guestValue = JSON.stringify({ access_token: 'guest-tok', user: { id: 'guest-1', is_anonymous: true } })
 const memberValue = JSON.stringify({ access_token: 'member-tok', user: { id: 'member-1', is_anonymous: false } })
 
-test('비회원 세션은 sessionStorage 에만, 회원 세션은 localStorage 에 둔다', () => {
+// 2026-10-16 대표 결정: 1시간 정책 폐지. 비회원 세션은 이 기기에 계속 두되, 회원 세션과 겹치지 않게 따로 된 칸(umsh_guest:)에 둔다.
+const GUEST_SLOT = 'umsh_guest:' + TOKEN
+
+test('비회원 세션은 localStorage 의 따로 된 칸에, 회원 세션은 원래 칸에 둔다(로그인해도 비회원 세션이 덮이지 않는다)', () => {
   const { auth, local, session } = load()
   auth.guestAwareStorage.setItem(TOKEN, guestValue)
-  assert.equal(session.getItem(TOKEN), guestValue)
+  assert.equal(local.getItem(GUEST_SLOT), guestValue)
   assert.equal(local.getItem(TOKEN), null)
+  assert.equal(session.getItem(TOKEN), null)
   assert.equal(auth.guestAwareStorage.getItem(TOKEN), guestValue)
 
   auth.guestAwareStorage.setItem(TOKEN, memberValue)
   assert.equal(local.getItem(TOKEN), memberValue)
-  assert.equal(session.getItem(TOKEN), null)
-  assert.equal(local.getItem('umsh_guest_active_at_v1'), null)
+  assert.equal(local.getItem(GUEST_SLOT), guestValue, '로그인해도 비회원 세션은 남아 이어받기를 할 수 있다')
+  assert.equal(auth.guestAwareStorage.getItem(TOKEN), memberValue)
 })
 
 test('회원 세션이 있으면 남은 비회원 세션보다 회원을 먼저 돌려준다', () => {
@@ -52,24 +56,28 @@ test('회원 세션이 있으면 남은 비회원 세션보다 회원을 먼저 
   assert.equal(auth.guestAwareStorage.getItem(TOKEN), memberValue)
 })
 
-test('1시간 넘게 쓰지 않은 비회원 세션과 생년월일 캐시는 지운다', () => {
+test('시간이 지나도 비회원 세션을 지우지 않는다(같은 기기로 다시 오면 이어진다)', () => {
   let clock = 1_000_000
-  const local = memoryStorage({ cheongi_user_birth_profile_v1: '{"name":"앞사람"}' })
-  const { auth, session } = load(local, memoryStorage(), () => clock)
+  const { auth } = load(memoryStorage(), memoryStorage(), () => clock)
   auth.guestAwareStorage.setItem(TOKEN, guestValue)
-  clock += HOUR - 1000
-  assert.equal(auth.guestAwareStorage.getItem(TOKEN), guestValue, '1시간 안에는 그대로')
-  clock += HOUR + 1000
-  assert.equal(auth.guestAwareStorage.getItem(TOKEN), null)
-  assert.equal(session.getItem(TOKEN), null)
-  assert.equal(local.getItem('cheongi_user_birth_profile_v1'), null)
+  clock += 30 * 24 * HOUR
+  assert.equal(auth.guestAwareStorage.getItem(TOKEN), guestValue)
 })
 
-test('창을 닫아 비회원 세션이 없어졌으면 다음 페이지에서 앞사람 생년월일 캐시를 지운다', () => {
-  const local = memoryStorage({ umsh_guest_active_at_v1: String(Date.now()), cheongi_user_birth_profile_v1: '{"name":"앞사람"}' })
-  load(local, memoryStorage())
-  assert.equal(local.getItem('cheongi_user_birth_profile_v1'), null)
+test('예전 방식(탭 저장소)에 남은 비회원 세션은 처음 열 때 새 칸으로 옮긴다', () => {
+  const local = memoryStorage({ umsh_guest_active_at_v1: String(Date.now()) })
+  const session = memoryStorage({ [TOKEN]: guestValue })
+  load(local, session)
+  assert.equal(local.getItem(GUEST_SLOT), guestValue)
+  assert.equal(session.getItem(TOKEN), null)
   assert.equal(local.getItem('umsh_guest_active_at_v1'), null)
+})
+
+test('회원이 로그아웃해도 이 기기의 비회원 세션은 지우지 않는다', () => {
+  const { auth, local } = load(memoryStorage({ [TOKEN]: memberValue, [GUEST_SLOT]: guestValue }))
+  auth.guestAwareStorage.removeItem(TOKEN)
+  assert.equal(local.getItem(TOKEN), null)
+  assert.equal(local.getItem(GUEST_SLOT), guestValue)
 })
 
 test('회원의 생년월일 캐시는 비회원 표시가 없으면 건드리지 않는다', () => {
@@ -144,12 +152,41 @@ test('회원이 저장에 동의하면 비회원 토큰으로 옮기고 같은 �
   assert.equal(local.getItem(TOKEN), memberValue, '회원 세션은 그대로')
 })
 
-test('저장하지 않기를 고르면 옮기지 않고 비회원 세션만 지운다', async () => {
-  const { auth, calls, session } = claimSetup(false)
+test('저장하지 않기를 고르면 옮기지 않고, 비회원 기록은 이 기기에 남기며 다시 묻지 않는다', async () => {
+  const { auth, calls, local } = claimSetup(false)
   await auth.claimGuestNow()
   assert.equal(calls.length, 1)
   assert.equal(calls[0].body.dryRun, true)
-  assert.equal(session.getItem(TOKEN), null)
+  assert.equal(local.getItem(GUEST_SLOT), guestValue, '다른 사람 기록일 수 있어 남긴다')
+  await auth.claimGuestNow()
+  assert.equal(calls.length, 1, '같은 회원·비회원 짝은 한 번만 묻는다')
+})
+
+test('처음 가입 + 이 기기에 결제 기록이면 결제 화면·저장 의도가 있어도 가린 이름으로 한 번 묻고, 동의하면 confirmPaid 로 옮긴다', async () => {
+  const calls: any[] = []
+  let asked: any = null
+  const local = memoryStorage({ [TOKEN]: memberValue, [GUEST_SLOT]: guestValue })
+  const session = memoryStorage({ umsh_claim_intent_v1: String(Date.now()) })
+  const fetchImpl = async (_url: string, init: any) => {
+    const body = JSON.parse(init.body)
+    calls.push(body)
+    return { ok: true, status: 200, json: async () => (body.dryRun ? { reports: 1, orders: 1, paidOrders: 1, remaining: 0, profile: 'copied', decision: 'confirm-paid', nameHint: '김○○' } : { reports: 1, orders: 1, remaining: 0 }) }
+  }
+  const { auth } = load(local, session, () => Date.now(), { fetch: fetchImpl, location: { pathname: '/payment/' }, UMSHGuestSaveSheet: { confirmClaim: async (plan: any) => { asked = plan; return true } } })
+  await auth.claimGuestNow()
+  assert.equal(asked?.paidName, '김○○')
+  assert.equal(calls[1].confirmPaid, true)
+  assert.equal(local.getItem(GUEST_SLOT), null, '남은 기록이 없으면 비회원 세션을 정리한다')
+})
+
+test('회원과 사주가 다른 사람의 기록뿐이면(공용 기기) 옮기지 않고 비회원 세션도 남긴다', async () => {
+  const calls: any[] = []
+  const local = memoryStorage({ [TOKEN]: memberValue, [GUEST_SLOT]: guestValue })
+  const fetchImpl = async (_url: string, init: any) => { calls.push(JSON.parse(init.body)); return { ok: true, status: 200, json: async () => ({ reports: 0, orders: 0, remaining: 2, profile: 'kept', decision: 'skip-different' }) } }
+  const { auth } = load(local, memoryStorage(), () => Date.now(), { fetch: fetchImpl, location: { pathname: '/' } })
+  await auth.claimGuestNow()
+  assert.equal(calls.length, 1)
+  assert.equal(local.getItem(GUEST_SLOT), guestValue)
 })
 
 test('결제 화면에서는 묻지 않고 옮긴다(방금 본 결과를 사려는 본인)', async () => {

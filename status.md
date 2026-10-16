@@ -1,5 +1,11 @@
 # Status
 
+## 2026-10-16 — 카카오 챗봇 손님 ↔ 회원 연결 + 보관함 저장 (브랜치 claude/kakao-member-link)
+
+- [DONE] 방법 1 직접 연결([보관함에 저장하기] → /kakao/link → 로그인 → POST /api/kakao/link), 방법 2 카카오 자동 연결(appUserId, 묻고 [남겨 줘]일 때만, [괜찮아]면 30일 안 물음), "연결 끊기". 이어진 손님의 천명사주 미리보기·오늘의 운은 사이트와 같은 저장 경로로 보관함에 저장. 상세 `docs/admin-ops/kakao-chatbot-ai-skill-20261014.md` 2026-10-16 절.
+- [DONE] 마이그레이션 파일 `supabase/migrations/20261016120000_kakao_member_links.sql`(Prepared only).
+- [GATE H2] 운영 적용은 승인 후. [TODO] /privacy 항목(초안 대기), 카카오 로그인 앱 ↔ 챗봇 채널 연결 확인(로그 appUserId true).
+
 ## 2026-10-14 — 카카오 챗봇 "상주 천명" AI 스킬 서버 (브랜치 claude/kakao-chatbot-ai)
 
 - [DECIDED] 10/12 "스킬 서버 연동 안 함" 번복. 제미나이(웹 천명상담과 같은 키·모델), 생각 강도 low, 손님당 매일 10번 무료, 소진·궁합 맛보기 뒤 "더 궁금해? 궁금하면 운명상회로 들어와봐." 안내(사용자 결정).
@@ -3196,3 +3202,12 @@ CMDG-IMAGES review: manual scoped diff review complete. Grok external reviewer s
 - [DEFERRED] Master teaser (사주/js/cmdg-master-teaser.js) still shows 정가 63,000원 -> 29,000원 (-34,000원, 약 54%), asserted by tests/unit/cmdg-master-teaser.test.ts; needs user decision. EN/JA renderPurchase is an old demo with non-catalog prices (49,900/60,000/67,000) and package plans. sampleAssets/sampleVideo still hotlink cdn.sajutight.me (competitor assets) in KO/EN/JA.
 - Research note: docs/marketing/2026-10-15-bbosaju-conversion-benchmark.md (its §4 line refs point to stale public/ copy; real source is 사주/사주/index.html).
 - Follow-up 2026-10-15 (user correction): 정가·할인 표기는 유지해야 함 (사용자는 할인율 오류로 오해했던 것). KO renderPurchase restored "약 54% 할인 · 63,000원 -> 29,000원" + 판매가/할인 rows. Kept 상품명 fix (천명사주 from catalog). Discount now computed from originAmount 63000 vs catalog amount (29000 -> 약 54%, so it stays correct if price changes). Harness render + syntax OK. Master-teaser 63,000 item withdrawn from DEFERRED (intended pricing). Competitor sample removal (KO/EN/JA) unchanged.
+
+## CMDG-REVIEWS-20261015 — local, awaiting user screen check
+- User decisions: A안(한 줄 후기), 천명사주(cmdg)만, 별점 없음, 이름은 성만(박**), 공개 쿠폰 공지 문구 없음, 섹션명 "다녀간 손님들의 말", 새 테이블 승인.
+- Added: migration 20261015150000_product_reviews.sql (cheongi_product_reviews, order_id UNIQUE, RLS on, service_role only; NOT applied yet); src/reviews/store.ts + router.ts (GET /api/reviews public, hidden until 5 reviews; GET /api/reviews/mine; POST /api/reviews paid(paid/viewed, findUnlockingOrder) member only, 20~300자, 연락처·메일·링크 거부); app.ts mount; reward coupon only when REVIEW_REWARD_CAMPAIGNS env maps cmdg -> grantOnly campaign id (grant failure never loses the review).
+- Front: 사주/js/umsh-reviews.js; teaser list mounted right after the 복채 card (data-sample-section="package"); writer appended after the paid report sections only when all sections are complete (umsh-report-access.js mountCmdgReviewWriter, same epoch/auth headers as reader tools).
+- Verified locally: tsc 0 errors; 71/71 tests in 10 related files PASS (incl. new product-reviews*.test.ts); JS syntax OK. Local server ran but the browser cannot reach the sandbox loopback, so the screen check was done by injecting the local JS into umsh.kr teaser/report pages with sample data (no API calls, no consent submitted).
+- Pending: user screen approval -> apply migration (approved) -> PR/CI/merge/deploy -> set REVIEW_REWARD_CAMPAIGNS after the coupon amount is decided.
+- 2026-10-15 user decision after screen check: keep only the teaser list "다녀간 손님들의 말"; NO review writer. Removed writer UI (umsh-reviews.js mountWriter/writerMarkup, umsh-report-access.js restored to main). Server POST/mine routes and reward wiring remain unused for now; reviews need another intake path (open question). Migration applied to production 2026-10-15 (cheongi_product_reviews, RLS on, anon/authenticated no access, 0 rows). Demo-only branch claude/cmdg-reviews-demo (never merge; delete after deploy).
+- 2026-10-16 deployed: PR #188 merged (138bae86), Vercel production success. Live checks: GET /api/reviews?product=cmdg 200 {visible:false,total:0} (real DB, public max-age=60); bad product 400; /mine without auth 401; /cmdg/ loads umsh-reviews.js?v=20261015b; umsh-report-access.js has no writer. Demo branch claude/cmdg-reviews-demo deleted. Open: review intake path (admin entry vs later channel), reward coupon amount.

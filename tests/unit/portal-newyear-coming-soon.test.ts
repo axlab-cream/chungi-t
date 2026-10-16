@@ -50,7 +50,7 @@ test('daily free fortune ticket sits right below the home poster rail', () => {
   assert.ok(dotsIndex < ticketIndex && ticketIndex < weeklyIndex, '오늘운 무료 카드는 대표 포스터 바로 아래, 무료 테스트 위에 있어야 한다')
   assert.equal(visible.split(ticket).length - 1, 1, '오늘운 무료 카드는 한 번만 있어야 한다')
   assert.match(visible.slice(ticketIndex, weeklyIndex), /href="\/today\/free"/)
-  assert.match(visible.slice(ticketIndex, weeklyIndex), /aria-label="오늘 네게 들어오는 운 보기"/)
+  assert.match(visible.slice(ticketIndex, weeklyIndex), /aria-label="오늘의 운 보기"/)
 })
 
 test('homepage hold does not delete payment catalog or admin href mapping', () => {

@@ -1,4 +1,4 @@
-@import url("/css/umsh-tokens.css?v=20261016-glass");
+@import url("/css/umsh-tokens.css?v=20261016-appbar16");
 :root {
   --black-1000: #050504;
   --black-950: #080807;
@@ -113,19 +113,71 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 12px 20px;
+  /* 여백·칸 사이는 서비스 화면 상단과 같은 공용 값(umsh-tokens.css, 화면 폭별). */
+  gap: var(--umsh-appbar-gap);
+  padding: var(--umsh-appbar-pad);
   border-bottom: 1px solid var(--line-soft);
   background: var(--umsh-appbar-bg);
 }
 
-/* 홈 상단 바도 서비스 화면과 같은 반투명 유리로 통일한다(2026-10-16). 값은 umsh-tokens.css 에서 온다. */
+/*
+ * 홈 상단(로고 줄 + 분류 줄)은 스크롤 칸 맨 위에 붙어 떠 있고, 내용이 그 밑으로 지나간다(2026-10-16).
+ * 두 줄을 한 상자로 묶어 반투명 유리(흐림)를 한 겹만 건다. 로고 줄은 원래 규칙 그대로라 사이트 전체 상단과 같다.
+ * 값은 umsh-tokens.css 에 있다. 흐림을 지원하지 않는 브라우저는 불투명 배경이다.
+ */
+.portal-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--umsh-appbar-bg);
+}
+
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .appbar {
+  .portal-top {
     background: var(--umsh-appbar-glass-bg);
     -webkit-backdrop-filter: var(--umsh-appbar-glass-filter);
     backdrop-filter: var(--umsh-appbar-glass-filter);
   }
+}
+
+.portal-top .appbar {
+  /* 로고 줄과 분류 줄 사이 구분선은 두지 않는다(2026-10-16 요청). */
+  border-bottom: 0;
+  background: transparent;
+}
+
+.portal-top .category-rail {
+  gap: var(--umsh-chip-gap);
+  padding: var(--umsh-rail-pad);
+  border-bottom: 0;
+  background: transparent;
+}
+
+.portal-top .chip,
+.portal-top .chip:hover,
+.portal-top .chip:focus-visible {
+  min-height: 0;
+  padding: var(--umsh-chip-pad);
+  border: 1px solid transparent;
+  border-radius: var(--umsh-chip-radius);
+  background: transparent;
+  color: var(--umsh-chip-text);
+  font-size: var(--umsh-chip-font-size);
+  font-weight: var(--umsh-chip-weight);
+  line-height: var(--umsh-chip-line-height);
+  letter-spacing: var(--umsh-chip-tracking);
+  transform: none;
+}
+
+.portal-top .chip.is-active,
+.portal-top .chip.is-active:hover,
+.portal-top .chip.is-active:focus-visible {
+  border-color: var(--umsh-chip-active-border);
+  background: var(--umsh-chip-active-bg);
+  color: var(--umsh-chip-text);
+  font-weight: var(--umsh-chip-active-weight);
+  -webkit-backdrop-filter: var(--umsh-chip-active-filter);
+  backdrop-filter: var(--umsh-chip-active-filter);
 }
 
 .app-brand {
@@ -135,8 +187,9 @@ a:focus-visible {
 
 .app-brand img {
   display: block;
-  width: 106px;
-  height: 40px;
+  width: var(--umsh-appbar-logo-w);
+  height: var(--umsh-appbar-logo-h);
+  transform: translateY(var(--umsh-appbar-logo-optical-y));
   object-fit: contain;
 }
 
@@ -166,20 +219,21 @@ a:focus-visible {
 .appbar-icon,
 .appbar-login.is-member {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: var(--umsh-appbar-button);
+  height: var(--umsh-appbar-button);
   place-items: center;
   border-radius: 999px;
-  color: var(--cream-100);
+  color: var(--umsh-appbar-icon-color);
 }
 
+/* 아이콘 크기·굵기는 서비스 화면 상단(뒤로·메뉴)과 같은 공용 값(umsh-tokens.css). */
 .appbar-icon svg,
 .appbar-login.is-member svg {
-  width: 22px;
-  height: 22px;
+  width: var(--umsh-appbar-icon-size);
+  height: var(--umsh-appbar-icon-size);
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.7;
+  stroke-width: var(--umsh-appbar-icon-stroke);
   stroke-linecap: round;
 }
 
@@ -1936,22 +1990,8 @@ a:focus-visible {
     font-size: 30px;
   }
 
-  .appbar {
-    padding: 7px 14px 6px;
-    gap: 10px;
-  }
 
-  .app-brand img {
-    width: 90px;
-    height: 32px;
-  }
-}
-
-@media (max-width: 360px) {
-  .app-brand img {
-    width: 80px;
-    height: 29px;
-  }
+  /* 로고·아이콘 크기는 umsh-tokens.css 의 화면 폭별 값이 맡는다(서비스 화면 상단과 같다). */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2079,4 +2119,93 @@ a:focus-visible {
 /* 천명상담 배너 제목은 consultation.css에서 serif로 잡혀 있어 홈에서만 Pretendard로 덮는다. */
 .consultation-promo .consultation-promo-copy strong {
   font-family: var(--font-ui);
+}
+
+/* ── 오늘의 운 띠 (2026-10-16 사용자 제공 그림) ──
+   배경 그림(천문기·초승달·붉은 꽃, 글자 없음)을 띠 전체에 깔고, 그림 비율(2163:727)을 그대로 지켜
+   위아래가 잘리지 않게 한다. 왼쪽 천문기 위로는 글자를 얹지 않고 34% 지점부터 날짜·제목·설명을 둔다. */
+.today-ticket {
+  justify-content: flex-start;
+  gap: 10px;
+  aspect-ratio: 2163 / 727;
+  min-height: 104px;
+  padding: 12px 14px 12px 34%;
+  border-color: rgba(216, 186, 114, 0.32);
+  background: #0a0807;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 236, 190, 0.1);
+}
+
+.today-ticket .today-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
+}
+
+.today-ticket > div,
+.today-ticket .today-cta {
+  position: relative;
+  z-index: 1;
+}
+
+.today-ticket > div {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.today-ticket > div > span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.today-ticket strong {
+  margin-top: 3px;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.today-ticket p {
+  margin-top: 5px;
+  color: rgba(236, 226, 205, 0.78);
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.today-ticket .today-cta {
+  width: 42px;
+  height: 42px;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid rgba(216, 186, 114, 0.7);
+  border-radius: 50%;
+  background: rgba(8, 7, 6, 0.6);
+  color: var(--gold-400);
+}
+
+.today-ticket .today-cta svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.today-ticket:hover .today-cta,
+.today-ticket:focus-visible .today-cta,
+.today-ticket.is-pointed .today-cta {
+  background: var(--gold-gradient);
+  color: #070706;
 }

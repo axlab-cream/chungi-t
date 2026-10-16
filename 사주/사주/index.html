@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <script src="/js/umsh-analytics.js?v=ga-20261001-signup-funnel"></script>
-<script src="/js/umsh-chrome.js?v=20261016-glass" defer></script>
+<script src="/js/umsh-chrome.js?v=20261016-appbar16" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -4084,7 +4084,7 @@
         }
       }
     </style>
-  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261015a"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261015a"></script><script src="/js/umsh-reviews.js?v=20261015b"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -4123,6 +4123,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/umsh-auth-session.js"></script>
+    <script src="/js/umsh-love-target.js?v=20261016a"></script>
     <script src="/js/umsh-consent.js?v=20261016a"></script>
     <script src="/js/umsh-guest-save-sheet.js?v=20261016b"></script>
     <script src="/js/umsh-pay-sheet.js?v=20261016a"></script>
@@ -4482,7 +4483,9 @@
       async function authHeaders(base = {}) {
         const headers = { ...base };
         const session = authSession || await currentAuthSession().catch(() => null);
-        if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+        // 2026-10-16 비회원 결제: 회원 세션이 없으면 이 기기의 비회원 토큰으로 묻는다(산 풀이 열기·이어 읽기).
+        const token = session?.access_token || window.UMSHAuthSession?.currentGuestToken?.() || "";
+        if (token) headers.Authorization = `Bearer ${token}`;
         return headers;
       }
 
@@ -4831,15 +4834,7 @@
           syncBirthSessionFromState();
           clearTodayEntryPending();
           go("todayResult", false);
-          if (guestToday) {
-            window.UMSHGuestSaveSheet?.openWhenSeen({
-              entry: "today",
-              resultKey: "today:" + new Date().toISOString().slice(0, 10),
-              anchor: ".today-result-card .actions",
-              // 2026-10-16: 저장하기 → 동의+로그인 시트에서 고른 SNS 로그인을 바로 시작한다(풀화면 로그인을 거치지 않는다).
-              onLogin: (provider) => { persistAuthFormState(); setTodayEntryPending(); signInWithProvider(provider); },
-            });
-          }
+          // 2026-10-16: 오늘 운세(메인 콘텐츠)는 로그인·저장을 권하지 않는다.
         } catch (err) {
           todayRequestError = err.message || "오늘의 운세를 불러오지 못했습니다.";
           go("todayResult", false);
@@ -5240,7 +5235,7 @@
           .then(() => {
             go("result");
             registerGuestVisit();
-            armTradeLoginSheet();
+            // 2026-10-16: 메인 콘텐츠는 로그인을 권하지 않는다(맨 아래 저장 시트 없음). 운명 거래하기 → 결제 시트.
             // 로그인하다 돌아왔거나(뒤로 가기·취소) 실패해서 다시 그린 경우: 운명 거래하기가 보이는 맨 아래로 바로 데려간다.
             if (consumeTradeLoginReturn()) {
               scrollToTradeCta();
@@ -5290,6 +5285,11 @@
           if (usesTradeSheets()) openTradePaySheet();
           else go("purchase");
           return;
+        }
+        // 2026-10-16 대표 결정: 메인 콘텐츠는 로그인 없이 결제한다. 비회원은 이 기기의 비회원 계정으로 진짜 풀이를 만들고 결제 시트를 띄운다.
+        if (usesTradeSheets() && window.UMSHPaySheet?.open) {
+          const guestSession = await todayGuestSession();
+          if (guestSession?.access_token) { await openGuestTradePaySheet(guestSession); return; }
         }
         persistAuthFormState();
         sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
@@ -5399,6 +5399,44 @@
         sessionStorage.removeItem(AUTH_PURCHASE_KEY);
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         return Date.now() - startedAt < 60 * 60 * 1000;
+      }
+
+      /**
+       * 2026-10-16 비회원 결제. 티저(guestPreview)는 저장하지 않는 미리보기라 결제할 풀이가 없다.
+       * 이 기기의 비회원 계정으로 사주를 저장하고 진짜 풀이를 만든 뒤, 같은 화면 위에 결제 시트를 올린다.
+       */
+      async function openGuestTradePaySheet(guestSession) {
+        if (state.guestPreview || !state.analysis?.report?.reportId) {
+          go("loading");
+          try {
+            await registerGuestVisit();
+            await analyzeBirth({ token: guestSession.access_token });
+          } catch (err) {
+            go("result");
+            showNudge(err.message || "풀이를 준비하지 못했어요. 잠시 후 다시 시도해 주세요.");
+            return;
+          }
+          go("result");
+          scrollToTradeCta();
+        }
+        const productKey = checkoutProductKey();
+        const reportId = state.analysis?.report?.reportId || "";
+        const basePath = servicePathForCurrentPage();
+        const returnTo = reportId ? `${basePath}?reportId=${encodeURIComponent(reportId)}` : basePath;
+        const params = new URLSearchParams({ product: productKey, returnTo });
+        if (reportId) params.set("reportId", reportId);
+        const product = catalogProduct(productKey);
+        const originAmount = TRADE_ORIGIN_AMOUNT[state.plan] || 0;
+        const amount = Number(product?.amount) || 0;
+        setTimeout(() => window.UMSHPaySheet.open({
+          productKey,
+          reportId,
+          returnTo,
+          session: guestSession,
+          originAmount,
+          discountLabel: originAmount > amount && amount ? `${Math.round((1 - amount / originAmount) * 100)}%` : "",
+          fallbackUrl: `/payment?${params.toString()}`,
+        }), 300);
       }
 
       // 결제 시트에 보이는 정가. 결제 안내 화면(renderPurchase)의 정가와 같은 값이다.
@@ -6778,14 +6816,18 @@
           work: state.work,
           partner: getPartnerContext(),
         };
-        // 비회원 티저는 계정에 아무것도 저장하지 않는다.
-        if (!guest) await saveCurrentUserProfile();
+        // 비회원 티저는 계정에 아무것도 저장하지 않는다. 비회원 결제 전 진짜 풀이(options.token)는 비회원 계정에 프로필이 이미 있다(registerGuestVisit).
+        if (!guest && !options.token) await saveCurrentUserProfile();
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
         if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
         state.reportTypingTimer = null;
-        const headers = await authHeaders({ "Content-Type": "application/json" });
+        const headers = guest
+          ? { "Content-Type": "application/json" }
+          : options.token
+            ? { "Content-Type": "application/json", Authorization: `Bearer ${options.token}` }
+            : await authHeaders({ "Content-Type": "application/json" });
         const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
           method: "POST",
           headers,
@@ -7718,7 +7760,8 @@
 
       // 천명사주 생활 정보(필수). 8월에 뺀 관계·일 화면을 한 문항씩 되살리고, 관계 기준은
       // "이성/동성" 대신 연애 상대 성별로 묻는다. 서버·AI·참고서는 기존 orientation 칸을 그대로 쓴다.
-      const LOVE_TARGET_OPTIONS = ["남자", "여자", "둘 다·상관없음"];
+      // 연애 상대 기준(선택지·관계 기준 문장)은 서버와 같은 /js/umsh-love-target.js 를 쓴다.
+      const LOVE_TARGET_OPTIONS = window.UMSHLoveTarget.LOVE_TARGETS;
       const LIFE_RELATIONSHIP_OPTIONS = ["솔로예요", "마음에 둔 사람이 있어요", "썸이에요", "연애 중이에요", "이별 직후예요", "결혼했어요"];
       const LIFE_WORK_OPTIONS = ["학생이에요", "일을 찾고 있어요", "직장 다녀요", "사업해요", "프리랜서예요", "쉬고 있어요"];
 
@@ -7731,18 +7774,11 @@
 
       // 이 화면에서 고른 값만 답으로 본다. 예전 "이성 관계 중심" 같은 값에는 상대 성별이 없어 다시 묻는다.
       function loveTargetFromOrientation(orientation) {
-        const value = orientation || "";
-        const match = /연애 상대 (남자|여자)/.exec(value);
-        if (match) return match[1];
-        return value.includes("연애 상대 성별 무관") ? LOVE_TARGET_OPTIONS[2] : "";
+        return window.UMSHLoveTarget.loveTargetFromOrientation(orientation);
       }
 
       function orientationFromLoveTarget() {
-        const target = state.loveTarget;
-        if (target === "남자" || target === "여자") {
-          return `${target === state.gender ? "동성" : "이성"} 관계 중심 · 연애 상대 ${target}`;
-        }
-        return "관계 패턴 중심 · 연애 상대 성별 무관";
+        return window.UMSHLoveTarget.orientationFromLoveTarget(state.gender, state.loveTarget);
       }
 
       function renderLifeQuestion({ title, description, key, options, next }) {
@@ -8711,11 +8747,30 @@
         }).join("");
       }
 
+      /**
+       * 다녀간 손님들의 말(2026-10-15). 복채 카드 바로 아래, 결제 직전에 둔다.
+       * 후기가 기준(5개)보다 적으면 서버가 숨김을 주고, 자리는 사라진다.
+       */
+      function mountCmdgReviewList() {
+        if (!window.UMSHReviews || isLoveThisYearService()) return;
+        const anchor = stage.querySelector('[data-sample-section="package"]');
+        const slot = document.createElement("div");
+        slot.setAttribute("data-umsh-reviews", "cmdg");
+        if (anchor) anchor.insertAdjacentElement("afterend", slot);
+        else {
+          const footer = stage.querySelector(".site-footer");
+          if (footer) footer.insertAdjacentElement("beforebegin", slot);
+          else stage.appendChild(slot);
+        }
+        window.UMSHReviews.mountList(slot, { product: "cmdg" });
+      }
+
       function renderResult() {
         // 시간을 몰라도 천명사주는 티저로 간다(티저가 시주·오행·대운 없이 읽는다). 연애운이거나 티저가 없을 때만 안내 화면이다.
         if ((state.birthTimeKnown === false || state.analysis?.birthTimeKnown === false) && (isLoveThisYearService() || !window.UmshMasterTeaser)) { renderUnknownTimeResult(); return; }
         if (!isLoveThisYearService() && window.UmshMasterTeaser) {
           stage.innerHTML = window.UmshMasterTeaser.render(state) + businessFooterMarkup();
+          if (window.UMSHReviews) mountCmdgReviewList();
           // 티저는 화면을 통째로 다시 그린다. 그 뒤에 걸어야 플로팅 전환이 산다.
           setupFloatingCta(".sticky-story-cta");
           return;

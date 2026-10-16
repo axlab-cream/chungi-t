@@ -42,6 +42,8 @@
     '.umsh-ps-field{display:block;margin:14px 0 0;font-size:13px;color:rgba(246,234,214,.78)}',
     '.umsh-ps-field input,.umsh-ps-field select{display:block;width:100%;margin-top:6px;min-height:44px;padding:0 12px;border:1px solid rgba(246,234,214,.22);border-radius:10px;background:#f8f3ea;color:#15100d;font:inherit;font-size:15px}',
     '.umsh-ps-field small{display:block;margin-top:4px;color:rgba(246,234,214,.5)}',
+    '.umsh-ps-guest{margin:14px 0 0;font-size:12.5px;color:rgba(246,234,214,.62)}',
+    '.umsh-ps-consent{margin-top:12px}',
     '.umsh-ps-pay{display:block;width:100%;min-height:52px;margin-top:16px;border:0;border-radius:12px;background:#d6b26e;color:#15100d;font:inherit;font-size:16px;font-weight:700;cursor:pointer}',
     '.umsh-ps-pay[disabled]{opacity:.55;cursor:default}',
     '.umsh-ps-note{margin:10px 0 0;font-size:12px;line-height:1.55;color:rgba(246,234,214,.55);text-align:center}',
@@ -156,6 +158,20 @@
     return address + (address.indexOf('?') >= 0 ? '&' : '?') + params.toString() + hash;
   }
 
+  var consentLoading = null;
+  function loadConsent() {
+    if (global.UMSHConsent) return Promise.resolve(global.UMSHConsent);
+    if (consentLoading) return consentLoading;
+    consentLoading = new Promise(function (resolve) {
+      var script = document.createElement('script');
+      script.src = '/js/umsh-consent.js?v=20261016a';
+      script.onload = function () { resolve(global.UMSHConsent || null); };
+      script.onerror = function () { consentLoading = null; resolve(null); };
+      document.head.appendChild(script);
+    });
+    return consentLoading;
+  }
+
   var current = null;
 
   function close() {
@@ -249,8 +265,10 @@
       } catch (_e) { /* 확인 실패면 서버가 주문 때 한 번 더 막는다 */ }
     }
 
+    // 2026-10-16 비회원도 결제한다(docs/auth/guest-member-plan.md 8절). 비회원은 쿠폰 없이, 시트 안에서 약관 동의를 받는다.
+    var isGuest = Boolean(session.user && session.user.is_anonymous);
     var coupons = [];
-    try {
+    if (!isGuest) try {
       var couponResponse = await fetch('/api/coupons', { headers: authHeaders, cache: 'no-store' });
       var couponPayload = couponResponse.ok ? await couponResponse.json() : { items: [] };
       coupons = (couponPayload.items || []).filter(function (item) {
@@ -281,6 +299,7 @@
       + '<li class="is-discount" data-ps-coupon-line hidden><span>쿠폰 할인</span><span data-ps-coupon-amount></span></li>'
       + '<li class="is-total"><span>최종 결제 금액</span><span data-ps-total>' + won(amount) + '</span></li></ul>'
       + (coupons.length ? '<label class="umsh-ps-field">쿠폰<select data-ps-coupon><option value="">쿠폰 없이 결제</option>' + couponOptions + '</select></label>' : '')
+      + (isGuest ? '<p class="umsh-ps-guest">쿠폰은 SNS로 로그인하면 쓸 수 있어요. 로그인하지 않아도 결제할 수 있습니다.</p><div class="umsh-ps-consent" data-ps-consent></div>' : '')
       + (rememberedTel ? '' : '<label class="umsh-ps-field">휴대폰 번호<input type="tel" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" data-ps-tel /><small>결제사(이니시스)가 결제 확인에 씁니다. 다음부터는 다시 묻지 않아요.</small></label>')
       + (email ? '' : '<label class="umsh-ps-field">결제 안내 이메일<input type="email" autocomplete="email" placeholder="you@example.com" data-ps-email /></label>')
       + '<button type="button" class="umsh-ps-pay" data-ps-pay>' + (config.testMode ? '테스트 결제하기' : '결제하기') + '</button>'
@@ -289,6 +308,15 @@
 
     var couponSelect = sheet.querySelector('[data-ps-coupon]');
     var payButton = sheet.querySelector('[data-ps-pay]');
+    // 비회원: 약관 동의 묶음(필수 3 + 마케팅 선택). 회원은 운명 거래하기 전에 동의를 이미 확인했다.
+    var consent = null;
+    var consentHost = sheet.querySelector('[data-ps-consent]');
+    if (consentHost) {
+      loadConsent().then(function (module) {
+        if (!module || !consentHost.isConnected) return;
+        consent = module.render(consentHost, { source: 'login' });
+      });
+    }
     function selectedCoupon() { return couponSelect ? coupons.find(function (item) { return item.id === couponSelect.value; }) || null : null; }
     function paintCoupon() {
       var item = selectedCoupon();
@@ -313,6 +341,10 @@
         global.location.assign(free.pathname + free.search);
         return;
       }
+      if (isGuest && consentHost) {
+        if (!consent) { setStatus('약관을 불러오는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
+        if (!consent.isValid()) { consent.shakeMissing(); return; }
+      }
       var tel = rememberedTel || (telInput ? telInput.value : '');
       if (!telLooksValid(tel)) { setStatus('휴대폰 번호를 확인해 주세요.'); if (telInput) telInput.focus(); return; }
       var buyerEmail = email || ((sheet.querySelector('[data-ps-email]') || {}).value || '').trim();
@@ -329,6 +361,11 @@
       payButton.disabled = true;
       setStatus('결제 주문을 확인하고 있습니다.');
       try {
+        // 비회원 동의는 주문 전에 서버에 남긴다(서버는 동의 기록이 없는 비회원 주문을 받지 않는다).
+        if (isGuest && consent && global.UMSHConsent) {
+          var recorded = await global.UMSHConsent.postConsent(session.access_token, consent.values());
+          if (recorded.status === 409) throw new Error('약관이 바뀌었어요. 화면을 새로고침한 뒤 다시 결제해 주세요.');
+        }
         if (global.UMSHPaymentBridge && opts.returnTo) global.UMSHPaymentBridge.save(product.key, { reportId: opts.reportId || '' }, opts.returnTo);
         var response = await fetch('/api/payment/orders', {
           method: 'POST',

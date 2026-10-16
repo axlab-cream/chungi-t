@@ -506,7 +506,7 @@
       </div>
     </main>
 
-    <script src="/js/umsh-chrome.js?v=20260922c"></script>
+    <script src="/js/umsh-chrome.js?v=20261016-appbar16"></script>
     <script src="/js/umsh-auth-session.js"></script>
     <script src="/js/umsh-guest-save-sheet.js?v=20261016b"></script>
     <script src="/js/umsh-loading.js"></script>
@@ -730,7 +730,7 @@
           renderReport();
           showScreen('report');
           // 비회원 무료 결과: 결과를 본 뒤 저장 안내 바텀시트(2026-10-14, docs/auth/guest-member-plan.md)
-          if (window.UMSHAuthSession.isGuestSession?.(state.session)) window.UMSHGuestSaveSheet?.openWhenSeen({ entry: 'work-job', resultKey: 'work-job:report', anchor: '[data-screen="report"] > :last-child' });
+          if (window.UMSHAuthSession.isGuestSession?.(state.session)) window.UMSHAuthSession.recordGuestVisit?.('work-job') /* 2026-10-16 메인 콘텐츠: 저장 권유 없음, 비회원 방문만 센다 */;
         };
         setLoading(false);
         await window.UMSHProgressiveReport.followProgress({

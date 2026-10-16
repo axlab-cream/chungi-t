@@ -162,8 +162,9 @@ describe('30일 지난 비회원 정리', { concurrency: false }, () => {
     await ledger.recordGuestVisit({ guest: guest(GUEST_B), deviceId: DEVICE_PC, service: 'today', profile: profile() }, new Date('2026-10-02T00:00:00.000Z'))
     await ledger.recordGuestVisit({ guest: guest(GUEST_C), deviceId: DEVICE_PHONE, service: 'today', profile: profile() }, new Date('2026-11-25T00:00:00.000Z'))
     const deleted: string[] = []
-    const result = await ledger.anonymizeStaleGuests(null, now, async (id) => { if (id === GUEST_B) throw new Error('boom'); deleted.push(id) })
-    assert.deepEqual(result, { people: 1, accounts: 1, failedAccounts: 1 })
+    const noOrders = async () => false
+    const result = await ledger.anonymizeStaleGuests(null, now, async (id) => { if (id === GUEST_B) throw new Error('boom'); deleted.push(id) }, noOrders)
+    assert.deepEqual(result, { people: 1, accounts: 1, failedAccounts: 1, keptPaid: 0 })
     const old = people.find((row) => row.device_id === DEVICE_PC)!
     assert.equal(old.name, null)
     assert.equal(old.birth_day, null)
@@ -175,10 +176,43 @@ describe('30일 지난 비회원 정리', { concurrency: false }, () => {
     assert.equal(old.anonymized_at, null, '못 지운 계정이 남으면 아직 정리 대상')
     assert.equal(people.find((row) => row.device_id === DEVICE_PHONE)!.name, '김하늘', '최근 방문은 건드리지 않는다')
 
-    const retry = await ledger.anonymizeStaleGuests(null, now, async (id) => { deleted.push(id) })
-    assert.deepEqual(retry, { people: 1, accounts: 1, failedAccounts: 0 })
+    const retry = await ledger.anonymizeStaleGuests(null, now, async (id) => { deleted.push(id) }, noOrders)
+    assert.deepEqual(retry, { people: 1, accounts: 1, failedAccounts: 0, keptPaid: 0 })
     assert.ok(old.anonymized_at)
     assert.deepEqual(deleted, [GUEST_A, GUEST_B])
+  })
+})
+
+describe('2026-10-16 한 기기 한 비회원 계정을 여러 사람이 씀', { concurrency: false }, () => {
+  it('같은 비회원 계정이라도 사주가 다르면 다른 줄, 원래 사주로 돌아오면 원래 줄의 방문 수만', async () => {
+    await ledger.recordGuestVisit({ guest: guest(GUEST_A), deviceId: DEVICE_PC, service: 'cmdg', profile: profile('에이') })
+    await ledger.recordGuestVisit({ guest: guest(GUEST_A), deviceId: DEVICE_PC, service: 'cmdg', profile: profile('비') })
+    assert.equal(people.length, 2)
+    await ledger.recordGuestVisit({ guest: guest(GUEST_A), deviceId: DEVICE_PC, service: 'today', profile: profile('에이') })
+    assert.equal(people.length, 2)
+    const a = people.find((row) => row.name === '에이')!
+    assert.deepEqual(a.guest_user_ids, [GUEST_A])
+    assert.deepEqual(a.services, ['cmdg', 'today'])
+  })
+})
+
+describe('2026-10-16 결제한 비회원', { concurrency: false }, () => {
+  it('30일이 지나도 결제한 비회원은 정리하지 않고 결제 표시만 남긴다', async () => {
+    const now = new Date('2026-12-01T00:00:00.000Z')
+    await ledger.recordGuestVisit({ guest: guest(GUEST_A), deviceId: DEVICE_PC, service: 'cmdg', profile: profile() }, new Date('2026-10-01T00:00:00.000Z'))
+    const deleted: string[] = []
+    const result = await ledger.anonymizeStaleGuests(null, now, async (id) => { deleted.push(id) }, async (id) => id === GUEST_A)
+    assert.deepEqual(result, { people: 0, accounts: 0, failedAccounts: 0, keptPaid: 1 })
+    assert.deepEqual(deleted, [])
+    assert.equal(people[0].name, '김하늘')
+    assert.ok(people[0].paid_at)
+  })
+
+  it('결제 완료되면 그 비회원 줄에 처음 한 번만 결제 표시', async () => {
+    await ledger.recordGuestVisit({ guest: guest(GUEST_A), deviceId: DEVICE_PC, service: 'cmdg', profile: profile() })
+    await ledger.markGuestPaid(GUEST_A, new Date('2026-10-16T00:00:00.000Z'))
+    await ledger.markGuestPaid(GUEST_A, new Date('2026-10-17T00:00:00.000Z'))
+    assert.equal(people[0].paid_at, '2026-10-16T00:00:00.000Z')
   })
 })
 
@@ -201,7 +235,7 @@ describe('서버·어드민 연결', () => {
 
   it('이어받기는 장부에도 회원 전환을 적는다', () => {
     const claim = app.slice(app.indexOf("app.post('/api/auth/claim-guest'"), app.indexOf("app.get('/api/user/profile'"))
-    assert.match(claim, /markGuestConverted\(guest\.id, member\.id\)/)
+    assert.ok(claim.includes("markGuestConverted(guest.id, member.id, new Date(), person ? sajuKey(person) : undefined)"), "옮긴 사람 줄만 전환")
   })
 
   it('동의 표는 필수 셋이 모두 true 인 줄만 받고, 두 표 모두 service_role 만 쓴다', () => {

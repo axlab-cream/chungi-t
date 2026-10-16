@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it } from 'node:test'
 import { CMDG_READING_CONTRACT } from '../../src/report/cmdg-reading-contract.js'
+import '../../사주/js/umsh-love-target.js'
 
 /**
  * 천명사주는 전체 사주라 연애·일 장을 쓰려면 관계·일·연애 상대를 알아야 한다.
@@ -12,6 +13,9 @@ import { CMDG_READING_CONTRACT } from '../../src/report/cmdg-reading-contract.js
  */
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const source = readFileSync(join(root, '사주', '사주', 'index.html'), 'utf8').replaceAll('\r\n', '\n')
+
+// 화면은 /js/umsh-love-target.js 를 먼저 불러온다. 테스트도 같은 파일을 window 로 넘긴다.
+const win = { UMSHLoveTarget: (globalThis as unknown as { UMSHLoveTarget: { LOVE_TARGETS: string[] } }).UMSHLoveTarget }
 
 const fn = (name: string) => {
   const start = source.indexOf(`function ${name}(`)
@@ -23,7 +27,7 @@ const fn = (name: string) => {
 function mapping(gender: string, loveTarget: string): string {
   const state = { gender, loveTarget }
   // eslint-disable-next-line no-new-func
-  return new Function('state', `${fn('orientationFromLoveTarget')}\nreturn orientationFromLoveTarget();`)(state)
+  return new Function('state', 'window', `${fn('orientationFromLoveTarget')}\nreturn orientationFromLoveTarget();`)(state, win)
 }
 
 describe('천명사주 생활 정보 입력', () => {
@@ -49,7 +53,9 @@ describe('천명사주 생활 정보 입력', () => {
   })
 
   it('연애 상대는 남자/여자/둘 다·상관없음이고, 화면에 지향 표현을 쓰지 않는다', () => {
-    assert.match(source, /const LOVE_TARGET_OPTIONS = \["남자", "여자", "둘 다·상관없음"\];/)
+    assert.match(source, /const LOVE_TARGET_OPTIONS = window\.UMSHLoveTarget\.LOVE_TARGETS;/)
+    assert.match(source, /<script src="\/js\/umsh-love-target\.js[^"]*"><\/script>/, '공용 파일을 불러온다')
+    assert.deepEqual([...win.UMSHLoveTarget.LOVE_TARGETS], ['남자', '여자', '둘 다·상관없음'])
     for (const name of ['renderLifeQuestion', 'renderLoveTarget', 'renderLifeRelationship', 'renderLifeWork']) {
       assert.doesNotMatch(fn(name), /동성|이성|LGBT|헤테로/, `${name} 에 지향 표현이 없어야 한다`)
     }
@@ -77,9 +83,9 @@ describe('천명사주 생활 정보 입력', () => {
     assert.match(source, /go\(profile \? concernOrLifeScene\(\) : "name"\)/)
     assert.match(source, /go\(backToResult \? "result" : concernOrLifeScene\(\)\)/)
     const scene = (state: Record<string, string>) =>
-      new Function('state', 'isLoveThisYearService', 'LOVE_TARGET_OPTIONS', `${fn('loveTargetFromOrientation')}
+      new Function('state', 'isLoveThisYearService', 'LOVE_TARGET_OPTIONS', 'window', `${fn('loveTargetFromOrientation')}
 ${fn('concernOrLifeScene')}
-return concernOrLifeScene();`)(state, () => false, ['남자', '여자', '둘 다·상관없음'])
+return concernOrLifeScene();`)(state, () => false, ['남자', '여자', '둘 다·상관없음'], win)
     assert.equal(scene({ orientation: '이성 관계 중심 · 연애 상대 남자', relationship: '솔로예요', work: '직장 다녀요' }), 'concern')
     assert.equal(scene({ orientation: '이성 관계 중심', relationship: '솔로예요', work: '직장 다녀요' }), 'love-target', '예전 값엔 상대 성별이 없어 다시 묻는다')
     assert.equal(scene({ orientation: '관계 패턴 중심 · 연애 상대 성별 무관', relationship: '', work: '직장 다녀요' }), 'love-target')

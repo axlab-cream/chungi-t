@@ -1034,7 +1034,10 @@
       }
 
       function authSession() {
-        return window.UMSH_AUTH_SESSION || window.UMSHAuthSession?.session || null;
+        // 2026-10-16: window.UMSH_AUTH_SESSION 은 어디서도 채우지 않아 회원도 "로그인 필요"로 보였다.
+        // 공용 세션 모듈에서 회원 또는 이 기기의 비회원 토큰이 있는지 본다. 비회원도 결제한다(docs/auth/guest-member-plan.md 8절).
+        const token = window.UMSHAuthSession?.currentMemberToken?.() || window.UMSHAuthSession?.currentGuestToken?.() || "";
+        return window.UMSH_AUTH_SESSION || (token ? { user: { token } } : null);
       }
 
       function serverEntitlement() {
@@ -1340,12 +1343,14 @@
       });
 
       render();
+      // 공용 세션 모듈은 이 스크립트 뒤에 실린다. 다 실린 뒤 한 번 더 그려 회원·비회원을 알아보게 한다.
+      window.addEventListener("load", () => render());
     </script>
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="/js/common-auth-return.js"></script>
     <script src="/js/umsh-auth-session.js?v=live-20260916t"></script>
     <script src="/js/payment-bridge.js"></script>
-    <script src="/js/umsh-chrome.js?v=20260922c"></script>
+    <script src="/js/umsh-chrome.js?v=20261016-appbar16"></script>
     <script src="/js/umsh-text-clip.js"></script>
 <script src="/js/signal-service.js?v=20261014-guest-teaser" defer=""></script>
   

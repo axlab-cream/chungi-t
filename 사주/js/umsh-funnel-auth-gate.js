@@ -207,16 +207,9 @@
     doc.head.appendChild(script);
   }
 
+  /** 2026-10-16 단계형 서비스(메인 콘텐츠)는 무료 결과에서 로그인·저장을 권하지 않는다. 비회원 방문(집계)만 남긴다. */
   function armGuestSaveSheet() {
-    loadSheetScript(function () {
-      if (!global.UMSHGuestSaveSheet) return;
-      global.UMSHGuestSaveSheet.openWhenSeen({
-        entry: serviceEntry(),
-        resultKey: serviceEntry() + ':04',
-        returnTo: here(),
-        anchor: LOCKED_SELECTOR,
-      });
-    });
+    if (global.UMSHAuthSession && typeof global.UMSHAuthSession.recordGuestVisit === 'function') global.UMSHAuthSession.recordGuestVisit(serviceEntry());
   }
 
   hide();
