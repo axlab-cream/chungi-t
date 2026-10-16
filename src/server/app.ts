@@ -71,7 +71,7 @@ import { staffMembership, staffMembershipConfigured, type StaffMembership } from
 import { adminAccountCount, adminAccountStoreAvailable, adminAccountStoreEnabled, createAdminAccount, findAdminAccountByEmail, listAdminAccounts, updateAdminAccountActive, updateAdminAccountPassword } from '../auth/admin-account-store.js'
 import { hashAdminPassword, verifyAdminPassword } from '../auth/admin-password.js'
 import { AttemptLimiter, isSamePerson, maskedName, pickRecordsFor, sameTel } from '../user/guest-merge.js'
-import { CONSENT_VERSION, LedgerError, markGuestPaid, getGuestPerson, sajuKey, listGuestPeopleForMember, anonymizeStaleGuests, countGuestPeople, countGuestPeopleConverted, countGuestPeopleCreated, countStaleGuests, currentConsentTimes, hasCurrentConsent, listConsents, listGuestPeople, markGuestConverted, parseConsentInput, recordConsent, recordGuestVisit, type GuestFilter, type GuestSort } from '../user/guest-ledger.js'
+import { CONSENT_VERSION, LedgerError, markGuestPaid, getGuestPerson, getGuestPersonDetail, sajuKey, listGuestPeopleForMember, anonymizeStaleGuests, countGuestPeople, countGuestPeopleConverted, countGuestPeopleCreated, countStaleGuests, currentConsentTimes, hasCurrentConsent, listConsents, listGuestPeople, markGuestConverted, parseConsentInput, recordConsent, recordGuestVisit, type GuestFilter, type GuestSort } from '../user/guest-ledger.js'
 import { type MemberContact, countLiveMembers, countMemberKinds, memberContactsByIds, countLiveReports, findLiveMember, findLiveReport, getAdminMemberDetail, listGenerationFailureLog, listMemberPurchases, listMemberReports, listQualityReviews, searchLiveMembers, createAdminMember, deleteAdminMember, searchLiveReports, generationFailureStats, countMembersCreated, countReportsCreated, countGuestsCreated, countGuestConversions, countLiveGuests, setMemberBanned, signupStats, updateAdminMemberProfile } from '../admin/live-data.js'
 import { getMediaCatalog } from '../admin/media-catalog.js'
 import { getAdminCorpusSnapshot, resolveActiveCorpusDownload } from '../admin/corpus-catalog.js'
@@ -3326,6 +3326,17 @@ function adminTransferInput(req: Request, res: Response): { reason: string; key:
   }
   return { reason, key }
 }
+
+app.get('/api/admin/v1/guests/:id', async (req, res) => {
+  if (!await requireStaff(req, res, 'members:read')) return
+  try {
+    const guest = await getGuestPersonDetail(trimmedString(req.params.id))
+    if (!guest) { res.status(404).json({ code: 'GUEST_NOT_FOUND', error: '비회원을 찾지 못했습니다.' }); return }
+    res.json({ guest, asOf: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ code: 'GUEST_LOOKUP_FAILED', error: '비회원 정보를 불러오지 못했습니다.' })
+  }
+})
 
 app.post('/api/admin/v1/guests/:id/merge', async (req, res) => {
   const membership = await requireStaff(req, res, 'members:write'); if (!membership) return

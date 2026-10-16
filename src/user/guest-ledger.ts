@@ -488,3 +488,29 @@ export async function getGuestPerson(id: string): Promise<{ id: string; guestUse
     convertedTo: str(row.converted_to),
   }
 }
+
+/**
+ * 어드민 비회원 상세(2026-10-16). 같은 이름·생년월일을 넣은 다른 비회원 줄 수를 참고로 준다(다른 기기의 같은 사람일 수 있음).
+ * 합치지는 않는다 — 고객 요청이 있을 때 운영자가 "회원에게 합치기"로 처리한다.
+ */
+export async function getGuestPersonDetail(id: string, now = new Date()): Promise<(AdminGuestPerson & { similar: number; birthMonth: number | null; birthDay: number | null }) | null> {
+  if (!UUID.test(id)) return null
+  const url = table('umsh_guest_people')
+  url.searchParams.set('select', 'id,name,birth_year,birth_month,birth_day,gender,saju_key,services,visits,first_seen_at,last_seen_at,consented_at,marketing_consented,converted_to,converted_at,anonymized_at,paid_at')
+  url.searchParams.set('id', `eq.${id}`)
+  url.searchParams.set('limit', '1')
+  const row = (await rows(url))[0]
+  if (!row) return null
+  let similar = 0
+  const name = str(row.name)
+  if (name && num(row.birth_year) && num(row.birth_month) && num(row.birth_day)) {
+    similar = await countWhere([
+      ['name', `eq.${name}`],
+      ['birth_year', `eq.${row.birth_year}`],
+      ['birth_month', `eq.${row.birth_month}`],
+      ['birth_day', `eq.${row.birth_day}`],
+      ['id', `neq.${id}`],
+    ]).catch(() => 0)
+  }
+  return { ...personFromRow(row, now), similar, birthMonth: num(row.birth_month), birthDay: num(row.birth_day) }
+}
