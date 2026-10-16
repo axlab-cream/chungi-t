@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 
 import { clearCorpusRegistryCache, corpusCacheSalt, getCorpusSnapshot, withCorpusEpoch } from '../../src/rag/corpus-registry.js'
-import { createOrGetReportRecord, createReportId, createReportLineageId, findReportInLineage } from '../../src/report/report-store.js'
+import { createOrGetReportRecord, createReportId, createReportLineageId, findReportInLineage, reportLineageId, type ReportRecord } from '../../src/report/report-store.js'
 import { buildTemplateSajuReport } from '../../src/report/report-generator.js'
 import { analyzeSaju } from '../../src/saju/analyzer.js'
 import type { BirthInput, SajuReportContext } from '../../src/types/index.js'
@@ -214,4 +214,16 @@ test('8. 특화 서비스의 계보 키(역산 불가)도 레코드에 남는다
   const found = await findReportInLineage(lineageId, owner)
   assert.ok(found, '기록된 계보 키로 지난 해석을 찾지 못했다. 세대 상향 시 결제 권한이 끊긴다.')
   assert.equal(found?.reportId, created.record.reportId)
+})
+
+test('6. 계보 키가 없는 옛 레코드(9/14 이전)는 만들어진 세대로 역산한다 — 세대를 올리면 승계하지 않는다', () => {
+  const legacy = { birth: BIRTH, context: CONTEXT, owner: { id: 'owner-1' } } as unknown as ReportRecord
+  // 세대 기록도 계보 기록도 없는 옛 레코드는 기준 세대("")에서 만든 것이다.
+  assert.equal(reportLineageId(legacy), withEpoch('', () => createReportLineageId(BIRTH, CONTEXT, 'owner-1')))
+  // 지금 세대가 무엇이든 옛 레코드의 계보는 바뀌지 않는다 → 새 세대의 계보와 겹치지 않아 새로 만든다.
+  const current = withEpoch('e9', () => ({ legacy: reportLineageId(legacy), now: createReportLineageId(BIRTH, CONTEXT, 'owner-1') }))
+  assert.notEqual(current.legacy, current.now, '옛 레코드가 현재 세대로 보이면 업데이트 뒤에도 옛 해석이 그대로 나간다.')
+  // 세대 기록만 있고 계보 기록이 없는 레코드는 그 세대로 역산한다.
+  const epochOnly = { ...legacy, cacheEpoch: 'e9' } as ReportRecord
+  assert.equal(reportLineageId(epochOnly), current.now)
 })
