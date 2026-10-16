@@ -120,7 +120,7 @@
     var head = '<span class="umsh-gs-handle" data-drag-handle aria-hidden="true"></span>'
       + '<button type="button" class="umsh-gs-close" data-action="close" aria-label="닫기">×</button>'
       + '<p class="umsh-gs-title" id="umsh-gs-title" data-drag-handle>' + escapeText(opts.title || 'SNS로 로그인하면 이 결과가 저장돼요') + '</p>'
-      + '<p class="umsh-gs-sub">' + escapeText(opts.sub || '로그인하지 않으면 1시간 뒤 사라져요.') + '</p>'
+      + '<p class="umsh-gs-sub">' + escapeText(opts.sub || '내 보관함에 저장해 두고 언제든 다시 볼 수 있어요.') + '</p>'
       + '<div class="umsh-gs-consent" data-consent-host></div>';
     if (opts.variant === 'b') {
       var rest = providers.slice(1).map(function (p) { return '<a href="#" data-provider="' + p + '">' + LABELS[p] + '</a>'; }).join('');
