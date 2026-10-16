@@ -627,3 +627,16 @@ body.umsh-has-chrome .payment-page {
 .myhub-coupons .coupon-meta { margin: 0; color: var(--payment-muted); font-size: 12px; line-height: 1.6; word-break: keep-all; }
 .myhub-coupons .coupon-action { display: flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 4px; border: 1px solid var(--payment-gold); border-radius: 8px; color: var(--payment-gold); font-size: 13.5px; font-weight: 800; text-decoration: none; }
 .myhub-notes { display: grid; gap: 8px; margin: 0 0 18px; padding: 16px 16px 16px 30px; border: 1px solid var(--payment-line); border-radius: 12px; background: var(--payment-panel); color: var(--payment-muted); font-size: 12.5px; line-height: 1.65; word-break: keep-all; }
+
+/* 2026-10-16 화면 밖으로 벗어나는 문제 수정.
+   grid 칸은 기본으로 안의 가장 긴 글자(띄어쓰기 없는 쿠폰 이름·주소)나 입력창 기본 너비만큼 넓어진다.
+   칸 너비를 화면 폭에 묶고, 긴 글자는 줄을 바꿔 카드 안에 머물게 한다. */
+.myhub .payment-form,
+.myhub-coupons,
+.myhub-notices,
+.myhub-inquiries { grid-template-columns: minmax(0, 1fr); }
+.myhub-coupon-row input { width: 100%; }
+.myhub-coupons .coupon-top h3,
+.myhub-coupons .coupon-meta,
+.myhub-notice summary b,
+.myhub-notice p { overflow-wrap: anywhere; }

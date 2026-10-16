@@ -316,15 +316,18 @@
     return `
       <div class="umsh-service-shell" aria-label="운명상회 공통 상단">
         <header class="appbar topbar umsh-chrome-appbar">
-          <a class="app-brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
-            <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
-          </a>
-          <div class="app-actions topbar-actions">
+          <!-- 2026-10-16: 뒤로 버튼은 로고 앞에 아이콘만(동그라미 없이). 메뉴 버튼과 크기는 원래 그대로. -->
+          <div class="topbar-lead">
             <button class="app-back umsh-chrome-back icon-button" type="button" data-back data-shell-back aria-label="뒤로 가기">
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
+            <a class="app-brand topbar-brand-logo umsh-service-logo" href="/" aria-label="운명상회 홈">
+              <img src="/assets/umsh-brand-logo.png" alt="운명상회" />
+            </a>
+          </div>
+          <div class="app-actions topbar-actions">
             <button class="topbar-vault-button" type="button" data-shell-bottom-menu="vault" aria-controls="serviceBottomMenuPanel" aria-expanded="false" aria-label="보관함 열기">
               <span aria-hidden="true">☰</span>
             </button>

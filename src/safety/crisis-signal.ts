@@ -80,13 +80,35 @@ const HUMAN_READ_ROUTES = [/^\/api\/user\/inquiries/, /^\/api\/report\/flag/, /^
  */
 export function crisisGuard(req: Request, res: Response, next: NextFunction): void {
   const path = req.originalUrl.split('?')[0]
-  if (req.body && typeof req.body === 'object' && !HUMAN_READ_ROUTES.some((pattern) => pattern.test(path))) {
+  if (HUMAN_READ_ROUTES.some((pattern) => pattern.test(path))) { next(); return }
+  if (req.body && typeof req.body === 'object') {
     const { value, detected } = redactCrisisPayload(req.body)
     if (detected) {
       req.body = value
       res.locals.crisisSignal = true
+      res.setHeader(CARE_HEADER, 'crisis')
       console.warn(`[crisis-signal] ${req.method} ${path}`)
     }
   }
+  // 2차(화면 안내): 이번 요청에 위기 문장이 없어도, 돌려주는 리포트·상담 기록에 바꿔 둔 문장이 있으면
+  // (다시 열어 본 풀이 등) 같은 표시를 붙인다. 화면의 공용 스크립트(사주/js/umsh-care-notice.js)가 이 표시를 보고 안내를 띄운다.
+  const json = res.json.bind(res)
+  res.json = (body?: unknown) => {
+    if (!res.headersSent && !res.getHeader(CARE_HEADER) && hasCrisisMarker(body)) res.setHeader(CARE_HEADER, 'crisis')
+    return json(body)
+  }
   next()
+}
+
+/** 응답에 붙이는 표시 헤더 이름. 값은 'crisis' 하나뿐이고 고객 글은 담지 않는다. */
+export const CARE_HEADER = 'X-UMSH-Care'
+
+/** 화면 안내 문구(공용 스크립트가 표시가 있을 때만 받아 간다). */
+export function careNotice() {
+  return rules.notice
+}
+
+/** 카카오 말풍선용 안내 한 줄. */
+export function careNoticeText(): string {
+  return `${rules.notice.title}\n${rules.notice.body}`
 }
