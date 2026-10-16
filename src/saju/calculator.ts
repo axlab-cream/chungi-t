@@ -7,9 +7,19 @@ import type { BirthInput, DayBoundaryRule, EarthlyBranch, HeavenlyStem, Pillar, 
 type KoreanLunarCalendarCtor = new () => {
   setLunarDate(lunarYear: number, lunarMonth: number, lunarDay: number, isIntercalation: boolean): boolean
   getSolarCalendar(): { year: number; month: number; day: number }
+  setSolarDate(solarYear: number, solarMonth: number, solarDay: number): boolean
+  getLunarCalendar(): { year: number; month: number; day: number; intercalation?: boolean }
 }
 
 const LunarCalendar = KoreanLunarCalendar as unknown as KoreanLunarCalendarCtor
+
+/** 양력 날짜의 한국 음력(KASI). 음력 입력을 양력으로 바꿀 때와 같은 표를 쓴다. 지원 범위 밖이면 null. */
+export function koreanLunarDate(solarYear: number, solarMonth: number, solarDay: number): { year: number; month: number; day: number; isLeapMonth: boolean } | null {
+  const calendar = new LunarCalendar()
+  if (!calendar.setSolarDate(solarYear, solarMonth, solarDay)) return null
+  const lunar = calendar.getLunarCalendar()
+  return { year: lunar.year, month: lunar.month, day: lunar.day, isLeapMonth: Boolean(lunar.intercalation) }
+}
 
 const HEAVENLY_STEMS: HeavenlyStem[] = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
 const EARTHLY_BRANCHES: EarthlyBranch[] = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
