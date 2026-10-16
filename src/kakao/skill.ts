@@ -9,6 +9,7 @@ import type { BirthInput, ElementCount, SajuAnalysis, SajuReport, SajuReportCont
 import { describeBirth, parseKakaoBirth } from './birth-parse.js'
 import { KakaoStoreError, restKakaoChatStore, type KakaoBirthDraft, type KakaoChatState, type KakaoChatStore, type KakaoTurn } from './chat-store.js'
 import { careNoticeText, crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
+import { AUTO_LINK_DECLINE_MS, LINK_TOKEN_TTL_MS, newLinkToken, type KakaoLastResult, type KakaoLinkStore, type KakaoVaultSaver } from './member-link.js'
 
 /**
  * 카카오톡 채널 챗봇 "상주 천명" 스킬 서버.
@@ -19,6 +20,8 @@ import { careNoticeText, crisisAiInstruction, hasCrisisMarker } from '../safety/
  * - 천명사주·오늘의 운: 생일을 받아 umsh.kr 무료 화면과 같은 코드로 만든 내용을 그대로 보여 준다.
  *   AI를 쓰지 않고 하루 횟수에서도 빼지 않는다(사용자 결정 2026-10-15).
  * - 카카오 스킬은 5초 안에 답해야 해서, 늦어지면 콜백(useCallback)으로 나중에 보낸다.
+ * - 회원 연결(2026-10-16, member-link.ts): 이어진 손님의 천명사주·오늘의 운은 그 회원 보관함에도 남긴다.
+ *   연결 조회는 결과를 보여 줄 때와 연결 관련 말("남겨 줘"·"연결 끊기")에만 한다. 보통 대화는 느려지지 않는다.
  * 회원 결제·크레딧(웹 천명상담)과는 완전히 분리되어 있다.
  */
 
@@ -50,6 +53,10 @@ export interface KakaoSkillDeps {
    * 따로 만들면 사이트와 값이 어긋날 수 있어 같은 함수를 주입한다. 없으면 천명사주는 사이트로만 안내한다.
    */
   uiAnalysis?: UiAnalysisBuilder
+  /** 회원 연결 저장소. 없으면 연결·보관함 저장 없이 예전처럼 동작한다. */
+  links?: KakaoLinkStore
+  /** 사이트와 같은 경로로 회원 보관함에 저장한다(app.ts 주입). links 와 함께 있어야 쓴다. */
+  vault?: KakaoVaultSaver
 }
 
 export type UiAnalysisBuilder = (analysis: SajuAnalysis, birth: BirthInput, report: SajuReport, context: SajuReportContext) => object
@@ -64,7 +71,7 @@ interface UiPayload {
 
 interface SkillPayload {
   bot?: { id?: unknown }
-  userRequest?: { utterance?: unknown; callbackUrl?: unknown; user?: { id?: unknown }; block?: { name?: unknown } }
+  userRequest?: { utterance?: unknown; callbackUrl?: unknown; user?: { id?: unknown; properties?: { appUserId?: unknown } }; block?: { name?: unknown } }
 }
 
 /* ─────────────────────────── 말풍선 ─────────────────────────── */
@@ -251,10 +258,129 @@ const FAIL_TEXT = '지금 명부가 잘 안 넘어가네. 잠깐 뒤에 다시 �
 const STORE_FAIL_TEXT = '천명이 잠깐 자리를 비웠어. 그동안 운명상회에서 둘러보고 있어 줘.'
 const WAIT_TEXT = '잠깐, 명부 좀 펼쳐 볼게.'
 
-interface Turn { userKey: string; utterance: string; blockName: string; day: string; nowMs: number }
+interface Turn {
+  userKey: string; utterance: string; blockName: string; day: string; nowMs: number
+  /** 카카오 로그인 회원 번호(채널에 카카오 앱이 이어진 경우만 온다). 저장·로그에 남기지 않는다. */
+  appUserId?: string
+}
+interface MemberDeps { links: KakaoLinkStore; vault: KakaoVaultSaver }
+
+/* ─────────────────────────── 회원 연결 ─────────────────────────── */
+
+const AUTO_ASK_TTL_MS = 30 * 60 * 1000
+const AUTO_YES = /^(남겨줘|남겨둬|남겨|응|그래|좋아|응남겨줘)$/
+const AUTO_NO = /^(괜찮아|괜찮아요|아니|아니야|됐어|안할래|싫어)$/
+const UNLINK = /^(연결끊기|연결끊어|연결끊어줘|연결끊을래|연결해제|연결해제해줘)$/
+const AUTO_ASK_TEXT = '운명상회에 같은 카카오 계정이 있네.\n여기서 본 명부, 네 보관함에도 남겨 둘까?'
+const AUTO_ASK_QUICK: Output[] = [
+  { label: '남겨 줘', action: 'message', messageText: '남겨 줘' },
+  { label: '괜찮아', action: 'message', messageText: '괜찮아' },
+]
+const LINKED_TEXT = '남겨 뒀어.\n이제 여기서 펼친 명부는 네 보관함에도 같이 꽂아 둘게.\n끊고 싶으면 "연결 끊기"라고 말해.'
+const DECLINED_TEXT = '알겠어.\n여기서 본 명부는 이 대화에만 둘게.'
+const UNLINKED_TEXT = '끊었어.\n이제 여기서 펼친 명부는 네 보관함에 남기지 않아.'
+const NOT_LINKED_TEXT = '이어진 계정이 없어.\n명부를 보관함에 남기고 싶으면 결과 아래 [보관함에 저장하기]를 눌러.'
+const NO_MEMBER_TEXT = '운명상회 쪽 계정을 못 찾았어.\n아래 버튼으로 로그인하면 이 명부를 보관함에 남겨 줄게.'
+const SAVED_LINE = '네 보관함에도 꽂아 뒀어.'
+
+function vaultButton(): Output {
+  return { action: 'webLink', label: '보관함 열기', webLinkUrl: link('/vault') }
+}
+
+/** 결과 끝의 안내 카드에 문장·버튼을 더한다(카드 버튼은 최대 3개). */
+function withCard(outputs: Output[], line: string | null, button: Output): Output[] {
+  const index = outputs.map(output => 'textCard' in output).lastIndexOf(true)
+  if (index < 0) return outputs
+  const card = outputs[index].textCard as { description: string; buttons: Output[] }
+  const next = { ...card, description: line ? `${line}\n${card.description}` : card.description, buttons: [...card.buttons, button].slice(0, 3) }
+  return outputs.map((output, i) => (i === index ? { textCard: next } : output))
+}
+
+async function linkButton(turn: Turn, links: KakaoLinkStore): Promise<Output> {
+  const { token, hash } = newLinkToken()
+  await links.createToken(turn.userKey, hash, new Date(turn.nowMs + LINK_TOKEN_TTL_MS))
+  // 토큰은 # 뒤에 둬서 페이지 요청 기록(서버 로그)에 남지 않게 한다.
+  return { action: 'webLink', label: '보관함에 저장하기', webLinkUrl: `${SITE}/kakao/link#t=${token}` }
+}
+
+/**
+ * 천명사주·오늘의 운 결과를 내보내기 전에 회원 연결 상태를 본다.
+ * 이어진 손님 → 보관함에 바로 저장. 같은 카카오 계정 회원 → 먼저 묻는다. 그 밖 → [보관함에 저장하기] 버튼.
+ * 연결 쪽이 실패해도 결과는 그대로 보낸다.
+ */
+async function deliverResult(turn: Turn, outputs: Output[], result: KakaoLastResult, member?: MemberDeps): Promise<SkillResponse> {
+  if (!member) return skill(outputs)
+  const { links, vault } = member
+  try {
+    const userId = await links.linkedMember(turn.userKey)
+    if (userId) {
+      try {
+        await vault(userId, result)
+        return skill(withCard(outputs, SAVED_LINE, vaultButton()))
+      } catch {
+        console.warn('[kakao-skill]', JSON.stringify({ vault: 'save_failed' }))
+        return skill(outputs)
+      }
+    }
+    if (turn.appUserId) {
+      const meta = await links.meta(turn.userKey)
+      const declined = meta.autoLinkDeclinedAt !== null && turn.nowMs - meta.autoLinkDeclinedAt < AUTO_LINK_DECLINE_MS
+      if (!declined && await links.memberByAppUser(turn.appUserId)) {
+        await links.setMeta(turn.userKey, { autoLinkAskedAt: turn.nowMs, lastResult: result })
+        // 질문이 마지막 말풍선에 오게 한다. 결과 본문 두 개 + 질문(말풍선 최대 3개).
+        const body = outputs.filter(output => !('textCard' in output)).slice(0, 2)
+        return skill([...body, text(AUTO_ASK_TEXT)], AUTO_ASK_QUICK)
+      }
+    }
+    const button = await linkButton(turn, links)
+    await links.setMeta(turn.userKey, { lastResult: result })
+    return skill(withCard(outputs, null, button))
+  } catch {
+    return skill(outputs)
+  }
+}
+
+/** "남겨 줘"/"괜찮아"(자동 연결 질문의 답)와 "연결 끊기". 해당 없으면 null 로 보통 대화에 넘긴다. */
+async function memberTurn(turn: Turn, said: string, member: MemberDeps): Promise<SkillResponse | null> {
+  const { links, vault } = member
+  if (UNLINK.test(said)) {
+    try {
+      const was = await links.unlink(turn.userKey)
+      // 끊자마자 다시 묻지 않게 30일 거절로 둔다.
+      await links.setMeta(turn.userKey, { autoLinkAskedAt: null, autoLinkDeclinedAt: turn.nowMs }).catch(() => undefined)
+      return skill([text(was ? UNLINKED_TEXT : NOT_LINKED_TEXT)])
+    } catch {
+      return skill([text(STORE_FAIL_TEXT)])
+    }
+  }
+  const yes = AUTO_YES.test(said)
+  if (!yes && !AUTO_NO.test(said)) return null
+  let meta
+  try { meta = await links.meta(turn.userKey) } catch { return null }
+  if (meta.autoLinkAskedAt === null || turn.nowMs - meta.autoLinkAskedAt > AUTO_ASK_TTL_MS) return null
+  try {
+    if (!yes) {
+      await links.setMeta(turn.userKey, { autoLinkAskedAt: null, autoLinkDeclinedAt: turn.nowMs })
+      return skill([text(DECLINED_TEXT)])
+    }
+    const userId = turn.appUserId ? await links.memberByAppUser(turn.appUserId) : null
+    if (!userId) {
+      await links.setMeta(turn.userKey, { autoLinkAskedAt: null })
+      return skill([{ textCard: { description: NO_MEMBER_TEXT, buttons: [await linkButton(turn, links)] } }])
+    }
+    await links.link(turn.userKey, userId, 'kakao_auto')
+    await links.setMeta(turn.userKey, { autoLinkAskedAt: null, autoLinkDeclinedAt: null })
+    if (meta.lastResult) await vault(userId, meta.lastResult).catch(() => console.warn('[kakao-skill]', JSON.stringify({ vault: 'save_failed' })))
+    return skill([{ textCard: { description: LINKED_TEXT, buttons: [vaultButton()] } }])
+  } catch {
+    return skill([text(STORE_FAIL_TEXT)])
+  }
+}
+
+/* ─────────────────────────── 한 턴 ─────────────────────────── */
 
 /** 즉시 답(코드 처리)인지, AI 호출이 필요한지 나눈다. AI 작업은 promise 로 돌려준다. */
-async function processTurn(turn: Turn, store: KakaoChatStore, reply: KakaoReply, uiAnalysis?: UiAnalysisBuilder): Promise<SkillResponse> {
+async function processTurn(turn: Turn, store: KakaoChatStore, reply: KakaoReply, uiAnalysis?: UiAnalysisBuilder, member?: MemberDeps): Promise<SkillResponse> {
   let state: KakaoChatState
   try {
     const loaded = await store.load(turn.userKey)
@@ -264,6 +390,11 @@ async function processTurn(turn: Turn, store: KakaoChatStore, reply: KakaoReply,
 
   const said = compact(turn.utterance)
   const save = async () => { await store.save(turn.userKey, state).catch(() => undefined) }
+
+  if (member && !state.flow) {
+    const handled = await memberTurn(turn, said, member)
+    if (handled) return handled
+  }
 
   const startKind = COUPLE_TRIGGER.test(said) || (turn.blockName === '우리궁합' && !state.flow) ? 'couple'
     : (CMDG_TRIGGER.test(said) || turn.blockName === '천명사주') && uiAnalysis ? 'cmdg'
@@ -290,8 +421,8 @@ async function processTurn(turn: Turn, store: KakaoChatStore, reply: KakaoReply,
         const kind = state.flow.kind
         state.flow = null
         await save()
-        if (kind === 'cmdg' && uiAnalysis) return skill(renderFreeSaju(parsed.birth, uiAnalysis))
-        return skill(renderTodayFortune(parsed.birth, new Date(turn.nowMs)))
+        if (kind === 'cmdg' && uiAnalysis) return deliverResult(turn, renderFreeSaju(parsed.birth, uiAnalysis), { kind, birth: parsed.birth, at: turn.nowMs }, member)
+        return deliverResult(turn, renderTodayFortune(parsed.birth, new Date(turn.nowMs)), { kind: 'today', birth: parsed.birth, at: turn.nowMs }, member)
       }
       if (state.flow.step === 'self') {
         state.flow = { ...state.flow, step: 'partner', self: parsed.birth }
@@ -381,6 +512,7 @@ export function kakaoSkillHandler(deps: KakaoSkillDeps = {}) {
   const postCallback = deps.postCallback ?? defaultPostCallback
   const secret = deps.secret ?? (() => process.env.KAKAO_SKILL_SECRET?.trim() || undefined)
   const budget = deps.syncBudgetMs ?? SYNC_BUDGET_MS
+  const member = deps.links && deps.vault ? { links: deps.links, vault: deps.vault } : undefined
 
   return async (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-store')
@@ -395,17 +527,22 @@ export function kakaoSkillHandler(deps: KakaoSkillDeps = {}) {
     if (typeof userId !== 'string' || !userId || userId.length > 200 || typeof utterance !== 'string') { res.status(400).json({ error: 'INVALID_PAYLOAD' }); return }
 
     const at = now()
+    const appUserId = payload.userRequest?.user?.properties?.appUserId
+    const validAppUser = (typeof appUserId === 'string' || typeof appUserId === 'number') && /^\d{1,32}$/.test(String(appUserId)) ? String(appUserId) : undefined
+    // 카카오 앱이 채널에 이어졌는지 확인용. 값은 남기지 않고 왔는지만 남긴다.
+    console.info('[kakao-skill]', JSON.stringify({ appUserId: Boolean(validAppUser) }))
     const blockName = payload.userRequest?.block?.name
     const turn: Turn = {
       userKey: sha256(`kakao:${userId}`),
       utterance: utterance.trim().slice(0, 1000) || '안녕',
       blockName: typeof blockName === 'string' ? blockName : '',
       day: kstDay(at), nowMs: at.getTime(),
+      appUserId: validAppUser,
     }
     const started = Date.now()
     // 마음 위기 신호(입구에서 중립 문장으로 바뀜)가 있으면 어떤 답이든 맨 앞에 109 안내 말풍선을 둔다(말풍선은 최대 3개).
     const care = hasCrisisMarker(turn.utterance)
-    const work = processTurn(turn, store, reply, deps.uiAnalysis).catch((): SkillResponse => skill([text(FAIL_TEXT)]))
+    const work = processTurn(turn, store, reply, deps.uiAnalysis, member).catch((): SkillResponse => skill([text(FAIL_TEXT)]))
       .then((result) => care && result.template ? { ...result, template: { ...result.template, outputs: [text(careNoticeText()), ...result.template.outputs].slice(0, 3) } } : result)
     const timer = new Promise<'late'>(resolve => setTimeout(() => resolve('late'), budget).unref?.())
     const first = await Promise.race([work, timer])

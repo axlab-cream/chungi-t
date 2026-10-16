@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <script src="/js/umsh-analytics.js?v=ga-20260918a"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="no-referrer" />
+    <title>카카오톡 연결 · 운명상회</title>
+    <link rel="icon" href="/favicon.svg?v=20260917-icon" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico?v=20260917-icon" sizes="any" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260917-icon" />
+    <link rel="manifest" href="/manifest.json?v=20260917-icon" />
+    <link rel="stylesheet" href="/css/payment.css?v=20260901-inicis" />
+    <link rel="stylesheet" href="/css/umsh-chrome.css?v=20260901-myhub" />
+    <style>
+      body.umsh-has-chrome { padding-bottom: calc(max(74px, var(--umsh-chrome-bottom-h, 74px)) + env(safe-area-inset-bottom, 0px)); }
+      #kakao-link-actions { display: grid; gap: 10px; margin-top: 8px; }
+      #kakao-link-actions[hidden] { display: none; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/js/common-auth-return.js"></script>
+    <link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" />
+    <link rel="stylesheet" href="/css/umsh-font.css?v=20261015" />
+  </head>
+  <body>
+    <main class="payment-page" data-umsh-chrome data-service="MY" data-active="account">
+      <header class="appbar topbar"></header>
+      <section class="payment-shell" aria-labelledby="kakao-link-title">
+        <p class="payment-eyebrow">카카오톡 채널</p>
+        <h1 id="kakao-link-title">보관함에 저장하기</h1>
+        <p class="payment-intro" data-kakao-link-message>카카오톡에서 본 명부를 회원님 보관함에 옮기고 있습니다.</p>
+        <p class="payment-status" data-kakao-link-status role="status" aria-live="polite"></p>
+        <div id="kakao-link-actions" hidden>
+          <a class="payment-submit" href="/vault">보관함 열기</a>
+        </div>
+        <div class="payment-notice">연결하면 카카오톡 채널 챗봇에서 본 천명사주와 오늘의 운이 이 계정 보관함에도 저장됩니다. 연결을 끊으려면 챗봇에 "연결 끊기"라고 보내 주세요.</div>
+      </section>
+    </main>
+    <script src="/js/umsh-chrome.js?v=20261016-appbar16"></script>
+    <script src="/js/kakao-link.js?v=20261016"></script>
+  </body>
+</html>

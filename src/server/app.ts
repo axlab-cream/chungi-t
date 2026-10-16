@@ -14,7 +14,8 @@ import { authenticateConsultation } from '../consultation/auth.js'
 import { synthesizeConsultation } from '../consultation/voice.js'
 import { DEFAULT_CONSULTATION_SETTINGS, getConsultationSettings } from '../consultation/settings.js'
 import { getConsultationContentSnapshot } from '../admin/content-store.js'
-import { kakaoSkillHandler } from '../kakao/skill.js'
+import { kakaoSkillHandler, siteBirthInput } from '../kakao/skill.js'
+import { kakaoLinkHandler, restKakaoLinkStore, type KakaoVaultSaver } from '../kakao/member-link.js'
 import '../env/load.js'
 import { localizedPages } from './localized-pages.js'
 import type { ServerResponse } from 'node:http'
@@ -315,6 +316,7 @@ const PAYMENT_CLOSE_PAGE = join(SAJU_ROOT, 'payment', 'close.html')
 const PAYMENT_TEST_PAGE = join(SAJU_ROOT, 'payment', 'test.html')
 const PAYMENT_ORDERS_PAGE = join(SAJU_ROOT, 'orders.html')
 const LEAVE_PAGE = join(SAJU_ROOT, 'leave.html')
+const KAKAO_LINK_PAGE = join(SAJU_ROOT, 'kakao-link.html')
 const MY_PAGE = join(SAJU_ROOT, 'my.html')
 const SEARCH_PAGE = join(SAJU_ROOT, 'search.html')
 const VAULT_PAGE = join(SAJU_ROOT, 'vault.html')
@@ -366,7 +368,10 @@ app.use(['/api/consultation/context', '/api/consultation/chat'], (_req, res, nex
 app.use('/api/consultation', express.json({ limit: '4mb' }), crisisGuard, consultationRouter({ authenticate: authenticateConsultation, synthesize: synthesizeConsultation }))
 // 카카오톡 채널 챗봇 "상주 천명" 스킬 서버. 비밀 헤더(KAKAO_SKILL_SECRET)로만 받는다. src/kakao/skill.ts
 // 천명사주 무료 계산값은 사이트 무료 화면과 같은 함수(buildUiAnalysisPayload)로 만든다. 따로 만들면 값이 어긋난다.
-app.post('/api/kakao/skill', express.json({ limit: '256kb' }), crisisGuard, kakaoSkillHandler({ uiAnalysis: buildUiAnalysisPayload }))
+// 회원 연결(2026-10-16): 이어진 손님의 천명사주·오늘의 운은 사이트와 같은 저장 경로로 회원 보관함에 남긴다. src/kakao/member-link.ts
+const kakaoLinks = restKakaoLinkStore(() => SUPABASE_KAKAO_PROVIDER)
+app.post('/api/kakao/skill', express.json({ limit: '256kb' }), crisisGuard, kakaoSkillHandler({ uiAnalysis: buildUiAnalysisPayload, links: kakaoLinks, vault: saveKakaoResultToVault }))
+app.post('/api/kakao/link', express.json({ limit: '4kb' }), kakaoLinkHandler({ links: kakaoLinks, vault: saveKakaoResultToVault, member: requireMemberUser }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 // 공통 절대 선 2번(마음 위기): 모든 API 본문(JSON·폼)의 위기 문장을 입구에서 중립 문장으로 바꾼다(src/safety/crisis-signal.ts).
@@ -479,6 +484,10 @@ app.get(['/orders', '/orders/', '/orders.html'], (_req, res) => {
 })
 app.get(['/leave', '/leave/', '/leave.html'], (_req, res) => {
   res.sendFile(LEAVE_PAGE)
+})
+app.get(['/kakao/link', '/kakao/link/'], (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.sendFile(KAKAO_LINK_PAGE)
 })
 app.get(['/my', '/my/', '/my.html'], (_req, res) => {
   res.sendFile(MY_PAGE)
@@ -4879,6 +4888,32 @@ app.get('/api/user/reports', async (req, res) => {
     respondRequestFailure(res, err, '풀이 보관함 조회 실패')
   }
 })
+
+/**
+ * 카카오 챗봇에서 본 결과를 회원 보관함에 남긴다. 사이트 저장 경로를 그대로 쓴다.
+ * - 천명사주: /api/saju/analyze 미리보기와 같은 createOrGetReportRecord(같은 ID·계보 규칙).
+ * - 오늘의 운: /api/today/fortune 과 같은 savedDailyFortune. 카톡에서 본 날짜로 남긴다.
+ * 생일은 카톡에서 입력한 값을 쓰고, 회원 기본 사주 프로필(getUserBirthProfile)은 이름만 읽고 덮어쓰지 않는다.
+ */
+async function saveKakaoResultToVault(...[userId, result]: Parameters<KakaoVaultSaver>): Promise<void> {
+  const owner: ReportOwner = { id: userId }
+  const birth = siteBirthInput(result.birth)
+  const name = (await getUserBirthProfile(owner).catch(() => null))?.name || '손님'
+  if (result.kind === 'today') {
+    const at = new Date(result.at).toISOString()
+    const profile: UserBirthProfile = { userId, name, birth, birthTimeKnown: result.birth.timeKnown, context: {}, createdAt: at, updatedAt: at }
+    await savedDailyFortune(profile, owner, new Date(result.at), await todayFortuneOptions(userId))
+    return
+  }
+  const enriched = await enrichHomeTerrainContext(enrichReportContext({ name, birthTimeKnown: result.birth.timeKnown }))
+  const analysis = analyzeSaju(birth)
+  const readingContext = markBirthTimeReading(enriched)
+  await createOrGetReportRecord({
+    reportId: createReportId(birth, enriched, undefined, owner.id), birth, context: readingContext,
+    analysis, templateReport: buildTemplateSajuReport(analysis, birth, readingContext), owner,
+    lineageId: createReportLineageId(birth, enriched, owner.id),
+  })
+}
 
 /** Purchase X changes only the explanation lens. A payment lookup failure keeps the free reading available. */
 async function todayFortuneOptions(ownerId: string): Promise<{ purchaseDepth: boolean }> {

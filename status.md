@@ -1,5 +1,11 @@
 # Status
 
+## 2026-10-16 — 카카오 챗봇 손님 ↔ 회원 연결 + 보관함 저장 (브랜치 claude/kakao-member-link)
+
+- [DONE] 방법 1 직접 연결([보관함에 저장하기] → /kakao/link → 로그인 → POST /api/kakao/link), 방법 2 카카오 자동 연결(appUserId, 묻고 [남겨 줘]일 때만, [괜찮아]면 30일 안 물음), "연결 끊기". 이어진 손님의 천명사주 미리보기·오늘의 운은 사이트와 같은 저장 경로로 보관함에 저장. 상세 `docs/admin-ops/kakao-chatbot-ai-skill-20261014.md` 2026-10-16 절.
+- [DONE] 마이그레이션 파일 `supabase/migrations/20261016120000_kakao_member_links.sql`(Prepared only).
+- [GATE H2] 운영 적용은 승인 후. [TODO] /privacy 항목(초안 대기), 카카오 로그인 앱 ↔ 챗봇 채널 연결 확인(로그 appUserId true).
+
 ## 2026-10-14 — 카카오 챗봇 "상주 천명" AI 스킬 서버 (브랜치 claude/kakao-chatbot-ai)
 
 - [DECIDED] 10/12 "스킬 서버 연동 안 함" 번복. 제미나이(웹 천명상담과 같은 키·모델), 생각 강도 low, 손님당 매일 10번 무료, 소진·궁합 맛보기 뒤 "더 궁금해? 궁금하면 운명상회로 들어와봐." 안내(사용자 결정).
