@@ -330,7 +330,7 @@
     if (global.UMSHGuestSaveSheet || !global.document) return Promise.resolve(global.UMSHGuestSaveSheet);
     return new Promise(function (resolve) {
       var script = global.document.createElement('script');
-      script.src = '/js/umsh-guest-save-sheet.js?v=20261015a';
+      script.src = '/js/umsh-guest-save-sheet.js?v=20261016b';
       script.onload = function () { resolve(global.UMSHGuestSaveSheet); };
       script.onerror = function () { resolve(null); };
       global.document.head.appendChild(script);
@@ -365,13 +365,16 @@
         if (!count && !hasProfile) { dropGuestSession(); return { moved: 0 }; }
         var agree = true;
         var onPayment = /^\/payment(\/|$)/.test(String(global.location && global.location.pathname || ''));
-        if (!(options && options.silent) && !onPayment) {
+        // 2026-10-16: 결과 화면의 [저장하기]·[운명 거래하기]로 로그인한 경우(30분 안)는 이미 저장하겠다고 한 것이라 묻지 않는다.
+        var intentAt = Number(safeGet(global.sessionStorage, 'umsh_claim_intent_v1')) || 0;
+        var saveIntent = intentAt > 0 && Date.now() - intentAt < 30 * 60 * 1000;
+        if (!(options && options.silent) && !onPayment && !saveIntent) {
           var sheet = await loadSheet();
           agree = sheet && sheet.confirmClaim ? await sheet.confirmClaim({ reports: count, profile: hasProfile }) : true;
         }
         if (!agree) { dropGuestSession(); return { declined: true }; }
         var done = await post({ guestToken: guestToken });
-        if (done.ok) dropGuestSession();
+        if (done.ok) { dropGuestSession(); safeRemove(global.sessionStorage, 'umsh_claim_intent_v1'); }
         try {
           if (global.UMSHTrack && typeof global.UMSHTrack.push === 'function') global.UMSHTrack.push('cta_click', { target: done.ok ? 'signup:guest_claimed' : 'signup:guest_claim_failed' });
         } catch (_error) { /* 측정은 흐름을 막지 않는다 */ }
@@ -455,7 +458,7 @@
     if (global.UMSHConsent || !global.document) return Promise.resolve(global.UMSHConsent || null);
     return new Promise(function (resolve) {
       var script = global.document.createElement('script');
-      script.src = '/js/umsh-consent.js?v=20261015a';
+      script.src = '/js/umsh-consent.js?v=20261016a';
       script.onload = function () { resolve(global.UMSHConsent || null); };
       script.onerror = function () { resolve(null); };
       global.document.head.appendChild(script);
@@ -490,11 +493,13 @@
 
   var consentChecking = null;
   /**
-   * 회원 세션에서 한 번: 받아 둔 동의를 기록하고, 지금 버전 동의가 없으면 동의 시트를 띄운다.
-   * 동의 기록 저장소가 아직 없거나(503) 네트워크가 끊기면 묻지 않는다 — 로그인한 회원을 막지 않는다.
+   * 회원 세션에서 한 번: 받아 둔 동의를 기록한다. options.prompt 일 때만, 지금 버전 동의가 없으면 동의 시트를 띄운다.
+   * 2026-10-15 대표 결정: 화면을 열자마자 동의 시트를 띄우지 않는다. 결제(운명 거래하기)처럼 필요한 순간에만
+   * ensureMemberConsent() 로 묻는다. 동의 기록 저장소가 없거나(503) 네트워크가 끊기면 묻지 않는다.
    */
-  function syncMemberConsent() {
-    if (consentChecking) return consentChecking;
+  function syncMemberConsent(options) {
+    var prompt = Boolean(options && options.prompt);
+    if (consentChecking) return prompt ? consentChecking.then(function () { return syncMemberConsent(options); }) : consentChecking;
     if (typeof fetch !== 'function') return Promise.resolve({ skipped: true });
     var member = storedSession(global.localStorage, false);
     if (!member) return Promise.resolve({ skipped: true });
@@ -518,14 +523,16 @@
         var response = await fetch('/api/consents/status', { headers: { Authorization: 'Bearer ' + member.token } }).catch(function () { return null; });
         if (!response || !response.ok) return { error: true };
         var status = await response.json().catch(function () { return null; });
-        safeSet(global.sessionStorage, checkedKey, '1');
         if (!status || status.current !== false) {
+          safeSet(global.sessionStorage, checkedKey, '1');
           if (status && status.version) safeSet(global.localStorage, CONSENT_OK_KEY, String(status.version));
           return { current: true };
         }
+        if (!prompt) return { current: false };
         var consent = await loadConsentModule();
         if (!consent || typeof consent.openReconsent !== 'function') return { error: true };
-        var agreed = await consent.openReconsent({ token: member.token });
+        var agreed = await consent.openReconsent({ token: member.token, title: options.title, sub: options.sub, dismissLabel: options.dismissLabel });
+        if (agreed) safeSet(global.sessionStorage, checkedKey, '1');
         return { reconsented: agreed };
       } catch (_error) {
         return { error: true };
@@ -534,6 +541,13 @@
       }
     })();
     return consentChecking;
+  }
+
+  /** 결제처럼 동의가 꼭 있어야 하는 순간. 동의돼 있으면(확인할 수 없을 때도) true, 시트를 닫으면 false. */
+  function ensureMemberConsent(options) {
+    return syncMemberConsent(Object.assign({}, options, { prompt: true })).then(function (result) {
+      return !(result && result.reconsented === false);
+    }, function () { return true; });
   }
 
   function watchSignedIn(auth, onSession) {
@@ -582,6 +596,7 @@
     currentMemberToken: currentMemberToken,
     recordGuestVisit: recordGuestVisit,
     syncMemberConsent: syncMemberConsent,
+    ensureMemberConsent: ensureMemberConsent,
   };
 
   try { sweepGuestResidue(); } catch (_error) { /* 저장소가 막힌 브라우저 */ }

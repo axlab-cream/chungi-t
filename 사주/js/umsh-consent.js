@@ -40,6 +40,8 @@
     '.umsh-cs-alert:empty{display:none}',
     '.umsh-cs-done{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(246,234,214,.05);color:rgba(246,234,214,.75)}',
     '.umsh-cs-done button{border:0;background:transparent;color:rgba(246,234,214,.6);font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}',
+    '.umsh-cs-handle{display:block;position:relative;height:22px;margin:-10px -20px 2px;touch-action:none;cursor:grab}.umsh-cs-handle::before{content:"";position:absolute;left:50%;top:10px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:rgba(246,234,214,.28)}',
+    '.umsh-cs-sheet{transition:transform .22s ease}.umsh-cs-sheet-title[data-drag-handle]{touch-action:none}',
     '.umsh-cs-sheet-backdrop{position:fixed;inset:0;z-index:9992;background:rgba(6,4,3,.4)}',
     '.umsh-cs-sheet{position:fixed;left:50%;bottom:0;z-index:9993;box-sizing:border-box;width:100%;max-width:480px;max-height:70vh;max-height:70dvh;overflow:auto;transform:translateX(-50%);',
     'padding:16px 20px calc(16px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;border:1px solid rgba(214,178,110,.28);border-bottom:0;background:#15100d;color:#f6ead6;',
@@ -259,6 +261,49 @@
    * 로그인한 회원인데 지금 버전 동의 기록이 없을 때(기존 회원, 다른 경로로 로그인) 한 번 받는다.
    * 동의하면 true. 기록 API 가 실패해도 시트는 닫고 true — 저장 실패로 회원을 가두지 않는다.
    */
+/**
+   * 2026-10-16 손잡이를 아래로 끌어 닫기. 손잡이·제목줄([data-drag-handle])을 잡고 내리면 시트가 손가락을 따라 내려가고,
+   * 시트 높이의 1/4(최대 120px) 넘게 내리거나 빠르게 튕기면 닫는다. 덜 내리면 제자리로 돌아간다.
+   * 본문은 스크롤해야 하므로 잡는 곳은 위쪽 줄로 한정한다(그 줄에만 touch-action:none).
+   */
+  function enableDragClose(sheet, onClose) {
+    var startY = 0, dy = 0, pointerId = null, lastY = 0, lastAt = 0, speed = 0;
+    sheet.addEventListener('pointerdown', function (event) {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (!event.target.closest('[data-drag-handle]') || event.target.closest('button,a,input,label')) return;
+      pointerId = event.pointerId; startY = lastY = event.clientY; lastAt = Date.now(); dy = 0; speed = 0;
+      try { sheet.setPointerCapture(pointerId); } catch (_e) { /* 오래된 브라우저 */ }
+    });
+    sheet.addEventListener('pointermove', function (event) {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      var now = Date.now();
+      // 손을 떼기 직전 움직임의 속도(px/ms). 빠르게 튕기면 조금만 내려도 닫는다.
+      if (now > lastAt) speed = (event.clientY - lastY) / (now - lastAt);
+      lastY = event.clientY; lastAt = now;
+      dy = Math.max(0, event.clientY - startY);
+      sheet.style.transition = 'none';
+      sheet.style.transform = 'translate(-50%,' + dy + 'px)';
+    });
+    function end(event) {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      pointerId = null;
+      var fast = dy > 30 && speed > 0.5 && Date.now() - lastAt < 120;
+      sheet.style.transition = '';
+      if (dy > Math.min(120, sheet.offsetHeight * 0.25) || fast) {
+        sheet.style.transform = 'translate(-50%,105%)';
+        onClose();
+      } else {
+        sheet.style.transform = '';
+      }
+    }
+    sheet.addEventListener('pointerup', end);
+    sheet.addEventListener('pointercancel', end);
+  }
+
+  function escapeText(value) {
+    return String(value).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; });
+  }
+
   function openReconsent(options) {
     options = options || {};
     injectStyle();
@@ -271,11 +316,15 @@
       sheet.setAttribute('role', 'dialog');
       sheet.setAttribute('aria-modal', 'true');
       sheet.setAttribute('aria-labelledby', 'umsh-cs-sheet-title');
-      sheet.innerHTML = '<div class="umsh-cs-sheet-title" id="umsh-cs-sheet-title">약관에 동의해 주세요</div>'
-        + '<div class="umsh-cs-sheet-sub">운명상회를 계속 이용하려면 아래 필수 항목에 동의해야 해요.</div>'
+      // 2026-10-15: 결제 직전(운명 거래하기)에 물을 때는 제목을 바꾸고, 아래 버튼은 로그아웃 대신 닫기로 둔다.
+      sheet.innerHTML = (options.dismissLabel ? '<span class="umsh-cs-handle" data-drag-handle aria-hidden="true"></span>' : '')
+        + '<div class="umsh-cs-sheet-title" id="umsh-cs-sheet-title"' + (options.dismissLabel ? ' data-drag-handle' : '') + '>' + escapeText(options.title || '약관에 동의해 주세요') + '</div>'
+        + '<div class="umsh-cs-sheet-sub">' + escapeText(options.sub || '운명상회를 계속 이용하려면 아래 필수 항목에 동의해야 해요.') + '</div>'
         + '<div data-consent-host></div>'
         + '<button type="button" class="umsh-cs-submit is-inactive" data-consent-submit>동의하고 계속</button>'
-        + '<button type="button" class="umsh-cs-logout" data-consent-logout>로그아웃</button>';
+        + (options.dismissLabel
+          ? '<button type="button" class="umsh-cs-logout" data-consent-dismiss>' + escapeText(options.dismissLabel) + '</button>'
+          : '<button type="button" class="umsh-cs-logout" data-consent-logout>로그아웃</button>');
       doc.body.appendChild(backdrop);
       doc.body.appendChild(sheet);
       var controller = render(sheet.querySelector('[data-consent-host]'), { source: 'reconsent' });
@@ -285,7 +334,12 @@
       paint();
       var busy = false;
       function finish(result) { sheet.remove(); backdrop.remove(); resolve(result); }
+      if (options.dismissLabel) {
+        backdrop.addEventListener('click', function () { finish(false); });
+        enableDragClose(sheet, function () { setTimeout(function () { finish(false); }, 220); });
+      }
       sheet.addEventListener('click', function (event) {
+        if (event.target.closest('[data-consent-dismiss]')) { finish(false); return; }
         if (event.target.closest('[data-consent-logout]')) {
           if (typeof options.onLogout === 'function') options.onLogout();
           else logoutLocally();

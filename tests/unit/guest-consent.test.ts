@@ -292,3 +292,79 @@ test('로그인 화면이 이어 시작할 때 시트 동의의 출처(guest-she
   const save = cmdg.slice(cmdg.indexOf('function saveLoginConsent()'), cmdg.indexOf('function takeRequestedProvider()'))
   assert.match(save, /readPending\?\.\(\)\?\.source === "guest-sheet"\) values\.source = "guest-sheet"/)
 })
+
+// 2026-10-15 대표 결정: 로그인한 회원에게 화면을 열자마자 동의 시트를 띄우지 않는다. 결제(운명 거래하기)처럼 필요할 때만 묻는다.
+test('동의 기록이 없는 회원이라도 자동 확인(prompt 없음)에서는 시트를 띄우지 않고, 다음에 다시 물을 수 있게 남긴다', async () => {
+  const fetchImpl = async (url: string) => ({ ok: true, status: 200, json: async () => (url === '/api/consents/status' ? { version: '2026-10-15', current: false } : { ok: true }) })
+  const { auth, session } = loadAuth(memoryStorage({ [TOKEN]: memberValue }), memoryStorage(), fetchImpl)
+  const result = await auth.syncMemberConsent()
+  assert.equal(result.current, false)
+  assert.equal(result.reconsented, undefined, '시트를 띄우지 않는다')
+  assert.equal(session.getItem('umsh_consent_checked:member-1'), null, '확인했다고 남기지 않아야 결제 때 묻는다')
+})
+
+test('결제 직전 확인(ensureMemberConsent)은 동의가 있으면 바로 통과한다', async () => {
+  const { auth } = loadAuth(memoryStorage({ [TOKEN]: memberValue }))
+  assert.equal(await auth.ensureMemberConsent({ title: 't' }), true)
+})
+
+test('운명 거래하기: 회원은 동의 확인 뒤 결제 시트, 비회원은 동의+로그인 시트(바로 그 SNS 로그인)', () => {
+  const cmdg = readFileSync(join(ROOT, '사주/사주/index.html'), 'utf8')
+  const pay = cmdg.slice(cmdg.indexOf('async function openTradePaySheet()'), cmdg.indexOf('async function beginAnalysisAfterAuth()'))
+  assert.match(pay, /claimGuestNow\?\.\(\{ silent: true \}\)/, '로그인 직후 결과 옮기기 확인 시트가 결제 시트와 겹치지 않는다')
+  assert.match(pay, /ensureMemberConsent\(/)
+  assert.ok(pay.indexOf('ensureMemberConsent(') < pay.indexOf('UMSHPaySheet.open('), '동의 다음에 결제 시트')
+  assert.match(pay, /if \(!agreed\) return;/)
+  const login = cmdg.slice(cmdg.indexOf('function openTradeLoginSheet()'), cmdg.indexOf('const TRADE_ORIGIN_AMOUNT'))
+  assert.match(login, /noInline: true/)
+  assert.match(login, /signInWithProvider\(provider\)/, '로그인 화면을 거치지 않고 누른 SNS로 바로')
+  assert.match(login, /sessionStorage\.setItem\(AUTH_PURCHASE_KEY, "1"\)/)
+  assert.match(cmdg, /<script src="\/js\/umsh-pay-sheet\.js\?v=/)
+})
+
+test('결제 시트: 동의 체크 없이 안내 한 줄, 휴대폰은 처음 한 번, 앱·무료 이용권은 /payment 로', () => {
+  const paySheet = readFileSync(join(ROOT, '사주/js/umsh-pay-sheet.js'), 'utf8')
+  assert.doesNotMatch(paySheet, /type="checkbox"/, '결제 시트에서 약관 체크를 다시 받지 않는다')
+  assert.match(paySheet, /결제 정보를 확인했으며/)
+  assert.match(paySheet, /환불·취소 정책/)
+  assert.match(paySheet, /TEL_PREFIX \+ userId/)
+  assert.match(paySheet, /UMSHAppBilling\.isAvailable\(\)\)\) \{\s*global\.location\.assign\(fallback\)/)
+  assert.match(paySheet, /item\.kind === 'service_free'\) \{[\s\S]*?location\.assign\(free\.pathname \+ free\.search\)/)
+  assert.match(paySheet, /\/api\/payment\/purchase-status/, '이미 결제한 풀이는 다시 결제하지 않는다')
+  assert.match(paySheet, /fetch\('\/api\/payment\/orders'/)
+  assert.match(paySheet, /trackFunnel\('pay_open'/)
+})
+
+// 2026-10-16 대표 결정(모든 서비스): 무료 결과에서 시트를 저절로 띄우지 않는다. 결과 안의 [저장하기]를 누를 때만 동의+로그인 시트.
+test('무료 결과: 시트를 저절로 열지 않고, 결과 안에 "이 결과를 저장할까요?" 안내를 넣는다', () => {
+  const when = sheetSource.slice(sheetSource.indexOf('function openWhenSeen('), sheetSource.indexOf('function confirmClaim('))
+  assert.doesNotMatch(when, /\bopen\(/, '결과를 보는 중에 시트가 올라오면 안 된다')
+  assert.doesNotMatch(when, /addEventListener\('scroll'/, '스크롤 위치로 띄우지 않는다')
+  assert.match(when, /showInline\(/)
+  const inline = sheetSource.slice(sheetSource.indexOf('function showInline('), sheetSource.indexOf('function open('))
+  assert.match(inline, /이 결과를 저장할까요\?/)
+  assert.match(inline, />저장하기</)
+  assert.match(inline, /open\(Object\.assign\(\{\}, opts, \{ force: true \}\)\)/, '누를 때만 시트')
+})
+
+test('천명사주 저장하기: 풀화면 로그인 대신 고른 SNS 로그인을 바로 시작한다', () => {
+  const cmdg = readFileSync(join(ROOT, '사주/사주/index.html'), 'utf8')
+  assert.doesNotMatch(cmdg, /showAuthGate\("로그인하면 (이 결과가|오늘의 운이) 저장돼요\."\)/)
+  assert.match(cmdg, /onLogin: \(provider\) => \{ persistAuthFormState\(\); setTodayEntryPending\(\); signInWithProvider\(provider\); \}/)
+})
+
+test('저장하기·운명 거래하기로 로그인하고 돌아오면 "저장할까요?"를 다시 묻지 않고 옮긴다', async () => {
+  const posts: any[] = []
+  const fetchImpl = async (url: string, init?: any) => {
+    const body = init?.body ? JSON.parse(init.body) : {}
+    posts.push({ url, body })
+    return { ok: true, status: 200, json: async () => (body.dryRun ? { reports: 1, profile: 'copied' } : { reports: 1, profile: 'copied' }) }
+  }
+  const session = memoryStorage({ [TOKEN]: guestValue, umsh_claim_intent_v1: String(Date.now()) })
+  const { auth } = loadAuth(memoryStorage({ [TOKEN]: memberValue }), session, fetchImpl)
+  const result = await auth.claimGuestNow()
+  assert.equal(result.reports, 1)
+  assert.deepEqual(posts.map((p) => [p.url, Boolean(p.body.dryRun)]), [['/api/auth/claim-guest', true], ['/api/auth/claim-guest', false]])
+  assert.equal(session.getItem('umsh_claim_intent_v1'), null, '한 번 쓰고 지운다')
+  assert.match(sheetSource, /setItem\('umsh_claim_intent_v1'/)
+})

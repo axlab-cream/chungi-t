@@ -202,7 +202,7 @@
   function loadSheetScript(done) {
     if (global.UMSHGuestSaveSheet) return done();
     var script = doc.createElement('script');
-    script.src = '/js/umsh-guest-save-sheet.js?v=20261015a';
+    script.src = '/js/umsh-guest-save-sheet.js?v=20261016b';
     script.onload = done;
     doc.head.appendChild(script);
   }
