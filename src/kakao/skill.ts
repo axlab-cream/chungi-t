@@ -8,7 +8,7 @@ import { buildTodayFortune } from '../saju/today-fortune.js'
 import type { BirthInput, ElementCount, SajuAnalysis, SajuReport, SajuReportContext } from '../types/index.js'
 import { describeBirth, parseKakaoBirth } from './birth-parse.js'
 import { KakaoStoreError, restKakaoChatStore, type KakaoBirthDraft, type KakaoChatState, type KakaoChatStore, type KakaoTurn } from './chat-store.js'
-import { crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
+import { careNoticeText, crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
 
 /**
  * 카카오톡 채널 챗봇 "상주 천명" 스킬 서버.
@@ -403,7 +403,10 @@ export function kakaoSkillHandler(deps: KakaoSkillDeps = {}) {
       day: kstDay(at), nowMs: at.getTime(),
     }
     const started = Date.now()
+    // 마음 위기 신호(입구에서 중립 문장으로 바뀜)가 있으면 어떤 답이든 맨 앞에 109 안내 말풍선을 둔다(말풍선은 최대 3개).
+    const care = hasCrisisMarker(turn.utterance)
     const work = processTurn(turn, store, reply, deps.uiAnalysis).catch((): SkillResponse => skill([text(FAIL_TEXT)]))
+      .then((result) => care && result.template ? { ...result, template: { ...result.template, outputs: [text(careNoticeText()), ...result.template.outputs].slice(0, 3) } } : result)
     const timer = new Promise<'late'>(resolve => setTimeout(() => resolve('late'), budget).unref?.())
     const first = await Promise.race([work, timer])
     if (first !== 'late') { res.json(first); return }
