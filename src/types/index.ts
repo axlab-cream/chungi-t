@@ -638,6 +638,51 @@ export interface RagKnowledgeBlock {
   advice: string
   confidence: RagKnowledgeConfidence
   forbidden_generalization: string
+  /** 이 블록 전체가 맞는 명식 조건. 맞지 않으면 검색 후보에서 뺀다(src/rag/chart-conditions.ts). */
+  applies_when?: RagChartCondition
+  /** "조건 → 뜻" 갈래. 그 사람 계산값과 맞는 갈래만 AI 에게 간다. 갈래가 있는데 하나도 맞지 않으면 블록째 뺀다. */
+  branches?: RagKnowledgeBranch[]
+}
+
+export type RagTenGodName = TenGod | '비겁' | '식상' | '재성' | '관성' | '인성'
+
+/** 항목끼리는 모두 맞아야 하고, 한 항목 안의 값은 하나만 맞아도 된다. */
+export interface RagChartCondition {
+  dayMaster?: HeavenlyStem[]
+  dayMasterElement?: Element[]
+  dayMasterStrength?: Array<SajuAnalysis['dayMasterStrength']>
+  dominantElement?: Element[]
+  weakElement?: Element[]
+  /** 그 오행이 3개 이상 */
+  elementMany?: Element[]
+  /** 그 오행이 0개 */
+  elementMissing?: Element[]
+  /** 겉 천간이나 지장간에 있음 */
+  tenGodPresent?: RagTenGodName[]
+  /** 겉 천간과 지장간 어디에도 없음 */
+  tenGodAbsent?: RagTenGodName[]
+  /** 겉 천간 + 지지 본기 자리에 3개 이상 */
+  tenGodMany?: RagTenGodName[]
+  usefulGod?: Element[]
+  season?: Array<ClimateBalanceInfo['season']>
+  temperature?: Array<ClimateBalanceInfo['temperature']>
+  gyeokgukTenGod?: RagTenGodName[]
+  /** 원국에 이 작용(합·충 등)이 있음 */
+  interaction?: Array<SajuInteraction['type']>
+  /** 부딪히는 두 오행을 잇는 통관 기운이 계산됨 */
+  flowBridge?: boolean
+  birthTimeKnown?: boolean
+}
+
+export interface RagKnowledgeBranch {
+  /** 사람이 읽는 짧은 조건 이름. 예: "일간 약함" */
+  label: string
+  when: RagChartCondition
+  /** 이 조건일 때의 판단 기준(완성 문장이 아니라 재료) */
+  meaning: string
+  caution?: string
+  /** 기본 갈래: 같은 블록의 다른 갈래가 하나도 맞지 않을 때만 쓴다. */
+  fallback?: boolean
 }
 
 export interface ConversationTurn {

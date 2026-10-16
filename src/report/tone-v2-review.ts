@@ -704,6 +704,7 @@ function corpusCopyIssues(text: string, chunks: RagChunk[]): string[] {
         chunk.knowledge.opportunity,
         chunk.knowledge.advice,
         chunk.knowledge.forbidden_generalization,
+        ...(chunk.knowledge.branches ?? []).flatMap((branch) => [branch.meaning, branch.caution ?? '']),
       ]
       : [chunk.content]
     for (const source of sourceParts.flatMap(sentences)) {
