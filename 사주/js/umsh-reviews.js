@@ -5,7 +5,7 @@
  */
 (function (global) {
   'use strict';
-  var FIRST_PAGE = 3, PAGE = 5;
+  var FIRST_PAGE = 5, PAGE = 5; // 처음 5개, "후기 더 보기" 한 번에 5개씩 (2026-10-16)
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
