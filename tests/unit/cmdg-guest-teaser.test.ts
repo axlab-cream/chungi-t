@@ -137,7 +137,17 @@ describe('결제 진입 화면 연결', () => {
   it('운명 거래하기·결제하기는 비회원이면 가입·로그인 화면을 띄우고, 로그인하면 결제로 이어 준다', () => {
     assert.match(source, /if \(action === "open-purchase"\) openPurchaseOrAuth\(\)/)
     const openChat = source.slice(source.indexOf('if (action === "open-chat")'), source.indexOf('if (action === "open-settings")'))
-    assert.match(openChat, /openPurchaseOrAuth\(\)/)
+    // 2026-10-16 폰 QA: 누르는 즉시 버튼을 흐리게 하고 겹쳐 열지 않는 runTradeAction 을 거쳐 openPurchaseOrAuth 로 간다.
+    assert.match(openChat, /runTradeAction\(event\.target\.closest\("\[data-action\]"\)\)/)
+    const busy = fn('runTradeAction', 'async function openPurchaseOrAuth')
+    assert.match(busy, /if \(tradeBusy\) return;/)
+    assert.match(busy, /openPurchaseOrAuth\(\)/)
+    assert.match(busy, /removeAttribute\("aria-busy"\)/)
+    // 결제 전 풀이를 새로고침·주소로 다시 열면 오류 화면 대신 이 기기의 같은 풀이(없으면 같은 사주로 다시)
+    const load = source.slice(source.indexOf('async function loadReportById('), source.indexOf('async function loadReportById(') + 2600)
+    assert.match(load, /json\.previewOnly && !json\.analysis/)
+    assert.match(load, /findCachedReading\(trimmed\)/)
+    assert.match(source, /if \(err\?\.previewOnly\) \{ syncReportIdInUrl\(""\); beginAnalysisAfterAuth\(\); return; \}/)
     assert.doesNotMatch(openChat, /go\("purchase"\)/, '로그인 확인 없이 결제 화면으로 가면 안 된다')
     const gate = fn('openPurchaseOrAuth', 'async function beginAnalysisAfterAuth')
     assert.match(gate, /sessionStorage\.setItem\(AUTH_PURCHASE_KEY, "1"\)/)
