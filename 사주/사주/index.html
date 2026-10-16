@@ -4085,7 +4085,7 @@
         }
       }
     </style>
-  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261015a"></script><script src="/js/umsh-reviews.js?v=20261016a"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
+  <link rel="stylesheet" href="/css/cmdg-master-teaser.css?v=20261012d"><script src="/js/cmdg-master-teaser.js?v=20261016a"></script><script src="/js/umsh-reviews.js?v=20261016a"></script><link rel="stylesheet" href="/assets/fonts/pretendard-variable/pretendard-variable.css" /><link rel="stylesheet" href="/css/umsh-font.css?v=20261015" /></head>
   <body>
     <main class="phone" data-scene="landing" data-step="landing" aria-label="운명의 문 랜딩 페이지">
       <div class="hero" aria-hidden="true"></div>
@@ -4127,7 +4127,7 @@
     <script src="/js/umsh-love-target.js?v=20261016a"></script>
     <script src="/js/umsh-consent.js?v=20261016a"></script>
     <script src="/js/umsh-guest-save-sheet.js?v=20261016c"></script>
-    <script src="/js/umsh-pay-sheet.js?v=20261016b"></script>
+    <script src="/js/umsh-pay-sheet.js?v=20261016c"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/js/payment-bridge.js"></script>
     <script>
@@ -5490,6 +5490,7 @@
           reportId,
           returnTo,
           session,
+          viewUrl: isCurrentReportPaid() ? (state.serviceKey ? `/chat.html?serviceKey=${encodeURIComponent(state.serviceKey)}` : "/chat.html") : "",
           originAmount,
           discountLabel: originAmount > amount && amount ? `${Math.round((1 - amount / originAmount) * 100)}%` : "",
           fallbackUrl,
@@ -6471,6 +6472,10 @@
           return;
         }
         if (action === "open-chat") {
+          // 2026-10-16 대표 결정: 운명 거래하기는 관리자·이미 결제한 회원도 늘 결제 시트를 연다(다시 결제 가능).
+          // 결제 없이 볼 수 있는 사람은 시트 맨 위 "풀이 보기"로 넘어간다.
+          const tradeButton = event.target.closest("[data-trade-cta]");
+          if (tradeButton && usesTradeSheets()) { runTradeAction(tradeButton); return; }
           if (isCurrentReportPaid()) {
             {
               const key = state.serviceKey || "";

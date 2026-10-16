@@ -264,6 +264,11 @@
       } catch (_e) { /* 확인 실패면 서버가 주문 때 한 번 더 막는다 */ }
     }
 
+    // 관리자 등 결제 없이 이미 볼 수 있는 풀이(천명사주가 viewUrl 을 넘김). 결제는 그대로 할 수 있다.
+    if (!paidNote && opts.viewUrl) {
+      paidNote = '<p class="umsh-ps-guest" data-ps-paid>이미 볼 수 있는 풀이예요. 결제하면 실제로 결제됩니다. <a href="' + escapeText(opts.viewUrl) + '">풀이 보기</a></p>';
+    }
+
     // 2026-10-16 비회원도 결제한다(docs/auth/guest-member-plan.md 8절). 비회원은 쿠폰 없이, 시트 안에서 약관 동의를 받는다.
     var isGuest = Boolean(session.user && session.user.is_anonymous);
     var coupons = [];
