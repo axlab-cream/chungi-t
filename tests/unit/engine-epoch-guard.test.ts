@@ -14,6 +14,8 @@ import { corpusCacheSalt } from '../../src/rag/corpus-registry.js'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const fixture = JSON.parse(readFileSync(join(root, 'tests', 'fixtures', 'engine-epoch.json'), 'utf8')) as {
   history: Array<{ cacheEpoch: string; engineHash: string }>
+  /** 엔진은 그대로이고 참고서만 바뀌어 올린 세대(2026-10-16~). after = 직전 엔진 세대 */
+  corpusOnly?: Array<{ cacheEpoch: string; after: string }>
 }
 
 function engineHash(): string {
@@ -35,11 +37,13 @@ test('사주 계산 엔진이 바뀌면 풀이 세대(cacheEpoch)도 올라가 �
     latest.engineHash,
     `사주 계산 엔진(src/saju)이 바뀌었습니다. 업데이트 뒤에 사는 사람이 새 계산을 받도록 data/tone-v2/corpus/registry.json 의 cacheEpoch 를 새 값으로 올리고, tests/fixtures/engine-epoch.json 의 history 끝에 { "cacheEpoch": "<새 값>", "engineHash": "${current}" } 를 더하세요.`,
   )
-  assert.equal(corpusCacheSalt(), latest.cacheEpoch, 'registry.json 의 cacheEpoch 가 engine-epoch.json 의 마지막 세대와 같아야 합니다.')
+  // 마지막 엔진 세대 뒤에 참고서만 바꿔 올린 세대가 있으면 그것이 지금 세대다.
+  const expected = (fixture.corpusOnly ?? []).filter((item) => item.after === latest.cacheEpoch).at(-1)?.cacheEpoch ?? latest.cacheEpoch
+  assert.equal(corpusCacheSalt(), expected, 'registry.json 의 cacheEpoch 가 engine-epoch.json 의 마지막 세대(참고서 세대 포함)와 같아야 합니다.')
 })
 
 test('세대 기록은 엔진이 바뀔 때마다 새 세대를 쓴다(같은 세대를 다시 쓰지 않음)', () => {
-  const epochs = fixture.history.map((item) => item.cacheEpoch)
+  const epochs = [...fixture.history, ...(fixture.corpusOnly ?? [])].map((item) => item.cacheEpoch)
   const hashes = fixture.history.map((item) => item.engineHash)
   assert.equal(new Set(epochs).size, epochs.length, '같은 cacheEpoch 를 두 번 썼습니다. 엔진을 바꿨으면 새 세대로 올려야 합니다.')
   assert.equal(new Set(hashes).size, hashes.length)

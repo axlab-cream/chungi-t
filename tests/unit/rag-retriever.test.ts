@@ -61,7 +61,8 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
 
     it('고급 만세력/GBR 보강 pack도 인덱스에 포함', () => {
       const corpus = buildCorpusIndex()
-      for (const id of ['adv-001', 'adv-002', 'adv-003', 'adv-004', 'adv-005', 'adv-006']) {
+      // adv-001(자시 옵션 설계)·adv-005(검색 재랭킹)·adv-006(품질 평가)은 개발 메모라 2026-10-16 참고서에서 뺐다.
+      for (const id of ['adv-002', 'adv-003', 'adv-004']) {
         assert.ok(corpus.some((chunk) => chunk.id === id), `${id} missing`)
       }
       assert.ok(corpus.some((chunk) => chunk.domain === 'saju_advanced_manseryeok_gbr'))
@@ -167,11 +168,13 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       assert.ok(ids.includes('adv-002') || ids.includes('adv-003') || ids.includes('adv-004'))
     })
 
-    it('GBR 재랭킹 → 23시 자시 질문에서 자시 옵션 청크를 회수', () => {
+    it('23시 자시 질문에도 개발 메모(자시 옵션 설계) 조각은 오지 않는다', () => {
+      // 자시 규칙은 계산 엔진이 정한다(2026-10-15: 23:30부터 다음 날). 참고서에 서비스 설계 메모를 두지 않는다.
       const saju = analyzeSaju({ ...sampleBirth, hour: 23 })
       const chunks = retrieveRagChunks('23시 자시 야자시 조자시 일주 변경 기준이 궁금해요', saju, 5)
 
-      assert.ok(chunks.some((chunk) => chunk.id === 'adv-001'))
+      assert.ok(chunks.length > 0)
+      assert.ok(!chunks.some((chunk) => ['adv-001', 'adv-005', 'adv-006'].includes(chunk.id)))
     })
 
     it('대상 선택 본인 context → 본인 사주 청크 우선 검색', () => {
@@ -224,7 +227,9 @@ describe('[TASK] RAG 검색 테스트 하네스', () => {
       ] as const
 
       for (const [query, expectedId] of cases) {
-        const chunks = retrieveRagChunks(query, saju, 5)
+        // 운영 리포트는 장마다 7칸(data/runtime-config.json report.ragTopK). 2026-10-16 옛 103조각이 판단 블록이 되며
+        // 기초 조각(mr-009 등)이 5칸 안에 들어와 번들이 6번째로 밀리는 경우가 생겼다.
+        const chunks = retrieveRagChunks(query, saju, 7)
         assert.ok(chunks.some((chunk) => chunk.id === expectedId), `${expectedId} not found for ${query}`)
       }
     })
