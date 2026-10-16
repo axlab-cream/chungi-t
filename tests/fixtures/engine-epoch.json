@@ -15,6 +15,11 @@
       "cacheEpoch": "2026-10-15-shinsal",
       "engineHash": "70c3aae318dc35d3",
       "change": "해마다 들어오는 신살(대운·세운 × 원국), 없는 신살 문장 빼기 도구"
+    },
+    {
+      "cacheEpoch": "2026-10-16-ziwei-korean-lunar",
+      "engineHash": "07a054cf77ac8a0c",
+      "change": "자미두수: 한국 출생자는 한국 음력(KASI) 날짜로 명반(중국 음력에 그 날짜가 없으면 — 30일 없는 달·윤달 위치 다른 해 — 중국 음력 유지)"
     }
   ]
 }

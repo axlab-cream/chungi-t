@@ -1,5 +1,6 @@
 import { astro } from 'iztro'
-import { defaultDayBoundaryRule, resolveBirthDate, sajuClock } from './calculator.js'
+import { Lunar } from 'lunar-typescript'
+import { defaultDayBoundaryRule, koreanLunarDate, resolveBirthDate, sajuClock } from './calculator.js'
 import type { BirthInput, SajuReportSection } from '../types/index.js'
 
 // Traditional symbolic meanings; plain labels do not replace or change the calculated chart.
@@ -15,6 +16,18 @@ export function ziweiPalaceReading(name: string, stars: Array<{name:string}>) {
  return { question: PALACE_QUESTIONS[name] || '이 생활에서는 어떤 모습이 드러날까요?', points: meanings, summary: meanings.length ? '이 부분에서는 ' + meanings.join(', ') + '을 함께 살펴봅니다.' : '이 부분은 한 가지 성향으로 정하지 않고, 다른 생활 영역과 함께 살펴봅니다.' }
 }
 
+/** 음력 날짜(윤달 여부까지)가 중국 음력에 그대로 있으면 그 양력 날짜(YYYY-M-D). 없는 날짜면 null. */
+function chineseSolarOfLunar(lunar: { year: number; month: number; day: number; isLeapMonth: boolean }): string | null {
+  try {
+    const solar = Lunar.fromYmd(lunar.year, lunar.isLeapMonth ? -lunar.month : lunar.month, lunar.day).getSolar()
+    return `${solar.getYear()}-${solar.getMonth()}-${solar.getDay()}`
+  } catch (error) {
+    // lunar-typescript 는 없는 음력 날짜에만 이 두 문구로 오류를 낸다. 그 밖의 오류는 숨기지 않는다.
+    if (error instanceof Error && /wrong lunar year|only \d+ days in lunar year/.test(error.message)) return null
+    throw error
+  }
+}
+
 export function calculateZiwei(birth: BirthInput, birthTimeKnown?: boolean) {
   if (birthTimeKnown === false || !Number.isInteger(birth.hour) || birth.hour < 0 || birth.hour > 23) return { available: false as const, reason: '태어난 시간을 입력하면 태어난 때를 바탕으로 한 자미두수 풀이를 볼 수 있습니다.' }
   const solar = resolveBirthDate(birth)
@@ -27,14 +40,29 @@ export function calculateZiwei(birth: BirthInput, birthTimeKnown?: boolean) {
     {
       // 2026-10-15 규칙: 사주와 같은 사주 시각(서머타임·표준시·동경 127.5도 보정)으로 시진을 정한다.
       // 사주 시각 23시는 다음 날의 이른 자시로 본다(사주 일주와 같은 경계).
-      // 한국 음력은 넘기지 못한다: iztro 는 중국 음력으로 날짜를 검사해, 한중 음력이 다른 날(1930~2049년 3.6%)의
-      // 한국 음력 30일을 "그 달은 29일까지"라며 거부한다(2026-10-15 확인). 이 날짜들은 중국 음력 기준으로 남는다.
       const clock = sajuClock(solar)
       // 자정 경계를 직접 고른 경우(dayBoundaryRule 'midnight')는 사주 시각 23시를 그날의 늦은 자시(12)로 둔다.
       const nextDay = clock.hour === 23 && defaultDayBoundaryRule(birth) === 'zi_hour_next_day'
       const day = new Date(Date.UTC(clock.solarYear, clock.solarMonth - 1, clock.solarDay + (nextDay ? 1 : 0)))
-      chart = astro.withOptions({ type: 'solar', dateStr: `${day.getUTCFullYear()}-${day.getUTCMonth() + 1}-${day.getUTCDate()}`, timeIndex: nextDay ? 0 : Math.floor((clock.hour + 1) / 2), ...common, config: { algorithm: 'default', yearDivide: 'normal', horoscopeDivide: 'normal', ageDivide: 'normal', dayDivide: 'current' } })
-      convention = '사주와 같은 사주 시각(서머타임·표준시·동경 127.5도 보정) · 음력 설 기준 · 윤달 전후반 보정 · 밤 11시 30분(사주 시각 23시)부터 다음 날'
+      const timeIndex = nextDay ? 0 : Math.floor((clock.hour + 1) / 2)
+      const config = { algorithm: 'default', yearDivide: 'normal', horoscopeDivide: 'normal', ageDivide: 'normal', dayDivide: 'current' } as const
+      const solarChart = () => astro.withOptions({ type: 'solar', dateStr: `${day.getUTCFullYear()}-${day.getUTCMonth() + 1}-${day.getUTCDate()}`, timeIndex, ...common, config })
+      // 2026-10-16 결정: 한국에서 태어난 사람은 한국 음력(KASI, 사주와 같은 표)으로 명반을 만든다. 다른 나라 출생은 중국 음력 그대로.
+      // iztro 는 모든 별을 '양력 → 중국 음력'으로 계산한다. 그래서 한국 음력 날짜(윤달 여부까지)가 중국 음력에 똑같이 있는
+      // 양력 날짜를 찾아 넣고, iztro 가 실제로 쓴 음력이 한국 음력과 같은지 다시 확인한다. 같을 때만 '한국 음력'이다.
+      // 중국 음력에 그 날짜가 없으면(한국 음력 30일인데 중국은 29일까지인 달, 한중 윤달 위치가 다른 해) 중국 음력 그대로 둔다
+      // (analysis/ziwei-lunar-calendar-research.md).
+      const korean = !solar.birthTimeZone || solar.birthTimeZone === 'Asia/Seoul'
+      const target = korean ? koreanLunarDate(day.getUTCFullYear(), day.getUTCMonth() + 1, day.getUTCDate()) : null
+      const shifted = target ? chineseSolarOfLunar(target) : null
+      let koreanCalendar = false
+      chart = shifted ? astro.withOptions({ type: 'solar', dateStr: shifted, timeIndex, ...common, config }) : solarChart()
+      if (target && shifted) {
+        const used = chart.rawDates.lunarDate
+        koreanCalendar = used.lunarYear === target.year && used.lunarMonth === target.month && used.lunarDay === target.day && used.isLeap === target.isLeapMonth
+        if (!koreanCalendar) chart = solarChart()
+      }
+      convention = `사주와 같은 사주 시각(서머타임·표준시·동경 127.5도 보정) · ${koreanCalendar ? '한국 음력(한국천문연구원) 날짜' : '중국 음력 날짜'} · 음력 설 기준 · 윤달 전후반 보정 · 밤 11시 30분(사주 시각 23시)부터 다음 날`
     }
     return {
       available: true as const, engine: 'iztro@2.6.1', fiveElementsClass: chart.fiveElementsClass,
