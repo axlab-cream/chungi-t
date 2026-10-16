@@ -5288,8 +5288,11 @@
         }
         // 2026-10-16 대표 결정: 메인 콘텐츠는 로그인 없이 결제한다. 비회원은 이 기기의 비회원 계정으로 진짜 풀이를 만들고 결제 시트를 띄운다.
         if (usesTradeSheets() && window.UMSHPaySheet?.open) {
-          const guestSession = await todayGuestSession();
+          let guestSession = await todayGuestSession();
+          if (!guestSession?.access_token && authConfigData?.guestSignIn) guestSession = await todayGuestSession();
           if (guestSession?.access_token) { await openGuestTradePaySheet(guestSession); return; }
+          // 2026-10-16 QA: 비회원 결제가 켜져 있으면 비회원 계정을 못 만들어도 로그인 시트로 돌리지 않는다(메인 콘텐츠는 로그인 없이 결제).
+          if (authConfigData?.guestSignIn) { showNudge("결제를 준비하지 못했어요. 잠시 후 다시 눌러 주세요."); return; }
         }
         persistAuthFormState();
         sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
@@ -5444,7 +5447,7 @@
 
       async function openTradePaySheet() {
         const session = await currentAuthSession().catch(() => null);
-        if (!session?.access_token) { openTradeLoginSheet(); return; }
+        if (!session?.access_token) { await openPurchaseOrAuth(); return; }
         // 로그인 직후: 비회원으로 본 결과를 묻지 않고 옮긴다(결제 화면과 같은 규칙). 확인 시트가 결제 시트와 겹치지 않게 먼저 끝낸다.
         await window.UMSHAuthSession?.claimGuestNow?.({ silent: true })?.catch?.(() => undefined);
         const agreed = window.UMSHAuthSession?.ensureMemberConsent
@@ -9340,8 +9343,8 @@
         if (!event.persisted || !sessionStorage.getItem(TRADE_LOGIN_KEY)) return;
         currentAuthSession().catch(() => null).then((session) => {
           if (session?.access_token) return;
+          // 2026-10-16: 메인 콘텐츠는 로그인을 권하지 않는다. 남은 표시만 지우고 시트는 다시 띄우지 않는다.
           consumeTradeLoginReturn();
-          if (state.scene === "result") { scrollToTradeCta(); openTradeLoginSheet(); }
         });
       });
       initAuth().then(async () => {
