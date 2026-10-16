@@ -15,7 +15,7 @@ import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryOwnChunks, retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 import { partnerBirthTimeReading, withholdsBirthTime } from '../saju/unknown-time-reading.js'
-import { genderField } from '../report/partner-gender.js'
+import { loveTargetOrientation } from '../report/partner-gender.js'
 
 export const LOVE_SIGNAL_SERVICE_KEY = 'couple_signal'
 
@@ -229,12 +229,14 @@ export function buildLoveSignalContext(
   name: string | undefined,
   input: LoveSignalRequest,
   partnerAnalysis: SajuAnalysis,
+  selfGender?: 'male' | 'female',
 ): SajuReportContext {
   const p = partnerAnalysis.fourPillars
   return {
     serviceKey: LOVE_SIGNAL_SERVICE_KEY,
     name,
     target: '관계 신호',
+    orientation: loveTargetOrientation(selfGender, input.partnerBirth?.gender) || undefined,
     concern: [
       `현재 관계: ${input.relationshipStage}`,
       `신경 쓰이는 신호: ${input.signalFocus}`,
@@ -244,7 +246,6 @@ export function buildLoveSignalContext(
     partner: {
       relationship: input.relationshipStage,
       name: input.partnerName,
-      ...genderField(input.partnerBirth),
       // 상대의 생년월일시 원본은 문맥에 싣지 않는다. 이 문맥은 리포트 payload 로 저장되고
       // 응답으로도 나가는데, 상대는 이 서비스의 사용자가 아니어서 동의·삭제 창구가 없다.
       // 본문 생성에 필요한 것은 아래 계산 결과뿐이고 원본은 `input.partnerBirth` 에 있다.

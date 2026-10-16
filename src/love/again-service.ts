@@ -14,7 +14,7 @@ import { ELEMENT_KO, STEM_KO } from '../saju/analyzer-helpers.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
-import { genderField } from '../report/partner-gender.js'
+import { loveTargetOrientation } from '../report/partner-gender.js'
 
 export const LOVE_AGAIN_SERVICE_KEY = 'love_again'
 
@@ -144,7 +144,6 @@ function buildPartnerContext(input: LoveAgainRequest, analysis?: SajuAnalysis): 
     mode: 'known',
     ...(input.partnerName ? { name: input.partnerName } : {}),
     relationship: input.relationshipStage,
-    ...genderField(input.partnerBirth),
     // 상대의 생년월일시 원본은 문맥에 싣지 않는다. 이 문맥은 리포트 payload 로 저장되고
     // 응답으로도 나가는데, 상대는 이 서비스의 사용자가 아니어서 동의·삭제 창구가 없다.
     // 본문 생성에 필요한 것은 아래 계산 결과뿐이고 원본은 `input.partnerBirth` 에 있다.
@@ -158,13 +157,13 @@ function buildPartnerContext(input: LoveAgainRequest, analysis?: SajuAnalysis): 
   }
 }
 
-export function buildLoveAgainContext(name: string | undefined, input: LoveAgainRequest, partnerAnalysis?: SajuAnalysis): SajuReportContext {
+export function buildLoveAgainContext(name: string | undefined, input: LoveAgainRequest, partnerAnalysis?: SajuAnalysis, selfGender?: 'male' | 'female'): SajuReportContext {
   return {
     serviceKey: LOVE_AGAIN_SERVICE_KEY,
     name,
     target: '재회운',
     relationship: input.relationshipStage,
-    orientation: '세운 + 궁합 + 관계 흐름',
+    orientation: loveTargetOrientation(selfGender, input.partnerBirth?.gender, '세운 + 궁합 + 관계 흐름'),
     concern: [`이별 배경: ${input.breakupReason}`, `현재 신호: ${input.currentSignal}`, `이별 후: ${input.breakupPeriod}`, input.concern].filter(Boolean).join(' · '),
     partner: buildPartnerContext(input, partnerAnalysis),
   }

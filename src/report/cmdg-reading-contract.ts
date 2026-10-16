@@ -1,5 +1,6 @@
 import type { SajuReportContext } from '../types/index.js'
 import { normalizeServiceKey } from '../prompt/service-system.js'
+import { LOVE_TARGET_RULE } from './partner-gender.js'
 /** Structure is shared; facts and conclusions must come from the individual record. */
 export const CMDG_READING_CONTRACT = [
   '문체의 핵심은 친밀한 통찰이다. 보고서식 명령 나열이나 어미 치환이 아니다. 확인된 상황에서 무엇이 답답할 수 있는지 짚고, 겉의 조건과 실제 원하는 것의 차이를 생활말로 이어 준다. ~네, ~잖아, ~거야를 문맥에 맞게 쓰되 미확인 감정을 사실처럼 단정하지 않는다. 너·네를 매 문장 반복하지 말고 주어를 자연스럽게 생략한다. 직함보다 권한처럼 같은 결론을 전 장에서 복제하지 않는다. 전문 근거는 뜻을 설명하는 문장 속에 녹이고 행동 제안은 앞에서 짚은 사정에서 자연스럽게 나온다.',
@@ -18,7 +19,7 @@ export const CMDG_READING_CONTRACT = [
   '다른 장의 직함·권한·기준 문장을 반복해 분량을 채우지 마세요. 선택·결·자리·기준·흐름 대신 행동과 관계를 구체적으로 쓰세요.',
   '중학생이 처음 읽어도 이해하게 쓰세요. 전문 이름을 나열하지 말고 그 뜻과 생활 장면부터 말하세요. 명궁은 내 성격, 천이는 낯선 곳에서의 행동, 재백은 돈을 벌고 쓰는 습관, 관록은 일하는 모습, 부처궁은 연애·결혼 생활입니다. 별 이름·명반·사화·용신·일간·십신은 필요할 때만 쉬운 설명 뒤 괄호로 한 번 쓰세요. 한 문장에 새 전문 용어는 하나 이하, 설명 없는 궁 이름과 간지 나열은 금지합니다. 용어를 정의하는 문장으로 분량을 채우지 말고 개인 질문에 직접 답하세요.',
   '상대의 실제 외모·속마음·미래 사건은 사주로 확정하지 마세요. 한자는 생활말로 풀어 쓰세요.',
-  '연애 상대의 성별은 입력된 관계 기준에 적힌 "연애 상대 남자/여자"를 따르세요. "성별 무관"이거나 입력이 없으면 상대를 성별 없이 그 사람·상대로 쓰고, 본인 성별로 상대 성별을 짐작하지 마세요.',
+  LOVE_TARGET_RULE,
 ].join('\n')
 
 export const CMDG_RELATIONSHIP_SECTIONS = new Set(['love-loop', 'destiny-partner', 'avoid-relationship', 'love-timing'])

@@ -12,12 +12,11 @@ import type {
 } from '../types/index.js'
 import { retrieveRagChunks } from '../rag/retriever.js'
 import { finalizeSpecializedReport } from '../report/report-quality.js'
+import { LOVE_TARGETS, type LoveTarget } from '../report/partner-gender.js'
 import { retrieveCategoryRagChunks } from '../report/specialized-rag.js'
 
 export const LOVE_SPOUSE_SERVICE_KEY = 'love_spouse'
 
-export const LOVE_TARGETS = ['남자', '여자', '둘 다·상관없음'] as const
-export type LoveTarget = (typeof LOVE_TARGETS)[number]
 
 export interface LoveSpouseRequest {
   relationshipStatus: string

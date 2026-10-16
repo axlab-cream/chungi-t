@@ -17,7 +17,7 @@ import { OpenAiTruncatedError, chatWithOpenAI, type OpenAiResult } from '../llm/
 import { SERVICE_VOICE_CONTRACTS, type ServiceVoiceContract } from '../prompt/service-voice-contracts.js'
 import { InterpretationQualityError, reviewInterpretation, type InterpretationReview } from './interpretation-validation.js'
 import { publicReportContext } from './public-context.js'
-import { PARTNER_GENDER_RULE, needsPartnerGenderRule } from './partner-gender.js'
+import { LOVE_TARGET_RULE, needsPartnerGenderRule } from './partner-gender.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy, SHINSAL_NAMES_PER_SECTION, WELL_KNOWN_SHINSAL } from './copy-guide.js'
 import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReadableCopy, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
@@ -80,7 +80,7 @@ const SAFETY_ADDENDUM = [
 function reportVoiceSystemPrompt(context: SajuReportContext): string {
   const key = normalizeServiceKey(context.serviceKey)
   // 상대가 등장하는 서비스에는 천명사주와 같은 성별 규칙을 붙인다(상대가 없는 서비스의 프롬프트는 그대로).
-  const genderRule = needsPartnerGenderRule(context) ? `\n\n${PARTNER_GENDER_RULE}` : ''
+  const genderRule = needsPartnerGenderRule(context) ? `\n\n${LOVE_TARGET_RULE}` : ''
   return `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}${genderRule}`
 }
 /*
@@ -2202,7 +2202,7 @@ export function partnerContextForAi(context: SajuReportContext): SajuReportConte
     }
     return { ...context, partner: { ...rest, pillars: withoutHour(pillars), pillarElements: withoutHour(pillarElements) } as SajuReportContext['partner'] }
   }
-  return { ...context, partner: { mode: partner.mode, name: partner.name, relationship: partner.relationship, ...(partner.gender ? { gender: partner.gender } : {}), birthTimeKnown: false } }
+  return { ...context, partner: { mode: partner.mode, name: partner.name, relationship: partner.relationship, birthTimeKnown: false } }
 }
 
 export function groundedReportFeatures(analysis: SajuAnalysis, rawContext: SajuReportContext): unknown {
