@@ -1,4 +1,12 @@
 import type { SajuReportContext } from '../types/index.js'
+// 천명사주 화면과 같은 파일. 연애 상대 선택지와 관계 기준 문장은 이 파일 하나에서 만든다.
+import '../../사주/js/umsh-love-target.js'
+
+interface LoveTargetShared {
+  LOVE_TARGETS: readonly ['남자', '여자', '둘 다·상관없음']
+  orientationFromLoveTarget(selfGender: string, loveTarget: string): string
+}
+const shared = (globalThis as unknown as { UMSHLoveTarget: LoveTargetShared }).UMSHLoveTarget
 
 export type Gender = 'male' | 'female'
 
@@ -6,8 +14,10 @@ export function asGender(value: unknown): Gender | undefined {
   return value === 'male' || value === 'female' ? value : undefined
 }
 
+/** 천명사주가 묻는 "연애 상대는요?" 선택지. 다른 서비스도 같은 값을 쓴다. */
+export const LOVE_TARGETS = shared.LOVE_TARGETS
 /**
- * 천명사주의 `orientationFromLoveTarget` 과 같은 문자열을 만든다.
+ * 관계 기준 문자열. 천명사주 화면이 쓰는 `orientationFromLoveTarget`(공용 파일)을 그대로 부른다.
  * 같은 성별이면 "동성", 다르면 "이성" 관계 중심 · 연애 상대 남자/여자. 본인 성별을 모르면 "관계 패턴 중심".
  * 상대 성별을 모르면 아무것도 지어내지 않고 `label` 만 돌려준다(AI 는 이때 상대를 성별 없이 쓴다).
  * 서비스 고유의 관계 기준(`label`)이 있으면 그 뒤에 붙인다.
@@ -15,14 +25,11 @@ export function asGender(value: unknown): Gender | undefined {
 export function loveTargetOrientation(self: unknown, partner: unknown, label = ''): string {
   const target = asGender(partner)
   if (!target) return label
-  const mine = asGender(self)
-  const relation = !mine ? '관계 패턴 중심' : mine === target ? '동성 관계 중심' : '이성 관계 중심'
-  const text = `${relation} · 연애 상대 ${target === 'male' ? LOVE_TARGETS[0] : LOVE_TARGETS[1]}`
+  const korean = (gender: Gender | undefined) => (gender === 'male' ? LOVE_TARGETS[0] : gender === 'female' ? LOVE_TARGETS[1] : '')
+  const text = shared.orientationFromLoveTarget(korean(asGender(self)), korean(target))
   return label ? `${label} · ${text}` : text
 }
 
-/** 천명사주가 묻는 "연애 상대는요?" 선택지. 다른 서비스도 같은 값을 쓴다. */
-export const LOVE_TARGETS = ['남자', '여자', '둘 다·상관없음'] as const
 export type LoveTarget = (typeof LOVE_TARGETS)[number]
 
 /**
