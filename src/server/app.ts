@@ -4336,10 +4336,8 @@ app.post('/api/payment/orders', async (req, res) => {
       const requestedReportId = trimmedString(req.body.reportId)
       const bound = await findReportRecord(requestedReportId, owner)
       if (bound && isConsultationRecord(bound)) { res.status(400).json({ error: '상담 질문권은 천명상담에서 구매해 주세요.' }); return }
-      // 결제 완료 화면에서 브라우저 뒤로 가기를 누르면 결제 화면이 다시 열린다. 열람 판정과 같은
-      // 규칙으로 이미 열린 풀이인지 보고, 같은 풀이를 두 번 결제하지 않게 막는다.
-      const paid = await findUnlockingOrder(owner, product.key, requestedReportId, bound?.lineageId ?? '')
-      if (paid) { res.status(409).json({ code: 'ALREADY_PAID', error: '이미 결제한 풀이입니다.', orderId: paid.orderId }); return }
+      // 2026-10-16 대표 결정: 같은 풀이도 다시 결제할 수 있다(PR #137 의 ALREADY_PAID 409 를 없앰).
+      // 결제 화면은 purchase-status 로 "이미 결제한 풀이"라고 알리기만 하고 결제는 막지 않는다.
     }
     const profile = await getUserBirthProfile(owner)
     if (!profile) {
