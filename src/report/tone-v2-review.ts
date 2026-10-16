@@ -1,6 +1,7 @@
 import { loadTonePersona } from '../prompt/tone-v2.js'
 import { normalizeServiceKey } from '../prompt/service-system.js'
 import { SERVICE_VOICE_CONTRACTS, type ServiceVoiceContract } from '../prompt/service-voice-contracts.js'
+import { absoluteLinesEnabled, absoluteLinesFor, assertionLevel, type AssertionLevel } from '../prompt/absolute-lines.js'
 import { relationshipState } from '../love/reading-content.js'
 import type { RagChunk, SajuReportContext, SajuReportSection, SajuReportVerdict } from '../types/index.js'
 
@@ -14,7 +15,7 @@ export interface ToneReviewOptions {
 export interface ReadableCopyOptions {
   role: 'teaser' | 'body'
 }
-export interface SafetyClaimsInput { text: string; context?: SajuReportContext }
+export interface SafetyClaimsInput { text: string; context?: SajuReportContext; assertion?: AssertionLevel }
 export interface PaidSectionDensityReview extends ToneReview {
   elements: {
     directAnswer: boolean
@@ -59,7 +60,7 @@ const ISO_DATE_PATTERN = /(?<!\d)(\d{4})([-./])(\d{1,2})\2(\d{1,2})(?!\d)/g
 const KOREAN_DATE_PATTERN = /(?<!\d)(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일(?!\d)/g
 const ARITHMETIC_PATTERN = /([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(cm|mm|m|만원|원|개월|시간|분|년|월|일|시|주|%|점|회|번|건|장|개|명|단계|칸|걸음|도|세)?\s*([+\-−])\s*([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(cm|mm|m|만원|원|개월|시간|분|년|월|일|시|주|%|점|회|번|건|장|개|명|단계|칸|걸음|도|세)?\s*=\s*([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(cm|mm|m|만원|원|개월|시간|분|년|월|일|시|주|%|점|회|번|건|장|개|명|단계|칸|걸음|도|세)?/giu
 const PRESCRIPTION_ACTION_PATTERN = /(?:하세요|하십시오|해요|해보|해 보|보세요|봐요|잡으세요|잡아보|떼세요|떼어|옮기세요|옮겨|놓으세요|놓아|정리하세요|정리해|끊으세요|끊어|줄이세요|줄여|늘리세요|늘려|확인하세요|확인해|기록하세요|기록해|비교하세요|비교해|관찰하세요|관찰해|테스트하세요|테스트해|만나세요|연락하세요|연락해|통화하세요|통화해|걸으세요|걸어|기다리세요|기다려|미루세요|미뤄|준비하세요|준비해|저축하세요|저축해|결제하세요|공부하세요|공부해|오답노트|쓰세요|지원하세요|지원해|계약하세요|계약해|퇴사하세요|퇴사해|이사하세요|이사해)/
-const NEGATED_CERTAINTY_PATTERN = /(?:(?:확정|단정|보장|예언|알 수|알아낼 수|확인된 사실).{0,12}(?:하지|아니|못하|없)|(?:결과가\s*)?(?:정해지|확정되)[^.!?。\n]{0,16}(?:아니|않)|뜻(?:은|이)?\s*아닙|뜻으로\s*쓰면\s*안|(?:합격|불합격|이별|결혼|채용|수익|외도|질병|수명|사고|파산|이혼|재회|퇴사|이직|구조조정)[^.!?。\n]{0,24}(?:예언으로\s*)?읽지\s*말|(?:결혼|이별|재회)(?:\s*,\s*(?:결혼|이별|재회))*\s*같은\s*사건으로\s*바꾸면[^.!?。\n]{0,24}해석[^.!?。\n]{0,12}넘어|(?:판정|분석|검토)(?:에서|은|을)?\s*제외)/
+const NEGATED_CERTAINTY_PATTERN = /(?:(?:확정|단정|보장|예언|알 수|알아낼 수|정할 수|확인된 사실).{0,12}(?:하지|아니|못하|없)|(?:결과가\s*)?(?:정해지|확정되)[^.!?。\n]{0,16}(?:아니|않)|뜻(?:은|이)?\s*아닙|뜻으로\s*쓰면\s*안|(?:합격|불합격|이별|결혼|채용|수익|외도|질병|수명|사고|파산|이혼|재회|퇴사|이직|구조조정)[^.!?。\n]{0,24}(?:예언으로\s*)?읽지\s*말|(?:결혼|이별|재회)(?:\s*,\s*(?:결혼|이별|재회))*\s*같은\s*사건으로\s*바꾸면[^.!?。\n]{0,24}해석[^.!?。\n]{0,12}넘어|(?:판정|분석|검토)(?:에서|은|을)?\s*제외)/
 const CONDITIONAL_PATTERN = /(?:라면|다면|경우|때에는|때는|수 있어|일 수|일 수도|듯해|처럼 보|가능성|가설|(?:맞|충족되|확인되|준비되|갖춰지|잡|막히|무너지|돌아오)(?:으)?면)/
 const THIRD_PARTY_MIND_PATTERN = /(?:상대|그 사람|애인|전 애인|배우자|동료|상사|가족)\s*(?:은|는|이|가)?[^.!?。\n]{0,24}(?:마음|속마음|진심|감정|후회|미련)[^.!?。\n]{0,24}(?:없|떠났|식었|돌아섰|숨기|좋아하|사랑하|후회하|기다리|그리워|정리했|끝났|남아 있)/
 const CERTAIN_FUTURE_EVENT_PATTERN = /(?:(?:올해|내년|다음\s*달|곧|결국|반드시|무조건|확실히|조만간)?[^.!?。\n]{0,16}(?:합격|불합격|이별|결혼|채용|수익|외도|질병|수명|사고|파산|이혼|재회|퇴사|이직|구조조정|돌아올|돌아오)[^.!?。\n]{0,20}(?:짧습니다|깁니다|있습니다|있어요|합니다|해요|해|돼요|됩니다|납니다|나요|옵니다|입니다|이에요|이야|(?:할|될|날|올|을|ㄹ)?\s*거(?:야|예요)|확정(?:입니다|이에요|돼요|됩니다)?|예정입니다|예정이에요))|(?:(?:올해|내년|이번|다음|곧|결국|반드시|무조건|확실히|조만간|(?<![가-힣])운(?:이|은|도)?|(?<![가-힣])시험(?:에|은|이)?)[^.!?。\n]{0,12}(?:붙(?:어|어요|는다|습니다|을\s*거(?:야|예요))|떨어(?:져|져요|진다|집니다|질\s*거(?:야|예요))))/
@@ -512,7 +513,14 @@ function arithmeticReview(text: string, evidence: Set<string>): { issues: string
   return { issues, derived }
 }
 
-function certaintyIssues(text: string, context?: SajuReportContext): string[] {
+/*
+ * 단정 수준이 PDF 수준인 서비스(천명사주)는 사주 해석을 단정형으로 쓴다. 그러면 "~일 수 있어"로 이 검사를
+ * 피해 가던 문장이 그대로 들어와 "수익 배분을 기록해", "이별 직후에도 ~ 묶지 마" 같은 문장까지 사건 확정으로
+ * 걸렸다(2026-10-16 A/B). 이 수준에서는 시점이나 확신 표현이 함께 있을 때만 사건 확정으로 본다.
+ */
+const FUTURE_EVENT_ANCHOR = /(?:올해|내년|내후년|이번\s*달|다음\s*달|곧|결국|반드시|무조건|확실히|조만간|머지않아|\d{4}\s*년|\d+\s*(?:살|세)|[가-힣]+\s*살\s*(?:에|쯤|부터|이후))/
+
+function certaintyIssues(text: string, context?: SajuReportContext, assertion: AssertionLevel = 'reserved'): string[] {
   const issues: string[] = []
   const inventedPrivateFact = inventedPrivateFactPattern(context)
   for (const sentence of sentences(text)) {
@@ -528,7 +536,7 @@ function certaintyIssues(text: string, context?: SajuReportContext): string[] {
       .replace(SAFE_FUTURE_EVENT_REFERENCE_PATTERN, '')
       .replace(SAFE_EVENT_TIME_REFERENCE_PATTERN, '')
       .replace(SAFE_STATE_RECOVERY_PATTERN, '')
-    if (CERTAIN_FUTURE_EVENT_PATTERN.test(futureClaimCandidate)) {
+    if (CERTAIN_FUTURE_EVENT_PATTERN.test(futureClaimCandidate) && (assertion !== 'pdf' || FUTURE_EVENT_ANCHOR.test(futureClaimCandidate))) {
       issues.push('미래 사건을 확인된 사실처럼 쓰지 말고 조건과 가능성의 말로 바꾸세요.')
       break
     }
@@ -546,6 +554,63 @@ function certaintyIssues(text: string, context?: SajuReportContext): string[] {
 
 function safetyNegated(sentence: string): boolean {
   return /(?:아니(?!어도|라도|지만|고)|않(?!아도|더라도|지만|고)|못하|할 수 없|판단할 수 없|확정할 수 없|보장하지|대신하지|증명하지|뜻하지|의미하지|근거가 아니|버릴 것은)/.test(sentence)
+}
+
+/*
+ * 공통 절대 선 검사(2026-10-16, src/prompt/absolute-lines.ts). 단정 수준을 PDF 수준으로 올린 서비스는
+ * 보류 말투가 사라지므로, 몸·돈·다른 사람에게 피해가 나는 단정은 여기서 따로 막는다.
+ * 넣기 전 확인: "넌 쉰 살에 큰 병이 와", "넌 마흔아홉에 큰돈을 번다", "그 사람은 지금 너를 속이고 있어"가
+ * 기존 검사를 모두 통과했다. 부정문과 묻는 말·가정(~인지, ~면)은 보지 않는다.
+ */
+const PERSON_NOUN = '(?:상대|그\\s*사람|그\\s*남자|그\\s*여자|남자친구|여자친구|남친|여친|남편|아내|애인|배우자|연인|전\\s*애인)'
+const TIME_ANCHOR = '(?:\\d+\\s*(?:살|세)|[가-힣]+\\s*살\\s*(?:에|쯤|부터|이후)|(?:스물|서른|마흔|쉰|예순|일흔|여든|아흔)[가-힣]{0,3}\\s*(?:에|쯤)|\\d{4}\\s*년|노년|중년|말년|늙어서|나이\\s*들(?:어|면))'
+const END = '(?=[.!?。\\s]|$)'
+/** 검사마다 절대 선 번호를 붙인다. 그 서비스에 켜진 번호(absoluteLinesFor)만 돈다. */
+// 끝말은 반말·해요체·합니다체·한다체와 과거형까지 본다. 가정·양보(~면, ~어도, ~더라도, ~경우)는 아래 ASKING_OR_IF 에서 문장째 뺀다.
+// 이 검사는 AI 지시(절대 선)를 넘었을 때 대표 표현을 막는 두 번째 그물이다. 모든 표현을 잡는 것이 목표가 아니다.
+const COME = `(?:와${END}|와요|왔|온다|옵니다)`
+const ARISE = '(?:생기|생겨|생겼|생깁|걸리|걸려|걸렸|걸립)'
+const HAPPEN = `(?:나${END}|나요|난다|납니다|났|당한다|당합|당해|당했)`
+const ABSOLUTE_LINE_CHECKS: Array<{ line: number; pattern: RegExp; issue: string }> = [
+  {
+    line: 1,
+    pattern: new RegExp(`${TIME_ANCHOR}[^.!?。\\n]{0,24}(?:(?:큰\\s*)?병(?:이|에|을)?\\s*(?:${COME}|${ARISE}|${HAPPEN})|암(?:이|에)?\\s*(?:${ARISE}|${COME})|수술(?:을)?\\s*(?:받게|하게|받는다|받습니다|받았|한다|합니다|했)|사고(?:가|를)?\\s*${HAPPEN}|사망|죽(?:어${END}|어요|었|는다|습니다|을\\s*거|게\\s*(?:돼|됩|됐)))|단명|요절|수명이\\s*짧|일찍\\s*죽|오래\\s*못\\s*살`),
+    issue: '절대 선(건강): 질병·수술·사고·수명을 시기와 묶어 말하지 마세요.',
+  },
+  {
+    line: 4,
+    pattern: new RegExp([
+      `(?:큰돈|목돈|대박)(?:을|이)?\\s*(?:번다|법니다|벌어${END}|벌어요|벌었|벌게\\s*(?:돼|됩|됐)|벌\\s*거|들어온다|들어옵니다|들어왔|들어올\\s*거|들어와${END}|들어와요)`,
+      `부자(?:가)?\\s*(?:된다|됩니다|됐|될\\s*거|돼${END}|돼요)`,
+      '(?:연봉|연\\s*소득|소득|재산|수입)[^.!?。\\n]{0,12}(?:\\d+\\s*(?:억|천만|만\\s*원)|상위\\s*\\d+)',
+      `\\d+\\s*(?:억|천만\\s*원)(?:을|이)?\\s*(?:번다|법니다|벌어${END}|벌어요|벌었|벌\\s*거|모은다|모읍니다|모았|모을\\s*거|들어온다|들어옵니다|들어왔)`,
+    ].join('|')),
+    issue: '절대 선(금융): 수익·금액·재산 규모를 정해 말하지 마세요.',
+  },
+  {
+    line: 6,
+    pattern: new RegExp([
+      `${PERSON_NOUN}[^.!?。\\n]{0,20}(?:바람(?:을)?\\s*피|외도|속이|거짓말(?:을)?\\s*하|사기|양다리)[^.!?。\\n]{0,10}(?:고\\s*있|었|했|한다|합니다|해${END}|해요|친다|칩니다|쳤|운다|웁니다|웠|워${END}|워요)`,
+      `${PERSON_NOUN}(?:은|는|이|가)?[^.!?。\\n]{0,16}(?:(?:좋아|사랑|그리워|후회)(?:하고\\s*있|해${END}|해요|한다|합니다|했)|기다리고\\s*있|마음이\\s*(?:없어|없습니다|없다|없었|식었|떠났))`,
+    ].join('|')),
+    issue: '절대 선(실존 타인): 실제 상대의 외도·거짓말·속마음을 사실처럼 쓰지 마세요.',
+  },
+  {
+    line: 9,
+    pattern: /(?:부적|굿|팔찌|목걸이|반지|물건|아이템|소품|원석)[^.!?。\n]{0,20}(?:(?:사야|사면|구입하면|구매하면|들이면|지니면|차면)[^.!?。\n]{0,16}(?:운이|돈이|일이|인연이|풀|열|들어|좋아)|(?:사야|구입해야|구매해야|들여야|지녀야)\s*(?:해|돼|한다|합니다|해요|됩니다|돼요))|흉(?:지|한\s*집)[^.!?。\n]{0,16}(?:이사|떠나|옮겨)/,
+    issue: '절대 선(구매 유도): 물건을 사야 운이 열린다거나 공포로 이사·구매를 권하지 마세요.',
+  },
+]
+// 묻는 말(물음표로 끝나는 문장, ~인지·~할까), 가정(~라면, ~경우), 양보(~어도, ~더라도)는 단정이 아니다. 천명사주 장은 질문 하나로 끝난다.
+const ASKING_OR_IF = /(?:인지|는지|을지|할까|일까|라면|다면)(?=[\s,.!?。]|$)|\?\s*$|더라도|(?:는|은|ㄴ)\s*경우|(?:생기|걸리|생겨|걸려|와|나|당하|당해|벌어|벌|모아)(?:면|도)(?=[\s,])/
+
+function absoluteLineIssues(text: string, serviceKey?: string | null): string[] {
+  if (!absoluteLinesEnabled(serviceKey)) return []
+  const lines = new Set(absoluteLinesFor(serviceKey).map((line) => line.no))
+  const candidates = sentences(text).filter((sentence) => !safetyNegated(sentence) && !ASKING_OR_IF.test(sentence))
+  return ABSOLUTE_LINE_CHECKS
+    .filter((check) => lines.has(check.line) && candidates.some((sentence) => check.pattern.test(sentence)))
+    .map((check) => check.issue)
 }
 
 function relationshipSafetyIssues(text: string, context: SajuReportContext | undefined): string[] {
@@ -612,7 +677,7 @@ function unmeasuredHomeIssues(text: string, context: SajuReportContext | undefin
 export function reviewSafetyClaims(input: SafetyClaimsInput): ToneReview {
   const prose = narrator(input.text)
   const issues = [
-    ...certaintyIssues(prose, input.context),
+    ...certaintyIssues(prose, input.context, input.assertion),
     ...relationshipSafetyIssues(prose, input.context),
     ...professionalAuthorityIssues(prose),
     ...petCausationIssues(prose),
@@ -1079,7 +1144,7 @@ const SAFETY_ISSUE_PATTERNS: RegExp[] = [
   /상징 해석을 현실의 정답/, /고정 결론의 1순위/, /근거 없는 처방 숫자/, /서버 근거에 없는/, /계산이 맞지|계산 결과가/,
   /내부 근거 필드/, /내부 필드나 타 서비스 원문/, /제작용 제목·운영 상태·권한/, /데이터 결손이나 내부 지형/,
   /출생 시각을 받지 못했으므로/, /코퍼스 문장을 복사/, /고객 본문 금지문|금지문/, /외도/,
-  /고객 문장에 한자를 쓰지/, /중학생도 이해할 쉬운 한국어/, /한 문장에 전문용어를/, /한 문장에 한 생각만/,
+  /절대 선\(/, /고객 문장에 한자를 쓰지/, /중학생도 이해할 쉬운 한국어/, /한 문장에 전문용어를/, /한 문장에 한 생각만/,
 ]
 export function isSafetyIssue(issue: string): boolean {
   return SAFETY_ISSUE_PATTERNS.some((pattern) => pattern.test(issue))
@@ -1116,7 +1181,8 @@ export function reviewToneCopy(text: string, serviceKey?: string | null, options
   if (/^(?:현재 입력은|이 항목에서는|이 리포트에서는|단정하기 어렵지만|아래 (?:내용|정보)[을를] 바탕으로|제공된 (?:내용|정보)[을를]|주어진 (?:내용|정보)[을를])/.test(opening)) {
     issues.push('제작 과정이나 유보 문구로 시작하지 말고 현재 질문의 답부터 쓰세요.')
   }
-  if (/(?:일세|하네|보게|알겠네|아닐세|하게나)(?=[.!?。\s]|$)|자네/.test(prose)) {
+  // '보게 돼'·'보게 만드는'은 하게체가 아니다. '보게'는 문장 끝에 올 때만 본다(2026-10-16).
+  if (/(?:일세|하네|알겠네|아닐세|하게나)(?=[.!?。\s]|$)|보게(?=[.!?。]|$)|자네/.test(prose)) {
     issues.push('폐지된 하게체와 자네 호칭을 쓰지 마세요.')
   }
   if ((normalizeServiceKey(serviceKey) === 'saju_master' ? /(?:^|[\s,.!?])(?:당신|고객님|니가)(?=[\s,.!?]|$)/ : /(?:^|[\s,.!?])(?:당신|고객님|니가|너는|너의|너를|야)(?=[\s,.!?]|$)/).test(prose)) {
@@ -1136,7 +1202,8 @@ export function reviewToneCopy(text: string, serviceKey?: string | null, options
   issues.push(...voiceRhythmIssues(prose))
   issues.push(...copulaSpellingIssues(prose))
   issues.push(...personaPerformanceIssues(prose))
-  issues.push(...reviewSafetyClaims({ text: prose, context: options.context }).issues)
+  issues.push(...reviewSafetyClaims({ text: prose, context: options.context, assertion: assertionLevel(serviceKey) }).issues)
+  issues.push(...absoluteLineIssues(prose, serviceKey))
   issues.push(...actionTargetIssues(prose))
   if (options.corpusEvidence) issues.push(...corpusCopyIssues(prose, options.corpusEvidence))
   if (numericEvidence) {

@@ -20,6 +20,7 @@ import { publicReportContext } from './public-context.js'
 import { homeReadingCorpus, homeReadingInstruction, reviewHomeNarrative } from './home-reading-corpus.js'
 import { normalizeUserCopy, SHINSAL_NAMES_PER_SECTION, WELL_KNOWN_SHINSAL } from './copy-guide.js'
 import { crisisAiInstruction, hasCrisisMarker } from '../safety/crisis-signal.js'
+import { absoluteLinesPrompt } from '../prompt/absolute-lines.js'
 import { fixCopulaSpelling, isBlockingIssue, numericEvidenceFrom, reviewPaidSectionDensity, reviewReadableCopy, reviewReportVerdictConsistency, reviewScoreVisuals, reviewSectionUniqueness, reviewTechnicalTerms, reviewToneCopy, toneWritingInstruction } from './tone-v2-review.js'
 import type { HighlightTopic } from './longform-blocks.js'
 import {
@@ -83,7 +84,9 @@ const SAFETY_ADDENDUM = [
  */
 function reportVoiceSystemPrompt(context: SajuReportContext, crisis: 'hotline' | 'calm' | false = false): string {
   const key = normalizeServiceKey(context.serviceKey)
-  const base = `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}`
+  // 단정 규칙 3층(공통 절대 선 + 단정 수준)은 켠 서비스(천명사주부터)에만 붙는다(src/prompt/absolute-lines.ts).
+  const lines = absoluteLinesPrompt(key)
+  const base = `${loadServiceSystemPrompt(key)}\n\n${SAFETY_ADDENDUM}${lines ? `\n\n${lines}` : ''}`
   return crisis ? `${base}\n\n${crisisAiInstruction(crisis === 'hotline')}` : base
 }
 /*
