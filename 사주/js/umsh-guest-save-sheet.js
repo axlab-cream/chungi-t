@@ -46,10 +46,6 @@
     '.umsh-gs-alt{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;font-size:13px;color:rgba(246,234,214,.66)}',
     '.umsh-gs-alt a{color:#f6ead6;text-decoration:underline;text-underline-offset:3px}',
     '.umsh-gs-later{display:block;margin:8px auto 0;padding:6px 12px;border:0;background:transparent;color:rgba(246,234,214,.6);font:inherit;font-size:13px;cursor:pointer}',
-    '.umsh-gs-inline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 8px;padding:16px;border:1px solid rgba(214,178,110,.42);border-radius:14px;text-align:left;background:#15100d;color:#f6ead6;font-size:14px;word-break:keep-all}',
-    '.umsh-gs-inline button{flex:none;min-height:42px;padding:0 16px;border:0;border-radius:10px;background:#d6b26e;color:#15100d;font:inherit;font-weight:700;font-size:14px;cursor:pointer}',
-    '.umsh-gs-inline strong{display:block;font-size:15px;color:#f6ead6}',
-    '.umsh-gs-inline small{display:block;margin-top:3px;font-size:12.5px;line-height:1.45;color:rgba(246,234,214,.66)}',
     '@media (prefers-reduced-motion:reduce){.umsh-gs,.umsh-gs-backdrop{transition:none}}',
   ].join('');
 
@@ -124,7 +120,7 @@
     var head = '<span class="umsh-gs-handle" data-drag-handle aria-hidden="true"></span>'
       + '<button type="button" class="umsh-gs-close" data-action="close" aria-label="닫기">×</button>'
       + '<p class="umsh-gs-title" id="umsh-gs-title" data-drag-handle>' + escapeText(opts.title || 'SNS로 로그인하면 이 결과가 저장돼요') + '</p>'
-      + '<p class="umsh-gs-sub">' + escapeText(opts.sub || '로그인하지 않으면 1시간 뒤 사라져요.') + '</p>'
+      + '<p class="umsh-gs-sub">' + escapeText(opts.sub || '내 보관함에 저장해 두고 언제든 다시 볼 수 있어요.') + '</p>'
       + '<div class="umsh-gs-consent" data-consent-host></div>';
     if (opts.variant === 'b') {
       var rest = providers.slice(1).map(function (p) { return '<a href="#" data-provider="' + p + '">' + LABELS[p] + '</a>'; }).join('');
@@ -146,11 +142,8 @@
     document.removeEventListener('keydown', state.onKey);
     // 2026-10-16 시트를 연 화면이 닫힘을 알아야 할 때(천명사주: 밀어 올린 운명 거래하기 버튼을 내린다).
     if (typeof state.opts.onClose === 'function') { try { state.opts.onClose(reason); } catch (_e) { /* 화면 쪽 오류가 닫기를 막지 않는다 */ } }
-    if (reason !== 'login') {
-      track('dismiss', state.opts);
-      // 2026-10-15 결제로 가는 시트(운명 거래하기)는 닫아도 저장 안내 줄을 남기지 않는다. 같은 버튼을 다시 누르면 된다.
-      if (!state.opts.noInline) showInline(state.opts);
-    }
+    // 2026-10-16 닫아도 결과 안에 안내 카드를 남기지 않는다(대표 결정).
+    if (reason !== 'login') track('dismiss', state.opts);
   }
 
   function withProvider(url, provider) {
@@ -245,23 +238,9 @@
     login(opts, provider);
   }
 
-  /** 닫은 뒤 결과 맨 아래에 남기는 한 줄. opts.inlineHost 가 없으면 남기지 않는다. */
-  function showInline(opts) {
-    var host = typeof opts.inlineHost === 'string' ? document.querySelector(opts.inlineHost) : opts.inlineHost;
-    if (!host || host.querySelector('.umsh-gs-inline')) return;
-    injectStyle();
-    var box = document.createElement('div');
-    box.className = 'umsh-gs-inline';
-    box.setAttribute('data-result-key', String(opts.resultKey || opts.entry || location.pathname));
-    box.innerHTML = '<div><strong>이 결과를 저장할까요?</strong><small>약관에 동의하고 SNS로 로그인하면 내 보관함에 저장돼요.</small></div><button type="button">저장하기</button>';
-    box.querySelector('button').addEventListener('click', function () { track('inline_click', opts); open(Object.assign({}, opts, { force: true })); });
-    if (opts.after && opts.after.parentNode === host) opts.after.insertAdjacentElement('afterend', box);
-    else host.appendChild(box);
-  }
-
   function open(opts) {
     opts = opts || {};
-    if (!opts.force && wasSeen(opts.resultKey)) { showInline(opts); return null; }
+    if (!opts.force && wasSeen(opts.resultKey)) return null;
     markSeen(opts.resultKey);
     injectStyle();
     var state = { opts: opts };
@@ -300,38 +279,41 @@
   }
 
   /**
-   * 2026-10-16 대표 결정(모든 서비스): 무료 결과에서 시트를 저절로 띄우지 않는다. 결과를 보다가 갑자기 가리면 안 된다.
-   * 결과가 그려지면 결과 안에 "이 결과를 저장할까요?" 안내를 넣고, [저장하기]를 누를 때만 약관 동의 + SNS 로그인 시트를 연다.
-   * 앵커(잠긴 목차·가격 카드 등)가 있으면 그 바로 뒤에, 4초 안에 앵커가 안 보이면 본문 끝에 둔다.
-   * 화면을 다시 그려 안내가 지워지면(천명사주처럼 화면 전체를 갈아 끼우는 곳) 1분 동안은 다시 넣는다.
+   * 2026-10-16 대표 결정(서브 콘텐츠 /play): 결과를 맨 아래까지 내리면 약관 동의 + SNS 로그인 바텀시트를 한 번 올린다.
+   * 결과 안에 따로 안내 카드(배너)를 두지 않는다. 닫으면 같은 결과에서는 다시 저절로 뜨지 않는다.
+   * 결과가 한 화면에 다 들어와 내릴 것이 없으면 잠깐 읽을 시간을 두고 올린다.
    */
+  var BOTTOM_GAP = 48;
+  var SHORT_PAGE_DELAY_MS = 2500;
+  function atBottom(node) {
+    var el = node && node.nodeType === 1 ? node : (document.scrollingElement || document.documentElement);
+    return el.scrollHeight - el.clientHeight - el.scrollTop <= BOTTOM_GAP;
+  }
+  function pageScrollable() {
+    var el = document.scrollingElement || document.documentElement;
+    return el.scrollHeight - el.clientHeight > BOTTOM_GAP;
+  }
   function openWhenSeen(opts) {
     opts = opts || {};
     // 결과가 그려진 시점에 방문을 남긴다. 저장하지 않고 떠나도 무료 결과를 본 비회원으로 센다.
     recordVisit(opts);
     loadConsent();
     injectStyle();
-    var key = String(opts.resultKey || opts.entry || location.pathname);
-    var mutation = null;
-    function findAnchor() {
-      return typeof opts.anchor === 'string' ? document.querySelector(opts.anchor) : opts.anchor || null;
+    if (wasSeen(opts.resultKey)) return;
+    var done = false;
+    function fire() {
+      if (done) return;
+      done = true;
+      document.removeEventListener('scroll', onScroll, true);
+      open(opts);
     }
-    function present() {
-      return Array.prototype.some.call(document.querySelectorAll('.umsh-gs-inline'), function (node) { return node.getAttribute('data-result-key') === key && node.isConnected; });
+    function onScroll(event) {
+      var target = event && event.target;
+      if (target && target.nodeType === 1 && target.scrollHeight - target.clientHeight > BOTTOM_GAP) { if (atBottom(target)) fire(); return; }
+      if (atBottom(null)) fire();
     }
-    function place(anchor, fallback) {
-      if (present()) return;
-      if (!anchor && !fallback) return;
-      var host = anchor ? anchor.parentNode : (document.querySelector('main') || document.body);
-      if (host) showInline(Object.assign({}, opts, { inlineHost: host, after: anchor || null }));
-    }
-    place(findAnchor(), false);
-    if (typeof global.MutationObserver === 'function') {
-      mutation = new global.MutationObserver(function () { place(findAnchor(), false); });
-      mutation.observe(document.body, { childList: true, subtree: true });
-      setTimeout(function () { if (mutation) mutation.disconnect(); }, 60000);
-    }
-    setTimeout(function () { place(findAnchor(), true); }, 4000);
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    setTimeout(function () { if (!done && !pageScrollable()) fire(); }, SHORT_PAGE_DELAY_MS);
   }
 
   /**

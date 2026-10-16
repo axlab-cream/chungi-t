@@ -335,16 +335,14 @@ test('결제 시트: 동의 체크 없이 안내 한 줄, 휴대폰은 처음 �
   assert.match(paySheet, /trackFunnel\('pay_open'/)
 })
 
-// 2026-10-16 대표 결정(모든 서비스): 무료 결과에서 시트를 저절로 띄우지 않는다. 결과 안의 [저장하기]를 누를 때만 동의+로그인 시트.
-test('무료 결과: 시트를 저절로 열지 않고, 결과 안에 "이 결과를 저장할까요?" 안내를 넣는다', () => {
+// 2026-10-16 대표 결정(서브 콘텐츠 /play): 결과를 맨 아래까지 내리면 동의+로그인 바텀시트. 결과 안 안내 카드(배너)는 없앤다.
+test('무료 결과: 맨 아래까지 내리면 바텀시트를 한 번 올리고, 결과 안에 안내 카드를 넣지 않는다', () => {
   const when = sheetSource.slice(sheetSource.indexOf('function openWhenSeen('), sheetSource.indexOf('function confirmClaim('))
-  assert.doesNotMatch(when, /\bopen\(/, '결과를 보는 중에 시트가 올라오면 안 된다')
-  assert.doesNotMatch(when, /addEventListener\('scroll'/, '스크롤 위치로 띄우지 않는다')
-  assert.match(when, /showInline\(/)
-  const inline = sheetSource.slice(sheetSource.indexOf('function showInline('), sheetSource.indexOf('function open('))
-  assert.match(inline, /이 결과를 저장할까요\?/)
-  assert.match(inline, />저장하기</)
-  assert.match(inline, /open\(Object\.assign\(\{\}, opts, \{ force: true \}\)\)/, '누를 때만 시트')
+  assert.ok(when.includes("document.addEventListener('scroll', onScroll, { capture: true, passive: true })"))
+  assert.ok(when.includes('if (wasSeen(opts.resultKey)) return;'), '닫은 결과는 다시 저절로 뜨지 않는다')
+  assert.ok(when.includes('open(opts)'))
+  assert.ok(when.includes('if (!done && !pageScrollable()) fire()'), '내릴 것이 없으면 잠깐 뒤에 올린다')
+  assert.doesNotMatch(sheetSource, /showInline|umsh-gs-inline|이 결과를 저장할까요/)
 })
 
 // 2026-10-16 대표 결정 변경: 메인 콘텐츠(천명사주·오늘 운세·단계형·옛 단일 서비스)는 무료 결과에서 로그인·저장을 권하지 않는다.
