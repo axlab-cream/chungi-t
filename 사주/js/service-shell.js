@@ -23,6 +23,9 @@
    *   결제창이 아니라 결제를 시작한 서비스 화면으로 간다.
    * - 앞 화면을 모르면(공유 링크·푸시·즐겨찾기로 바로 들어옴, 저장소를 못 씀) 상위 화면으로
    *   간다: 마이페이지에서 들어가는 화면은 마이페이지, 나머지는 홈.
+   * - 홈처럼 이 스크립트를 싣지 않는 화면은 스스로 기록하지 못한다. 그래서 화면이 열릴 때 같은 사이트의
+   *   직전 주소(referrer)가 기록 맨 위와 다르면 그것부터 넣는다(2026-10-16: 홈 → 천명 → 뒤로가
+   *   홈이 아니라 그 전에 봤던 엉뚱한 화면으로 갔다).
    */
   const BACK_TRAIL_KEY = 'umsh-back-trail';
   const BACK_TRAIL_MAX = 20;
@@ -51,14 +54,18 @@
     return {
       keyOf,
       parentOf,
-      record(loc) {
+      record(loc, from) {
         if (skipped(loc)) return;
         const list = read();
         if (!list) return;
         const here = keyOf(loc);
         if (list[list.length - 1] === here) return; // 새로고침
         if (list[list.length - 2] === here) list.pop(); // 뒤로 돌아옴
-        else list.push(here);
+        else {
+          const previous = from && !skipped(from) ? keyOf(from) : null;
+          if (previous && previous !== here && list[list.length - 1] !== previous) list.push(previous); // 기록 못 한 직전 화면
+          list.push(here);
+        }
         write(list);
       },
       target(loc) {
@@ -81,7 +88,13 @@
   const bottomHost = document.querySelector('[data-umsh-service-bottom]');
   if (!topHost && !bottomHost) return;
 
-  backTrail.record(window.location);
+  function sameSiteReferrer() {
+    try {
+      const referrer = document.referrer ? new URL(document.referrer) : null;
+      return referrer && referrer.origin === window.location.origin ? referrer : null;
+    } catch (error) { return null; }
+  }
+  backTrail.record(window.location, sameSiteReferrer());
 
   /**
    * 본문 뒤로 가기(2026-10-08 요청). 마이페이지 하위 화면처럼 본문 틀(.payment-shell)을 쓰는 화면은
@@ -421,11 +434,8 @@
     event.preventDefault();
     event.stopPropagation();
     const target = backTrail.target(window.location);
-    let previous = null;
-    try {
-      const referrer = document.referrer ? new URL(document.referrer) : null;
-      if (referrer && referrer.origin === window.location.origin) previous = backTrail.keyOf(referrer);
-    } catch (error) { previous = null; }
+    const referrer = sameSiteReferrer();
+    const previous = referrer ? backTrail.keyOf(referrer) : null;
     if (previous === target && window.history.length > 1) window.history.back();
     else navigate(target);
   }, true);

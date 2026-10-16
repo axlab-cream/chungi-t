@@ -46,6 +46,16 @@ describe('상단 뒤로 가기 경로', () => {
     assert.equal(trail.target(at('/orders')), '/my')
   })
 
+  it('기록하지 않는 홈에서 들어오면 직전 주소(referrer)로 돌아간다', () => {
+    const trail = create(memoryStorage())
+    visit(trail, '/love/again') // 예전에 본 화면
+    trail.record(at('/cmdg/'), at('/')) // 홈(기록 안 됨) → 천명
+    assert.equal(trail.target(at('/cmdg/')), '/')
+    trail.record(at('/payment/result'), at('/payment')) // 결제 화면은 넣지 않는다
+    trail.record(at('/love/mind'), at('/payment/result'))
+    assert.equal(trail.target(at('/love/mind')), '/cmdg')
+  })
+
   it('새로고침은 기록을 늘리지 않는다', () => {
     const s = memoryStorage(); const trail = create(s)
     visit(trail, '/my', '/orders', '/orders', '/orders')
