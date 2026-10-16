@@ -29,13 +29,15 @@ test('상단바의 두 동그란 버튼은 44px 넓이로 눌린다', () => {
   assert.match(selectorBlock, /\.umsh-service-shell \.app-back::after/)
 })
 
-test('보이는 크기는 그대로 38px 원이다', () => {
+test('보이는 크기는 공용 값(PC 38px)을 쓴다', () => {
+  // 2026-10-16: 크기는 홈과 같은 공용 값(umsh-tokens.css --umsh-appbar-button)으로 옮겼다.
   // 줄바꿈이 섞인 여러 줄 선택자라 블록을 통째로 찾는다.
   const block = /\.umsh-service-shell \.app-back,\s*\r?\n\s*\.umsh-service-shell \.topbar-vault-button \{([\s\S]*?)\}/.exec(shell)
   assert.ok(block, '두 버튼의 크기 규칙을 찾지 못했다')
-  assert.match(block[1], /width:\s*38px/)
-  assert.match(block[1], /height:\s*38px/)
-  assert.match(block[1], /border-radius:\s*50%/)
+  assert.match(block[1], /width:\s*var\(--umsh-appbar-button\)/)
+  assert.match(block[1], /height:\s*var\(--umsh-appbar-button\)/)
+  const tokens = readFileSync(new URL('../../사주/css/umsh-tokens.css', import.meta.url), 'utf8')
+  assert.match(tokens.split('@media')[0], /--umsh-appbar-button:\s*38px/)
 })
 
 test('하단 시트의 닫기 칩도 44px 넓이로 눌린다', () => {

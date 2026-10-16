@@ -193,7 +193,9 @@
     if (!scroller || !target) return;
     const scrollerRect = scroller.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    const nextTop = scroller.scrollTop + targetRect.top - scrollerRect.top - offset;
+    // 상단(로고·분류 줄)이 스크롤 칸 안에 떠 있어, 그 높이만큼 더 내려 대상이 상단에 가리지 않게 한다.
+    const pinnedTop = scroller.querySelector('.portal-top')?.offsetHeight ?? 0;
+    const nextTop = scroller.scrollTop + targetRect.top - scrollerRect.top - offset - pinnedTop;
 
     scroller.scrollTo({
       top: Math.max(0, nextTop),
