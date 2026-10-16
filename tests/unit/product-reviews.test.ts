@@ -96,3 +96,34 @@ test('reward coupon is granted when configured, and a failed grant never loses t
     assert.equal((await (await broken.call('/reviews/mine?product=cmdg&reportId=r1', undefined, { 'x-member': 'alice' })).json()).reviewed, true)
   } finally { await broken.close() }
 })
+
+test('reviews received outside the app show without a badge, mixed newest first with app reviews', async () => {
+  const { CURATED_REVIEWS, curatedReviewsFor } = await import('../../src/reviews/curated.js')
+  for (const review of CURATED_REVIEWS) assert.equal(normalizeReviewBody(review.body), review.body)
+  assert.equal(curatedReviewsFor('cmdg').length, 10)
+  configureReviewStorageForTests(createMemoryReviewStorageForTests())
+  const app = express(); app.use(express.json())
+  app.use('/reviews', productReviewRouter({
+    authenticate: async () => ({ id: 'alice' }),
+    resolveEligibility: async (_owner, _productKey, reportId) => ({ orderId: `order-${reportId}`, reportId, name: '한지민', ilju: '갑오' }),
+    rewardOffered: () => false,
+    grantReward: async () => null,
+    curatedReviews: curatedReviewsFor,
+  }))
+  const server = app.listen(0, '127.0.0.1'); await new Promise<void>((r) => server.once('listening', r))
+  const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`
+  try {
+    const first = await (await fetch(`${base}/reviews?product=cmdg&limit=5`)).json()
+    assert.equal(first.visible, true); assert.equal(first.total, 10); assert.equal(first.items.length, 5)
+    assert.deepEqual(first.items.map((r: { name: string }) => r.name), ['박**', '김**', '이**', '최**', '장**'])
+    assert.equal(first.items[0].verified, false); assert.equal(first.items[0].ilju, '을해일주'); assert.equal(first.items[0].date, '2026.10.14')
+    const rest = await (await fetch(`${base}/reviews?product=cmdg&offset=5&limit=20`)).json()
+    assert.equal(rest.items.length, 5); assert.equal(rest.items[4].ilju, '계미일주')
+
+    assert.equal((await fetch(`${base}/reviews`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ product: 'cmdg', reportId: 'r1', body: BODY }) })).status, 201)
+    const mixed = await (await fetch(`${base}/reviews?product=cmdg`)).json()
+    assert.equal(mixed.total, 11); assert.equal(mixed.items.length, 11)
+    assert.equal(mixed.items[0].name, '한**'); assert.equal(mixed.items[0].verified, true)
+    assert.equal(mixed.items.filter((r: { verified: boolean }) => r.verified).length, 1)
+  } finally { await new Promise<void>((r) => server.close(() => r())); configureReviewStorageForTests(null) }
+})

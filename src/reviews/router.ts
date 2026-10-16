@@ -5,6 +5,7 @@ import {
   ReviewError, attachReviewReward, createReview, findReviewByOrder, listPublishedReviews, maskDisplayName, normalizeReviewBody,
   type ProductReview,
 } from './store.js'
+import type { CuratedReview } from './curated.js'
 
 /** 후기를 받는 상품. 2026-10-15: 천명사주만 먼저 연다. */
 export const REVIEW_PRODUCT_KEYS = new Set(['cmdg'])
@@ -20,6 +21,8 @@ type Dependencies = {
   /** 후기 보상 쿠폰을 주는 상품인지. 설정이 없으면 보상 안내도 띄우지 않는다. */
   rewardOffered(productKey: string): boolean
   grantReward(owner: ReportOwner, productKey: string, reviewId: string): Promise<ReviewReward | null>
+  /** 결제 주문 없이 받은 후기(배지 없이 보인다). 없으면 앱 후기만 보인다. */
+  curatedReviews?(productKey: string): readonly CuratedReview[]
 }
 
 const MESSAGES: Record<string, string> = {
@@ -66,6 +69,18 @@ export function publicReview(review: ProductReview) {
     verified: true,
   }
 }
+/** 결제 확인이 없는 후기라 배지를 붙이지 않는다. 모양은 publicReview 와 같다. */
+export function publicCuratedReview(review: CuratedReview) {
+  return {
+    id: review.id,
+    name: review.displayName,
+    ilju: review.ilju ? `${review.ilju}일주` : null,
+    product: getPaymentProduct(review.productKey)?.title || '',
+    date: reviewDateLabel(review.createdAt),
+    body: review.body,
+    verified: false,
+  }
+}
 
 export function productReviewRouter(deps: Dependencies): Router {
   const router = Router()
@@ -76,10 +91,19 @@ export function productReviewRouter(deps: Dependencies): Router {
       const productKey = productKeyOf(req.query.product)
       const limit = Math.min(20, Math.max(1, Number(req.query.limit) || 20))
       const offset = Math.max(0, Number(req.query.offset) || 0)
-      const { total, items } = await listPublishedReviews(productKey, limit, offset)
+      const curated = deps.curatedReviews?.(productKey) ?? []
+      // 앱 후기와 받은 후기를 날짜순(최신 먼저)으로 섞는다. 같은 날이면 앱 후기가 먼저다.
+      const stored = await listPublishedReviews(productKey, curated.length ? offset + limit : limit, curated.length ? 0 : offset)
+      const merged = curated.length
+        ? [
+            ...stored.items.map((review) => ({ at: review.createdAt, item: publicReview(review) })),
+            ...curated.map((review) => ({ at: review.createdAt, item: publicCuratedReview(review) })),
+          ].sort((a, b) => b.at.localeCompare(a.at)).slice(offset, offset + limit).map((row) => row.item)
+        : stored.items.map(publicReview)
+      const total = stored.total + curated.length
       const visible = total >= REVIEW_MIN_VISIBLE
       res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60')
-      res.json({ product: productKey, visible, total: visible ? total : 0, items: visible ? items.map(publicReview) : [] })
+      res.json({ product: productKey, visible, total: visible ? total : 0, items: visible ? merged : [] })
     } catch (error) { reviewFailure(res, error) }
   })
 

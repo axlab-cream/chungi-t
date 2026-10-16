@@ -8,6 +8,7 @@ import { storedResultRoute } from '../i18n/stored-result-route.js'
 import { couponRouter, adminCouponRouter, couponFailure } from '../coupons/router.js'
 import { hasCouponReportAccess, reserveDiscount, getDiscountForOrder, listWallet, grantCoupon } from '../coupons/store.js'
 import { productReviewRouter } from '../reviews/router.js'
+import { curatedReviewsFor } from '../reviews/curated.js'
 import { CouponError } from '../coupons/contracts.js'
 import { getConsultationCouponUsage } from '../consultation/backend.js'
 import { consultationRouter, isConsultationRecord, getConsultationAccess, reserveConsultationCheckout } from '../consultation/backend.js'
@@ -4265,6 +4266,7 @@ app.use('/api/reviews', productReviewRouter({
     }
   },
   rewardOffered: (productKey) => Boolean(reviewRewardCampaigns()[productKey]),
+  curatedReviews: curatedReviewsFor,
   grantReward: async (owner, productKey, reviewId) => {
     const campaignId = reviewRewardCampaigns()[productKey]
     if (!campaignId) return null
