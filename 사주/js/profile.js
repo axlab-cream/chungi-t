@@ -32,7 +32,8 @@
   var NAME_RULE = /^[가-힣]{2,20}$/;
 
   /**
-   * 오류 코드(2026-10-08). 회원이 고객센터에 코드만 알려 주면 원인을 바로 알 수 있게 모든 오류에 붙인다.
+   * 오류 코드(2026-10-08). 2026-10-16 사용자 요청으로 화면에서는 코드를 숨기고, 문구 칸의
+   * data-error-code 속성에만 남긴다(개발자 도구·화면 녹화 분석용).
    * 규정과 전체 목록은 docs/ERROR-CODES.md. field 가 있으면 그 칸 바로 아래에 띄운다.
    */
   var ERRORS = {
@@ -44,9 +45,9 @@
     'PRF-06': { field: null, message: '성별을 선택해 주세요.' },
     'PRF-07': { field: null, message: '양력 또는 음력을 선택해 주세요.' },
     'PRF-10': { field: null, message: '로그인이 끝났어요. 다시 로그인한 뒤 저장해 주세요.' },
-    'PRF-20': { field: null, message: '서버에 저장하지 못했어요. 잠시 뒤 다시 저장해 주세요. 계속되면 고객센터에 오류 코드를 알려 주세요.' },
+    'PRF-20': { field: null, message: '서버에 저장하지 못했어요. 잠시 뒤 다시 저장해 주세요. 계속되면 고객센터에 문의해 주세요.' },
     'PRF-21': { field: null, message: '인터넷 연결이 끊겼어요. 연결을 확인한 뒤 다시 저장해 주세요.' },
-    'PRF-30': { field: null, message: '프로필을 불러오지 못했어요. 새로고침해 주세요. 계속되면 고객센터에 오류 코드를 알려 주세요.' },
+    'PRF-30': { field: null, message: '프로필을 불러오지 못했어요. 새로고침해 주세요. 계속되면 고객센터에 문의해 주세요.' },
   };
   var FIELDS = ['name', 'birth', 'time'];
 
@@ -58,16 +59,9 @@
     return document.querySelector('[data-error-for="' + field + '"]');
   }
 
-  function codeChip(code) {
-    var chip = document.createElement('span');
-    chip.className = 'error-code';
-    chip.textContent = code;
-    return chip;
-  }
-
   function clearFieldError(field) {
     var slot = fieldSlot(field);
-    if (slot) { slot.hidden = true; slot.textContent = ''; }
+    if (slot) { slot.hidden = true; slot.textContent = ''; delete slot.dataset.errorCode; }
     var input = fieldInput(field);
     if (input) input.removeAttribute('aria-invalid');
   }
@@ -84,8 +78,8 @@
     var slot = entry.field && fieldSlot(entry.field);
     var target = slot || statusBox;
     if (!target) return;
-    target.textContent = message + ' ';
-    target.appendChild(codeChip(code));
+    target.textContent = message;
+    target.dataset.errorCode = code;
     if (slot) {
       slot.hidden = false;
       var input = fieldInput(entry.field);
