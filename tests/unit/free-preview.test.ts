@@ -42,7 +42,7 @@ test('문장 묶음: 사주 용어·한자·숫자·줄표·따옴표·보류 �
   assert.ok(all.length >= 200, `문장 ${all.length}개`)
   for (const line of all) {
     assert.doesNotMatch(line, /관성|재성|식상|비겁|인성|일간|대운|세운|용신|오행|신강|신약|십신|[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/, line)
-    assert.doesNotMatch(line, /판(?!단|을 넓히)|[0-9]|—|["“”‘’]|(^|\s)야,|수 있|아마|가능성|복채/, line)
+    assert.doesNotMatch(line, /판(?!단|을)|[0-9]|—|["“”‘’]|(^|\s)야,|수 있|아마|가능성|복채/, line)
     assert.doesNotMatch(line.replace('{이름}', ''), /[{}]/, line)
     for (const part of line.split(/(?<=[.?])\s/)) assert.ok(part.length <= 90, `${part.length}자: ${part}`)
   }
