@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <script src="/js/umsh-analytics.js?v=ga-20261001-signup-funnel"></script>
-<script src="/js/umsh-chrome.js?v=20261015-no-bottom-nav" defer></script>
+<script src="/js/umsh-chrome.js?v=20261016-glass" defer></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -25,8 +25,9 @@
         padding: 0;
         overflow: hidden;
       }
+      /* 상단 바가 반투명 유리라 영상이 바 밑까지 올라가게 0 에서 시작한다(2026-10-16). */
       body.umsh-has-chrome .phone[data-scene="landing"] .stage:has(.cmdg-video-entry) {
-        top: var(--umsh-chrome-appbar-h, var(--topbar-height));
+        top: 0;
         bottom: var(--umsh-chrome-bottom-h, 74px);
         height: auto;
       }
@@ -135,7 +136,7 @@
         right: 0;
         bottom: 0;
         z-index: 2;
-        padding: 30px 16px 10px;
+        padding: 30px var(--cmdg-cta-gutter) var(--cmdg-cta-bottom-gap);
         background: linear-gradient(
           to top,
           #080302 0 40%,
@@ -318,6 +319,10 @@
         --font-reading-body: "Noto Serif KR", "Apple SD Gothic Neo", serif;
         --font-meta: "Pretendard", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         --topbar-height: 72px;
+        /* 하단 CTA 액자 버튼 바깥 여백. 첫 화면(.cmdg-entry-action)과 결과 화면(.sticky-story-cta)이 같이 써서
+           두 버튼의 폭·바닥 거리가 늘 같다(2026-10-16). */
+        --cmdg-cta-gutter: 16px;
+        --cmdg-cta-bottom-gap: 10px;
       }
 
       * {
@@ -1620,9 +1625,12 @@
       /* 결과 화면도 실제 공용 헤더 높이에서 시작한다(첫 화면과 같은 방식). 고정 72px(--topbar-height)로
          두면 헤더(46~65px) 아래에 검은 띠가 생겼다(2026-10-15). 위 규칙과 같은 우선순위라 뒤에 둔다. */
       body.umsh-has-chrome .phone[data-scene="result"] .stage {
-        top: var(--umsh-chrome-appbar-h, var(--topbar-height));
+        /* 상단 바가 반투명 유리라 스크롤하는 본문이 바 밑으로 지나가게 0 에서 시작하고,
+           첫 줄은 실제 바 높이만큼 내려 둔다(2026-10-16). */
+        top: 0;
         bottom: var(--umsh-chrome-bottom-h, 0px);
         height: auto;
+        padding-top: var(--umsh-chrome-appbar-h, var(--topbar-height));
       }
 
       /* 보관함 패널은 stage 밖에서 inset: 0 으로 깔리는 오버레이라 위 규칙이 닿지
@@ -3869,7 +3877,8 @@
         position: sticky;
         bottom: 0;
         z-index: 4;
-        padding: 28px 20px max(34px, env(safe-area-inset-bottom));
+        /* 좌우 여백은 첫 화면 CTA(.cmdg-entry-action)와 같은 값이라 버튼 폭이 같다. */
+        padding: 28px var(--cmdg-cta-gutter) max(34px, env(safe-area-inset-bottom));
         background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000 26%, #000 100%);
       }
 
@@ -3947,21 +3956,25 @@
       .sticky-story-cta.is-floating,
       body.has-umsh-service-shell .sticky-story-cta.is-floating {
         position: fixed;
-        bottom: calc(74px + env(safe-area-inset-bottom));
-        left: 0;
-        right: 0;
+        /* 하단 메뉴 높이를 숫자(74px)로 박아 두어, 천명사주에서 메뉴를 숨긴 뒤 버튼이 바닥에서 74px 떠 있었다(2026-10-16).
+           실제 메뉴 높이(숨기면 0px)를 쓴다. */
+        bottom: calc(var(--umsh-chrome-bottom-h, 74px) + env(safe-area-inset-bottom));
+        /* 창 전체가 아니라 폰 화면 폭(--umsh-page-width)에 맞춰 가운데 둔다. */
+        left: max(0px, calc(50% - var(--umsh-page-width, 440px) / 2));
+        right: max(0px, calc(50% - var(--umsh-page-width, 440px) / 2));
         z-index: 79;
         display: grid;
         justify-items: center;
-        /* 버튼 위로 번지는 검정을 길게 빼서 뒤 그림이 버튼에 바짝 붙지 않게 한다. */
-        padding: 64px 24px 16px;
+        /* 버튼 위로 번지는 검정을 길게 빼서 뒤 그림이 버튼에 바짝 붙지 않게 한다.
+           좌우·아래 여백은 첫 화면 CTA 와 같은 값이라 크기·바닥 거리가 같다(2026-10-16). */
+        padding: 64px var(--cmdg-cta-gutter) var(--cmdg-cta-bottom-gap);
         background: linear-gradient(to top, #000 0 46%, rgba(0, 0, 0, 0.92) 62%, rgba(0, 0, 0, 0.6) 80%, transparent 100%);
         animation: sample-enter-rise 0.28s ease-out;
       }
 
       .sample-enter.is-floating .primary-cta,
       .sticky-story-cta.is-floating .primary-cta {
-        width: min(392px, 100%);
+        width: 100%;
       }
 
       @keyframes sample-enter-rise {
