@@ -9,4 +9,74 @@
   /* 상단 바: 반투명 유리(글라스모피즘) */
   --umsh-appbar-glass-bg: rgba(8, 8, 7, 0.42);
   --umsh-appbar-glass-filter: blur(18px) saturate(140%);
+
+  /* 홈 상단 아이콘(검색·내 정보). 원래 값 그대로. */
+  --umsh-appbar-icon-size: 22px;
+  --umsh-appbar-icon-stroke: 1.7;
+  --umsh-appbar-icon-color: #f7f2e9;
+  /* 서비스 화면: 뒤로 버튼과 로고 사이 */
+  --umsh-appbar-lead-gap: 2px;
+  /* 서비스 화면 뒤로 화살표: 그림 왼쪽의 빈 칸(24칸 중 9칸 → 20px 아이콘에서 약 7px)만큼 당겨 화살표 선이 왼쪽 여백 선에 닿게 */
+  --umsh-appbar-back-nudge: -7px;
+  /* 로고 줄 좌우 여백과 같은 값. 분류 줄 첫 버튼이 로고와 같은 선에 선다. */
+  --umsh-appbar-gutter: 20px;
+  /* 로고 줄 위·아래 여백과 칸 사이(홈·서비스 화면 공용) */
+  --umsh-appbar-pad-top: 12px;
+  --umsh-appbar-pad-bottom: 12px;
+  --umsh-appbar-pad: var(--umsh-appbar-pad-top) var(--umsh-appbar-gutter) var(--umsh-appbar-pad-bottom);
+  --umsh-appbar-gap: 14px;
+  /* 로고 줄 버튼(아이콘) 상자와 로고 크기. 홈·서비스 화면이 같은 값이라 로고 줄 높이가 같다. */
+  --umsh-appbar-button: 38px;
+  --umsh-appbar-logo-w: 106px;
+  --umsh-appbar-logo-h: 40px;
+  /* 로고 그림 안 글자가 위로 치우쳐 있다(위 빈 칸 20%, 아래 24%). 그 차이의 절반(높이의 2%)만큼 내려 글자가 정가운데에 서게 한다. */
+  --umsh-appbar-logo-optical-y: calc(var(--umsh-appbar-logo-h) * 0.02);
+
+  /* 분류 줄과 분류 버튼 */
+  --umsh-rail-pad: 8px 0 10px var(--umsh-appbar-gutter);
+  --umsh-chip-gap: 4px;
+  --umsh-chip-pad: 12px 18px;
+  --umsh-chip-radius: 24px;
+  --umsh-chip-font-size: 15px;
+  --umsh-chip-line-height: 14px;
+  --umsh-chip-tracking: -0.025em;
+  --umsh-chip-weight: 400;
+  --umsh-chip-active-weight: 600;
+  --umsh-chip-text: #fff;
+  /* 선택된 버튼만 반투명 유리 알약 */
+  --umsh-chip-active-bg: radial-gradient(100% 125% at 50% 120%, rgb(255 255 255 / 0.42) 0%, rgb(255 255 255 / 0) 92%);
+  --umsh-chip-active-border: rgb(172 172 178 / 0.71);
+  --umsh-chip-active-filter: blur(3px);
+}
+
+/* 좁은 화면은 로고 줄 좌우 여백이 14px(portal.css·service-shell.css 의 520px 규칙)이라 같이 줄인다. */
+@media (max-width: 520px) {
+  :root {
+    --umsh-appbar-gutter: 14px;
+    --umsh-appbar-pad-top: 7px;
+    --umsh-appbar-pad-bottom: 6px;
+    --umsh-appbar-gap: 10px;
+    --umsh-appbar-button: 32px;
+    --umsh-appbar-logo-w: 90px;
+    --umsh-appbar-logo-h: 32px;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --umsh-appbar-button: 29px;
+    --umsh-appbar-logo-w: 80px;
+    --umsh-appbar-logo-h: 29px;
+  }
+}
+
+/*
+ * 호버·선택(포커스) 때 버튼과 링크에 생기던 금색 외곽선을 사이트 전체에서 없앤다(2026-10-16 요청).
+ * 페이지마다 따로 둔 외곽선 규칙(50여 곳, 호버에 거는 것도 있음)을 하나씩 고치지 않고 여기 한 곳에서 끈다.
+ * 이 파일은 서비스 공용 상단(service-shell.css)과 홈(portal.css)이 불러와 모든 화면에 적용된다.
+ */
+:where(*):hover,
+:where(*):focus,
+:where(*):focus-visible {
+  outline: none !important;
 }
