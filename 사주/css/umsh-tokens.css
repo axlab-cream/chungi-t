@@ -1,0 +1,12 @@
+/*
+ * 사이트 공용 디자인 값(2026-10-16).
+ * 서비스 공용 상단(service-shell.css)과 홈(portal.css)이 같은 상단 바를 쓰도록 값을 한곳에 둔다.
+ * 값을 바꿀 때는 여기만 고친다.
+ */
+:root {
+  /* 상단 바: 흐림을 지원하지 않는 브라우저용 불투명 배경 */
+  --umsh-appbar-bg: rgba(8, 8, 7, 0.96);
+  /* 상단 바: 반투명 유리(글라스모피즘) */
+  --umsh-appbar-glass-bg: rgba(8, 8, 7, 0.42);
+  --umsh-appbar-glass-filter: blur(18px) saturate(140%);
+}

@@ -1,3 +1,4 @@
+@import url("/css/umsh-tokens.css?v=20261016-glass");
 :root {
   --black-1000: #050504;
   --black-950: #080807;
@@ -115,7 +116,16 @@ a:focus-visible {
   gap: 14px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--line-soft);
-  background: rgba(8, 8, 7, 0.96);
+  background: var(--umsh-appbar-bg);
+}
+
+/* 홈 상단 바도 서비스 화면과 같은 반투명 유리로 통일한다(2026-10-16). 값은 umsh-tokens.css 에서 온다. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .appbar {
+    background: var(--umsh-appbar-glass-bg);
+    -webkit-backdrop-filter: var(--umsh-appbar-glass-filter);
+    backdrop-filter: var(--umsh-appbar-glass-filter);
+  }
 }
 
 .app-brand {

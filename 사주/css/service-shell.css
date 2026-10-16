@@ -1,4 +1,5 @@
-﻿.umsh-service-shell,
+﻿@import url("/css/umsh-tokens.css?v=20261016-glass");
+.umsh-service-shell,
 .umsh-service-bottom,
 .umsh-service-toast {
   --shell-width: var(--umsh-page-width, 430px);
@@ -87,7 +88,22 @@ body.has-umsh-service-shell > .bottom-nav[aria-label="상세 이동과 상담"] 
 body.umsh-has-chrome .umsh-service-shell .appbar {
   padding: 12px 20px;
   border-bottom: 1px solid var(--shell-line-soft);
-  background: rgba(8, 8, 7, 0.96);
+  background: var(--umsh-appbar-bg);
+}
+
+/* 상단 바는 반투명 유리(글라스모피즘, 2026-10-16 요청). 값은 umsh-tokens.css 하나에서 오고 홈(portal.css)도 같은 값을 쓴다.
+   감싸는 상자(.umsh-service-shell)에 흐림을 걸고 안쪽 바는 투명하게 둬 한 겹으로만 보이게 한다.
+   흐림을 지원하지 않는 브라우저는 위 불투명 배경을 그대로 쓴다. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body.umsh-has-chrome .umsh-service-shell {
+    background: var(--umsh-appbar-glass-bg);
+    -webkit-backdrop-filter: var(--umsh-appbar-glass-filter);
+    backdrop-filter: var(--umsh-appbar-glass-filter);
+  }
+
+  body.umsh-has-chrome .umsh-service-shell .appbar {
+    background: transparent;
+  }
 }
 
 body.umsh-has-chrome .umsh-service-bottom .bottom-nav {
