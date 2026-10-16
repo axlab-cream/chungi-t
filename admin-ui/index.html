@@ -478,6 +478,10 @@
     .admin-confirm-text { margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-line; }
     .admin-confirm-warn { margin: 12px 0 0; padding: 8px 10px; border-radius: 6px; background: #fdeceb; color: var(--admin-state-error); font-size: 13px; font-weight: 700; }
     .admin-prompt label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+    .admin-prompt[data-transfer] { display: grid; gap: 14px; }
+    .admin-transfer-results { display: grid; gap: 6px; }
+    .admin-transfer-results button { width: 100%; padding: 10px 12px; border: 1px solid var(--admin-line, #e3e3e8); border-radius: 8px; background: #fff; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+    .admin-transfer-results button[aria-pressed='true'] { border-color: var(--admin-action-primary, #2f5bea); background: #eef3ff; font-weight: 700; }
     .admin-button[data-tone='danger']:not([disabled]) { background: var(--admin-action-danger); border-color: var(--admin-action-danger); color: #fff; }
     .admin-toasts { position: fixed; right: 20px; bottom: 20px; z-index: 1000; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 40px)); }
     .admin-toast { padding: 11px 14px; border-radius: 8px; background: #1b1b1f; color: #fff; font-size: 13px; line-height: 1.5; box-shadow: 0 10px 30px rgba(0, 0, 0, .2); border-left: 3px solid var(--admin-state-ok); transition: opacity .25s, transform .25s; }
@@ -1606,7 +1610,7 @@
        * SNS 로그인하면 "회원 전환"으로 바뀌고 회원 상세에서 이어 본다. 마지막 방문 30일이 지나면 정리 대상(이름·생일만 지우고 통계는 남김).
        */
       var guestListState = { offset: 0, limit: 20, q: '', filter: 'all', sort: 'recent' };
-      var GUEST_FILTERS = [['all', '전체'], ['open', '전환 안 함'], ['converted', '회원 전환'], ['stale', '30일 지남']];
+      var GUEST_FILTERS = [['all', '전체'], ['open', '전환 안 함'], ['converted', '회원 전환'], ['paid', '결제함'], ['stale', '30일 지남']];
       var GUEST_GENDERS = { male: '남', female: '여' };
       async function loadGuestPeople(body) {
         body.replaceChildren();
@@ -1629,7 +1633,7 @@
         filters.addEventListener('submit', function (event) { event.preventDefault(); guestListState.q = search.value.trim(); guestListState.offset = 0; refresh(); });
         sort.addEventListener('change', function () { guestListState.sort = sort.value; guestListState.offset = 0; refresh(); });
         var note = document.createElement('p'); note.className = 'admin-hint';
-        note.textContent = '같은 기기에서 같은 사주로 다시 보면 한 사람(방문 수 +1)으로 셉니다. 기기가 다르면 이름·생일이 같아도 다른 사람으로 셉니다. 마지막 방문 30일이 지나면 정리 대상입니다.';
+        note.textContent = '같은 기기에서 같은 사주로 다시 보면 한 사람(방문 수 +1)으로 셉니다. 기기가 다르면 이름·생일이 같아도 다른 사람으로 셉니다. 마지막 방문 30일이 지나면 정리 대상이고, 결제한 비회원은 정리하지 않습니다. 줄을 누르면 상세와 "회원에게 합치기"가 열립니다.';
         var section = document.createElement('section'); section.className = 'admin-section';
         section.appendChild(memberEmpty('불러오는 중입니다.'));
         body.append(filters, note, section);
@@ -1670,11 +1674,11 @@
             var person = [item.birthYear ? item.birthYear + '년' : null, GUEST_GENDERS[item.gender] || null].filter(Boolean).join(' · ');
             var services = item.services && item.services.length ? item.services.slice(-3).join(', ') + (item.services.length > 3 ? ' 외 ' + (item.services.length - 3) : '') : '—';
             var converted = item.convertedTo ? adminLink('회원 보기 · ' + memberDay(item.convertedAt), '/members?id=' + encodeURIComponent(item.convertedTo)) : '—';
-            var state = item.anonymizedAt ? memberChip('정리됨', '') : item.stale ? memberChip('30일 지남', 'warn') : memberChip('보관 중', 'ok');
+            var state = item.anonymizedAt ? memberChip('정리됨', '') : item.paidAt ? memberChip('결제함', 'ok') : item.stale ? memberChip('30일 지남', 'warn') : memberChip('보관 중', 'ok');
             var consent = item.consentedAt ? memberChip('동의 ' + memberDay(item.consentedAt) + (item.marketingConsented ? ' · 마케팅' : ''), 'ok') : memberChip('미동의', '');
             var name = item.name || (item.anonymizedAt ? '(정리됨)' : item.hasSaju ? '이름 미등록' : '사주 미입력');
             return [name, person || '—', memberWhen(item.firstSeenAt), memberWhen(item.lastSeenAt), String(item.visits || 1) + '회', services, consent, converted, state];
-          }));
+          }, function (item) { openGuestDetail(item.id, refresh); }));
           var pager = document.createElement('div'); pager.className = 'admin-pager';
           var first = total ? guestListState.offset + 1 : 0; var last = Math.min(total, guestListState.offset + guests.length);
           var summary = document.createElement('span'); summary.textContent = total.toLocaleString('ko-KR') + '명 중 ' + first + '–' + last;
@@ -1689,6 +1693,117 @@
         } finally {
           section.removeAttribute('aria-busy');
         }
+      }
+      /**
+       * 비회원 상세(2026-10-16, docs/auth/guest-member-plan.md 8절).
+       * 같은 이름·생년월일을 넣은 다른 비회원 수는 참고로만 보인다 — 기기가 다르면 다른 사람으로 세고, 고객이 확인해 줄 때만 합친다.
+       */
+      async function openGuestDetail(id, refresh) {
+        var wrap = document.createElement('div'); wrap.appendChild(memberEmpty('불러오는 중입니다.'));
+        var dialog = openAdminModal({ title: '비회원 상세', subtitle: '불러오는 중입니다.', size: 'wide', body: wrap, actions: [{ label: '닫기', onClick: function (d) { d.close(); } }] });
+        try {
+          var g = (await adminJson('/api/admin/v1/guests/' + encodeURIComponent(id))).guest;
+          dialog.querySelector('.admin-modal-head h3').textContent = g.name || (g.anonymizedAt ? '(정리됨)' : '이름 미등록');
+          dialog.querySelector('.admin-modal-head p').textContent = '첫 방문 ' + memberDay(g.firstSeenAt) + ' · 방문 ' + (g.visits || 1) + '회';
+          var grid = document.createElement('div'); grid.className = 'admin-detail-grid';
+          var left = document.createElement('div'); var right = document.createElement('div');
+          var h1 = document.createElement('h4'); h1.textContent = '사주';
+          var birth = g.birthYear ? g.birthYear + '년' + (g.birthMonth ? ' ' + g.birthMonth + '월 ' + g.birthDay + '일' : '') : '—';
+          left.append(h1, dlRows([['이름', g.name || '—'], ['생년월일', birth], ['성별', GUEST_GENDERS[g.gender] || '—'], ['본 결과', g.services && g.services.length ? g.services.join(', ') : '—']]));
+          var h2 = document.createElement('h4'); h2.textContent = '상태';
+          right.append(h2, dlRows([
+            ['마지막 방문', memberWhen(g.lastSeenAt)],
+            ['약관 동의', g.consentedAt ? memberWhen(g.consentedAt) + (g.marketingConsented ? ' · 마케팅 동의' : '') : '미동의'],
+            ['결제', g.paidAt ? memberChip('결제함 · ' + memberDay(g.paidAt), 'ok') : '없음'],
+            ['회원 전환', g.convertedTo ? adminLink('회원 보기 · ' + memberDay(g.convertedAt), '/members?id=' + encodeURIComponent(g.convertedTo)) : '—'],
+            ['상태', g.anonymizedAt ? memberChip('정리됨', '') : g.stale ? memberChip('30일 지남', 'warn') : memberChip('보관 중', 'ok')],
+          ]));
+          grid.append(left, right);
+          wrap.replaceChildren(grid);
+          if (g.similar > 0) {
+            var hint = document.createElement('p'); hint.className = 'admin-note';
+            hint.textContent = '같은 이름·생년월일로 다른 기기에서 본 비회원이 ' + g.similar + '명 더 있습니다. 같은 사람인지는 알 수 없습니다. 고객이 확인해 주면 각각 같은 회원에게 합치세요.';
+            var find = document.createElement('button'); find.type = 'button'; find.className = 'admin-link-button'; find.textContent = '이 이름으로 찾기';
+            find.addEventListener('click', function () { guestListState.q = g.name; guestListState.filter = 'all'; dialog.close(); var input = document.querySelector('form.admin-filterbar input[name="q"]'); if (input) input.value = g.name; refresh(); });
+            hint.append(' ', find); wrap.appendChild(hint);
+          }
+          if (!g.anonymizedAt) {
+            var foot = dialog.querySelector('.admin-modal-foot');
+            var merge = document.createElement('button'); merge.type = 'button'; merge.className = 'admin-button'; merge.textContent = '회원에게 합치기';
+            merge.addEventListener('click', function () {
+              dialog.close();
+              openRecordTransferDialog({
+                title: '비회원을 회원에게 합치기',
+                lead: (g.name || '이 비회원') + '의 풀이·주문을 고른 회원 계정으로 옮깁니다. 회원에게 사주 프로필이 없으면 비회원 사주를 복사합니다. 고객 본인임을 확인한 뒤에만 하세요.',
+                url: '/api/admin/v1/guests/' + encodeURIComponent(g.id) + '/merge',
+                done: function (r) { return '합쳤습니다. 풀이 ' + (r.reports || 0) + '건, 주문 ' + (r.orders || 0) + '건을 옮겼습니다.'; },
+                after: refresh,
+              });
+            });
+            foot.appendChild(merge);
+          }
+        } catch (error) { wrap.replaceChildren(memberEmpty(error.message)); dialog.querySelector('.admin-modal-head p').textContent = ''; }
+      }
+      /**
+       * 풀이·주문을 회원 계정으로 옮기는 공용 창(2026-10-16). 비회원 → 회원, 주문 하나 → 회원, 회원 → 회원이 같은 창을 쓴다.
+       * 서버는 SNS 회원만 받는 쪽으로 허용하고, 사유와 함께 감사 기록(admin command)을 남긴다.
+       */
+      function openRecordTransferDialog(options) {
+        var form = document.createElement('div'); form.className = 'admin-prompt'; form.setAttribute('data-transfer', '');
+        var lead = document.createElement('p'); lead.className = 'admin-confirm-text'; lead.textContent = options.lead;
+        var findLabel = document.createElement('label'); findLabel.textContent = '받을 회원(이름 또는 회원 번호)';
+        var findRow = document.createElement('div'); findRow.style.display = 'flex'; findRow.style.gap = '8px';
+        var query = document.createElement('input'); query.type = 'search'; query.placeholder = '이름 두 글자 이상 또는 회원 번호 전체';
+        var findButton = document.createElement('button'); findButton.type = 'button'; findButton.className = 'admin-button'; findButton.setAttribute('data-variant', 'quiet'); findButton.textContent = '찾기';
+        findRow.append(query, findButton); findLabel.appendChild(findRow);
+        var results = document.createElement('div'); results.className = 'admin-transfer-results';
+        var reasonLabel = document.createElement('label'); reasonLabel.textContent = '사유(감사 기록에 남습니다)';
+        var reason = document.createElement('input'); reason.type = 'text'; reason.maxLength = 200; reason.placeholder = '예: 고객 요청 — 주문번호·휴대폰 확인';
+        reasonLabel.appendChild(reason);
+        form.append(lead, findLabel, results, reasonLabel);
+        var picked = null;
+        function pick(member) {
+          picked = member;
+          results.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', button.dataset.id === member.id ? 'true' : 'false'); });
+        }
+        async function find() {
+          var q = query.value.trim();
+          picked = null;
+          if (q.length < 2) { results.replaceChildren(memberEmpty('이름 두 글자 이상 또는 회원 번호를 넣어 주세요.')); return; }
+          results.replaceChildren(memberEmpty('찾는 중입니다.'));
+          try {
+            var data = await adminJson('/api/admin/v1/members?' + new URLSearchParams({ q: q, kind: 'member', limit: '8' }).toString());
+            var members = (data.members || []).filter(function (member) { return member.id !== options.excludeId; });
+            results.replaceChildren();
+            if (!members.length) { results.appendChild(memberEmpty('맞는 회원이 없습니다.')); return; }
+            members.forEach(function (member) {
+              var button = document.createElement('button'); button.type = 'button'; button.dataset.id = member.id; button.setAttribute('aria-pressed', 'false');
+              button.textContent = (member.name || '이름 미등록') + ' · ' + (member.email || '이메일 없음') + ' · ' + String(member.id).slice(0, 8);
+              button.addEventListener('click', function () { pick(member); });
+              results.appendChild(button);
+            });
+            if (members.length === 1) pick(members[0]);
+          } catch (error) { results.replaceChildren(memberEmpty(error.message)); }
+        }
+        findButton.addEventListener('click', find);
+        query.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); find(); } });
+        var dialog = openAdminModal({ title: options.title, body: form, actions: [
+          { label: '취소', onClick: function (d) { d.close(); } },
+          { label: '옮기기', primary: true, danger: true, onClick: async function (d, button) {
+            if (!picked) { adminToast('받을 회원을 골라 주세요.', 'error'); return; }
+            if (reason.value.trim().length < 2) { adminToast('사유를 두 글자 이상 적어 주세요.', 'error'); return; }
+            if (!await adminConfirm((picked.name || '이름 미등록') + '(' + (picked.email || String(picked.id).slice(0, 8)) + ') 계정으로 옮깁니다. 옮긴 뒤에는 원래 계정에서 보이지 않습니다.', { title: options.title, okLabel: '옮기기', danger: true })) return;
+            button.disabled = true;
+            try {
+              var result = await adminJson(options.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ memberId: picked.id, reason: reason.value.trim(), confirm: true }) });
+              adminToast(options.done((result && result.result) || {}));
+              d.close();
+              if (options.after) options.after();
+            } catch (error) { button.disabled = false; adminToast(error.message, 'error'); }
+          } },
+        ] });
+        setTimeout(function () { query.focus(); }, 0);
+        return dialog;
       }
       async function anonymizeGuestsFlow(total, refresh) {
         var ok = await adminConfirm('마지막 방문 30일이 지난 비회원 ' + total.toLocaleString('ko-KR') + '명(한 번에 최대 200명)의 이름·생일(월·일)·태어난 시를 지웁니다. 방문마다 생긴 비회원 계정과 그 결과 기록도 지웁니다. 출생 연도·성별·본 결과·방문 수·날짜는 통계로 남습니다. 되돌릴 수 없습니다.', { title: '30일 지난 비회원 정리', okLabel: '정리', danger: true });
@@ -2123,7 +2238,18 @@
           push.title = '메시지 작성에서 "특정 회원"을 골라 이 회원 이름으로 찾으면 됩니다.';
           var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'admin-button'; remove.setAttribute('data-variant', 'quiet'); remove.setAttribute('data-tone', 'danger-text'); remove.textContent = '회원 삭제';
           remove.addEventListener('click', function () { deleteMemberFlow({ id: member.userId, name: member.name, email: member.email, purchaseCount: purchases ? purchases.purchaseCount : null }, function () { dialog.close(); renderWorkspace(currentAdminRoute()); }); });
-          actions.append(edit, push, remove);
+          var move = document.createElement('button'); move.type = 'button'; move.className = 'admin-button'; move.setAttribute('data-variant', 'quiet'); move.textContent = '풀이·주문 다른 회원에게 옮기기';
+          move.title = '한 사람이 SNS 계정을 두 개 만들었을 때 씁니다. 로그인 계정 자체는 합치지 않습니다.';
+          move.addEventListener('click', function () {
+            dialog.close();
+            openRecordTransferDialog({
+              title: '회원 → 회원 옮기기', excludeId: member.userId,
+              lead: (member.name || '이 회원') + ' 계정의 풀이·주문을 모두 고른 회원 계정으로 옮깁니다. 로그인 계정(SNS)은 그대로 둘이 남습니다. 고객 본인임을 확인한 뒤에만 하세요.',
+              url: '/api/admin/v1/members/' + encodeURIComponent(member.userId) + '/transfer',
+              done: function (r) { return '옮겼습니다. 풀이 ' + (r.reports || 0) + '건, 주문 ' + (r.orders || 0) + '건.'; },
+            });
+          });
+          actions.append(edit, push, move, remove);
           target.append(grid, actions);
           if (data.errors && data.errors.length) { var warn = document.createElement('p'); warn.className = 'admin-note'; warn.textContent = '일부 정보를 불러오지 못했습니다: ' + data.errors.map(function (key) { return { purchases: '결제', reports: '리포트', support: '문의', coupons: '쿠폰', devices: '앱 기기' }[key] || key; }).join(', '); target.appendChild(warn); }
         }
@@ -4548,7 +4674,7 @@
         if (order.unsettled) { var warn = document.createElement('p'); warn.className = 'admin-note'; warn.textContent = '결제사 승인 기록은 있는데 정산이 끝나지 않았습니다. 결제사 관리자 화면에서 확인해 주세요.'; left.appendChild(warn); }
         var h2 = document.createElement('h4'); h2.textContent = '회원 · 서비스';
         right.append(h2, dlRows([
-          ['회원', order.ownerId ? adminLink([order.ownerName, order.ownerEmail || order.ownerEmailMasked].filter(Boolean).join(' · ') || '회원 보기', '/members?id=' + encodeURIComponent(order.ownerId)) : (order.ownerEmailMasked || '—')],
+          ['회원', order.ownerProvider === 'anonymous' ? memberChip('비회원 결제', 'warn') : order.ownerId ? adminLink([order.ownerName, order.ownerEmail || order.ownerEmailMasked].filter(Boolean).join(' · ') || '회원 보기', '/members?id=' + encodeURIComponent(order.ownerId)) : (order.ownerEmailMasked || '—')],
           ['가입 SNS', MEMBER_PROVIDERS[order.ownerProvider] || order.ownerProvider || '—'],
           ['결제 연락처', [order.buyerEmailMasked, order.buyerTelMasked].filter(Boolean).join(' · ') || '—'],
           ['서비스', order.productTitle || '—'],
@@ -4569,6 +4695,17 @@
           if (unsupported) { var why = document.createElement('p'); why.className = 'admin-note'; why.textContent = unsupported; left.appendChild(why); }
           else actions.push({ label: '결제 취소', danger: true, primary: true, onClick: function (d) { d.close(); openRefundRequestForm(order, reload); } });
         }
+        // 2026-10-16 비회원으로 결제한 고객이 나중에 가입해 "내 계정으로 옮겨 달라"고 할 때. 그 주문과 그 풀이만 옮긴다.
+        if (order.status === 'paid' || order.status === 'viewed') actions.splice(1, 0, { label: '회원 계정으로 옮기기', onClick: function (d) {
+          d.close();
+          openRecordTransferDialog({
+            title: '주문을 회원 계정으로 옮기기', excludeId: order.ownerId,
+            lead: '이 주문(' + order.orderId + ')과 그 풀이만 고른 회원 계정으로 옮깁니다. 결제 연락처(' + ([order.buyerEmailMasked, order.buyerTelMasked].filter(Boolean).join(' · ') || '없음') + ')로 고객 본인임을 확인한 뒤에만 하세요.',
+            url: '/api/admin/v1/payments/' + encodeURIComponent(order.orderId) + '/transfer',
+            done: function (r) { return r.already ? '이미 그 회원의 주문입니다.' : '옮겼습니다. 주문 ' + (r.orders || 0) + '건, 풀이 ' + (r.reports || 0) + '건.'; },
+            after: reload,
+          });
+        } });
         openAdminModal({ title: order.productTitle + ' · ' + won(order.amount), subtitle: (ORDER_STATUS[order.status] || { label: order.status }).label + ' · ' + new Date(order.createdAt).toLocaleString('ko-KR'), body: wrap, actions: actions });
       }
 
@@ -4624,7 +4761,7 @@
             var row = document.createElement('tr'); row.tabIndex = 0;
             function td(value, cls) { var cell = document.createElement('td'); if (cls) cell.className = cls; if (value instanceof Node) cell.appendChild(value); else cell.textContent = value; row.appendChild(cell); }
             // 2026-10-12 요청: 누가 결제했는지(이름·회원 ID·이메일)를 먼저, 결제일은 결제 수단 오른쪽에 둔다.
-            td(order.ownerName || '이름 미등록');
+            td(order.ownerProvider === 'anonymous' ? memberChip('비회원', 'warn') : (order.ownerName || '이름 미등록'));
             var idCell = document.createElement('td'); idCell.className = 'admin-mono';
             if (order.ownerId) { idCell.title = order.ownerId; idCell.appendChild(copyChip(order.ownerId, String(order.ownerId).slice(0, 8))); } else idCell.textContent = '—';
             row.appendChild(idCell);

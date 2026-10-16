@@ -23,7 +23,8 @@ test('오늘운은 회원 세션이 없으면 비회원 세션으로 이어 가�
   assert.ok(guestAt > 0 && gateAt > guestAt, '가입 화면보다 비회원 세션을 먼저 시도한다')
   assert.match(today, /Authorization: `Bearer \$\{session\.access_token\}`/, '오늘운 요청은 회원·비회원 중 고른 세션의 토큰을 쓴다')
   assert.match(today, /claimGuestNow/, '로그인한 회원은 비회원 기록을 먼저 이어받는다')
-  assert.match(today, /UMSHGuestSaveSheet\?\.openWhenSeen/, '비회원 결과에는 저장 바텀시트')
+  // 2026-10-16: 오늘 운세(메인 콘텐츠)는 로그인·저장을 권하지 않는다.
+  assert.doesNotMatch(today, /UMSHGuestSaveSheet\?\.openWhenSeen/, '메인 콘텐츠에는 저장 권유 없음')
 })
 
 test('비회원 세션은 서버가 비회원 로그인을 켜 둔 경우에만 만든다', () => {

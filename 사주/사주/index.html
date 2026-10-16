@@ -4483,7 +4483,9 @@
       async function authHeaders(base = {}) {
         const headers = { ...base };
         const session = authSession || await currentAuthSession().catch(() => null);
-        if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+        // 2026-10-16 비회원 결제: 회원 세션이 없으면 이 기기의 비회원 토큰으로 묻는다(산 풀이 열기·이어 읽기).
+        const token = session?.access_token || window.UMSHAuthSession?.currentGuestToken?.() || "";
+        if (token) headers.Authorization = `Bearer ${token}`;
         return headers;
       }
 
@@ -4832,15 +4834,7 @@
           syncBirthSessionFromState();
           clearTodayEntryPending();
           go("todayResult", false);
-          if (guestToday) {
-            window.UMSHGuestSaveSheet?.openWhenSeen({
-              entry: "today",
-              resultKey: "today:" + new Date().toISOString().slice(0, 10),
-              anchor: ".today-result-card .actions",
-              // 2026-10-16: 저장하기 → 동의+로그인 시트에서 고른 SNS 로그인을 바로 시작한다(풀화면 로그인을 거치지 않는다).
-              onLogin: (provider) => { persistAuthFormState(); setTodayEntryPending(); signInWithProvider(provider); },
-            });
-          }
+          // 2026-10-16: 오늘 운세(메인 콘텐츠)는 로그인·저장을 권하지 않는다.
         } catch (err) {
           todayRequestError = err.message || "오늘의 운세를 불러오지 못했습니다.";
           go("todayResult", false);
@@ -5241,7 +5235,7 @@
           .then(() => {
             go("result");
             registerGuestVisit();
-            armTradeLoginSheet();
+            // 2026-10-16: 메인 콘텐츠는 로그인을 권하지 않는다(맨 아래 저장 시트 없음). 운명 거래하기 → 결제 시트.
             // 로그인하다 돌아왔거나(뒤로 가기·취소) 실패해서 다시 그린 경우: 운명 거래하기가 보이는 맨 아래로 바로 데려간다.
             if (consumeTradeLoginReturn()) {
               scrollToTradeCta();
@@ -5291,6 +5285,11 @@
           if (usesTradeSheets()) openTradePaySheet();
           else go("purchase");
           return;
+        }
+        // 2026-10-16 대표 결정: 메인 콘텐츠는 로그인 없이 결제한다. 비회원은 이 기기의 비회원 계정으로 진짜 풀이를 만들고 결제 시트를 띄운다.
+        if (usesTradeSheets() && window.UMSHPaySheet?.open) {
+          const guestSession = await todayGuestSession();
+          if (guestSession?.access_token) { await openGuestTradePaySheet(guestSession); return; }
         }
         persistAuthFormState();
         sessionStorage.setItem(AUTH_PURCHASE_KEY, "1");
@@ -5400,6 +5399,44 @@
         sessionStorage.removeItem(AUTH_PURCHASE_KEY);
         sessionStorage.removeItem(AUTH_PENDING_KEY);
         return Date.now() - startedAt < 60 * 60 * 1000;
+      }
+
+      /**
+       * 2026-10-16 비회원 결제. 티저(guestPreview)는 저장하지 않는 미리보기라 결제할 풀이가 없다.
+       * 이 기기의 비회원 계정으로 사주를 저장하고 진짜 풀이를 만든 뒤, 같은 화면 위에 결제 시트를 올린다.
+       */
+      async function openGuestTradePaySheet(guestSession) {
+        if (state.guestPreview || !state.analysis?.report?.reportId) {
+          go("loading");
+          try {
+            await registerGuestVisit();
+            await analyzeBirth({ token: guestSession.access_token });
+          } catch (err) {
+            go("result");
+            showNudge(err.message || "풀이를 준비하지 못했어요. 잠시 후 다시 시도해 주세요.");
+            return;
+          }
+          go("result");
+          scrollToTradeCta();
+        }
+        const productKey = checkoutProductKey();
+        const reportId = state.analysis?.report?.reportId || "";
+        const basePath = servicePathForCurrentPage();
+        const returnTo = reportId ? `${basePath}?reportId=${encodeURIComponent(reportId)}` : basePath;
+        const params = new URLSearchParams({ product: productKey, returnTo });
+        if (reportId) params.set("reportId", reportId);
+        const product = catalogProduct(productKey);
+        const originAmount = TRADE_ORIGIN_AMOUNT[state.plan] || 0;
+        const amount = Number(product?.amount) || 0;
+        setTimeout(() => window.UMSHPaySheet.open({
+          productKey,
+          reportId,
+          returnTo,
+          session: guestSession,
+          originAmount,
+          discountLabel: originAmount > amount && amount ? `${Math.round((1 - amount / originAmount) * 100)}%` : "",
+          fallbackUrl: `/payment?${params.toString()}`,
+        }), 300);
       }
 
       // 결제 시트에 보이는 정가. 결제 안내 화면(renderPurchase)의 정가와 같은 값이다.
@@ -6779,14 +6816,18 @@
           work: state.work,
           partner: getPartnerContext(),
         };
-        // 비회원 티저는 계정에 아무것도 저장하지 않는다.
-        if (!guest) await saveCurrentUserProfile();
+        // 비회원 티저는 계정에 아무것도 저장하지 않는다. 비회원 결제 전 진짜 풀이(options.token)는 비회원 계정에 프로필이 이미 있다(registerGuestVisit).
+        if (!guest && !options.token) await saveCurrentUserProfile();
         state.reportPageIndex = 0;
         state.reportSectionCache = {};
         state.reportRequestToken += 1;
         if (state.reportTypingTimer) clearTimeout(state.reportTypingTimer);
         state.reportTypingTimer = null;
-        const headers = await authHeaders({ "Content-Type": "application/json" });
+        const headers = guest
+          ? { "Content-Type": "application/json" }
+          : options.token
+            ? { "Content-Type": "application/json", Authorization: `Bearer ${options.token}` }
+            : await authHeaders({ "Content-Type": "application/json" });
         const res = await (window.UMSHReportAccess ? window.UMSHReportAccess.fetch : fetch)("/api/saju/analyze", {
           method: "POST",
           headers,

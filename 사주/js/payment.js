@@ -15,6 +15,9 @@
   let paymentConfig = null;
   let authClient = null;
   let session = null;
+  // 2026-10-16 메인 콘텐츠는 비회원도 결제한다(docs/auth/guest-member-plan.md 8절). 쿠폰은 회원만.
+  let isGuest = false;
+  let consentVersion = '';
   let product = null;
   // 앱 안에서 구글플레이가 알려 준 가격. 있으면 쿠폰을 고르지 않았을 때 이 가격을 보인다.
   let appPriceText = null;
@@ -119,11 +122,15 @@
       openLogin();
       return;
     }
-    authClient = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage: global.localStorage } });
+    consentVersion = String(authConfig.consentVersion || '');
+    // 회원 세션이 없으면 이 기기의 비회원 세션을 쓴다(공용 저장소: 회원 칸 → 비회원 칸 순서).
+    const storage = global.UMSHAuthSession?.guestAwareStorage || global.localStorage;
+    authClient = global.supabase.createClient(authConfig.url, authConfig.publishableKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storage } });
     const result = await authClient.auth.getSession();
     session = result.data.session;
+    isGuest = Boolean(session?.user?.is_anonymous);
     // 2026-10-14 비회원으로 본 결과를 사려고 로그인한 경우: 주문 전에 그 결과를 회원 계정으로 옮긴다(docs/auth/guest-member-plan.md).
-    if (session && global.UMSHAuthSession?.claimGuestNow) await global.UMSHAuthSession.claimGuestNow({ silent: true }).catch(() => undefined);
+    if (session && !isGuest && global.UMSHAuthSession?.claimGuestNow) await global.UMSHAuthSession.claimGuestNow({ silent: true }).catch(() => undefined);
     clearOtherConsultationDraft(session?.user?.id);
     if (!session) openLogin();
     authClient.auth.onAuthStateChange((_event, nextSession) => {
@@ -181,6 +188,7 @@
     button.disabled = true;
     setStatus('결제 주문을 확인하고 있습니다.');
     try {
+      if (isGuest) await recordGuestConsent();
       const response = await fetch('/api/payment/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -234,6 +242,29 @@
       setStatus(error.code === 'PROFILE_REQUIRED' ? '결제 전에 사주 프로필을 먼저 등록해 주세요.' : error.message);
       button.disabled = session?.user?.id !== paymentOwnerId;
     }
+  }
+
+  /** 비회원 결제: 결제 화면의 동의 체크(이용약관·개인정보·환불 정책·만 14세 이상)를 약관 동의 기록으로 남긴다. */
+  async function recordGuestConsent() {
+    const response = await fetch('/api/consents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ version: consentVersion, terms: true, privacy: true, age14: true, marketing: false, source: 'login', deviceId: global.UMSHAuthSession?.deviceId?.() || '' }),
+    }).catch(() => null);
+    // 기록 저장소가 아직 없거나(503) 잠깐 실패하면 주문 단계에서 서버가 다시 판단한다.
+    if (response && response.status === 409) throw new Error('약관이 바뀌었어요. 화면을 새로고침한 뒤 다시 결제해 주세요.');
+  }
+
+  /** 비회원 화면: 쿠폰은 회원만 쓴다. 쿠폰 칸 대신 로그인 안내, 동의 문구에 만 14세 이상을 붙인다. */
+  function applyGuestForm() {
+    const couponLabel = document.querySelector('[data-payment-coupon]')?.closest('label');
+    if (couponLabel) couponLabel.hidden = true;
+    const couponLink = document.querySelector('a[href="/coupons.html"]');
+    if (couponLink) couponLink.hidden = true;
+    const status = document.querySelector('[data-coupon-status]');
+    if (status) status.textContent = '쿠폰은 SNS로 로그인하면 쓸 수 있어요. 로그인하지 않아도 결제할 수 있습니다.';
+    const consentText = document.querySelector('.payment-consent span');
+    if (consentText && !consentText.querySelector('[data-age14]')) consentText.insertAdjacentHTML('beforeend', ' <b data-age14>만 14세 이상입니다.</b>');
   }
 
   const couponSelect = document.querySelector('[data-payment-coupon]');
@@ -413,7 +444,8 @@
     if (!session) return;
     if (await checkAlreadyPaid()) return;
     form.buyerEmail.value = session.user?.email || '';
-    await loadCoupons();
+    if (isGuest) applyGuestForm();
+    else await loadCoupons();
     const recovered = await recoverAppPurchases();
     if (recovered === 'redirect') return;
     if (paymentConfig.testMode) {
