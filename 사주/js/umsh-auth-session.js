@@ -534,7 +534,10 @@
     var member = storedSession(global.localStorage, false);
     if (!member) return Promise.resolve({ skipped: true });
     var checkedKey = CONSENT_CHECKED_PREFIX + member.userId;
-    consentChecking = (async function () {
+    // 2026-10-16 폰 QA: 이 탭에서 이미 확인했으면 아래 함수가 await 없이 바로 끝난다. 그때 finally 가 대입보다 먼저 돌아
+    // consentChecking 이 끝난 약속으로 남았고, prompt 호출이 then → 자기 자신을 끝없이 다시 불러 화면이 멈췄다(운명 거래하기).
+    // 끝난 뒤 지우는 일은 대입 다음에, 지금 약속일 때만 한다.
+    var run = (async function () {
       try {
         var pending = readConsentPending();
         if (pending) {
@@ -566,11 +569,12 @@
         return { reconsented: agreed };
       } catch (_error) {
         return { error: true };
-      } finally {
-        consentChecking = null;
       }
     })();
-    return consentChecking;
+    consentChecking = run;
+    var clear = function () { if (consentChecking === run) consentChecking = null; };
+    run.then(clear, clear);
+    return run;
   }
 
   /** 결제처럼 동의가 꼭 있어야 하는 순간. 동의돼 있으면(확인할 수 없을 때도) true, 시트를 닫으면 false. */

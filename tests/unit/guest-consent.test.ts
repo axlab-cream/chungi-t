@@ -374,3 +374,20 @@ test('저장하기·운명 거래하기로 로그인하고 돌아오면 "저장�
   assert.equal(session.getItem('umsh_claim_intent_v1'), null, '한 번 쓰고 지운다')
   assert.match(sheetSource, /setItem\('umsh_claim_intent_v1'/)
 })
+
+// 2026-10-16 폰 QA: 이 탭에서 동의를 이미 확인한 회원이 운명 거래하기를 누르면 syncMemberConsent 가 자기 자신을 끝없이 불러 화면이 멈췄다.
+test('동의 확인 중복 방지: 바로 끝나는 확인도 끝난 뒤 consentChecking 을 비운다', () => {
+  const auth = readFileSync(join(ROOT, '사주/js/umsh-auth-session.js'), 'utf8')
+  const sync = auth.slice(auth.indexOf('function syncMemberConsent('), auth.indexOf('function ensureMemberConsent('))
+  assert.doesNotMatch(sync, /finally \{\s*consentChecking = null;/, 'finally 는 대입보다 먼저 돌 수 있다')
+  assert.match(sync, /consentChecking = run;/)
+  assert.match(sync, /if \(consentChecking === run\) consentChecking = null;/)
+  assert.match(sync, /run\.then\(clear, clear\);/)
+})
+
+test('운명 거래하기(천명사주)는 관리자·결제한 회원도 결제 시트를 연다', () => {
+  const cmdg = readFileSync(join(ROOT, '사주/사주/index.html'), 'utf8')
+  const teaser = readFileSync(join(ROOT, '사주/js/cmdg-master-teaser.js'), 'utf8')
+  assert.match(teaser, /data-action=\\"open-chat\\" data-trade-cta><span class=\\"cta-label\\">운명 거래하기/)
+  assert.match(cmdg, /if \(tradeButton && usesTradeSheets\(\)\) \{ runTradeAction\(tradeButton\); return; \}/)
+})
