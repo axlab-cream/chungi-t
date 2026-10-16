@@ -31,6 +31,7 @@ import type { Request, Response } from 'express'
 import { analyzeSaju } from '../saju/analyzer.js'
 import { readBirthClock, projectUnknownBirthTime } from '../saju/birth-time-certainty.js'
 import { analysisForReading, markBirthTimeReading, analysisForNewReport, readsSixChars, withholdsBirthTime } from '../saju/unknown-time-reading.js'
+import { freePreviewForService } from '../report/free-preview.js'
 import { calculateFortuneCycle } from '../saju/fortune-cycle.js'
 import { isOpenAiConfigured } from '../llm/openai-adapter.js'
 import { fetchPungsuTerrainEvidence } from '../pungsu/dataset-client.js'
@@ -1762,6 +1763,8 @@ function buildUiAnalysisPayload(rawAnalysis: SajuAnalysis, birth: BirthInput, re
     tenGods: analysis.tenGods,
     fortune: analysis.fortune,
     preview: analysis.preview,
+    // 천명 무료 화면 개인 문단(AI 없이 미리 써 둔 문장 조합). 켠 서비스만 들어간다.
+    freePreview: freePreviewForService(analysis, birth, context),
     report,
     summary: analysis.summary,
   }, context.birthTimeKnown !== false, sixChar)

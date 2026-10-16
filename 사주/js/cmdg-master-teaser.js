@@ -31,7 +31,7 @@
     var personal=paras([
       '태어난 날의 중심은 '+(dm.ko||koPillar(dm.hanja))+' · '+names[day]+' 기운이야. '+meanings[day][0]+'을 네 사주의 기준으로 읽어. '+meanings[day][1],
       (noCounts?'':names[dominant]+' 기운이 '+counts[dominant]+'개로 가장 많아. '+(zeros.length?zeros.map(function(k){return names[k];}).join('·')+' 기운은 0개로 잡혀. 없다고 그 능력까지 없다는 뜻은 아니야. 의식적으로 챙길 과정을 돌아보는 힌트로 보면 돼.':'다섯 기운이 모두 있어. 개수만으로 좋고 나쁨을 나누기보다 서로 어떻게 쓰이는지 봐야 해.')),
-      state.concern?'지금 적어 준 고민은 “'+state.concern+'”이네. 이 기질이 그 상황에서 어떻게 드러나는지 떠올리며 읽어 봐.':'겉으로 보이는 반응과 안에서 생각한 시간이 꼭 같지는 않잖아. 최근 있었던 일 하나를 떠올리며 이 해석과 맞는 부분을 살펴봐.'
+      '겉으로 보이는 반응과 안에서 생각한 시간이 꼭 같지는 않잖아. 최근 있었던 일 하나를 떠올리며 이 해석과 맞는 부분을 살펴봐.'
     ]);
     var f=a.fortune||{},rows=Array.isArray(f.daewoon)?f.daewoon:[],index=rows.findIndex(function(r){return r.pillar===f.currentDaewoon;}),current=rows[index],next=index>=0?rows[index+1]:null;
     var flow=paras([
@@ -58,6 +58,13 @@
       relationship[rel]||'사주만으로 상대의 마음이나 앞으로 만날 사람을 알 수는 없어. 실제 대화와 행동을 함께 봐야 해.',
       '어떤 사랑을 해 왔는지는 이 숫자만으로 알 수 없어. 최근 편했던 순간과 서운했던 순간을 하나씩 떠올려 봐. 상대에게 바라는 것과 스스로 지킬 것을 나누는 데서 시작하는 거야.'
     ]);
+    // 서버가 미리 써 둔 문장 조합(freePreview)을 보내면 개인 문단은 그걸 쓴다. 무료 화면엔 고민 내용을 넣지 않는다(2026-10-16).
+    var fp=a.freePreview;
+    if(fp&&Array.isArray(fp.now)&&Array.isArray(fp.luck)&&Array.isArray(fp.money)&&Array.isArray(fp.love)){
+      var who=String(state.name||'').trim();
+      var named=function(xs){return xs.map(function(s){return who?String(s).split('{이름}').join(who):String(s).replace(/\{이름\},\s*/g,'');});};
+      personal=paras(named(fp.now));flow=paras(named(fp.luck));wealth=paras(named(fp.money));love=paras(named(fp.love));
+    }
     var pillars='<ol class="intro-pillars" aria-label="사주 기둥">'+['year','month','day','hour'].filter(function(k){return !(k==='hour'&&unknown);}).map(function(k,i){return '<li><strong>'+esc(a.pillars[k]&&(a.pillars[k].ko||koPillar(a.pillars[k].hanja))||'미확인')+'</strong>'+['년','월','일','시'][i]+'</li>';}).join('')+'</ol>';
     var values={name:esc(name),pillars:pillars,personality:personal,flow:flow,wealth:wealth,love:love,concern:esc(concern),flowQuote:esc(current?'지금의 '+koPillar(current.pillar)+' 흐름에서':'지금의 흐름부터')+'<br>다음 선택을 살펴보자',wealthQuote:esc(names[day]+'와 '+names[wealthKey]+'의 관계')+'<br>돈을 대하는 방식을 보자'};
     return '<article class="story sample-story sub-result cmdg-master-teaser">'+TEMPLATE.replace(/@@(\w+)@@/g,function(_,k){return values[k]||'';})+'</article>';
